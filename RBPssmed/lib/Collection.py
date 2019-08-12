@@ -7,9 +7,9 @@
 # Created: Fri Jan 12 14:01:18 2018 (+0100)
 # Version:
 # Package-Requires: ()
-# Last-Updated: Mon Aug 12 12:22:02 2019 (+0200)
+# Last-Updated: Mon Aug 12 15:00:43 2019 (+0200)
 #           By: Joerg Fallmann
-#     Update #: 193
+#     Update #: 197
 # URL:
 # Doc URL:
 # Keywords:
@@ -61,14 +61,12 @@
 # # sys.argv[0] also fails, because it doesn't not always contains the path.
 
 # own modules
-from lib.logger import logging, makelogdir
+from lib.logger import makelogdir, setup_logger
 # Create log dir
 makelogdir('logs')
-logging.basicConfig(filename='logs/RBPssmed_Collection.log',
-                    level=logging.DEBUG,
-                    format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
-                    datefmt='%m-%d %H:%M',
-                    filemode='w')
+# Define loggers
+clog = setup_logger(name=__name__, log_file='logs/Collection.log', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='INFO')
+streamlog = setup_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='DEBUG' )
 
 import numpy as np
 import heapq
@@ -86,15 +84,6 @@ from collections import defaultdict
 #Biopython stuff
 from Bio import SeqIO
 from Bio.Seq import Seq
-
-try:
-    clog=logging.getLogger('Collection')
-except Exception as err:
-    exc_type, exc_value, exc_tb = sys.exc_info()
-    tbe = tb.TracebackException(
-        exc_type, exc_value, exc_tb,
-    )
-    clog.error(''.join(tbe.format()))
 
 # Code:All subs from here on
 def create_kmers(choices, length):

@@ -7,9 +7,9 @@
 # Created: Mon Aug 12 10:26:55 2019 (+0200)
 # Version:
 # Package-Requires: ()
-# Last-Updated: Mon Aug 12 13:05:09 2019 (+0200)
+# Last-Updated: Mon Aug 12 15:50:31 2019 (+0200)
 #           By: Joerg Fallmann
-#     Update #: 21
+#     Update #: 43
 # URL:
 # Doc URL:
 # Keywords:
@@ -45,27 +45,69 @@
 
 # Code:
 import logging
+import multiprocessing
 import os, sys, inspect
 import traceback as tb
 
-class logger:
+def makelogdir(logdir):
+    if not os.path.isabs(logdir):
+        logdir =  os.path.abspath(logdir)
+    if not os.path.exists(logdir):
+        os.makedirs(logdir)
+    return logdir
 
+def setup_logger(name, log_file, filemode='w', logformat=None, datefmt=None, level='INFO', proc=1):
+    """Function setup as many loggers as you want"""
+
+    if proc > 1:
+        logger = multiprocessing.get_logger()  # does not take name argument
+    else:
+        logger = logging.getLogger(name)
+    if log_file is not 'stderr':
+        handler = logging.FileHandler(log_file)
+    else:
+        handler = logging.StreamHandler()
+
+    handler.setFormatter(logging.Formatter(fmt=logformat,datefmt=datefmt))
+
+    logger.setLevel(level)
+    logger.addHandler(handler)
+
+    return logger
+
+def setup_multiprocess_logger(name, log_file, filemode='w', logformat=None, datefmt=None, level='INFO'):
+    """Function setup as many loggers as you want"""
+
+    logger = multiprocessing.get_logger() # does not take name argument
+    if log_file is not 'stderr':
+        handler = logging.FileHandler(log_file)
+    else:
+        handler = logging.StreamHandler()
+
+    handler.setFormatter(logging.Formatter(fmt=logformat,datefmt=datefmt))
+
+    logger.setLevel(level)
+    logger.addHandler(handler)
+
+    return logger
+
+if __name__ == '__main__':
     try:
         # set up logging to file
-        logging.basicConfig(format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
-                            datefmt='%m-%d %H:%M')
+        logging=setup_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='DEBUG')
+
         # define a Handler which writes INFO messages or higher to the sys.stderr
-        console = logging.StreamHandler()
-        console.setLevel(logging.INFO)
+        #console = logging.StreamHandler()
+        #console.setLevel(logging.INFO)
         # set a format which is simpler for console use
-        formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
+        #formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
         # tell the handler to use this format
-        console.setFormatter(formatter)
+        #console.setFormatter(formatter)
         # add the handler to the root logger
-        logging.getLogger('').addHandler(console)
+        #logging.getLogger('').addHandler(console)
 
         # Now, we can log to the root logger, or any other logger. First the root...
-        logging.info('Imported logger.py')
+        #logging.info('Imported logger.py')
         # Now, use this in code defining a couple of other loggers which might represent areas in your
         # application, e.g.:
         #log = logging.getLogger('logger.main')
@@ -77,12 +119,6 @@ class logger:
         )
         logging.error(''.join(tbe.format()))
 
-def makelogdir(logdir):
-    if not os.path.isabs(logdir):
-        logdir =  os.path.abspath(logdir)
-    if not os.path.exists(logdir):
-        os.makedirs(logdir)
-    return logdir
 
 #def eprint(log, *args, **kwargs):
 #    log.error(*args, **kwargs)
