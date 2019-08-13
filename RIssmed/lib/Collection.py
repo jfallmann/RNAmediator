@@ -1,49 +1,24 @@
-# Collection.py ---
-#
-# Filename: Collection.py
-# Description:
-# Author: Joerg Fallmann
-# Maintainer:
-# Created: Fri Jan 12 14:01:18 2018 (+0100)
-# Version:
-# Package-Requires: ()
-# Last-Updated: Mon Aug 12 15:00:43 2019 (+0200)
-#           By: Joerg Fallmann
-#     Update #: 197
-# URL:
-# Doc URL:
-# Keywords:
-# Compatibility:
-#
-#
-
-# Commentary:
-# This is a collection of python subs used in many of the scripts
-#
-#
-#
-
-# Change Log:
-#
-#
-#
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or (at
-# your option) any later version.
-#
-# This program is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-# General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-#
-#
-
-#import os, sys, inspect
+### Collection.py ---
+##
+## Filename: Collection.py
+## Description:
+## Author: Joerg Fallmann
+## Maintainer:
+## Created: Thu Sep  6 09:02:18 2018 (+0200)
+## Version:
+## Package-Requires: ()
+## Last-Updated: Tue Aug 13 11:44:15 2019 (+0200)
+##           By: Joerg Fallmann
+##     Update #: 162
+## URL:
+## Doc URL:
+## Keywords:
+## Compatibility:
+##
+######################################################################
+##
+### Commentary:
+###import os, sys, inspect
 # # realpath() will make your script run, even if you symlink it :)
 # cmd_folder = os.path.dirname(os.path.realpath(os.path.abspath( inspect.getfile( inspect.currentframe() )) ))
 # if cmd_folder not in sys.path:
@@ -59,15 +34,45 @@
 # # __file__ fails if the script is called in different ways on Windows.
 # # __file__ fails if someone does os.chdir() before.
 # # sys.argv[0] also fails, because it doesn't not always contains the path.
+##
+##
+######################################################################
+##
+### Change Log:
+##
+##
+######################################################################
+##
+## This program is free software: you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or (at
+## your option) any later version.
+##
+## This program is distributed in the hope that it will be useful, but
+## WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+## General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+##
+######################################################################
+##
+### Code:
+### IMPORTS
+import os, sys, inspect
 
-# own modules
-from lib.logger import makelogdir, setup_logger
+##load own modules
+from lib.logger import makelogdir, setup_multiprocess_logger
 # Create log dir
 makelogdir('logs')
 # Define loggers
-clog = setup_logger(name=__name__, log_file='logs/Collection.log', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='INFO')
-streamlog = setup_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='DEBUG' )
+scriptname=os.path.basename(__file__)
+streamlog = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='WARNING')
+clog = setup_multiprocess_logger(name=scriptname, log_file='logs/'+scriptname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='INFO')
+from lib.Collection import *
 
+##other modules
 import numpy as np
 import heapq
 from operator import itemgetter
@@ -87,6 +92,7 @@ from Bio.Seq import Seq
 
 # Code:All subs from here on
 def create_kmers(choices, length):
+    logid = scriptname+'.create_kmers: '
     try:
         #     choices=['A','T','G','C']
         bases = list(choices)
@@ -99,9 +105,10 @@ def create_kmers(choices, length):
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
         )
-        clog.error(''.join(tbe.format()))
+        clog.error(logid+''.join(tbe.format()))
 
 def randseq(alphabet, length):
+    logid = scriptname+'.randseq: '
     try:
         l=''
         for i in range(length):
@@ -112,9 +119,10 @@ def randseq(alphabet, length):
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
         )
-        clog.error(''.join(tbe.format()))
+        clog.error(logid+''.join(tbe.format()))
 
 def weightedrandseq(alphabet, probs , length):
+    logid = scriptname+'.weightedrandseq: '
     try:
         seq=[]
         for i in alphabet:
@@ -133,10 +141,10 @@ def weightedrandseq(alphabet, probs , length):
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
         )
-        clog.error(''.join(tbe.format()))
-
+        clog.error(logid+''.join(tbe.format()))
 
 def removekey(d, key):
+    logid = scriptname+'.removekey: '
     try:
         r = dict(d)
         del r[key]
@@ -146,9 +154,10 @@ def removekey(d, key):
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
         )
-        clog.error(''.join(tbe.format()))
+        clog.error(logid+''.join(tbe.format()))
 
 def getlowest_list(a, n):
+    logid = scriptname+'.getlowest_list: '
     try:
         if n > len(a) - 1:
             b = len(a) - 1
@@ -163,9 +172,10 @@ def getlowest_list(a, n):
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
         )
-        clog.error(''.join(tbe.format()))
+        clog.error(logid+''.join(tbe.format()))
 
 def gethighest_list(a, n):
+    logid = scriptname+'.gethighest_list: '
     try:
         if len(a)-n < 0:
             b = len(a)-1
@@ -180,9 +190,10 @@ def gethighest_list(a, n):
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
         )
-        clog.error(''.join(tbe.format()))
+        clog.error(logid+''.join(tbe.format()))
 
 def getlowest_dict(a, n):
+    logid = scriptname+'.getlowest_dict: '
     try:
         if n > len(a):
             b = len(a)
@@ -197,9 +208,10 @@ def getlowest_dict(a, n):
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
         )
-        clog.error(''.join(tbe.format()))
+        clog.error(logid+''.join(tbe.format()))
 
 def gethighest_dict(a, n):
+    logid = scriptname+'.gethighest_dict: '
     try:
         if n > len(a):
             b = len(a)
@@ -214,9 +226,10 @@ def gethighest_dict(a, n):
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
         )
-        clog.error(''.join(tbe.format()))
+        clog.error(logid+''.join(tbe.format()))
 
 def toarray(file, ulim=None):
+    logid = scriptname+'.toarray: '
     try:
         if not ulim:
             ulim = 1
@@ -227,9 +240,10 @@ def toarray(file, ulim=None):
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
         )
-        clog.error(''.join(tbe.format()))
+        clog.error(logid+''.join(tbe.format()))
 
 def convertcol(entry):
+    logid = scriptname+'.convertcol: '
     try:
         if isinvalid(entry):
 #       if entry is None or entry == 'NA' or entry == 'nan' or entry is np.nan:
@@ -241,9 +255,10 @@ def convertcol(entry):
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
         )
-        clog.error(''.join(tbe.format()))
+        clog.error(logid+''.join(tbe.format()))
 
 def parse_annotation_bed(bed, annotated=None):
+    logid = scriptname+'.parse_annotation_bed: '
     anno = defaultdict(list)
     if os.path.isfile(os.path.abspath(bed)):
         if '.gz' in bed:
@@ -269,9 +284,10 @@ def parse_annotation_bed(bed, annotated=None):
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
         )
-        clog.error(''.join(tbe.format()))
+        clog.error(logid+''.join(tbe.format()))
 
 def readConstraintsFromBed(bed, linewise=None):
+    logid = scriptname+'.readConstraintsFromBed: '
     cons = defaultdict(list)
     try:
         for line in bed:
@@ -289,9 +305,10 @@ def readConstraintsFromBed(bed, linewise=None):
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
         )
-        clog.error(''.join(tbe.format()))
+        clog.error(logid+''.join(tbe.format()))
 
 def readPairedConstraintsFromBed(bed, linewise=None):
+    logid = scriptname+'.readPairedConstraintsFromBed: '
     cons = defaultdict(list)
     try:
         for line in bed:
@@ -312,10 +329,10 @@ def readPairedConstraintsFromBed(bed, linewise=None):
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
         )
-        clog.error(''.join(tbe.format()))
-
+        clog.error(logid+''.join(tbe.format()))
 
 def readConstraintsFromCSV(csv, linewise=None):
+    logid = scriptname+'.readConstraintsCSV: '
     cons = defaultdict(
         lambda: defaultdict(list)
     )
@@ -333,9 +350,10 @@ def readConstraintsFromCSV(csv, linewise=None):
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
         )
-        clog.error(''.join(tbe.format()))
+        clog.error(logid+''.join(tbe.format()))
 
 def readConstraintsFromGeneric(generic, linewise=None):
+    logid = scriptname+'.readConstraintsFromGeneric: '
     cons = defaultdict(
         lambda: defaultdict(list)
     )
@@ -359,9 +377,10 @@ def readConstraintsFromGeneric(generic, linewise=None):
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
         )
-        clog.error(''.join(tbe.format()))
+        clog.error(logid+''.join(tbe.format()))
 
 def isvalid(x=None):
+    logid = scriptname+'.isvalid: '
     try:
         if x:
             if x in ('None', 'nan', 'none', 'NA', 'NAN') or x is None or x is np.nan:
@@ -375,9 +394,10 @@ def isvalid(x=None):
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
         )
-        clog.error(''.join(tbe.format()))
+        clog.error(logid+''.join(tbe.format()))
 
 def isinvalid(x=None):
+    logid = scriptname+'.isinvalid: '
     try:
         if x:
             if x in ('None', 'nan', 'none', 'NA', 'NAN') or x is None or x is np.nan:
@@ -391,105 +411,136 @@ def isinvalid(x=None):
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
         )
-        clog.error(''.join(tbe.format()))
+        clog.error(logid+''.join(tbe.format()))
 
 def makeoutdir(outdir):
-    if not os.path.isabs(outdir):
-        outdir =  os.path.abspath(outdir)
-    if not os.path.exists(outdir):
-        os.makedirs(outdir)
-    return outdir
+    logid = scriptname+'.makeoutdir: '
+    try:
+        if not os.path.isabs(outdir):
+            outdir =  os.path.abspath(outdir)
+        if not os.path.exists(outdir):
+            os.makedirs(outdir)
+        return outdir
+    except Exception as err:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+            exc_type, exc_value, exc_tb,
+        )
+        clog.error(logid+''.join(tbe.format()))
 
 def parseseq(sequence):
+    logid = scriptname+'.parseseq: '
+    try:
+        if (isinstance(sequence, StringIO)):
+            seq = sequence
 
-    if (isinstance(sequence, StringIO)):
-        seq = sequence
+        elif ( isinstance(sequence, str) and sequence == 'random' ):
+            rand = "\n".join(createrandseq(length, gc, number, alphabet))
+            seq = StringIO(rand)
+            o = gzip.open('Random.fa.gz','wb')
+            o.write(bytes(rand,encoding='UTF-8'))
+            o.close()
 
-    elif ( isinstance(sequence, str) and sequence == 'random' ):
-        rand = "\n".join(createrandseq(length, gc, number, alphabet))
-        seq = StringIO(rand)
-        o = gzip.open('Random.fa.gz','wb')
-        o.write(bytes(rand,encoding='UTF-8'))
-        o.close()
-
-    elif (isinstance(sequence, str) and os.path.isfile(sequence)):
-        if '.gz' in sequence :
-            seq = gzip.open(sequence,'rt')
+        elif (isinstance(sequence, str) and os.path.isfile(sequence)):
+            if '.gz' in sequence :
+                seq = gzip.open(sequence,'rt')
+            else:
+                seq = open(sequence,'rt')
         else:
-            seq = open(sequence,'rt')
-    else:
-        header = ">Seq1:default:nochrom:(.)"
-        s = sequence
-        seq = StringIO("{header}\n{s}".format(header=header, s=s))
+            header = ">Seq1:default:nochrom:(.)"
+            s = sequence
+            seq = StringIO("{header}\n{s}".format(header=header, s=s))
 
-    return seq
+        return seq
+
+    except Exception as err:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+            exc_type, exc_value, exc_tb,
+        )
+        clog.error(logid+''.join(tbe.format()))
 
 def plot_data(fa, raw, consu, consp, const, xs, cons, saveas, outdir):
-
+    logid = scriptname+'.plot_data: '
     anime = []
     #define xs for constraint line
     consl = []
-    for x in const:
-        consl.append(1.25)
-    width = 16/100*len(fa.seq)
-    height = 9
-    fig = plt.figure(figsize=(width,height),dpi=80)
-    ax1 = fig.add_subplot(111)
+    try:
+        for x in const:
+            consl.append(1.25)
+        width = 16/100*len(fa.seq)
+        height = 9
+        fig = plt.figure(figsize=(width,height),dpi=80)
+        ax1 = fig.add_subplot(111)
 
-    ax2 = ax1.twiny()
-#   line, = ax.plot([], [], lw=2)
-    plt.title("Blue-- = Unconstraint, Green-. = Unpaired, Red = Paired, Gray = Constraint",y=1.075)
-    ax1.set_ylabel('Prob unpaired')
-    ax1.set_xlabel('Nucleotides')
-#   plt.xticks(range(0,len(fa.seq)+1),(' '+fa.seq),size='small')
-#add lines to plot
-    ax1.plot(xs, raw, 'b-', xs, consu, 'g-', xs, consp, 'r-', const, consl, 'k-')
-    ax1.set_xlim(0,len(fa.seq)+1)
-    ax2.set_xlim(ax1.get_xlim())
-    ax1.set_xticks(range(0,len(fa.seq)+1))
-    ax1.set_xticklabels((' '+fa.seq), ha="right")
-#   ax2.set_xlabel(r"Modified x-axis: $1/(1+X)$")
-    ax2.set_xticks(range(1,len(fa.seq)+1))
-    ax2.set_xticklabels(range(1,len(fa.seq)+1), rotation=45, ha="right")
-# We change the fontsize of minor ticks label
-    ax1.tick_params(axis='both', which='major', labelsize=8)
-    ax1.tick_params(axis='both', which='minor', labelsize=4)
-    ax2.tick_params(axis='both', which='major', labelsize=5)
-    ax2.tick_params(axis='both', which='minor', labelsize=3)
-    goi, chrom = fa.id.split(':')[::2]
-    strand = str(fa.id.split(':')[3].split('(')[1][0])
-    fig.savefig('StruCons_'+goi+'_'+cons+'.'+saveas)
-    plt.close()
-#   anime.append(plt.plot(xs, raw, 'b-', xs, consu, 'g-', xs, consp, 'r-', const, consl, 'k-'))
-#   return anime
+        ax2 = ax1.twiny()
+        #   line, = ax.plot([], [], lw=2)
+        plt.title("Blue-- = Unconstraint, Green-. = Unpaired, Red = Paired, Gray = Constraint",y=1.075)
+        ax1.set_ylabel('Prob unpaired')
+        ax1.set_xlabel('Nucleotides')
+        #   plt.xticks(range(0,len(fa.seq)+1),(' '+fa.seq),size='small')
+        #add lines to plot
+        ax1.plot(xs, raw, 'b-', xs, consu, 'g-', xs, consp, 'r-', const, consl, 'k-')
+        ax1.set_xlim(0,len(fa.seq)+1)
+        ax2.set_xlim(ax1.get_xlim())
+        ax1.set_xticks(range(0,len(fa.seq)+1))
+        ax1.set_xticklabels((' '+fa.seq), ha="right")
+        #   ax2.set_xlabel(r"Modified x-axis: $1/(1+X)$")
+        ax2.set_xticks(range(1,len(fa.seq)+1))
+        ax2.set_xticklabels(range(1,len(fa.seq)+1), rotation=45, ha="right")
+        # We change the fontsize of minor ticks label
+        ax1.tick_params(axis='both', which='major', labelsize=8)
+        ax1.tick_params(axis='both', which='minor', labelsize=4)
+        ax2.tick_params(axis='both', which='major', labelsize=5)
+        ax2.tick_params(axis='both', which='minor', labelsize=3)
+        goi, chrom = fa.id.split(':')[::2]
+        strand = str(fa.id.split(':')[3].split('(')[1][0])
+        fig.savefig('StruCons_'+goi+'_'+cons+'.'+saveas)
+        plt.close()
+        #   anime.append(plt.plot(xs, raw, 'b-', xs, consu, 'g-', xs, consp, 'r-', const, consl, 'k-'))
+        #   return anime
+    except Exception as err:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+            exc_type, exc_value, exc_tb,
+        )
+        clog.error(logid+''.join(tbe.format()))
 
 def plot_temp(fa, raw, temp, xs, saveas, outdir):
-
-    anime = []
-    #define xs for constraint line
-    width = 16/100*len(fa.seq)
-    height = 9
-    fig = plt.figure(figsize=(width,height),dpi=80)
-    ax1 = fig.add_subplot(111)
-    plt.title("Blue-- = "+temp+" degree",y=1.075)
-    ax1.set_ylabel('Prob unpaired')
-    ax1.set_xlabel('Nucleotides')
-#add lines to plot
-    ax1.plot(xs, raw, 'b-')
-    ax1.set_xlim(0,len(fa.seq)+1)
-    ax1.set_xticks(range(0,len(fa.seq)+1))
-    ax1.set_xticklabels((' '+fa.seq))
-# We change the fontsize of minor ticks label
-    ax1.tick_params(axis='both', which='major', labelsize=8)
-    ax1.tick_params(axis='both', which='minor', labelsize=4)
-    goi, chrom = fa.id.split(':')[::2]
-    strand = str(fa.id.split(':')[3].split('(')[1][0])
-    fig.savefig('TempCons_'+goi+'_'+temp+'.'+saveas)
-    plt.close()
-#   anime.append(plt.plot(xs, raw, 'b-', xs, consu, 'g-', xs, consp, 'r-', const, consl, 'k-'))
-#   return anime
+    logid = scriptname+'.plot_temp: '
+    try:
+        anime = []
+        #define xs for constraint line
+        width = 16/100*len(fa.seq)
+        height = 9
+        fig = plt.figure(figsize=(width,height),dpi=80)
+        ax1 = fig.add_subplot(111)
+        plt.title("Blue-- = "+temp+" degree",y=1.075)
+        ax1.set_ylabel('Prob unpaired')
+        ax1.set_xlabel('Nucleotides')
+        #add lines to plot
+        ax1.plot(xs, raw, 'b-')
+        ax1.set_xlim(0,len(fa.seq)+1)
+        ax1.set_xticks(range(0,len(fa.seq)+1))
+        ax1.set_xticklabels((' '+fa.seq))
+        # We change the fontsize of minor ticks label
+        ax1.tick_params(axis='both', which='major', labelsize=8)
+        ax1.tick_params(axis='both', which='minor', labelsize=4)
+        goi, chrom = fa.id.split(':')[::2]
+        strand = str(fa.id.split(':')[3].split('(')[1][0])
+        fig.savefig('TempCons_'+goi+'_'+temp+'.'+saveas)
+        plt.close()
+        #   anime.append(plt.plot(xs, raw, 'b-', xs, consu, 'g-', xs, consp, 'r-', const, consl, 'k-'))
+        #   return anime
+    except Exception as err:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+            exc_type, exc_value, exc_tb,
+        )
+        clog.error(logid+''.join(tbe.format()))
 
 def calc_gibbs(fc):
+    logid = scriptname+'.calc_gibbs: '
     try:
         return fc.pf()[1]
     except Exception as err:
@@ -497,25 +548,26 @@ def calc_gibbs(fc):
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
             )
-        clog.error(''.join(tbe.format()))
+        clog.error(logid+''.join(tbe.format()))
 
 def get_bppm(tmp, start, end):
-
+    logid = scriptname+'.get_bppm: '
     bppm = []
-    for item in tmp:
-        for i in range(int(start),int(end)+1):
-            try:
+    try:
+        for item in tmp:
+            for i in range(int(start),int(end)+1):
                 if item[i] > 0.0:
                     bppm.append(str.join('\t',[str(tmp.index(item)), str(i), str(item[i])]))
-            except Exception as err:
-                exc_type, exc_value, exc_tb = sys.exc_info()
-                tbe = tb.TracebackException(
-                    exc_type, exc_value, exc_tb,
-                    )
-                clog.error(''.join(tbe.format()))
-    return bppm
+        return bppm
+    except Exception as err:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+            exc_type, exc_value, exc_tb,
+        )
+        clog.error(logid+''.join(tbe.format()))
 
 def calc_bpp(bppm):
+    logid = scriptname+'.get_bppm: '
     bpp = 0.0;
     try:
         for entry in bppm:
@@ -526,32 +578,32 @@ def calc_bpp(bppm):
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
             )
-        clog.error(''.join(tbe.format()))
+        clog.error(logid+''.join(tbe.format()))
 
     return bpp
 
 def calc_nrg(bpp):
-
+    logid = scriptname+'.calc_nrg: '
     #set kT for nrg2prob and vice versa calcs
     kT = 0.61632077549999997
-
     nrg = 0.0;
-    if bpp > 0.0:
-        try:
+    try:
+        if bpp > 0.0:
             nrg = -1 * kT * math.log(bpp)
-        except Exception as err:
-            exc_type, exc_value, exc_tb = sys.exc_info()
-            tbe = tb.TracebackException(
-                exc_type, exc_value, exc_tb,
-                )
-            clog.error(''.join(tbe.format()))
-    return nrg
+        return nrg
+    except Exception as err:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+            exc_type, exc_value, exc_tb,
+        )
+        clog.error(logid+''.join(tbe.format()))
 
 def print_region_up(data, seqlength=None, region=None):
     #   pp = pprint.PrettyPrinter(indent=4)#use with pp.pprint(datastructure)
     #   pp.pprint(data)
-    if data:
-        try:
+    logid = scriptname+'.print_region_up: '
+    try:
+        if data:
             ups=''
             x = int(region)
             for i in range(int(seqlength)):
@@ -561,21 +613,23 @@ def print_region_up(data, seqlength=None, region=None):
                     data[i][x] = round(data[i][x],7)
                 ups+=str(i+1)+"\t"+str(data[i][x])+"\n"
             return ups
-        except Exception as err:
-            exc_type, exc_value, exc_tb = sys.exc_info()
-            tbe = tb.TracebackException(
-                exc_type, exc_value, exc_tb,
-            )
-            clog.error(''.join(tbe.format()))
-    else:
-        clog.error('No up data to print')
-        return ups
+        else:
+            clog.error(logid+'No up data to print')
+            return ups
+
+    except Exception as err:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+            exc_type, exc_value, exc_tb,
+        )
+        clog.error(logid+''.join(tbe.format()))
 
 def print_up(data=None, seqlength=None, region=None):
     #   pp = pprint.PrettyPrinter(indent=4)#use with pp.pprint(datastructure)
     #   pp.pprint(data)
-    if data:
-        try:
+    logid = scriptname+'.print_up: '
+    try:
+        if data:
             ups=''
             for i in range(int(seqlength)):
                 for x in range(1,region+1):
@@ -585,19 +639,20 @@ def print_up(data=None, seqlength=None, region=None):
                         data[i][x] = round(data[i][x],7)
                 ups+=str(i+1)+"\t"+"\t".join(map(str,data[i][1:region+1]))+"\n"
             return ups
-        except Exception as err:
-            exc_type, exc_value, exc_tb = sys.exc_info()
-            tbe = tb.TracebackException(
-                exc_type, exc_value, exc_tb,
-            )
-            clog.error(''.join(tbe.format()))
-    else:
-        clog.error('No up data to print')
-        return ups
+        else:
+            clog.error(logid+'No up data to print')
+            return ups
+    except Exception as err:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+            exc_type, exc_value, exc_tb,
+        )
+        clog.error(logid+''.join(tbe.format()))
 
 def up_to_array(data=None, region=None, seqlength=None):
     #   pp = pprint.PrettyPrinter(indent=4)#use with pp.pprint(datastructure)
     #   pp.pprint(data[165553:165588])
+    logid = scriptname+'.up_to_array: '
     try:
         if data:
             entries=[]
@@ -615,16 +670,17 @@ def up_to_array(data=None, region=None, seqlength=None):
                 entries[i].extend(data[i][region])
             return np.array(entries)
         else:
-            clog.error('No up data to print')
+            clog.error(logid+'No up data to print')
             return np.array()
     except Exception as err:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
         )
-        clog.error(''.join(tbe.format()))
+        clog.error(logid+''.join(tbe.format()))
 
 def npprint(a, o=None):#, format_string ='{0:.2f}'):
+    logid = scriptname+'.npprint: '
     try:
         out = ''
         it = np.nditer(a, flags=['f_index'])
@@ -640,12 +696,22 @@ def npprint(a, o=None):#, format_string ='{0:.2f}'):
         tbe = tb.TracebackException(
         exc_type, exc_value, exc_tb,
         )
-        clog.error(''.join(tbe.format()))
+        clog.error(logid+''.join(tbe.format()))
 
 def printdiff(a, o=None):
-    np.savetxt(o, a, delimiter='\t')
+    logid = scriptname+'.printdiff: '
+    try:
+        np.savetxt(o, a, delimiter='\t')
+    except Exception as err:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+        exc_type, exc_value, exc_tb,
+        )
+        clog.error(logid+''.join(tbe.format()))
+
 
 def read_precalc_plfold(data, name, seq):
+    logid = scriptname+'.read_precalc_plfold: '
     try:
         for i in range(len(seq)):
             data.append([])
@@ -664,12 +730,13 @@ def read_precalc_plfold(data, name, seq):
         tbe = tb.TracebackException(
         exc_type, exc_value, exc_tb,
         )
-        clog.error(''.join(tbe.format()))
+        clog.error(logid+''.join(tbe.format()))
     return 1
 
 def pl_to_array(name, ulim):
+    logid = scriptname+'.pl_to_array: '
     try:
-        clog.info(name)
+        clog.debug('\t'.join([logid,name]))
         return np.array(np.loadtxt(name, usecols=ulim, unpack=True, delimiter='\t'))
 #        data = []
 #        with gzip.open(name,'rt') as o:
@@ -682,24 +749,27 @@ def pl_to_array(name, ulim):
         tbe = tb.TracebackException(
         exc_type, exc_value, exc_tb,
         )
-        clog.error(''.join(tbe.format()))
+        clog.error(logid+''.join(tbe.format()))
 
 def idfromfa(id):
+    logid = scriptname+'.idfromfa: '
     goi, chrom, strand = [None, None, None]
     try:
         goi, chrom = id.split(':')[::2]
         strand = str(id.split(':')[3].split('(')[1][0])
     except:
-        clog.error('Fasta header is not in expected format, you will loose information on strand and chromosome')
+        clog.error(logid+'Fasta header is not in expected format, you will loose information on strand and chromosome')
         goi = id
         chrom, strand = ['na','na']
 
     if goi and chrom and strand:
         return [str(goi), str(chrom), str(strand)]
     else:
+        clog.error(logid+'Could not assign any value from fasta header, please check your fasta files')
         sys.exit('Could not assign any value from fasta header, please check your fasta files')
 
 def constrain_paired(fc, start, end):
+    logid = scriptname+'.constrain_paired: '
     try:
         for x in range(start, end+1):
             fc.hc_add_bp_nonspecific(x,0) #0 means without direction  ( $ d < 0 $: pairs upstream, $ d > 0 $: pairs downstream, $ d == 0 $: no direction)
@@ -709,9 +779,10 @@ def constrain_paired(fc, start, end):
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
             )
-        clog.error(''.join(tbe.format()))
+        clog.error(logid+''.join(tbe.format()))
 
 def constrain_unpaired(fc, start, end):
+    logid = scriptname+'.constrain_unpaired: '
     try:
         for x in range(start, end+1):
             fc.hc_add_up(x)
@@ -721,15 +792,33 @@ def constrain_unpaired(fc, start, end):
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
             )
-        clog.error(''.join(tbe.format()))
+        clog.error(logid+''.join(tbe.format()))
 
 def print_globaldicts():
-    for name, value in globals().copy().items():
-        print(name, value)
+    logid = scriptname+'.print_globaldicts: '
+    try:
+        for name, value in globals().copy().items():
+            print(name, value)
+    except Exception as err:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+            exc_type, exc_value, exc_tb,
+            )
+        clog.error(logid+''.join(tbe.format()))
+
 
 def print_globallists():
-    for name, value in globals().deepcopy().items():
-        print(name, value)
+    logid = scriptname+'.print_globallists: '
+    try:
+        for name, value in globals().deepcopy().items():
+            print(name, value)
+    except Exception as err:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+            exc_type, exc_value, exc_tb,
+            )
+        clog.error(logid+''.join(tbe.format()))
+
 
 #def bpp_callback(v, v_size, i, maxsize, what, data):
 #   if what & RNA.PROBS_WINDOW_BPP:

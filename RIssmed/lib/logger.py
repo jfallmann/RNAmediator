@@ -7,9 +7,9 @@
 # Created: Mon Aug 12 10:26:55 2019 (+0200)
 # Version:
 # Package-Requires: ()
-# Last-Updated: Mon Aug 12 15:50:31 2019 (+0200)
+# Last-Updated: Tue Aug 13 11:45:59 2019 (+0200)
 #           By: Joerg Fallmann
-#     Update #: 43
+#     Update #: 55
 # URL:
 # Doc URL:
 # Keywords:
@@ -94,7 +94,7 @@ def setup_multiprocess_logger(name, log_file, filemode='w', logformat=None, date
 if __name__ == '__main__':
     try:
         # set up logging to file
-        logging=setup_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='DEBUG')
+        logging=setup_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='INFO')
 
         # define a Handler which writes INFO messages or higher to the sys.stderr
         #console = logging.StreamHandler()

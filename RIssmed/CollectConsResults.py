@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Thu Jan 17 16:19:16 2019 (+0100)
+## Last-Updated: Tue Aug 13 15:13:26 2019 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 118
+##     Update #: 154
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -60,8 +60,20 @@
 ######################################################################
 ##
 ### Code:
-
+### IMPORTS
 import os, sys, inspect
+
+##load own modules
+from lib.Collection import *
+from lib.logger import makelogdir, setup_multiprocess_logger
+# Create log dir
+makelogdir('logs')
+# Define loggers
+scriptname=os.path.basename(__file__)
+streamlog = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='WARNING')
+log = setup_multiprocess_logger(name=scriptname, log_file='logs/'+scriptname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='DEBUG')
+
+##other modules
 import glob
 import argparse
 from io import StringIO
@@ -86,15 +98,6 @@ from multiprocessing import Manager, Pool
 #Biopython stuff
 from Bio import SeqIO
 from Bio.Seq import Seq
-#load own modules
-cmd_subfolder = os.path.join(os.path.dirname(os.path.realpath(os.path.abspath( inspect.getfile( inspect.currentframe() )) )),"../lib")
-if cmd_subfolder not in sys.path:
-    sys.path.insert(0, cmd_subfolder)
-from Collection import *
-
-#sys.path=[str(os.getenv('HOME')+"/Work/Scripts/Python/")] + sys.path
-#sys.path=[str(os.getenv('HOME')+"/Work/Scripts/Python/lib")] + sys.path
-#sys.path=[str(os.getenv('HOME')+"/Work/Scripts/Python/Folding")] + sys.path
 
 #parse args
 def parseargs():
@@ -110,10 +113,12 @@ def parseargs():
     return parser.parse_args()
 
 def screen_genes(pat, cutoff, border, ulim, procs, roi, outdir, genes):
+
+    logid = scriptname+'.screen_genes: '
     try:
         #set path for output
         if outdir:
-            printlog('Printing to ' + outdir)
+            log.info(logid+'Printing to ' + outdir)
             if not os.path.isabs(outdir):
                 outdir =  os.path.abspath(outdir)
             if not os.path.exists(outdir):
@@ -127,13 +132,15 @@ def screen_genes(pat, cutoff, border, ulim, procs, roi, outdir, genes):
 
         genecoords = parse_annotation_bed(genes) #get genomic coords to print to bed later, should always be just one set of coords per gene
 
+        log.debug(logid+str(genecoords))
+
         # Create process pool with processes
         num_processes = procs or 1
         pool = multiprocessing.Pool(processes=num_processes, maxtasksperchild=1)
 
         for goi in genecoords:
 
-            printlog('Working on ' + goi)
+            log.info(logid+'Working on ' + goi)
             gs, ge = map(int, genecoords[goi][0].split(sep='-'))
 
             #get files with specified pattern
@@ -154,8 +161,17 @@ def screen_genes(pat, cutoff, border, ulim, procs, roi, outdir, genes):
             paired = [os.path.abspath(i) for i in p]
             unpaired = [os.path.abspath(i) for i in u]
 
-            for i in range(len(r)):
-                pool.apply_async(judge_diff, args=(raw[i], u[i], p[i], gs, ge, ulim, cutoff, border, outdir),error_callback=eprint)
+            log.debug([','.join(raw), ','.join(paired), ','.join(unpaired)])
+
+            try:
+                for i in range(len(r)):
+                    pool.apply_async(judge_diff, args=(raw[i], u[i], p[i], gs, ge, ulim, cutoff, border, outdir))
+            except Exception as err:
+                exc_type, exc_value, exc_tb = sys.exc_info()
+                tbe = tb.TracebackException(
+                    exc_type, exc_value, exc_tb,
+                )
+                log.error(logid+''.join(tbe.format()))
 
         pool.close()
         pool.join()
@@ -165,19 +181,18 @@ def screen_genes(pat, cutoff, border, ulim, procs, roi, outdir, genes):
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
             )
-        with open('error','a') as h:
-            print(''.join(tbe.format()), file=h)
-
+        log.error(logid+''.join(tbe.format()))
 
 def judge_diff(raw, u, p, gs, ge, ulim, cutoff, border, outdir):
 
+    logid = scriptname+'.judge_diff: '
     try:
         goi, chrom, strand, cons, reg, f, window, span = map(str,os.path.basename(raw).split(sep='_'))
         cs, ce = map(int, cons.split(sep='-'))
         ws, we = map(int, reg.split(sep='-'))
 
-        cs = cs - ws #fit to window and make 0-based
-        ce = ce - ws #fit to window and make 0-based
+        cs = cs - ws - 1#fit to window and make 0-based
+        ce = ce - ws - 1#fit to window and make 0-based
         if strand is not '-':
             ws = ws + gs -1 #get genomic coords
             we = we + gs
@@ -188,7 +203,7 @@ def judge_diff(raw, u, p, gs, ge, ulim, cutoff, border, outdir):
 
         border1, border2 = map(float,border.split(',')) #defines how big a diff has to be to be of importance
 
-        printlog('Continuing calculation with cutoff: ' + str(cutoff) + ' and borders ' + str(border1) + ' and ' + str(border2))
+        log.info(logid+'Continuing calculation with cutoff: ' + str(cutoff) + ' and borders ' + str(border1) + ' and ' + str(border2))
 
         out = {}
         out['p'] = []
@@ -217,9 +232,7 @@ def judge_diff(raw, u, p, gs, ge, ulim, cutoff, border, outdir):
                             gend = gpos + ulim
                             gcons = str(we-ce-1)+'-'+str(we-cs)
 
-#                        gcons = str(cs+ws)+'-'+str(ce+ws)
-
-                        out['u'].append('\t'.join([str(chrom), str(gpos), str(gend), str(goi) + '|' + str(cons) + '|' + str(gcons), str(uc[pos]), str(strand), str(dist), str(noc[pos])]))
+                        out['u'].append('\t'.join([str(chrom), str(gpos), str(gend), str(goi) + '|' + str(cons) + '|' + str(gcons), str(uc[pos]), str(strand), str(dist), str(int(noc[pos]))]))
 
                     if border1 < pc[pos] and pc[pos] < border2:
                         if ce < pos:# get distance up or downstream
@@ -236,7 +249,7 @@ def judge_diff(raw, u, p, gs, ge, ulim, cutoff, border, outdir):
                             gend = gpos + ulim
                             gcons = str(we-ce-1)+'-'+str(we-cs)
 
-                        out['p'].append('\t'.join([str(chrom), str(gpos), str(gend), str(goi) + '|' + str(cons) + '|' + str(gcons), str(pc[pos]), str(strand), str(dist), str(noc[pos])]))
+                        out['p'].append('\t'.join([str(chrom), str(gpos), str(gend), str(goi) + '|' + str(cons) + '|' + str(gcons), str(pc[pos]), str(strand), str(dist), str(int(noc[pos]))]))
 
         savelists(out, outdir)
 
@@ -245,10 +258,11 @@ def judge_diff(raw, u, p, gs, ge, ulim, cutoff, border, outdir):
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
             )
-        with open('error','a') as h:
-            print(''.join(tbe.format()), file=h)
+        log.error(logid+''.join(tbe.format()))
 
 def savelists(out, outdir):
+
+    logid = scriptname+'.savelist: '
     try:
         if len(out['u']) > 0:
             o = gzip.open(os.path.abspath(os.path.join(outdir, 'Collection_unpaired.bed.gz')), 'ab')
@@ -263,14 +277,25 @@ def savelists(out, outdir):
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
             )
-        with open('error','a') as h:
-            print(''.join(tbe.format()), file=h)
+        log.error(logid+''.join(tbe.format()))
 
 ####################
 ####    MAIN    ####
 ####################
+
 if __name__ == '__main__':
-    args=parseargs()
-    screen_genes(args.pattern, args.cutoff, args.border, args.ulimit, args.procs, args.roi, args.outdir, args.genes)
+
+    logid = scriptname+'.main: '
+    try:
+        args=parseargs()
+        log.info(logid+'Running '+scriptname+' on '+str(args.procs)+' cores')
+        screen_genes(args.pattern, args.cutoff, args.border, args.ulimit, args.procs, args.roi, args.outdir, args.genes)
+    except Exception as err:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+            exc_type, exc_value, exc_tb,
+        )
+        log.error(logid+''.join(tbe.format()))
+
 ######################################################################
 ### CollectConsResults.py ends here

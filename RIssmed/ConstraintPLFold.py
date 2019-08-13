@@ -1,65 +1,88 @@
 #!/usr/bin/env python3
-# ConstraintPLFold.py ---
+### ConstraintPLFold.py ---
+##
+## Filename: ConstraintPLFold.py
+## Description:
+## Author: Joerg Fallmann
+## Maintainer:
+## Created: Thu Sep  6 09:02:18 2018 (+0200)
+## Version:
+## Package-Requires: ()
+## Last-Updated: Tue Aug 13 15:20:23 2019 (+0200)
+##           By: Joerg Fallmann
+##     Update #: 143
+## URL:
+## Doc URL:
+## Keywords:
+## Compatibility:
+##
+######################################################################
+##
+### Commentary:
+###import os, sys, inspect
+# # realpath() will make your script run, even if you symlink it :)
+# cmd_folder = os.path.dirname(os.path.realpath(os.path.abspath( inspect.getfile( inspect.currentframe() )) ))
+# if cmd_folder not in sys.path:
+#     sys.path.insert(0, cmd_folder)
 #
-# Filename: ConstraintPLFold.py
-# Description:
-# Author: Joerg Fallmann
-# Maintainer:
-# Created: Mon Oct 16 17:18:42 2017 (+0200)
-# Version:
-# Package-Requires: ()
-# Last-Updated: Mon Aug 12 16:44:54 2019 (+0200)
-#       By: Joerg Fallmann
-#     Update #: 2297
-# URL:
-# Doc URL:
-# Keywords:
-# Commentary:
-# TODO:
-# Animations per constraint if not sliding
-# Constrain temp needs option to randomly select windows for long sequences
+# # Use this if you want to include modules from a subfolder
+# cmd_subfolder = os.path.join(os.path.dirname(os.path.realpath(os.path.abspath( inspect.getfile( inspect.currentframe() )) )),"lib")
+# if cmd_subfolder not in sys.path:
+#     sys.path.insert(0, cmd_subfolder)
 #
-
-# TODO Log:
-#
-#
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or (at
-# your option) any later version.
-#
-# This program is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-# General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-#
-#
-
-# Code:
-# IMPORTS
+# # Info:
+# # cmd_folder = os.path.dirname(os.path.abspath(__file__)) # DO NOT USE __file__ !!!
+# # __file__ fails if the script is called in different ways on Windows.
+# # __file__ fails if someone does os.chdir() before.
+# # sys.argv[0] also fails, because it doesn't not always contains the path.
+############
+#find ffmpeg executable
+#import shutil
+#plt.rcParams['animation.ffmpeg_path'] = shutil.which("ffmpeg")
+#plt.rc('verbose', level='debug-annoying', fileo=sys.stdout)
+#matplotlib.verbose.set_level("helpful")
+#plt.rc('animation', html='html5')
+##
+######################################################################
+##
+### Change Log:
+##
+##
+######################################################################
+##
+## This program is free software: you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or (at
+## your option) any later version.
+##
+## This program is distributed in the hope that it will be useful, but
+## WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+## General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+##
+######################################################################
+##
+### Code:
+### IMPORTS
+import os, sys, inspect
 ##load own modules
-#cmd_subfolder = os.path.join(os.path.dirname(os.path.realpath(os.path.abspath( inspect.getfile( inspect.currentframe() )) )),"../lib")
-#if cmd_subfolder not in sys.path:
-#    sys.path.insert(0, cmd_subfolder)
-
+from lib.Collection import *
 from lib.logger import makelogdir, setup_multiprocess_logger
 # Create log dir
 makelogdir('logs')
 # Define loggers
-streamlog = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='DEBUG')
-log = setup_multiprocess_logger(name=__name__+'.main', log_file='logs/ConstraintPLFold.log', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='INFO')
+scriptname=os.path.basename(__file__)
+streamlog = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='WARNING')
+log = setup_multiprocess_logger(name=scriptname, log_file='logs/'+scriptname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='DEBUG')
 
-from lib.Collection import *
 import argparse
 import pprint
 from io import StringIO
 import time
 import math
-import os, sys, inspect
 import gzip
 import importlib
 import multiprocessing
@@ -75,13 +98,6 @@ import matplotlib
 from matplotlib import animation #, rc
 import matplotlib.pyplot as plt
 from random import choices, choice, shuffle # need this if tempprobing was choosen
-
-#find ffmpeg executable
-#import shutil
-#plt.rcParams['animation.ffmpeg_path'] = shutil.which("ffmpeg")
-#plt.rc('verbose', level='debug-annoying', fileo=sys.stdout)
-#matplotlib.verbose.set_level("helpful")
-#plt.rc('animation', html='html5')
 
 def parseargs():
     parser = argparse.ArgumentParser(description='Calculate base pairing probs of given seqs or random seqs for given window size, span and region.')
@@ -113,6 +129,8 @@ def parseargs():
 
 def preprocess(sequence, window, span, region, multi, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, plot, save, procs, vrna, temprange, outdir, verbosity=False, pattern=None, cutoff=None):
 
+    logid = 'ConstraintPLFold.preprocess: '
+
     #set path for output
     if outdir:
         if not os.path.isabs(outdir):
@@ -123,7 +141,7 @@ def preprocess(sequence, window, span, region, multi, unconstraint, unpaired, pa
         outdir = os.path.abspath(os.getcwd())
 
     if ( plot == '0' and not save):
-        log.error('Neither plot nor save are active, this script will take a long time and produce nothing, please activate at least one of the two!')
+        log.error(logid+'Neither plot nor save are active, this script will take a long time and produce nothing, please activate at least one of the two!')
         raise ValueError('Neither plot nor save are active, this script will take a long time and produce nothing, please activate at least one of the two!')
 
     mode = 'generic'
@@ -135,7 +153,7 @@ def preprocess(sequence, window, span, region, multi, unconstraint, unpaired, pa
             linewise = True
             if '.bed' in constrain:
 
-                log.info('Parsing constraints from Bed '+constrain)
+                log.info(logid+'Parsing constraints from Bed '+constrain)
 
                 if '.gz' in constrain:
                     f = gzip.open(constrain,'rt')
@@ -177,7 +195,7 @@ def preprocess(sequence, window, span, region, multi, unconstraint, unpaired, pa
                     tbe = tb.TracebackException(
                         exc_type, exc_value, exc_tb,
                     )
-                    log.error(''.join(tbe.format()))
+                    log.error(logid+''.join(tbe.format()))
 
             pool.close()
             pool.join()               #timeout
@@ -188,7 +206,7 @@ def preprocess(sequence, window, span, region, multi, unconstraint, unpaired, pa
             tbe = tb.TracebackException(
                 exc_type, exc_value, exc_tb,
                 )
-            log.error(''.join(tbe.format()))
+            log.error(logid+''.join(tbe.format()))
 
     else:
         try:
@@ -198,16 +216,15 @@ def preprocess(sequence, window, span, region, multi, unconstraint, unpaired, pa
             tbe = tb.TracebackException(
                 exc_type, exc_value, exc_tb,
                 )
-            log.error(''.join(tbe.format()))
+            log.error(logid+''.join(tbe.format()))
     return 1
 
 def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, plot, save, procs, vrna, temprange, outdir, verbosity=False, pattern=None, cutoff=None, seqnr=None, mode=None, constraintlist=None):
 
-    #set path for VRNA lib
+    logid = 'ConstraintPLFold.fold: '
+    #set path for VRNA lib if necessary
     if vrna:
         sys.path=[vrna] + sys.path
-    else:
-        sys.path=["${HOME}/anaconda3/lib/python3.6/site-packages"] + sys.path
     try:
         seq = parseseq(sequence)
 
@@ -225,7 +242,7 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
         tbe = tb.TracebackException(
         exc_type, exc_value, exc_tb,
         )
-        log.error(''.join(tbe.format()))
+        log.error(logid+''.join(tbe.format()))
         sys.exit()
 
     # Create process pool with processes
@@ -241,7 +258,7 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
         if pattern and pattern not in goi:
             next
         else:
-            log.info('Working on ' + goi + "\t" + fa.id)
+            log.info(logid+'Working on ' + goi + "\t" + fa.id)
 ##prepare plots
 #       if plot != '0':
 #           manager = Manager()
@@ -270,12 +287,12 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                         tbe = tb.TracebackException(
                             exc_type, exc_value, exc_tb,
                         )
-                        log.error(''.join(tbe.format()))
+                        log.error(logid+''.join(tbe.format()))
                         sys.exit()
                     data['up'] = res.get()
                 else:
                     #The hard work of folding this has already been done, so we just read in the results
-                    log.info('Found '+str(goi+'_'+unconstraint+'_'+str(window)+'_'+str(span)+'.gz')+', will read in data and not recalculate')
+                    log.info(logid+'Found '+str(goi+'_'+unconstraint+'_'+str(window)+'_'+str(span)+'.gz')+', will read in data and not recalculate')
                     data['up'] = read_precalc_plfold(data['up'], check, str(fa.seq))
 
                 an = up_to_array(data['up'],int(region),len(fa.seq))#convert to array for fast diff calc
@@ -293,11 +310,11 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                     tbe = tb.TracebackException(
                         exc_type, exc_value, exc_tb,
                         )
-                    log.error(''.join(tbe.format()))
+                    log.error(logid+''.join(tbe.format()))
 
             elif constrain == 'tempprobe':
                 probeargs = temprange.split(',')
-                log.info('Calculating cutoff probs for temperature constraint '+probeargs[0])
+                log.info(logid+'Calculating cutoff probs for temperature constraint '+probeargs[0])
                 ts, te = map(int,probeargs[0].split('-'))
                 if len(fa.seq) > window*multi:# If the sequence is very large and we only need a proxy of changes to get a border for the cutoff of CalcConsDiffs we randomly select 10 regions of size window of the sequence for folding
                     selection = ''
@@ -321,13 +338,13 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                 check = str(goi)+'_'+str(chrom)+'_'+str(strand)+'_'+unconstraint+'_'+str(window)+'.gz'
                 if ( os.path.isfile(check) ):
                     #The hard work of folding this has already been done, so we just read in the results
-                    log.info('Found '+check+', will read in data and not recalculate')
+                    log.info(logid+'Found '+check+', will read in data and not recalculate')
                     data['up'] = read_precalc_plfold(data['up'], check, str(fa.seq))
                     #convert to array for fast diff calc
                     an = up_to_array(data['up'],int(region),len(fa.seq))
 
                 if an[0] is np.nan or len(an) > len(fa.seq): #This means that the prob info was loaded from file or the raw sequence has not been folded yet, but we need a subsequence for the cutoff calculation, so we fold the subsequence
-                    log.info('Recalculating at default temp with subseq')
+                    log.info(logid+'Recalculating at default temp with subseq')
                     try:
                         res = [pool.apply_async(fold_unconstraint, args=(str(fa.seq), str(fa.id), region, multi, window, span, unconstraint, save, outdir))]
                     except Exception as err:
@@ -335,7 +352,7 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                         tbe = tb.TracebackException(
                             exc_type, exc_value, exc_tb,
                         )
-                        log.error(''.join(tbe.format()))
+                        log.error(logid+''.join(tbe.format()))
 
                     data['up'] = res.get()
                     an = up_to_array(data['up'],int(region),len(fa.seq))
@@ -349,7 +366,7 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                     tbe = tb.TracebackException(
                         exc_type, exc_value, exc_tb,
                         )
-                    log.error(''.join(tbe.format()))
+                    log.error(logid+''.join(tbe.format()))
 
             else:
                 conslist = []
@@ -358,7 +375,7 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                     if (os.path.isfile(os.path.abspath(constrain))):
                         constrain=os.path.abspath(constrain)
                         if '.bed' in constrain:
-                            log.info('Parsing constraints for fold from Bed '+constrain)
+                            log.info(logid+'Parsing constraints for fold from Bed '+constrain)
                             if '.gz' in constrain:
                                 f = gzip.open(constrain,'rt')
                             else:
@@ -382,7 +399,7 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                     try:
                         if goi in constraintlist:
                             conslist = constraintlist[goi]
-                            log.info('Calculating probs for '+goi+' with constraint from file ' + constrain)
+                            log.info(logid+'Calculating probs for '+goi+' with constraint from file ' + constrain)
                         elif 'generic' in constraintlist:
                             conslist = constraintlist['generic']
                         elif 'NOCONS' in constraintlist:
@@ -392,20 +409,20 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                                 end = start+conslength-1
                                 conslist.append(str(start)+'-'+str(end))
                         elif ',' in constrain:
-                            log.info('Calculating probs for constraint ' + constrain)
+                            log.info(logid+'Calculating probs for constraint ' + constrain)
                             constraintlist = constrain.split(',')
                         else:
-                            log.warning('Could not compute constraints for '+str(goi)+' May be missing in constraint file.')
+                            log.warning(logid+'Could not compute constraints for '+str(goi)+' May be missing in constraint file.')
                             continue
                     except Exception as err:
                         exc_type, exc_value, exc_tb = sys.exc_info()
                         tbe = tb.TracebackException(
                         exc_type, exc_value, exc_tb,
                         )
-                        log.error(''.join(tbe.format()))
+                        log.error(logid+''.join(tbe.format()))
 
                 elif constrain == 'file' or constrain == 'paired':
-                    log.info('Calculating probs for constraint from file ' + str(goi + '_constraints'))
+                    log.info(logid+'Calculating probs for constraint from file ' + str(goi + '_constraints'))
                     with open(goi+'_constraints','rt') as o:
                         for line in o:
                             conslist.append(line.rstrip())
@@ -417,7 +434,7 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                         end = start+conslength-1
                         conslist.append(str(start)+'-'+str(end))
                 else:
-                    log.info('Calculating probs for constraint ' + constrain)
+                    log.info(logid+'Calculating probs for constraint ' + constrain)
                     conslist = constrain.split(',')
 
                 log.debug(conslist)
@@ -431,7 +448,7 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                             tbe = tb.TracebackException(
                                 exc_type, exc_value, exc_tb,
                             )
-                            log.error(''.join(tbe.format()))
+                            log.error(logid+''.join(tbe.format()))
 
                         data['up'] = res.get()
 
@@ -443,7 +460,7 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                             [fstart, fend], [start, end] = [[int(x) for x in cn.split('-',1)] for cn in entry.split(':',1)]
                             cons = str(fstart)+'-'+str(fend)+':'+str(start)+'-'+str(end)
                             if start < 0 or fstart < 0 or end > len(fa.seq) or fend > len(fa.seq):
-                                log.warning('Constraint out of sequence bounds! skipping! '+','.join([len(fa.seq),str(start)+'-'+str(end),str(fstart)+'-'+str(fend)]) )
+                                log.warning(logid+'Constraint out of sequence bounds! skipping! '+','.join([len(fa.seq),str(start)+'-'+str(end),str(fstart)+'-'+str(fend)]) )
                                 continue
 
                         else:
@@ -452,21 +469,21 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                             cons = str(start)+'-'+str(end)+'_'+str(tostart)+'-'+str(toend)
 
                             if start < 0 or end > len(fa.seq):
-                                log.warning('Constraint out of sequence bounds! skipping! '+','.join(map(str,[len(fa.seq),str(start)+'-'+str(end)])) )
+                                log.warning(logid+'Constraint out of sequence bounds! skipping! '+','.join(map(str,[len(fa.seq),str(start)+'-'+str(end)])) )
                                 continue
 
                         if checkexisting(str(fa.id), paired, unpaired, cons, region, window, span, outdir):
-                            log.warning(str(cons)+' Exists for '+str(fa.id)+'! Skipping!')
+                            log.warning(logid+str(cons)+' Exists for '+str(fa.id)+'! Skipping!')
                             continue
 
-                        log.info('Calculating constraint\t' + entry)
+                        log.info(logid+'Calculating constraint\t' + entry)
                         const = np.array([start, end])
 
                         data = { 'up': [] }
                         an = None
 
                         if fstart is not None and fend is not None:
-                            log.info('Constraining to '+str(fstart) + ' and ' + str(fend))
+                            log.info(logid+'Constraining to '+str(fstart) + ' and ' + str(fend))
                             goi, chrom, strand = idfromfa(fa.id)
 
                             try:
@@ -476,7 +493,7 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                                 tbe = tb.TracebackException(
                                     exc_type, exc_value, exc_tb,
                                 )
-                                log.error(''.join(tbe.format()))
+                                log.error(logid+''.join(tbe.format()))
                         else:
                             try:
                                 pool.apply_async(constrain_seq, args=(str(fa.id), str(fa.seq), start, end, conslength, const, cons, window, span, region, multi, animations, xs, paired, unpaired, save, outdir, plot, data, an, unconstraint))
@@ -485,7 +502,7 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                                 tbe = tb.TracebackException(
                                     exc_type, exc_value, exc_tb,
                                 )
-                                log.error(''.join(tbe.format()))
+                                log.error(logid+''.join(tbe.format()))
 
 #       results = [p.get for p in res]   #collecting results, shouls not return values but make processes wait for workers to finish, Slows down everything, hopefully removable
     try:
@@ -496,13 +513,14 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
             )
-        log.error(''.join(tbe.format()))
+        log.error(logid+''.join(tbe.format()))
 
-    log.info("DONE: output in: " + str(outdir))
+    log.info(logid+"DONE: output in: " + str(outdir))
     return 1
 
 def parafold(sequence, window, span, region, multi, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, plot, save, procs, vrna, temprange, outdir, pattern, cutoff, seqnr):
 
+    logid = 'ConstraintPLFold.parafold: '
     seq = sequence
     #set path for VRNA lib
     if vrna:
@@ -522,7 +540,7 @@ def parafold(sequence, window, span, region, multi, unconstraint, unpaired, pair
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
         )
-        log.error(''.join(tbe.format()))
+        log.error(logid+''.join(tbe.format()))
 
     try:
         for fa in SeqIO.parse(seq,'fasta'):
@@ -532,7 +550,7 @@ def parafold(sequence, window, span, region, multi, unconstraint, unpaired, pair
             if pattern and pattern not in goi:
                 next
             else:
-                log.info('Working on ' + goi)
+                log.info(logid+'Working on ' + goi)
 
             # if plot != '0':
             # manager = Manager() ###AssertionError: daemonic processes are not allowed to have children
@@ -568,7 +586,7 @@ def parafold(sequence, window, span, region, multi, unconstraint, unpaired, pair
                         tbe = tb.TracebackException(
                             exc_type, exc_value, exc_tb,
                             )
-                        log.error(''.join(tbe.format()))
+                        log.error(logid+''.join(tbe.format()))
 
                     if save:
                         write_unconstraint(str(fa.id), str(fa.seq), unconstraint, data, int(region), str(window), str(span), outdir)
@@ -580,16 +598,16 @@ def parafold(sequence, window, span, region, multi, unconstraint, unpaired, pair
                     start,end = map(int,entry.split('-',1))
 
                     if start < 0 or end > len(fa.seq):
-                        log.warning('Constraint out of sequence bounds! skipping! '+','.join([len(fa.seq),str(start)+'-'+str(end)]))
+                        log.warning(logid+'Constraint out of sequence bounds! skipping! '+','.join([len(fa.seq),str(start)+'-'+str(end)]))
                         continue
 
-                    log.info('Calculating constraint\t' + entry)
+                    log.info(logid+'Calculating constraint\t' + entry)
                     tostart, toend = expand_window(start, end, window, multi, len(fa.seq))
 
                     seqtofold = str(fa.seq[tostart:toend]).upper()
                     const = np.array([start, end])
 
-                    log.info('Constraint: ' + str(entry) + '\tSeqlength: ' + str(len(fa.seq)) + '\tFoldlength: ' + str(len(seqtofold)) + ' : ' + str(tostart) + " - " + str(toend))
+                    log.info(logid+'Constraint: ' + str(entry) + '\tSeqlength: ' + str(len(fa.seq)) + '\tFoldlength: ' + str(len(seqtofold)) + ' : ' + str(tostart) + " - " + str(toend))
                     md = RNA.md()
                     md.max_bp_span = span
                     md.window_size = window
@@ -608,23 +626,23 @@ def parafold(sequence, window, span, region, multi, unconstraint, unpaired, pair
                         tbe = tb.TracebackException(
                             exc_type, exc_value, exc_tb,
                         )
-                        log.error(''.join(tbe.format()))
+                        log.error(logid+''.join(tbe.format()))
 
     except Exception as err:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
         )
-        log.error(''.join(tbe.format()))
+        log.error(logid+''.join(tbe.format()))
 
-    log.info("DONE: output in: " + str(outdir))
+    log.info(logid+"DONE: output in: " + str(outdir))
     return 1
 
 ##### Functions #####
 def constrain_seq(sid, seq, start, end, conslength, const, cons, window, span, region, multi, animations, xs, paired, unpaired, save, outdir, plot, data, an=None, unconstraint=None):
     #   DEBUGGING
     #   pp = pprint.PrettyPrinter(indent=4)#use with pp.pprint(datastructure)
-
+    logid = 'ConstraintPLFold.constrain_seq: '
     try:
         goi, chrom, strand = idfromfa(sid)
 
@@ -636,11 +654,11 @@ def constrain_seq(sid, seq, start, end, conslength, const, cons, window, span, r
         cons = str('-'.join([str(start),str(end)])+'_'+'-'.join([str(tostart),str(toend)]))
 
         if start < 0 or end > len(seq):
-            log.warning('Constraint out of sequence bounds! skipping! '+','.join([len(seq),str(start)+'-'+str(end)]) )
+            log.warning(logid+'Constraint out of sequence bounds! skipping! '+','.join([len(seq),str(start)+'-'+str(end)]) )
             return
 
         if checkexisting(sid, paired, unpaired, cons, region, window, span, outdir):
-            log.warning(str(cons)+' Existst for '+str(sid)+'! Skipping!')
+            log.warning(logid+str(cons)+' Existst for '+str(sid)+'! Skipping!')
             return
 
         #refresh model details
@@ -652,7 +670,7 @@ def constrain_seq(sid, seq, start, end, conslength, const, cons, window, span, r
         fc_p = RNA.fold_compound(seqtofold, md, RNA.OPTION_WINDOW)
         fc_u = RNA.fold_compound(seqtofold, md, RNA.OPTION_WINDOW)
 
-        log.info([sid, region, seqtofold, cons, start, end, tostart, start-tostart, end-tostart+1])
+        log.debug(''.join(map(str,[logid, sid, region, seqtofold, cons, start, end, tostart, start-tostart, end-tostart+1])))
 
         #enforce paired
         for x in range(start-tostart, end-tostart+1):
@@ -688,12 +706,12 @@ def constrain_seq(sid, seq, start, end, conslength, const, cons, window, span, r
         if not np.array_equal(an, au):
             diff_nu = an - au
         else:
-            log.info('No influence on Structure with unpaired constraint at ' + cons)
+            log.info(logid+'No influence on Structure with unpaired constraint at ' + cons)
             diff_nu = None
         if not np.array_equal(an, ap):
             diff_np = an - ap
         else:
-            log.info('No influence on Structure with paired constraint at ' + cons)
+            log.info(logid+'No influence on Structure with paired constraint at ' + cons)
             diff_np = None
 
         if plot == 'svg' or plot == 'png':
@@ -707,25 +725,25 @@ def constrain_seq(sid, seq, start, end, conslength, const, cons, window, span, r
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
             )
-        log.error(''.join(tbe.format()))
+        log.error(logid+''.join(tbe.format()))
 
     return 1
 
 def constrain_seq_paired(sid, seq, fstart, fend, start, end, conslength, const, cons, window, span, region, multi, animations, xs, paired, unpaired, save, outdir, plot, data, an, unconstraint):
     #   DEBUGGING
     #   pp = pprint.PrettyPrinter(indent=4)#use with pp.pprint(datastructure)
-
+    logid = 'ConstraintPLFold.constrain_seq_paired: '
     try:
         #we no longer fold the whole sequence but only the constraint region +- window size
         tostart, toend = expand_window(start, end, window, multi, len(seq))
         seqtofold = str(seq[tostart:toend]) ###TEST
 
         if start < 0 or end > len(seq) or fstart < 0 or fend > len(seq):
-            log.warning('Constraint out of sequence bounds! skipping! '+','.join([len(seq), str(start)+'-'+str(end), str(fstart)+'-'+str(fend)]) )
+            log.warning(logid+'Constraint out of sequence bounds! skipping! '+','.join([len(seq), str(start)+'-'+str(end), str(fstart)+'-'+str(fend)]) )
             return
 
         if checkexisting(sid, paired, unpaired, cons, region, window, span, outdir):
-            log.warning(str(cons)+' Existst for '+str(sid)+'! Skipping!')
+            log.warning(logid+str(cons)+' Existst for '+str(sid)+'! Skipping!')
             return
 
         cons = str('-'.join([str(start),str(end)])+'_'+'-'.join([str(tostart),str(toend)]))
@@ -779,12 +797,12 @@ def constrain_seq_paired(sid, seq, fstart, fend, start, end, conslength, const, 
         if not np.array_equal(an, au):
             diff_nu = an - au
         else:
-            log.info('No influence on Structure with unpaired constraint at ' + cons)
+            log.info(logid+'No influence on Structure with unpaired constraint at ' + cons)
             diff_nu = None
         if not np.array_equal(an, ap):
             diff_np = an - ap
         else:
-            log.info('No influence on Structure with paired constraint at ' + cons)
+            log.info(logid+'No influence on Structure with paired constraint at ' + cons)
             diff_np = None
 
         if plot == 'svg' or plot == 'png':
@@ -798,7 +816,7 @@ def constrain_seq_paired(sid, seq, fstart, fend, start, end, conslength, const, 
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
         )
-        log.error(''.join(tbe.format()))
+        log.error(logid+''.join(tbe.format()))
 
     return 1
 
@@ -840,7 +858,7 @@ def write_unconstraint(sid, seq, unconstraint, data, region, window, span, outdi
         tbe = tb.TracebackException(
         exc_type, exc_value, exc_tb,
         )
-        log.error(''.join(tbe.format()))
+        log.error(logid+''.join(tbe.format()))
 
     try:
         gr = str(sid.split(':')[3].split('(')[0])
@@ -872,7 +890,7 @@ def write_unconstraint(sid, seq, unconstraint, data, region, window, span, outdi
         tbe = tb.TracebackException(
         exc_type, exc_value, exc_tb,
         )
-        log.error(''.join(tbe.format()))
+        log.error(logid+''.join(tbe.format()))
     return 1
 
 def write_constraint(sid, seq, paired, unpaired, data_u, data_p, constrain, region, diff_nu, diff_np, window, span, outdir):
@@ -931,7 +949,7 @@ def write_constraint(sid, seq, paired, unpaired, data_u, data_p, constrain, regi
         tbe = tb.TracebackException(
         exc_type, exc_value, exc_tb,
         )
-        log.error(''.join(tbe.format()))
+        log.error(logid+''.join(tbe.format()))
     return 1
 
 def prepare_write_ucons(sid, seq, unconstraint, data, region, window, span, outdir, rawentry=None):
@@ -944,7 +962,7 @@ def prepare_write_ucons(sid, seq, unconstraint, data, region, window, span, outd
         tbe = tb.TracebackException(
         exc_type, exc_value, exc_tb,
         )
-        log.error(''.join(tbe.format()))
+        log.error(logid+''.join(tbe.format()))
 
     try:
         gr = str(sid.split(':')[3].split('(')[0])
@@ -962,7 +980,7 @@ def prepare_write_ucons(sid, seq, unconstraint, data, region, window, span, outd
                         if out and len(out)>1:
                             o.write(bytes(out,encoding='UTF-8'))
                         else:
-                            log.error("No output produced "+sid)
+                            log.error(logid+"No output produced "+sid)
             else:
                 if not os.path.exists(os.path.join(temp_outdir,str(goi+'_'+chrom+'_'+strand+'_'+unconstraint+'_'+str(gr)+'_'+window+'_'+str(span)+'.gz'))):
                     with gzip.open(os.path.join(temp_outdir,goi+'_'+chrom+'_'+strand+'_'+unconstraint+'_'+str(gr)+'_'+window+'_'+str(span)+'.gz'), 'wb') as o:
@@ -976,7 +994,7 @@ def prepare_write_ucons(sid, seq, unconstraint, data, region, window, span, outd
         tbe = tb.TracebackException(
         exc_type, exc_value, exc_tb,
         )
-        log.error(''.join(tbe.format()))
+        log.error(logid+''.join(tbe.format()))
     return 1
 
 def prepare_write_cons(sid, seq, paired, unpaired, data_u, data_p, constrain, region, diff_nu, diff_np, window, span, outdir):
@@ -989,7 +1007,7 @@ def prepare_write_cons(sid, seq, paired, unpaired, data_u, data_p, constrain, re
         tbe = tb.TracebackException(
         exc_type, exc_value, exc_tb,
         )
-        log.error(''.join(tbe.format()))
+        log.error(logid+''.join(tbe.format()))
 #print outputs to file or STDERR
     try:
         if paired != 'STDOUT':
@@ -1001,7 +1019,7 @@ def prepare_write_cons(sid, seq, paired, unpaired, data_u, data_p, constrain, re
                     if out and len(out)>1:
                         o.write(bytes(out,encoding='UTF-8'))
                     else:
-                        log.error("No output produced "+sid)
+                        log.error(logid+"No output produced "+sid)
         else:
             print(print_up(data_p['up'],len(seq),region))
 
@@ -1042,12 +1060,13 @@ def prepare_write_cons(sid, seq, paired, unpaired, data_u, data_p, constrain, re
         tbe = tb.TracebackException(
         exc_type, exc_value, exc_tb,
         )
-        log.error(''.join(tbe.format()))
+        log.error(logid+''.join(tbe.format()))
     return 1
 
 
 def write_temp(sid, seq, temp, data, region, diff, window, span, outdir):
 
+    logid = 'ConstraintPLFold.write_temp: '
     #print outputs to file or STDERR
     try:
         goi, chrom, strand = idfromfa(sid)
@@ -1065,11 +1084,12 @@ def write_temp(sid, seq, temp, data, region, diff, window, span, outdir):
         tbe = tb.TracebackException(
         exc_type, exc_value, exc_tb,
         )
-        log.error(''.join(tbe.format()))
+        log.error(logid+''.join(tbe.format()))
     return 1
 
 def checkexisting(sid, paired, unpaired, cons, region, window, span, outdir):
 
+    logid = 'ConstraintPLFold.checkexisting: '
     try:
         goi, chrom, strand = idfromfa(sid)
         temp_outdir = os.path.join(outdir,goi)
@@ -1083,11 +1103,12 @@ def checkexisting(sid, paired, unpaired, cons, region, window, span, outdir):
         tbe = tb.TracebackException(
         exc_type, exc_value, exc_tb,
         )
-        log.error(''.join(tbe.format()))
+        log.error(logid+''.join(tbe.format()))
     return 1
 
 def bpp_callback(v, v_size, i, maxsize, what, data):
 
+    logid = 'ConstraintPLFold.bpp_callback: '
     try:
         if what & RNA.PROBS_WINDOW_BPP:
             data['bpp'].extend([{'i': i, 'j': j, 'p': p} for j, p in enumerate(v) if (p is not None)])# and (p >= 0.01)])
@@ -1096,11 +1117,12 @@ def bpp_callback(v, v_size, i, maxsize, what, data):
         tbe = tb.TracebackException(
         exc_type, exc_value, exc_tb,
         )
-        log.error(''.join(tbe.format()))
+        log.error(logid+''.join(tbe.format()))
 
 
 def up_callback(v, v_size, i, maxsize, what, data):
 
+    logid = 'ConstraintPLFold.up_callback: '
     try:
         if what & RNA.PROBS_WINDOW_UP:
             data['up'].extend([v])
@@ -1109,11 +1131,12 @@ def up_callback(v, v_size, i, maxsize, what, data):
         tbe = tb.TracebackException(
         exc_type, exc_value, exc_tb,
         )
-        log.error(''.join(tbe.format()))
+        log.error(logid+''.join(tbe.format()))
 
 
 def fold_unconstraint(seq, id, region, window, span, unconstraint, save, outdir, rawentry=None):
 
+    logid = 'ConstraintPLFold.fold_unconstraint: '
     data = { 'up': [] }
     try:
         md = RNA.md()
@@ -1132,13 +1155,14 @@ def fold_unconstraint(seq, id, region, window, span, unconstraint, save, outdir,
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
             )
-        log.error(''.join(tbe.format()))
+        log.error(logid+''.join(tbe.format()))
 
 
     return data['up']
 
 def expand_window(start, end, window, multiplyer, seqlen):
 
+    logid = 'ConstraintPLFold.expand_window: '
     try:
         tostart = start - multiplyer*window
         if tostart < 0:
@@ -1152,19 +1176,24 @@ def expand_window(start, end, window, multiplyer, seqlen):
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
             )
-        log.error(''.join(tbe.format()))
+        log.error(logid+''.join(tbe.format()))
+
+####################
+####    MAIN    ####
+####################
 
 if __name__ == '__main__':
     args=parseargs()
 
+    logid = 'ConstraintPLFold.main: '
     try:
-        log.info('Running ConstraintPLFold on '+str(args.procs)+' cores')
+        log.info(logid+'Running ConstraintPLFold on '+str(args.procs)+' cores')
         preprocess(args.sequence, args.window, args.span, args.region, args.multi, args.unconstraint, args.unpaired, args.paired, args.length, args.gc, args.number, args.constrain, args.conslength, args.alphabet, args.plot, args.save, args.procs, args.vrna, args.temprange, args.outdir, args.verbosity, args.pattern, args.cutoff)
     except Exception as err:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
         )
-        log.error(''.join(tbe.format()))
+        log.error(logid+''.join(tbe.format()))
 
     # ConstraintPLFold.py ends here
