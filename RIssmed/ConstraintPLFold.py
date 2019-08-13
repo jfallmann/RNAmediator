@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Tue Aug 13 15:20:23 2019 (+0200)
+## Last-Updated: Tue Aug 13 18:07:59 2019 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 143
+##     Update #: 144
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -129,7 +129,7 @@ def parseargs():
 
 def preprocess(sequence, window, span, region, multi, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, plot, save, procs, vrna, temprange, outdir, verbosity=False, pattern=None, cutoff=None):
 
-    logid = 'ConstraintPLFold.preprocess: '
+    logid = scriptname+'.preprocess: '
 
     #set path for output
     if outdir:
@@ -221,7 +221,7 @@ def preprocess(sequence, window, span, region, multi, unconstraint, unpaired, pa
 
 def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, plot, save, procs, vrna, temprange, outdir, verbosity=False, pattern=None, cutoff=None, seqnr=None, mode=None, constraintlist=None):
 
-    logid = 'ConstraintPLFold.fold: '
+    logid = scriptname+'.fold: '
     #set path for VRNA lib if necessary
     if vrna:
         sys.path=[vrna] + sys.path
@@ -520,7 +520,7 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
 
 def parafold(sequence, window, span, region, multi, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, plot, save, procs, vrna, temprange, outdir, pattern, cutoff, seqnr):
 
-    logid = 'ConstraintPLFold.parafold: '
+    logid = scriptname+'.parafold: '
     seq = sequence
     #set path for VRNA lib
     if vrna:
@@ -642,7 +642,7 @@ def parafold(sequence, window, span, region, multi, unconstraint, unpaired, pair
 def constrain_seq(sid, seq, start, end, conslength, const, cons, window, span, region, multi, animations, xs, paired, unpaired, save, outdir, plot, data, an=None, unconstraint=None):
     #   DEBUGGING
     #   pp = pprint.PrettyPrinter(indent=4)#use with pp.pprint(datastructure)
-    logid = 'ConstraintPLFold.constrain_seq: '
+    logid = scriptname+'.constrain_seq: '
     try:
         goi, chrom, strand = idfromfa(sid)
 
@@ -732,7 +732,7 @@ def constrain_seq(sid, seq, start, end, conslength, const, cons, window, span, r
 def constrain_seq_paired(sid, seq, fstart, fend, start, end, conslength, const, cons, window, span, region, multi, animations, xs, paired, unpaired, save, outdir, plot, data, an, unconstraint):
     #   DEBUGGING
     #   pp = pprint.PrettyPrinter(indent=4)#use with pp.pprint(datastructure)
-    logid = 'ConstraintPLFold.constrain_seq_paired: '
+    logid = scriptname+'.constrain_seq_paired: '
     try:
         #we no longer fold the whole sequence but only the constraint region +- window size
         tostart, toend = expand_window(start, end, window, multi, len(seq))
@@ -1066,7 +1066,7 @@ def prepare_write_cons(sid, seq, paired, unpaired, data_u, data_p, constrain, re
 
 def write_temp(sid, seq, temp, data, region, diff, window, span, outdir):
 
-    logid = 'ConstraintPLFold.write_temp: '
+    logid = scriptname+'.write_temp: '
     #print outputs to file or STDERR
     try:
         goi, chrom, strand = idfromfa(sid)
@@ -1089,7 +1089,7 @@ def write_temp(sid, seq, temp, data, region, diff, window, span, outdir):
 
 def checkexisting(sid, paired, unpaired, cons, region, window, span, outdir):
 
-    logid = 'ConstraintPLFold.checkexisting: '
+    logid = scriptname+'.checkexisting: '
     try:
         goi, chrom, strand = idfromfa(sid)
         temp_outdir = os.path.join(outdir,goi)
@@ -1108,7 +1108,7 @@ def checkexisting(sid, paired, unpaired, cons, region, window, span, outdir):
 
 def bpp_callback(v, v_size, i, maxsize, what, data):
 
-    logid = 'ConstraintPLFold.bpp_callback: '
+    logid = scriptname+'.bpp_callback: '
     try:
         if what & RNA.PROBS_WINDOW_BPP:
             data['bpp'].extend([{'i': i, 'j': j, 'p': p} for j, p in enumerate(v) if (p is not None)])# and (p >= 0.01)])
@@ -1122,7 +1122,7 @@ def bpp_callback(v, v_size, i, maxsize, what, data):
 
 def up_callback(v, v_size, i, maxsize, what, data):
 
-    logid = 'ConstraintPLFold.up_callback: '
+    logid = scriptname+'.up_callback: '
     try:
         if what & RNA.PROBS_WINDOW_UP:
             data['up'].extend([v])
@@ -1136,7 +1136,7 @@ def up_callback(v, v_size, i, maxsize, what, data):
 
 def fold_unconstraint(seq, id, region, window, span, unconstraint, save, outdir, rawentry=None):
 
-    logid = 'ConstraintPLFold.fold_unconstraint: '
+    logid = scriptname+'.fold_unconstraint: '
     data = { 'up': [] }
     try:
         md = RNA.md()
@@ -1162,7 +1162,7 @@ def fold_unconstraint(seq, id, region, window, span, unconstraint, save, outdir,
 
 def expand_window(start, end, window, multiplyer, seqlen):
 
-    logid = 'ConstraintPLFold.expand_window: '
+    logid = scriptname+'.expand_window: '
     try:
         tostart = start - multiplyer*window
         if tostart < 0:
@@ -1185,7 +1185,7 @@ def expand_window(start, end, window, multiplyer, seqlen):
 if __name__ == '__main__':
     args=parseargs()
 
-    logid = 'ConstraintPLFold.main: '
+    logid = scriptname+'.main: '
     try:
         log.info(logid+'Running ConstraintPLFold on '+str(args.procs)+' cores')
         preprocess(args.sequence, args.window, args.span, args.region, args.multi, args.unconstraint, args.unpaired, args.paired, args.length, args.gc, args.number, args.constrain, args.conslength, args.alphabet, args.plot, args.save, args.procs, args.vrna, args.temprange, args.outdir, args.verbosity, args.pattern, args.cutoff)

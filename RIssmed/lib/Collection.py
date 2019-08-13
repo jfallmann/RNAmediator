@@ -7,9 +7,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Tue Aug 13 11:44:15 2019 (+0200)
+## Last-Updated: Tue Aug 13 17:36:38 2019 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 162
+##     Update #: 172
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -554,6 +554,11 @@ def get_bppm(tmp, start, end):
     logid = scriptname+'.get_bppm: '
     bppm = []
     try:
+#        clog.debug('\t'.join(map(str,[tmp,start,end])))
+        if start < 0 or end > len(tmp):
+            clog.warning(logid+'start of constraint '+str(start)+' end of constraint '+str(end)+' while length of bpp matrix '+str(len(tmp))+'! Skipping!')
+            return None
+
         for item in tmp:
             for i in range(int(start),int(end)+1):
                 if item[i] > 0.0:

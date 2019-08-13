@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Tue Aug 13 17:06:49 2019 (+0200)
+## Last-Updated: Tue Aug 13 18:06:58 2019 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 156
+##     Update #: 176
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -76,7 +76,7 @@ makelogdir('logs')
 # Define loggers
 scriptname=os.path.basename(__file__)
 streamlog = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='WARNING')
-log = setup_multiprocess_logger(name=scriptname, log_file='logs/'+scriptname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='DEBUG')
+log = setup_multiprocess_logger(name=scriptname, log_file='logs/'+scriptname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='INFO')
 
 #other modules
 import argparse
@@ -100,19 +100,6 @@ import matplotlib
 from matplotlib import animation #, rc
 import matplotlib.pyplot as plt
 from random import choices, choice, shuffle # need this if tempprobing was choosen
-
-#load own modules
-cmd_subfolder = os.path.join(os.path.dirname(os.path.realpath(os.path.abspath( inspect.getfile( inspect.currentframe() )) )),"../lib")
-if cmd_subfolder not in sys.path:
-    sys.path.insert(0, cmd_subfolder)
-from Collection import *
-
-#find ffmpeg executable
-#import shutil
-#plt.rcParams['animation.ffmpeg_path'] = shutil.which("ffmpeg")
-#plt.rc('verbose', level='debug-annoying', fileo=sys.stdout)
-#matplotlib.verbose.set_level("helpful")
-#plt.rc('animation', html='html5')
 
 def parseargs():
     parser = argparse.ArgumentParser(description='Calculate base pairing probs of given seqs or random seqs for given window size, span and region.')
@@ -321,7 +308,7 @@ def fold(sequence, window, span, unconstraint, unpaired, paired, length, gc, num
 
                 for entry in conslist:
                     if entry == 'NOCONS': # in case we just want to fold the sequence without constraints at all
-                        gibbs_uc = [pool.apply_async(fold_unconstraint, args=(fa.seq), error_callback=eprint)]
+                        gibbs_uc = [pool.apply_async(fold_unconstraint, args=(fa.seq))]
                         return (gibbs_uc)
 
                     else:
@@ -367,12 +354,14 @@ def constrain_seq(fa, start, end, conslength, const, cons, window, xs, paired, u
     try:
         #    if  os.path.exists(str(goi+'_'+chrom+'_'+strand+'_'+paired+'_'+window+'.gz')) and os.path.exists(str(goi+'_'+chrom+'_'+strand+'_'+unpaired+'_'+window+'.gz')):
         #        return 1
+        goi, chrom, strand = idfromfa(fa.id)
         dist, fstart, fend = [None, None, None]
         if ':' in cons:
             start, end, fstart, fend = const
             dist=abs(start-fend)
             if dist > window:
-                sys.exit('Window too small for constraint distance')
+                log.error('Window too small for constraint distance')
+                return('Window too small for constraint distance')
         else:
             start, end = const
 
@@ -383,29 +372,36 @@ def constrain_seq(fa, start, end, conslength, const, cons, window, xs, paired, u
             tostart = start - window
             toend = end + window + 1
 
-        if tostart < 0:
-            tostart = 0
-        if toend > len(fa.seq):
-            toend = len(fa.seq)
-
         #we no longer fold the whole sequence but only the constraint region +- window size
         if window is not None:
             tostart = start - window
             toend = end + window + 1
+            if tostart < 0:
+                tostart = 0
+            if toend > len(fa.seq):
+                toend = len(fa.seq) + 1
             seqtofold = str(fa.seq[tostart:toend])
         else:
             tostart = 0
             toend = 0
             seqtofold = str(fa.seq[:])
 
+        if len(seqtofold) < window:
+            log.error(logid+'Sequence of '+goi+' to short, seqlenght '+str(len(seqtofold))+' with window size '+str(window)+'!Skipping! ')
+            return(logid+'Sequence of '+goi+' to short, seqlenght '+str(len(seqtofold))+' with window size '+str(window)+'!Skipping!')
+
         #check constraints
         if tostart < 0:
             tostart = 0
         if toend > len(fa.seq):
-            toend = len(fa.seq)
+            toend = len(fa.seq) + 1
 
         cstart = start-tostart
         cend =  end-tostart
+
+        if cstart < 0 or cend > len(fa.seq):
+            log.warning(logid+'start of constraint '+str(cstart)+' end of constraint '+str(cend)+' while length of sequence '+str(len(fa.seq))+'! Skipping!')
+            return
 
         checklist = []
 
@@ -422,9 +418,8 @@ def constrain_seq(fa, start, end, conslength, const, cons, window, xs, paired, u
         #set model details
         md = RNA.md()
 
-        goi, chrom, strand = idfromfa(fa.id)
         for check in checklist:
-            print(check)
+            log.debug(check)
             s,e,os,oe = [None,None,None,None]
             gs, ge = map(int, genecoords[goi][0].split(sep='-'))
             if len(check) < 3:
@@ -446,6 +441,10 @@ def constrain_seq(fa, start, end, conslength, const, cons, window, xs, paired, u
             # call pf and prop calculation
             gibbs = fc.pf()[1]
             bppm = get_bppm(fc.bpp(), cstart, cend)
+
+            if bppm is None:
+                log.error(logid+'Empty bpp matrix returned, stopping here!')
+                sys.exit(logid+'Empty bpp matrix returned, stopping here!')
 
             #enforce paired
             fc_p = constrain_paired(fc_p, s, e)
@@ -536,7 +535,7 @@ def constrain_temp(fa, temp, window, span, an, animations, xs, save, outdir, plo
 
 	    for item in bppm:
 	        for i in range(int(constrain),int(constrain)+conslength):
-	            print(bppm.index(item), i, item[i])
+	            log.debug(bppm.index(item), i, item[i])
 
 	    at = up_to_array(data_t['up'], None, len(fa.seq))
 
@@ -608,12 +607,12 @@ def write_out(fa, fname, gibbs, ddg, nrg, const, window, outdir):
         if fname != 'STDOUT':
             if not os.path.exists(temp_outdir):
                 os.makedirs(temp_outdir)
-            if not os.path.exists(os.path.join(temp_outdir, str.join('_',[goi, chrom, strand, fname, const, window])+'.gz')):
-                o = gzip.open(os.path.join(temp_outdir, str.join('_', [goi, chrom, strand, fname, const, window])+'.gz'), 'wb')
+            if not os.path.exists(os.path.join(temp_outdir, '_'.join([goi, chrom, strand, fname, const, window])+'.gz')):
+                o = gzip.open(os.path.join(temp_outdir, '_'.join([goi, chrom, strand, fname, const, window])+'.gz'), 'wb')
                 o.write(bytes(str.join('\t',['FreeNRG(gibbs)','ddG','OpeningNRG', 'Constraint'])+'\n',encoding='UTF-8'))
                 o.write(bytes(str.join('\t',[str(gibbs), str(ddg), str(nrg), str(const)])+'\n',encoding='UTF-8'))
             else:
-                o = gzip.open(os.path.join(temp_outdir, str.join('_',[goi, chrom, strand, fname, const, window])+'.gz'), 'ab')
+                o = gzip.open(os.path.join(temp_outdir, '_'.join([goi, chrom, strand, fname, const, window])+'.gz'), 'ab')
                 o.write(bytes(str.join('\t',[str(gibbs), str(ddg), str(nrg), str(const)]),encoding='UTF-8'))
 #            os.chdir(bakdir)
         else:
