@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Wed Aug 14 14:24:12 2019 (+0200)
+## Last-Updated: Wed Aug 14 17:32:21 2019 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 151
+##     Update #: 157
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -75,6 +75,7 @@ from lib.logger import makelogdir, setup_multiprocess_logger
 makelogdir('logs')
 # Define loggers
 scriptname=os.path.basename(__file__)
+global streamlog, log           # global to ensure that later manipulation of loglevel is possible
 streamlog = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='WARNING')
 log = setup_multiprocess_logger(name=scriptname, log_file='logs/'+scriptname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='INFO')
 
@@ -124,6 +125,7 @@ def parseargs():
     parser.add_argument("--vrna", type=str, default='', help="Append path to vrna RNA module to sys.path")
     parser.add_argument("--pattern", type=str, default='', help="Helper var, only used if called from other prog where a pattern for files is defined")
     parser.add_argument("-v", "--verbosity", type=int, default=0, choices=[0, 1], help="increase output verbosity")
+    parser.add_argument("--loglevel", type=str, default='WARNING', choices=['WARNING','ERROR','INFO','DEBUG'], help="Set log level")
 
     if len(sys.argv)==1:
         parser.print_help(sys.stderr)
@@ -1190,8 +1192,8 @@ if __name__ == '__main__':
     try:
         args=parseargs()
         if args.loglevel != 'WARNING':
-            streamlog = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
-            log = setup_multiprocess_logger(name=scriptname, log_file='logs/'+scriptname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
+          streamlog = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
+          log = setup_multiprocess_logger(name=scriptname, log_file='logs/'+scriptname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
 
         log.info(logid+'Running '+scriptname+' on '+str(args.procs)+' cores')
         preprocess(args.sequence, args.window, args.span, args.region, args.multi, args.unconstraint, args.unpaired, args.paired, args.length, args.gc, args.number, args.constrain, args.conslength, args.alphabet, args.plot, args.save, args.procs, args.vrna, args.temprange, args.outdir, args.verbosity, args.pattern, args.cutoff)

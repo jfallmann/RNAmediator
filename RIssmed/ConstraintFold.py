@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Wed Aug 14 14:19:56 2019 (+0200)
+## Last-Updated: Wed Aug 14 17:38:34 2019 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 283
+##     Update #: 290
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -75,6 +75,7 @@ from lib.logger import makelogdir, setup_multiprocess_logger
 makelogdir('logs')
 # Define loggers
 scriptname=os.path.basename(__file__)
+global streamlog, log           # global to ensure that later manipulation of loglevel is possible
 streamlog = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='WARNING')
 log = setup_multiprocess_logger(name=scriptname, log_file='logs/'+scriptname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='WARNING')
 
@@ -650,8 +651,8 @@ if __name__ == '__main__':
     try:
         args=parseargs()
         if args.loglevel != 'WARNING':
-            streamlog = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
-            log = setup_multiprocess_logger(name=scriptname, log_file='logs/'+scriptname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
+          streamlog = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
+          log = setup_multiprocess_logger(name=scriptname, log_file='logs/'+scriptname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
 
         log.info(logid+'Running ConstraintFold on '+str(args.procs)+' cores')
         preprocess(args.sequence, args.window, args.span, args.unconstraint, args.unpaired, args.paired, args.length, args.gc, args.number, args.constrain, args.conslength, args.alphabet, args.plot, args.save, args.procs, args.vrna, args.temprange, args.outdir, args.genes, args.verbosity, args.pattern, args.cutoff)

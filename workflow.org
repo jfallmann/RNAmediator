@@ -1,0 +1,28 @@
+* Preprocess
+** Sort
+grep miR-17- Predicted_Target_Locations.default_predictions.hg19.bed |cut -f1-3,6 |sort -k1,1 -k2,2n > mir17.bed
+grep miR-221- Predicted_Target_Locations.default_predictions.hg19.bed |cut -f1-3,6 |sort -k1,1 -k2,2n > mir221.bed
+** liftover ucsc
+sort -k1,1 -k2,2n mir221_liftover.bed |perl -wlane 'print join("\t",join("\t",@F[0..2]),"name",255,$F[3])' > mir221.bed
+sort -k1,1 -k2,2n mir17_liftover.bed |perl -wlane 'print join("\t",join("\t",@F[0..2]),"name",255,$F[3])' > mir17.bed
+** Find closest pairs
+closestBed -D a -d -io -s -a mir17.bed -b mir221.bed |grep -v -P "\-1\t\-1" > Closest_17_221.bed
+python -c "import sys;[sys.stdout.write('\t'.join(line.split('\t')[:])) for line in sys.stdin if (int(line.split('\t')[-1]) <= 200 and int(line.split('\t')[-1]) >= -200)]" < Closest_17_221.bed > Closest_17_221_200.bed
+** Annotate
+rsync -auv jack:/scratch2/fall/Data/Annotation/Homo_sapiens.GRCh38.95.gtf.gz .
+perl ~/Scripts/Workflowscripts/Universal/AnnotateBed.pl -b Closest_17_221_200.bed -a Homo_sapiens.GRCh38.95.gff3.gz -w ON --specific gene > Annotated_17_221_closest.bed
+grep ENSG Annotated_17_221_closest.bed | perl -lane 'print join("\t",$F[0],$F[15],$F[16],$F[14],".",$F[5])' |sort -V |uniq > TargetGenes_17_221.bed
+** Create fastas
+fastaFromBed -fi hg38.extended.fa -bed TargetGenes_17_221.bed -name+ -s |gzip > 17_221_targets.fa.gz
+** Convert to local coords
+perl -lane '{if ($F[5] eq "\+" or $F[5] eq "u" or $F[5] eq "." or $F[5] > 0){$start = $F[1]-$F[15]+1;}else{$start = $F[16]-$F[2]+1} if ($start > 0 ){ $end = $start+9; print join("\t",$F[0],$start,$end,@F[3..5])}}' Annotated_17_221_closest.bed |sort -k1,1 -k2,2n -u > 17_local_constraints.bed
+perl -lane '{if ($F[5] eq "\+" or $F[5] eq "u" or $F[5] eq "." or $F[5] > 0){$start = $F[8]-$F[15]+1;}else{$start = $F[16]-$F[9]+1} if ($start > 0 ){ $end = $start+9; print join("\t",$F[0],$start,$end,@F[3..5])}}' Annotated_17_221_closest.bed |sort -k1,1 -k2,2n -u > 221_local_constraints.bed
+** Create paired constraint
+perl -lane 'if ($F[0]=~ /chr/ && $F[7] =~ /chr/){print join("\t",$F[0],$F[1]-$F[15]+1,$F[2]-$F[15]+1,@F[3..7],$F[8]-$F[15]+1,$F[9]-$F[15]+1,@F[10..$#F])}' Annotated_17_221_closest.bed |perl -lane 'if($F[1]>=0 && $F[2] >= 0 && $F[8] >= 0 && $F[9] >= 0){print $_}' |grep ENSG > Local_Paired_17_221_constraints.bed
+** Run
+~/Projects/INPROGRESS/RIssmed/RIssmed/ConstraintPLFold.py -s 17_221_targets.fa.gz -w 250 -r raw -n unpaired -p paired -x 17_local_constraints.bed -o Plcons_17 -z 4 
+~/Projects/INPROGRESS/RIssmed/RIssmed/ConstraintPLFold.py -s 17_221_targets.fa.gz -w 250 -r raw -n unpaired -p paired -x 221_local_constraints.bed -o Plcons_221 -z 4 --loglevel WARNING
+cd Plcons_17
+python ~/Projects/INPROGRESS/RIssmed/RIssmed/CollectConsResults.py -u 1 -z 1 -g ../TargetGenes_17_221.bed -b 0,1 -c 0 -p 250,60 -o Collection
+cd Plcons_221
+python ~/Projects/INPROGRESS/RIssmed/RIssmed/CollectConsResults.py -u 1 -z 1 -g ../TargetGenes_17_221.bed -b 0,1 -c 0 -p 250,60 -o Collection
