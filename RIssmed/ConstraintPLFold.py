@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Tue Aug 13 18:07:59 2019 (+0200)
+## Last-Updated: Wed Aug 14 14:24:12 2019 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 144
+##     Update #: 151
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -76,7 +76,7 @@ makelogdir('logs')
 # Define loggers
 scriptname=os.path.basename(__file__)
 streamlog = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='WARNING')
-log = setup_multiprocess_logger(name=scriptname, log_file='logs/'+scriptname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='DEBUG')
+log = setup_multiprocess_logger(name=scriptname, log_file='logs/'+scriptname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='INFO')
 
 import argparse
 import pprint
@@ -111,7 +111,7 @@ def parseargs():
     parser.add_argument("-n", "--unpaired", type=str, default='STDOUT', help='Print output of unpaired folding to file with this name')
     parser.add_argument("-p", "--paired", type=str, default='STDOUT', help='Print output of paired folding to file with this name')
     parser.add_argument("-e", "--length", type=int, default=100, help='Length of randseq')
-    parser.add_argument("-g", "--gc", type=int, default=0, help='GC content, needs to be %2==0 or will be rounded')
+    parser.add_argument("-g", "--gc", type=int, default=0, help='GC content, needs to be %%2==0 or will be rounded')
     parser.add_argument("-b", "--number", type=int, default=1, help='Number of random seqs to generate')
     parser.add_argument("-x", "--constrain", type=str, default='sliding', help='Region to constrain, either sliding window (default) or region to constrain (e.g. 1-10) or path to file containing regions following the naming pattern $fastaID_constraints e.g. Sequence1_constraints, if paired, the first entry of the file will become a fixed constraint and paired with all the others, choices = [off,sliding,temperature, tempprobe, the string file or a filename, paired, or simply 1-10,2-11 or 1-10;15-20,2-11;16-21 for paired or ono(oneonone),filename to use one line of constraint file for one sequence from fasta]')
     parser.add_argument("-y", "--conslength", type=int, default=0, help='Length of region to constrain for slidingwindow')
@@ -124,6 +124,10 @@ def parseargs():
     parser.add_argument("--vrna", type=str, default='', help="Append path to vrna RNA module to sys.path")
     parser.add_argument("--pattern", type=str, default='', help="Helper var, only used if called from other prog where a pattern for files is defined")
     parser.add_argument("-v", "--verbosity", type=int, default=0, choices=[0, 1], help="increase output verbosity")
+
+    if len(sys.argv)==1:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
 
     return parser.parse_args()
 
@@ -152,9 +156,7 @@ def preprocess(sequence, window, span, region, multi, unconstraint, unpaired, pa
         if (os.path.isfile(constrain)):
             linewise = True
             if '.bed' in constrain:
-
                 log.info(logid+'Parsing constraints from Bed '+constrain)
-
                 if '.gz' in constrain:
                     f = gzip.open(constrain,'rt')
                 else:
@@ -1183,11 +1185,15 @@ def expand_window(start, end, window, multiplyer, seqlen):
 ####################
 
 if __name__ == '__main__':
-    args=parseargs()
 
     logid = scriptname+'.main: '
     try:
-        log.info(logid+'Running ConstraintPLFold on '+str(args.procs)+' cores')
+        args=parseargs()
+        if args.loglevel != 'WARNING':
+            streamlog = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
+            log = setup_multiprocess_logger(name=scriptname, log_file='logs/'+scriptname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
+
+        log.info(logid+'Running '+scriptname+' on '+str(args.procs)+' cores')
         preprocess(args.sequence, args.window, args.span, args.region, args.multi, args.unconstraint, args.unpaired, args.paired, args.length, args.gc, args.number, args.constrain, args.conslength, args.alphabet, args.plot, args.save, args.procs, args.vrna, args.temprange, args.outdir, args.verbosity, args.pattern, args.cutoff)
     except Exception as err:
         exc_type, exc_value, exc_tb = sys.exc_info()

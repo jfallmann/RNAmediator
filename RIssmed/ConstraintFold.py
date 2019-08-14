@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Tue Aug 13 18:06:58 2019 (+0200)
+## Last-Updated: Wed Aug 14 14:19:56 2019 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 176
+##     Update #: 283
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -76,7 +76,7 @@ makelogdir('logs')
 # Define loggers
 scriptname=os.path.basename(__file__)
 streamlog = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='WARNING')
-log = setup_multiprocess_logger(name=scriptname, log_file='logs/'+scriptname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='INFO')
+log = setup_multiprocess_logger(name=scriptname, log_file='logs/'+scriptname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='WARNING')
 
 #other modules
 import argparse
@@ -107,11 +107,11 @@ def parseargs():
     parser.add_argument("-w", "--window", type=int, default=None, help='Size of window')
     parser.add_argument("-l", "--span", type=int, default=None, help='Maximum bp span')
     parser.add_argument("-c", "--cutoff", type=float, default=-0.01, help='Only print prob greater cutoff')
-    parser.add_argument("-r", "--unconstraint", type=str, default='STDOUT', help='Print output of unconstraint folding to file with this name')
+    parser.add_argument("-r", "--unconstraint", type=str, default='STDOUT', help='Print output of unconstraint folding to file with this name, use "STDOUT" to print to STDOUT (default) or "add" to append to paired/unpaired output')
     parser.add_argument("-n", "--unpaired", type=str, default='STDOUT', help='Print output of unpaired folding to file with this name')
     parser.add_argument("-p", "--paired", type=str, default='STDOUT', help='Print output of paired folding to file with this name')
     parser.add_argument("-e", "--length", type=int, default=100, help='Length of randseq')
-    parser.add_argument("-g", "--gc", type=int, default=0, help='GC content, needs to be %2==0 or will be rounded')
+    parser.add_argument("-g", "--gc", type=int, default=0, help='GC content, needs to be %%2==0 or will be rounded')
     parser.add_argument("-b", "--number", type=int, default=1, help='Number of random seqs to generate')
     parser.add_argument("-x", "--constrain", type=str, default='sliding', help='Region to constrain, either sliding window (default) or region to constrain (e.g. 1-10) or path to file containing regions following the naming pattern $fastaID_constraints, if paired, the first entry of the file will become a fixed constraint and paired with all the others, e.g. Sequence1_constraints, choices = [off,sliding,temperature, tempprobe, file, paired, or simply 1-10,2-11 or 1-10;15-20,2-11:16-21 for paired]')
     parser.add_argument("-y", "--conslength", type=int, default=0, help='Length of region to constrain for slidingwindow')
@@ -125,6 +125,11 @@ def parseargs():
     parser.add_argument("--pattern", type=str, default='', help="Helper var, only used if called from other prog where a pattern for files is defined")
     parser.add_argument("-i", "--genes", type=str, help='Genomic coordinates bed for genes, either standard bed format or AnnotateBed.pl format')
     parser.add_argument("-v", "--verbosity", type=int, default=0, choices=[0, 1], help="increase output verbosity")
+    parser.add_argument("--loglevel", type=str, default='WARNING', choices=['WARNING','ERROR','INFO','DEBUG'], help="Set log level")
+
+    if len(sys.argv)==1:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
 
     return parser.parse_args()
 
@@ -179,7 +184,7 @@ def fold(sequence, window, span, unconstraint, unpaired, paired, length, gc, num
             exc_type, exc_value, exc_tb,
             )
             log.error(logid+''.join(tbe.format()))
-            sys.exit()
+            return
 
         # Create process pool with processes
         num_processes = procs or 1
@@ -240,8 +245,10 @@ def fold(sequence, window, span, unconstraint, unpaired, paired, length, gc, num
                     else:
                         f = open(constrain,'rt')
                     if any(x in constrain for x in ['paired','Paired']):
+                        log.info(logid+'Reading paired constraints')
                         constraintlist = readPairedConstraintsFromBed(f)
                     else:
+                        log.info(logid+'Reading single constraints')
                         constraintlist = readConstraintsFromBed(f)
                 elif '.csv' in constrain:
                     if '.gz' in constrain:
@@ -270,7 +277,7 @@ def fold(sequence, window, span, unconstraint, unpaired, paired, length, gc, num
                 constraintlist = constrain.split(',')
             else:
                 log.error(logid+'Could not compute constraints from input')
-                sys.exit()
+                return
 
             for fa in SeqIO.parse(seq,'fasta'):
                 goi, chrom, strand = idfromfa(fa.id)
@@ -327,12 +334,12 @@ def fold(sequence, window, span, unconstraint, unpaired, paired, length, gc, num
 
                         if fstart and fend:
                             cons = str(start)+'-'+str(end)+':'+str(fstart)+'-'+str(fend)
-                            const = np.array([start, end, fstart, fend])
+                            const = np.sort(np.array([start, end, fstart, fend]))  # Is sorting ok?
                         else:
                             cons = str(start)+'-'+str(end)
                             const = np.array([start, end])
 
-                        pool.apply_async(constrain_seq, args=(fa, start, end, conslength, const, cons, window, xs, paired, unpaired, save, outdir, genecoords, plot))
+                        pool.apply_async(constrain_seq, args=(fa, start, end, conslength, const, cons, window, xs, unconstraint, paired, unpaired, save, outdir, genecoords, plot))
 
             pool.close()
             pool.join()
@@ -347,13 +354,11 @@ def fold(sequence, window, span, unconstraint, unpaired, paired, length, gc, num
         log.error(logid+''.join(tbe.format()))
 
 ##### Functions #####
-def constrain_seq(fa, start, end, conslength, const, cons, window, xs, paired, unpaired, save, outdir, genecoords, plot):
+def constrain_seq(fa, start, end, conslength, const, cons, window, xs, unconstraint, paired, unpaired, save, outdir, genecoords, plot):
 #   DEBUGGING
 #   pp = pprint.PrettyPrinter(indent=4)#use with pp.pprint(datastructure)
     logid = scriptname+'.constrain_seq: '
     try:
-        #    if  os.path.exists(str(goi+'_'+chrom+'_'+strand+'_'+paired+'_'+window+'.gz')) and os.path.exists(str(goi+'_'+chrom+'_'+strand+'_'+unpaired+'_'+window+'.gz')):
-        #        return 1
         goi, chrom, strand = idfromfa(fa.id)
         dist, fstart, fend = [None, None, None]
         if ':' in cons:
@@ -366,8 +371,9 @@ def constrain_seq(fa, start, end, conslength, const, cons, window, xs, paired, u
             start, end = const
 
         if dist:
-            tostart = start - (window - dist)
-            toend = fend + (window - dist) + 1
+            tostart = start - (window - abs(dist))
+            toend = fend + (window - abs(dist)) + 1
+            log.debug(logid+'Considering distance '+str(dist)+' between constraints '+str(const)+' for window extraction from '+str(tostart)+' to '+str(toend))
         else:
             tostart = start - window
             toend = end + window + 1
@@ -379,8 +385,11 @@ def constrain_seq(fa, start, end, conslength, const, cons, window, xs, paired, u
             if tostart < 0:
                 tostart = 0
             if toend > len(fa.seq):
-                toend = len(fa.seq) + 1
-            seqtofold = str(fa.seq[tostart:toend])
+                toend = len(fa.seq)
+            if toend < fend:
+                log.error(logid+'Constraint '+str(cons)+' out of sequence range '+str(toend)+'!Skipping!')  # One of the constraints is outside the sequence window
+                return
+            seqtofold = str(fa.seq[tostart:toend+1])
         else:
             tostart = 0
             toend = 0
@@ -394,7 +403,7 @@ def constrain_seq(fa, start, end, conslength, const, cons, window, xs, paired, u
         if tostart < 0:
             tostart = 0
         if toend > len(fa.seq):
-            toend = len(fa.seq) + 1
+            toend = len(fa.seq)
 
         cstart = start-tostart
         cend =  end-tostart
@@ -418,8 +427,9 @@ def constrain_seq(fa, start, end, conslength, const, cons, window, xs, paired, u
         #set model details
         md = RNA.md()
 
+        log.debug(logid+'Constraints for '+goi+' are '+str(checklist))
+
         for check in checklist:
-            log.debug(check)
             s,e,os,oe = [None,None,None,None]
             gs, ge = map(int, genecoords[goi][0].split(sep='-'))
             if len(check) < 3:
@@ -431,6 +441,7 @@ def constrain_seq(fa, start, end, conslength, const, cons, window, xs, paired, u
                 s,e,os,oe = check
                 sp,ep,osp,oep = [s+gs, e+gs, os+gs, oe+gs]
                 gtostart, gtoend = [tostart+gs, toend+gs]
+                log.debug(logid+'PAIRED:'+';'.join(map(str,[s,e,os,oe,gs,ge,sp,ep,osp,oep,tostart,toend,gtostart,gtoend])))
                 printcons = str.join('|',[str.join('-', [str(tostart), str(toend)]), str.join('-',[str(gtostart), str(gtoend)]), str.join(':',[str.join('-',[str(s),str(e)]), str.join('-',[str(os),str(oe)])]), str.join(':',[str.join('-',[str(sp),str(ep)]), str.join('-',[str(osp),str(oep)])])])
 
             # create new fold_compound object
@@ -444,7 +455,8 @@ def constrain_seq(fa, start, end, conslength, const, cons, window, xs, paired, u
 
             if bppm is None:
                 log.error(logid+'Empty bpp matrix returned, stopping here!')
-                sys.exit(logid+'Empty bpp matrix returned, stopping here!')
+                #                sys.exit(logid+'Empty bpp matrix returned, stopping here!')
+                return
 
             #enforce paired
             fc_p = constrain_paired(fc_p, s, e)
@@ -468,13 +480,18 @@ def constrain_seq(fa, start, end, conslength, const, cons, window, xs, paired, u
             nrg_u = calc_nrg(bpp_u)
             nrg_p = calc_nrg(bpp_p)
 
-            unconst = 'unconstraint' #Define file name for unconstraint seq
+            if unconstraint == 'add':  # In case we want the unconstraint file separately
+                write_out(fa, unpaired, gibbs, '0', nrg, str.join('|', [str.join('-',[str(tostart), str(toend)]),str.join('-',[str(gtostart), str(gtoend)]), cons, str.join('-',[str(sp), str(ep)])]) , str(window), outdir, 'unconstraint')
+                write_out(fa, paired, gibbs, '0', nrg, str.join('|', [str.join('-',[str(tostart), str(toend)]),str.join('-',[str(gtostart), str(gtoend)]), cons, str.join('-',[str(sp), str(ep)])]) , str(window), outdir, 'unconstraint')
+            else:
+                write_out(fa, unconstraint, gibbs, '0', nrg, str.join('|', [str.join('-',[str(tostart), str(toend)]),str.join('-',[str(gtostart), str(gtoend)]), cons, str.join('-',[str(sp), str(ep)])]) , str(window), outdir, 'unconstraint')
 
-            write_out(fa, unconst, gibbs, '0', nrg, str.join('|', [cons, str.join('-',[str(gtostart), str(gtoend)])]) , str(window), outdir)
-            write_out(fa, unpaired, gibbs_u, ddg_u, nrg_u, printcons, str(window), outdir)
-            write_out(fa, paired, gibbs_p, ddg_p, nrg_p, printcons, str(window), outdir)
+            # Writing out the constraints
+            write_out(fa, unpaired, gibbs_u, ddg_u, nrg_u, printcons, str(window), outdir, 'constraint_unpaired')
+            write_out(fa, paired, gibbs_p, ddg_p, nrg_p, printcons, str(window), outdir, 'constraint_paired')
 
             if os and oe:
+                log.debug(logid+'Second constraint: '+str(','.join(map(str,[goi,data['seq'],len(data['seq']),s,e,os,oe]))))
                 #enforce second paired
                 fc_p = constrain_paired(fc_p, os, oe)
                 #enforce second unpaired
@@ -495,8 +512,8 @@ def constrain_seq(fa, start, end, conslength, const, cons, window, xs, paired, u
                 nrg_u = calc_nrg(bpp_u)
                 nrg_p = calc_nrg(bpp_p)
 
-                write_out(fa, unpaired, gibbs_u, ddg_u, nrg_u, printcons, str(window), outdir)
-                write_out(fa, paired, gibbs_p, ddg_p, nrg_p, printcons, str(window), outdir)
+                write_out(fa, unpaired, gibbs_u, ddg_u, nrg_u, printcons, str(window), outdir, 'secondconstraint_unpaired')
+                write_out(fa, paired, gibbs_p, ddg_p, nrg_p, printcons, str(window), outdir, 'secondconstraint_paired')
 
     except Exception as err:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -531,7 +548,7 @@ def constrain_temp(fa, temp, window, span, an, animations, xs, save, outdir, plo
 	    data['nrg'] = gibbs[1]
 
 	    # call prop window calculation
-	    log.info(logid+gibbs, constrain, conslength)
+	    log.debug(logid+';'.join(map(str,[gibbs, constrain, conslength])))
 
 	    for item in bppm:
 	        for i in range(int(constrain),int(constrain)+conslength):
@@ -598,7 +615,7 @@ def fold_unconstraint(seq):
             )
         log.error(logid+''.join(tbe.format()))
 
-def write_out(fa, fname, gibbs, ddg, nrg, const, window, outdir):
+def write_out(fa, fname, gibbs, ddg, nrg, const, window, outdir, condition):
 
     logid = scriptname+'.write_out: '
     goi, chrom, strand = idfromfa(fa.id)
@@ -609,11 +626,12 @@ def write_out(fa, fname, gibbs, ddg, nrg, const, window, outdir):
                 os.makedirs(temp_outdir)
             if not os.path.exists(os.path.join(temp_outdir, '_'.join([goi, chrom, strand, fname, const, window])+'.gz')):
                 o = gzip.open(os.path.join(temp_outdir, '_'.join([goi, chrom, strand, fname, const, window])+'.gz'), 'wb')
-                o.write(bytes(str.join('\t',['FreeNRG(gibbs)','ddG','OpeningNRG', 'Constraint'])+'\n',encoding='UTF-8'))
-                o.write(bytes(str.join('\t',[str(gibbs), str(ddg), str(nrg), str(const)])+'\n',encoding='UTF-8'))
+                o.write(bytes(str.join('\t',['Condition','FreeNRG(gibbs)','ddG','OpeningNRG'])+'\n',encoding='UTF-8'))
+                o.write(bytes(str.join('\t',[condition, str(gibbs), str(ddg), str(nrg), str(const)])+'\n',encoding='UTF-8'))
             else:
+                log.info(os.path.join(temp_outdir, '_'.join([goi, chrom, strand, fname, const, window])+'.gz')+' exists, will append!')
                 o = gzip.open(os.path.join(temp_outdir, '_'.join([goi, chrom, strand, fname, const, window])+'.gz'), 'ab')
-                o.write(bytes(str.join('\t',[str(gibbs), str(ddg), str(nrg), str(const)]),encoding='UTF-8'))
+                o.write(bytes(str.join('\t',[condition, str(gibbs), str(ddg), str(nrg), str(const)]),encoding='UTF-8'))
 #            os.chdir(bakdir)
         else:
             print(str.join('\t',['FreeNRG(gibbs)','ddG','OpeningNRG','Constraint']))
@@ -627,10 +645,15 @@ def write_out(fa, fname, gibbs, ddg, nrg, const, window, outdir):
         log.error(logid+''.join(tbe.format()))
 
 if __name__ == '__main__':
-    args=parseargs()
+
     logid = scriptname+'.main: '
-    log.info(logid+'Running ConstraintFold on '+str(args.procs)+' cores')
     try:
+        args=parseargs()
+        if args.loglevel != 'WARNING':
+            streamlog = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
+            log = setup_multiprocess_logger(name=scriptname, log_file='logs/'+scriptname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
+
+        log.info(logid+'Running ConstraintFold on '+str(args.procs)+' cores')
         preprocess(args.sequence, args.window, args.span, args.unconstraint, args.unpaired, args.paired, args.length, args.gc, args.number, args.constrain, args.conslength, args.alphabet, args.plot, args.save, args.procs, args.vrna, args.temprange, args.outdir, args.genes, args.verbosity, args.pattern, args.cutoff)
     except Exception as err:
         exc_type, exc_value, exc_tb = sys.exc_info()

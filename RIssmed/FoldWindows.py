@@ -1,54 +1,89 @@
 #!/usr/bin/env python3
-# ConstraintPLFold.py ---
+## FoldWindows.py ---
+##
+## Filename: FoldWindows.py
+## Description:
+## Author: Joerg Fallmann
+## Maintainer:
+## Created: Thu Sep  6 09:02:18 2018 (+0200)
+## Version:
+## Package-Requires: ()
+## Last-Updated: Wed Aug 14 08:46:41 2019 (+0200)
+##           By: Joerg Fallmann
+##     Update #: 156
+## URL:
+## Doc URL:
+## Keywords:
+## Compatibility:
+##
+######################################################################
+##
+### Commentary:
+###import os, sys, inspect
+# # realpath() will make your script run, even if you symlink it :)
+# cmd_folder = os.path.dirname(os.path.realpath(os.path.abspath( inspect.getfile( inspect.currentframe() )) ))
+# if cmd_folder not in sys.path:
+#     sys.path.insert(0, cmd_folder)
 #
-# Filename: ConstraintPLFold.py
-# Description:
-# Author: Joerg Fallmann
-# Maintainer:
-# Created: Mon Oct 16 17:18:42 2017 (+0200)
-# Version:
-# Package-Requires: ()
-# Last-Updated: Mon Nov 12 19:16:00 2018 (+0100)
-#           By: Joerg Fallmann
-#     Update #: 2053
-# URL:
-# Doc URL:
-# Keywords:
-# Commentary:
-# TODO:
-# Animations per constraint if not sliding
-# Constrain temp needs option to randomly select windows for long sequences
+# # Use this if you want to include modules from a subfolder
+# cmd_subfolder = os.path.join(os.path.dirname(os.path.realpath(os.path.abspath( inspect.getfile( inspect.currentframe() )) )),"lib")
+# if cmd_subfolder not in sys.path:
+#     sys.path.insert(0, cmd_subfolder)
 #
+# # Info:
+# # cmd_folder = os.path.dirname(os.path.abspath(__file__)) # DO NOT USE __file__ !!!
+# # __file__ fails if the script is called in different ways on Windows.
+# # __file__ fails if someone does os.chdir() before.
+# # sys.argv[0] also fails, because it doesn't not always contains the path.
+############
+#find ffmpeg executable
+#import shutil
+#plt.rcParams['animation.ffmpeg_path'] = shutil.which("ffmpeg")
+#plt.rc('verbose', level='debug-annoying', fileo=sys.stdout)
+#matplotlib.verbose.set_level("helpful")
+#plt.rc('animation', html='html5')
+##
+######################################################################
+##
+### Change Log:
+##
+##
+######################################################################
+##
+## This program is free software: you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or (at
+## your option) any later version.
+##
+## This program is distributed in the hope that it will be useful, but
+## WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+## General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+##
+######################################################################
+##
+### Code:
+### IMPORTS
+import os, sys, inspect
+##load own modules
+from lib.Collection import *
+from lib.logger import makelogdir, setup_multiprocess_logger
+# Create log dir
+makelogdir('logs')
+# Define loggers
+scriptname=os.path.basename(__file__)
+streamlog = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='WARNING')
+log = setup_multiprocess_logger(name=scriptname, log_file='logs/'+scriptname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='DEBUG')
 
-# TODO Log:
-# Statistics about results
-# Fold Windows
-#
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or (at
-# your option) any later version.
-#
-# This program is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-# General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-#
-#
-
-# Code:
-
-# IMPORTS
+#other modules
 import argparse
 import pprint
 from io import StringIO
 import time
 import math
-import os, sys, inspect
 import gzip
 import importlib
 import multiprocessing
@@ -63,11 +98,6 @@ import matplotlib
 from matplotlib import animation #, rc
 import matplotlib.pyplot as plt
 from random import choices, choice, shuffle # need this if tempprobing was choosen
-#load own modules
-cmd_subfolder = os.path.join(os.path.dirname(os.path.realpath(os.path.abspath( inspect.getfile( inspect.currentframe() )) )),"../lib")
-if cmd_subfolder not in sys.path:
-    sys.path.insert(0, cmd_subfolder)
-from Collection import *
 from Randseq import createrandseq
 
 def parseargs():
@@ -92,7 +122,9 @@ def parseargs():
     return parser.parse_args()
 
 def fold(sequence, window, span, region, printto, length, gc, number, alphabet, plot, save, procs, vrna, outdir, verbosity=False, pattern=None):
-#set path for output
+
+    logid = scriptname+'.fold: '
+    #set path for output
     if outdir:
         printlog(outdir)
         if not os.path.isabs(outdir):
@@ -119,8 +151,7 @@ def fold(sequence, window, span, region, printto, length, gc, number, alphabet, 
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
             )
-        with open('error','a') as h:
-            print(''.join(tbe.format()), file=h)
+        log.error(logid+''.join(tbe.format()))
 
     if ( plot == '0' and not save):
         raise ValueError('Neither plot nor save are active, this script will take a long time and produce nothing, please activate at least one of the two!')
@@ -175,8 +206,7 @@ def fold(sequence, window, span, region, printto, length, gc, number, alphabet, 
                 tbe = tb.TracebackException(
                     exc_type, exc_value, exc_tb,
                     )
-                with open('error','a') as h:
-                    print(''.join(tbe.format()), file=h)
+                log.error(logid+''.join(tbe.format()))
 
             pool.close()
             pool.join()
@@ -187,7 +217,7 @@ def fold(sequence, window, span, region, printto, length, gc, number, alphabet, 
 def fold_windows(fa, seq, reg, window, span, region, save, printto, outdir, plot):
 #   DEBUGGING
 #   pp = pprint.PrettyPrinter(indent=4)#use with pp.pprint(datastructure)
-
+    logid = scriptname+'.fold_windows: '
     try:
         goi, chrom = fa.id.split(':')[::2]
         strand = str(fa.id.split(':')[3].split('(')[1][0])
@@ -214,17 +244,25 @@ def fold_windows(fa, seq, reg, window, span, region, save, printto, outdir, plot
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
             )
-        with open('error','a') as h:
-            print(''.join(tbe.format()), file=h)
+        log.error(logid+''.join(tbe.format()))
 
 def up_callback(v, v_size, i, maxsize, what, data):
-    if what & RNA.PROBS_WINDOW_UP:
+    logid = scriptname+'.up_callback: '
+    try:
+        if what & RNA.PROBS_WINDOW_UP:
 #        data['up'].extend([{ 'i': i, 'up': v}])
-        data['up'].extend([v])
+            data['up'].extend([v])
+    except Exception as err:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+            exc_type, exc_value, exc_tb,
+            )
+        log.error(logid+''.join(tbe.format()))
 
 def print_region_up(data=None, seqlength=None, region=None, winnr=None):
 #   pp = pprint.PrettyPrinter(indent=4)#use with pp.pprint(datastructure)
 #   pp.pprint(data)
+    logid = scriptname+'.print_region_up: '
     try:
         ups=''
         x = int(region)
@@ -241,12 +279,12 @@ def print_region_up(data=None, seqlength=None, region=None, winnr=None):
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
             )
-        with open('error','a') as h:
-            print(''.join(tbe.format()), file=h)
+        log.error(logid+''.join(tbe.format()))
 
 def print_up(data=None, seqlength=None, region=None, winnr=None):
 #   pp = pprint.PrettyPrinter(indent=4)#use with pp.pprint(datastructure)
     #   pp.pprint(data)
+    logid = scriptname+'.print_up: '
     try:
         ups=''
         for i in range(int(seqlength)):
@@ -262,12 +300,12 @@ def print_up(data=None, seqlength=None, region=None, winnr=None):
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
             )
-        with open('error','a') as h:
-            print(''.join(tbe.format()), file=h)
+        log.error(logid+''.join(tbe.format()))
 
 def up_to_array(data=None, region=None, seqlength=None):
 #   pp = pprint.PrettyPrinter(indent=4)#use with pp.pprint(datastructure)
 #   pp.pprint(data[165553:165588])
+    logid = scriptname+'.up_to_array: '
     try:
         entries=[]
         if not seqlength:
@@ -286,10 +324,10 @@ def up_to_array(data=None, region=None, seqlength=None):
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
             )
-        with open('error','a') as h:
-            print(''.join(tbe.format()), file=h)
+        log.error(logid+''.join(tbe.format()))
 
 def npprint(a, o=None):#, format_string ='{0:.2f}'):
+    logid = scriptname+'.npprint: '
     try:
         out=''
         it = np.nditer(a, flags=['f_index'])
@@ -305,10 +343,10 @@ def npprint(a, o=None):#, format_string ='{0:.2f}'):
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
             )
-        with open('error','a') as h:
-            print(''.join(tbe.format()), file=h)
+        log.error(logid+''.join(tbe.format()))
 
 def write_out(fa, printto, winnr, seqlen, data, region, window, span, outdir):
+    logid = scriptname+'.write_out: '
     try:
         goi, chrom = fa.id.split(':')[::2]
         strand = str(fa.id.split(':')[3].split('(')[1][0])
@@ -332,10 +370,10 @@ def write_out(fa, printto, winnr, seqlen, data, region, window, span, outdir):
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
             )
-        with open('error','a') as h:
-            print(''.join(tbe.format()), file=h)
+        log.error(logid+''.join(tbe.format()))
 
 def read_precalc_fold(data, name, fa):
+    logid = scriptname+'.read_precalc_fold: '
     try:
         for i in range(len(fa.seq)):
             data.append([])
@@ -354,10 +392,10 @@ def read_precalc_fold(data, name, fa):
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
             )
-        with open('error','a') as h:
-            print(''.join(tbe.format()), file=h)
+        log.error(logid+''.join(tbe.format()))
 
 def checkexisting(fa, region, winnr, window, span, outdir):
+    logid = scriptname+'.checkexisting: '
     try:
         goi, chrom = fa.id.split(':')[::2]
         strand = str(fa.id.split(':')[3].split('(')[1][0])
@@ -374,10 +412,20 @@ def checkexisting(fa, region, winnr, window, span, outdir):
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
             )
-        with open('error','a') as h:
-            print(''.join(tbe.format()), file=h)
+        log.error(logid+''.join(tbe.format()))
 
 if __name__ == '__main__':
+
     args=parseargs()
-    fold(args.sequence, args.window, args.span, args.region, args.printto, args.length, args.gc, args.number, args.alphabet, args.plot, args.save, args.procs, args.vrna, args.outdir, args.verbosity, args.pattern)
-# ConstraintPLFold.py ends here
+    logid = scriptname+'.main: '
+    try:
+        log.info(logid+'Running '+scriptname+' on '+str(args.procs)+' cores')
+        fold(args.sequence, args.window, args.span, args.region, args.printto, args.length, args.gc, args.number, args.alphabet, args.plot, args.save, args.procs, args.vrna, args.outdir, args.verbosity, args.pattern)
+            except Exception as err:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+            exc_type, exc_value, exc_tb,
+        )
+        log.error(logid+''.join(tbe.format()))
+
+# FoldWindows.py ends here
