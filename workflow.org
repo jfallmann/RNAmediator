@@ -20,9 +20,15 @@ perl -lane '{if ($F[5] eq "\+" or $F[5] eq "u" or $F[5] eq "." or $F[5] > 0){$st
 ** Create paired constraint
 perl -lane 'if ($F[0]=~ /chr/ && $F[7] =~ /chr/){print join("\t",$F[0],$F[1]-$F[15]+1,$F[2]-$F[15]+1,@F[3..7],$F[8]-$F[15]+1,$F[9]-$F[15]+1,@F[10..$#F])}' Annotated_17_221_closest.bed |perl -lane 'if($F[1]>=0 && $F[2] >= 0 && $F[8] >= 0 && $F[9] >= 0){print $_}' |grep ENSG > Local_Paired_17_221_constraints.bed
 ** Run
+*** PLFold
 ~/Projects/INPROGRESS/RIssmed/RIssmed/ConstraintPLFold.py -s 17_221_targets.fa.gz -w 250 -r raw -n unpaired -p paired -x 17_local_constraints.bed -o Plcons_17 -z 4 
 ~/Projects/INPROGRESS/RIssmed/RIssmed/ConstraintPLFold.py -s 17_221_targets.fa.gz -w 250 -r raw -n unpaired -p paired -x 221_local_constraints.bed -o Plcons_221 -z 4 --loglevel WARNING
 cd Plcons_17
 python ~/Projects/INPROGRESS/RIssmed/RIssmed/CollectConsResults.py -u 1 -z 1 -g ../TargetGenes_17_221.bed -b 0,1 -c 0 -p 250,60 -o Collection
 cd Plcons_221
 python ~/Projects/INPROGRESS/RIssmed/RIssmed/CollectConsResults.py -u 1 -z 1 -g ../TargetGenes_17_221.bed -b 0,1 -c 0 -p 250,60 -o Collection
+*** Fold
+**** single
+**** paired
+ python /home/fall/Projects/INPROGRESS/RIssmed/RIssmed/ConstraintFold.py -s 17_221_targets.fa.gz -w 100 -n unpaired -p paired -r add -x Local_Paired_17_221_constraints.bed -i TargetGenes_17_221.bed -z 4 -o Window_paired
+ python /home/fall/Projects/INPROGRESS/RIssmed/RIssmed/ConstraintFold.py -s 17_221_targets.fa.gz -w 250 -n unpaired -p paired -r add -x Local_Paired_17_221_constraints.bed -i TargetGenes_17_221.bed -z 4 -o Window_paired
