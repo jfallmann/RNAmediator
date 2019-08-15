@@ -6,10 +6,12 @@ channels:
   - r
 dependencies:
   - _libgcc_mutex=0.1=main
+  - bedtools=2.28.0=hdf88d34_0
   - biopython=1.74=py37h516909a_0
   - bzip2=1.0.8=h516909a_0
   - ca-certificates=2019.6.16=hecc5488_0
   - certifi=2019.6.16=py37_1
+  - curl=7.65.3=hf8cf82a_0
   - cycler=0.10.0=py_1
   - dbus=1.13.6=he372182_0
   - expat=2.2.5=he1b5a44_1003
@@ -22,8 +24,12 @@ dependencies:
   - icu=64.2=he1b5a44_0
   - jpeg=9c=h14c3975_1001
   - kiwisolver=1.1.0=py37hc9558a2_0
+  - krb5=1.16.3=h05b26f9_1001
   - libblas=3.8.0=11_openblas
   - libcblas=3.8.0=11_openblas
+  - libcurl=7.65.3=hda55be3_0
+  - libdeflate=1.0=h14c3975_1
+  - libedit=3.1.20170329=hf8c457e_1001
   - libffi=3.2.1=he1b5a44_1006
   - libgcc-ng=9.1.0=hdf63c60_0
   - libgfortran-ng=7.3.0=hdf63c60_0
@@ -31,6 +37,7 @@ dependencies:
   - liblapack=3.8.0=11_openblas
   - libopenblas=0.3.6=h6e990d7_6
   - libpng=1.6.37=hed695b0_0
+  - libssh2=1.8.2=h22169c7_2
   - libstdcxx-ng=9.1.0=hdf63c60_0
   - libuuid=2.32.1=h14c3975_1000
   - libxcb=1.13=h14c3975_1002
