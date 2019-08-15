@@ -7,9 +7,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Wed Aug 14 11:27:05 2019 (+0200)
+## Last-Updated: Thu Aug 15 15:07:39 2019 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 175
+##     Update #: 184
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -571,8 +571,51 @@ def get_bppm(tmp, start, end):
         )
         clog.error(logid+''.join(tbe.format()))
 
+def get_ddg(file):
+    logid = scriptname+'.parseseq: '
+    try:
+        ret = collection.defaultdict()
+        if (isinstance(file, str) and os.path.isfile(file)):
+            if '.gz' in sequence :
+                res = gzip.open(file,'rt')
+            else:
+                res = open(file,'rt')
+
+            for line in res:
+                if 'Condition' in line[0:15]:
+                    continue
+                else:
+                    cols = line.rstrip().split('\t')
+                    res[col[-1]][col[0]]=col[1]
+        return res
+
+    except Exception as err:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+            exc_type, exc_value, exc_tb,
+        )
+        clog.error(logid+''.join(tbe.format()))
+
+def calc_ddg(ddgs):
+    logid = scriptname+'.calc_ddg: '
+
+    try:
+        ddg = ddgs['constraint_unpaired']+ddgs['secondconstraint_unpaired']-ddgs['bothconstraint_unpaired']-ddgs['unpaired']  # Yi-Hsuan Lin, Ralf Bundschuh, RNA structure generates natural cooperativity between single-stranded RNA binding proteins targeting 5′ and 3′UTRs, Nucleic Acids Research, Volume 43, Issue 2, 30 January 2015, Pages 1160–1169, https://doi.org/10.1093/nar/gku1320
+
+        return ddg
+
+    except Exception as err:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+            exc_type, exc_value, exc_tb,
+            )
+        clog.error(logid+''.join(tbe.format()))
+
+    return bpp
+
+
 def calc_bpp(bppm):
-    logid = scriptname+'.get_bppm: '
+    logid = scriptname+'.calc_bpp: '
     bpp = 0.0;
     try:
         for entry in bppm:
