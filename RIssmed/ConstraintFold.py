@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Thu Aug 15 15:13:45 2019 (+0200)
+## Last-Updated: Fri Aug 16 09:36:56 2019 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 339
+##     Update #: 344
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -344,7 +344,7 @@ def fold(sequence, window, span, unconstraint, unpaired, paired, length, gc, num
                             cons = str(start)+'-'+str(end)
                             const = np.array([start, end])
 
-                        pool.apply_async(constrain_seq, args=(fa, start, end, conslength, const, cons, window, xs, unconstraint, paired, unpaired, save, outdir, genecoords, plot, outdict[goi]))
+                        pool.apply_async(constrain_seq, args=(fa, start, end, conslength, const, cons, window, span, xs, unconstraint, paired, unpaired, save, outdir, genecoords, plot, outdict[goi]))
 
             pool.close()
             pool.join()
@@ -364,7 +364,7 @@ def fold(sequence, window, span, unconstraint, unpaired, paired, length, gc, num
 
 ##### Functions #####
 
-def constrain_seq(fa, start, end, conslength, const, cons, window, xs, unconstraint, paired, unpaired, save, outdir, genecoords, plot, outlist):
+def constrain_seq(fa, start, end, conslength, const, cons, window, span, xs, unconstraint, paired, unpaired, save, outdir, genecoords, plot, outlist):
     #   DEBUGGING
     #   pp = pprint.PrettyPrinter(indent=4)#use with pp.pprint(datastructure)
 
@@ -436,6 +436,7 @@ def constrain_seq(fa, start, end, conslength, const, cons, window, xs, unconstra
 
         #set model details
         md = RNA.md()
+        md.max_bp_span = span
 
         log.debug(logid+'Constraints for '+goi+' are '+str(checklist))
 
@@ -495,9 +496,9 @@ def constrain_seq(fa, start, end, conslength, const, cons, window, xs, unconstra
             if os and oe:
                 fn = 'pairedconstraint'
 
-            outlist.append([fa, fn, gibbs, '0', nrg, printcons, str(window), outdir, 'unconstraint'])  # unconstraint
-            outlist.append([fa, fn, gibbs_u, dg_u, nrg_u, printcons, str(window), outdir, 'constraint_unpaired'])  # constraint_paired
-            outlist.append([fa, fn, gibbs_p, dg_p, nrg_p, printcons, str(window), outdir, 'constraint_paired'])  # constraint_unpaired
+            outlist.append([fa, fn, gibbs, '0', nrg, printcons, str(window), str(span), outdir, 'unconstraint'])  # unconstraint
+            outlist.append([fa, fn, gibbs_u, dg_u, nrg_u, printcons, str(window), str(span), outdir, 'constraint_unpaired'])  # constraint_paired
+            outlist.append([fa, fn, gibbs_p, dg_p, nrg_p, printcons, str(window), str(span), outdir, 'constraint_paired'])  # constraint_unpaired
 
             if os and oe:
                 log.debug(logid+'Second constraint: '+str(','.join(map(str,[goi,data['seq'],len(data['seq']),s,e,os,oe]))))
@@ -522,8 +523,8 @@ def constrain_seq(fa, start, end, conslength, const, cons, window, xs, unconstra
                 nrg_u = calc_nrg(bpp_u)
                 nrg_p = calc_nrg(bpp_p)
 
-                outlist.append([fa, fn, gibbs_u, dg_u, nrg_u, printcons, str(window), outdir, 'bothconstraint_unpaired'])  # bothconstraint_unpaired
-                outlist.append([fa, fn, gibbs_p, dg_p, nrg_p, printcons, str(window), outdir, 'bothconstraint_paired'])  # bothconstraint_paired
+                outlist.append([fa, fn, gibbs_u, dg_u, nrg_u, printcons, str(window), str(span), outdir, 'bothconstraint_unpaired'])  # bothconstraint_unpaired
+                outlist.append([fa, fn, gibbs_p, dg_p, nrg_p, printcons, str(window), str(span), outdir, 'bothconstraint_paired'])  # bothconstraint_paired
 
                 #enforce second constraint
                 # First clear old constraints
@@ -549,8 +550,8 @@ def constrain_seq(fa, start, end, conslength, const, cons, window, xs, unconstra
                 nrg_u = calc_nrg(bpp_u)
                 nrg_p = calc_nrg(bpp_p)
 
-                outlist.append([fa, fn, gibbs_u, dg_u, nrg_u, printcons, str(window), outdir, 'secondconstraint_unpaired'])  # secondconstraint_unpaired
-                outlist.append([fa, fn, gibbs_p, dg_p, nrg_p, printcons, str(window), outdir, 'secondconstraint_paired'])  # secondconstraint_paired
+                outlist.append([fa, fn, gibbs_u, dg_u, nrg_u, printcons, str(window), str(span), outdir, 'secondconstraint_unpaired'])  # secondconstraint_unpaired
+                outlist.append([fa, fn, gibbs_p, dg_p, nrg_p, printcons, str(window), str(span), outdir, 'secondconstraint_paired'])  # secondconstraint_paired
 
 
         return outlist
@@ -657,7 +658,7 @@ def fold_unconstraint(seq):
 
 def write_out(result):
 
-    fa, fname, gibbs, ddg, nrg, const, window, outdir, condition = result
+    fa, fname, gibbs, ddg, nrg, const, window, span, outdir, condition = result
     logid = scriptname+'.write_out: '
     goi, chrom, strand = idfromfa(fa.id)
     temp_outdir = os.path.join(outdir,goi)
@@ -665,13 +666,13 @@ def write_out(result):
         if fname != 'STDOUT':
             if not os.path.exists(temp_outdir):
                 os.makedirs(temp_outdir)
-            if not os.path.exists(os.path.join(temp_outdir, '_'.join([goi, chrom, strand, fname, const, window])+'.gz')):
-                o = gzip.open(os.path.join(temp_outdir, '_'.join([goi, chrom, strand, fname, const, window])+'.gz'), 'wb')
+            if not os.path.exists(os.path.join(temp_outdir, '_'.join([goi, chrom, strand, fname, const, window, span])+'.gz')):
+                o = gzip.open(os.path.join(temp_outdir, '_'.join([goi, chrom, strand, fname, const, window, span])+'.gz'), 'wb')
                 o.write(bytes(str.join('\t',['Condition','FreeNRG(gibbs)','deltaG','OpeningNRG'])+'\n',encoding='UTF-8'))
                 o.write(bytes(str.join('\t',[condition, str(gibbs), str(ddg), str(nrg), str(const)])+'\n',encoding='UTF-8'))
             else:
-                log.info(os.path.join(temp_outdir, '_'.join([goi, chrom, strand, fname, const, window])+'.gz')+' exists, will append!')
-                o = gzip.open(os.path.join(temp_outdir, '_'.join([goi, chrom, strand, fname, const, window])+'.gz'), 'ab')
+                log.info(os.path.join(temp_outdir, '_'.join([goi, chrom, strand, fname, const, window, span])+'.gz')+' exists, will append!')
+                o = gzip.open(os.path.join(temp_outdir, '_'.join([goi, chrom, strand, fname, const, window, span])+'.gz'), 'ab')
                 o.write(bytes(str.join('\t',[condition, str(gibbs), str(ddg), str(nrg), str(const)])+'\n',encoding='UTF-8'))
         else:
             print(str.join('\t',['FreeNRG(gibbs)','deltaG','OpeningNRG','Constraint']))

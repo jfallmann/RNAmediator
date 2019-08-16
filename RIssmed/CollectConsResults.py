@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Tue Aug 13 15:13:26 2019 (+0200)
+## Last-Updated: Fri Aug 16 09:27:41 2019 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 154
+##     Update #: 157
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -70,8 +70,9 @@ from lib.logger import makelogdir, setup_multiprocess_logger
 makelogdir('logs')
 # Define loggers
 scriptname=os.path.basename(__file__)
+global streamlog, log           # global to ensure that later manipulation of loglevel is possible
 streamlog = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='WARNING')
-log = setup_multiprocess_logger(name=scriptname, log_file='logs/'+scriptname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='DEBUG')
+log = setup_multiprocess_logger(name=scriptname, log_file='logs/'+scriptname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='WARNING')
 
 ##other modules
 import glob
@@ -110,6 +111,12 @@ def parseargs():
     parser.add_argument("-o", "--outdir", type=str, default='', help='Directory to write to')
     parser.add_argument("-g", "--genes", type=str, help='Genomic coordinates bed for genes, either standard bed format or AnnotateBed.pl format')
     parser.add_argument("-z", "--procs", type=int, default=1, help='Number of parallel processed to run this job with, only important of no border is given and we need to fold')
+    parser.add_argument("--loglevel", type=str, default='WARNING', choices=['WARNING','ERROR','INFO','DEBUG'], help="Set log level")
+
+    if len(sys.argv)==1:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
+
     return parser.parse_args()
 
 def screen_genes(pat, cutoff, border, ulim, procs, roi, outdir, genes):
@@ -288,6 +295,10 @@ if __name__ == '__main__':
     logid = scriptname+'.main: '
     try:
         args=parseargs()
+        if args.loglevel != 'WARNING':
+          streamlog = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
+          log = setup_multiprocess_logger(name=scriptname, log_file='logs/'+scriptname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
+
         log.info(logid+'Running '+scriptname+' on '+str(args.procs)+' cores')
         screen_genes(args.pattern, args.cutoff, args.border, args.ulimit, args.procs, args.roi, args.outdir, args.genes)
     except Exception as err:
