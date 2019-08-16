@@ -34,7 +34,7 @@ python ~/Projects/INPROGRESS/RIssmed/RIssmed/CollectConsResults.py -u 1 -z 1 -g 
 python /home/fall/Projects/INPROGRESS/RIssmed/RIssmed/ConstraintFold.py -s 17_221_targets.fa.gz -w 100 -n unpaired -p paired -r add -x 17_local_constraints.bed -i TargetGenes_17_221.bed -z 4 -o Window_17
 python /home/fall/Projects/INPROGRESS/RIssmed/RIssmed/ConstraintFold.py -s 17_221_targets.fa.gz -w 250 -n unpaired -p paired -r add -x 221_local_constraints.bed -i TargetGenes_17_221.bed -z 4 -o Window_221
 **** paired
-python /home/fall/Projects/INPROGRESS/RIssmed/RIssmed/ConstraintFold.py -s 17_221_targets.fa.gz -w 100 -n unpaired -p paired -r add -x Local_Paired_17_221_constraints.bed -i TargetGenes_17_221.bed -z 4 -o Window_paired
+python /home/fall/Projects/INPROGRESS/RIssmed/RIssmed/ConstraintFold.py -s 17_221_targets.fa.gz -w 100 -l 90 -n unpaired -p paired -r add -x Local_Paired_17_221_constraints.bed -i TargetGenes_17_221.bed -z 4 -o Window_paired
 **** Collect
 cd Window_paired
-python ~/Projects/INPROGRESS/RIssmed/RIssmed/CollectWindowResults.py -z 1 -g ../TargetGenes_17_221.bed -b " -1,1" -p 250,60 -o Collection
+python ~/Projects/INPROGRESS/RIssmed/RIssmed/CollectWindowResults.py -z 1 -g ../TargetGenes_17_221.bed -b " -1,1" -p 100,90 -o Collection

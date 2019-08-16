@@ -8,9 +8,9 @@
 ## Created: Thu Aug 15 13:49:46 2019 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Fri Aug 16 10:26:20 2019 (+0200)
+## Last-Updated: Fri Aug 16 12:09:31 2019 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 48
+##     Update #: 55
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -161,7 +161,7 @@ def screen_genes(pat, border, procs, outdir, genes):
             try:
                 for i in range(len(p)):
                     log.debug(logid+'Calculating file ' + str(p[i]))
-                    pool.apply_async(calc_ddg, args=(p[i], gs, ge, border, outdir))
+                    pool.apply_async(calc, args=(p[i], gs, ge, border, outdir))
             except Exception as err:
                 exc_type, exc_value, exc_tb = sys.exc_info()
                 tbe = tb.TracebackException(
@@ -179,7 +179,7 @@ def screen_genes(pat, border, procs, outdir, genes):
             )
         log.error(logid+''.join(tbe.format()))
 
-def calc_ddg(p, gs, ge, border, outdir):
+def calc(p, gs, ge, border, outdir):
 
     logid = scriptname+'.calc_ddg: '
     try:
@@ -193,10 +193,12 @@ def calc_ddg(p, gs, ge, border, outdir):
         log.debug(logid+str(ddgs))
 
         for cons in ddgs:
-            ddg=calc_ddg(ddgs[cons], cutoff)
+            if not cons in out:
+                out[cons] = list()
+            ddg=calc_ddg(ddgs[cons])
             if ddg is not None:
                 if ddg > border1 and ddg < border2:
-                    out[cons].append('\t'.join([str(chrom), str(gpos), str(gend),  str(goi), ddg, str(strand), str(cons)]))
+                    out[cons].append('\t'.join([str(chrom), str(gs), str(ge),  str(goi), str(ddg), str(strand), str(cons)]))
         write_out(out, outdir)
         return
 
@@ -212,8 +214,8 @@ def write_out(out, outdir):
     logid = scriptname+'.savelist: '
     try:
         for cons in out:
-            if not os.path.exists(temp_outdir):
-                os.makedirs(temp_outdir)
+            if not os.path.exists(outdir):
+                os.makedirs(outdir)
             if not os.path.exists(os.path.abspath(os.path.join(outdir, 'Collection_window.bed.gz'))):
                 o = gzip.open(os.path.abspath(os.path.join(outdir, 'Collection_window.bed.gz')), 'wb')
                 o.write(bytes('\n'.join(out[cons]),encoding='UTF-8'))

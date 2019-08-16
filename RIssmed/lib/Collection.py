@@ -7,9 +7,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Fri Aug 16 10:11:59 2019 (+0200)
+## Last-Updated: Fri Aug 16 12:06:11 2019 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 197
+##     Update #: 206
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -586,10 +586,11 @@ def get_ddg(file):
                 if 'Condition' in line[0:15]:
                     continue
                 else:
-                    cols = line.rstrip().split('\t')
-                    clog.debug(logid+str(cols))
-                    res[cols[-1]][cols[0]]=cols[1]
-        return res
+                    cond, gibbs, dg, nrg, cons = line.rstrip().split('\t')
+                    if not str(cons) in ret:
+                        ret[str(cons)] = defaultdict()
+                    ret[str(cons)][cond] = float(dg)
+        return ret
 
     except Exception as err:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -603,7 +604,7 @@ def calc_ddg(ddgs):
 
     try:
         clog.debug(logid+str(ddgs))
-        ddg = ddgs['constraint_unpaired']+ddgs['secondconstraint_unpaired']-ddgs['bothconstraint_unpaired']-ddgs['unpaired']
+        ddg = ddgs['constraint_unpaired']+ddgs['secondconstraint_unpaired']-ddgs['bothconstraint_unpaired']-ddgs['unconstraint']
         """Yi-Hsuan Lin, Ralf Bundschuh, RNA structure generates natural cooperativity between single-stranded RNA binding proteins targeting 5' and 3'UTRs, Nucleic Acids Research, Volume 43, Issue 2, 30 January 2015, Pages 1160-1169, https://doi.org/10.1093/nar/gku1320"""
 
         return ddg
@@ -614,9 +615,6 @@ def calc_ddg(ddgs):
             exc_type, exc_value, exc_tb,
             )
         clog.error(logid+''.join(tbe.format()))
-
-    return bpp
-
 
 def calc_bpp(bppm):
     logid = scriptname+'.calc_bpp: '
