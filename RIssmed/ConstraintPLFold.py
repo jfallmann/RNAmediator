@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Thu Aug 22 13:21:05 2019 (+0200)
+## Last-Updated: Thu Aug 22 14:55:59 2019 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 161
+##     Update #: 162
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -656,7 +656,7 @@ def constrain_seq(sid, seq, start, end, conslength, const, cons, window, span, r
         #for all constraints we now extract subsequences to compare against
         #we no longer fold the whole raw sequence but only the constraint region +- window size
         tostart, toend = expand_window(start, end, window, multi, len(seq))
-        seqtofold = str(seq[tostart:toend]) ###TEST
+        seqtofold = str(seq[tostart:toend])
 
         cons = str('-'.join([str(start),str(end)])+'_'+'-'.join([str(tostart),str(toend)]))
 

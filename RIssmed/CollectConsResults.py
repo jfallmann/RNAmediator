@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Thu Aug 22 13:13:17 2019 (+0200)
+## Last-Updated: Thu Aug 22 14:48:48 2019 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 158
+##     Update #: 159
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -167,6 +167,10 @@ def screen_genes(pat, cutoff, border, ulim, procs, roi, outdir, genes):
             raw = [os.path.abspath(i) for i in r]
             paired = [os.path.abspath(i) for i in p]
             unpaired = [os.path.abspath(i) for i in u]
+
+            if not raw or not paired or not unpaired:
+                log.warning(logid+'Could not find files for Gene '+str(goi)+' and window '+str(window)+' and span '+str(span)+' Will skip')
+                continue
 
             log.debug([','.join(raw), ','.join(paired), ','.join(unpaired)])
 

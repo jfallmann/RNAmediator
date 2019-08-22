@@ -8,9 +8,9 @@
 ## Created: Thu Aug 15 13:49:46 2019 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Fri Aug 16 12:09:31 2019 (+0200)
+## Last-Updated: Thu Aug 22 14:00:00 2019 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 55
+##     Update #: 56
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -157,6 +157,10 @@ def screen_genes(pat, border, procs, outdir, genes):
             nocons = []
 
             paired = [os.path.abspath(i) for i in p]
+
+            if not paired:
+                log.warning(logid+'No output for gene '+str(goi)+' found, will skip!')
+                continue
 
             try:
                 for i in range(len(p)):
