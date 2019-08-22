@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 ### ConstraintFold.py ---
 ##
 ## Filename: ConstraintFold.py
@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Fri Aug 16 09:36:56 2019 (+0200)
+## Last-Updated: Thu Aug 22 11:10:26 2019 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 344
+##     Update #: 349
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -281,6 +281,9 @@ def fold(sequence, window, span, unconstraint, unpaired, paired, length, gc, num
             else:
                 log.error(logid+'Could not compute constraints from input')
                 return
+
+            if not constraintlist:
+                raise Exception('No constraints available, exiting')
 
             for fa in SeqIO.parse(seq,'fasta'):
                 goi, chrom, strand = idfromfa(fa.id)
@@ -684,6 +687,10 @@ def write_out(result):
             exc_type, exc_value, exc_tb,
             )
         log.error(logid+''.join(tbe.format()))
+
+####################
+####    MAIN    ####
+####################
 
 if __name__ == '__main__':
 

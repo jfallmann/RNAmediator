@@ -1,15 +1,15 @@
-# log.py ---
+# logger.py ---
 #
-# Filename: log.py
+# Filename: logger.py
 # Description:
 # Author: Joerg Fallmann
 # Maintainer:
 # Created: Mon Aug 12 10:26:55 2019 (+0200)
 # Version:
 # Package-Requires: ()
-# Last-Updated: Thu Aug 15 12:19:21 2019 (+0200)
+# Last-Updated: Thu Aug 22 09:42:04 2019 (+0200)
 #           By: Joerg Fallmann
-#     Update #: 57
+#     Update #: 59
 # URL:
 # Doc URL:
 # Keywords:

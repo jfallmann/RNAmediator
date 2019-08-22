@@ -7,9 +7,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Fri Aug 16 12:06:11 2019 (+0200)
+## Last-Updated: Thu Aug 22 11:23:12 2019 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 206
+##     Update #: 218
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -68,8 +68,8 @@ from lib.logger import makelogdir, setup_multiprocess_logger
 makelogdir('logs')
 # Define loggers
 scriptname=os.path.basename(__file__)
-streamlog = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='WARNING')
-clog = setup_multiprocess_logger(name=scriptname, log_file='logs/'+scriptname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='INFO')
+#streamlog = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='WARNING')
+clog = setup_multiprocess_logger(name=scriptname, log_file='logs/'+scriptname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='WARNING')
 from lib.Collection import *
 
 ##other modules
@@ -313,12 +313,17 @@ def readPairedConstraintsFromBed(bed, linewise=None):
     try:
         for line in bed:
             entries = line.rstrip().split('\t')
-            if int(entries[1]) > -1 and int(entries[8]) > -1:
+            if len(entries) % 2:
+                raise Exception('Unbalanced paired bed, please make sure the paired bed consists of equal number of fields for both constraint entries')
+            else:
+                second = int((len(entries)/2)+1)
+                clog.debug(logid+'For line '+str(entries)+' start of second bed part is field '+str(second))
+            if int(entries[1]) > -1 and int(entries[second]) > -1:
                 start_one = int(entries[1])+1
                 end_one = entries[2]
                 goi = entries[3]
-                start_two = int(entries[8])+1
-                end_two = entries[9]
+                start_two = int(entries[second])
+                end_two = int(entries[second+1])
                 if linewise:
                     cons['lw'].append('-'.join([str(start_one), str(end_one), str(start_two), str(end_two)]))
                 else:

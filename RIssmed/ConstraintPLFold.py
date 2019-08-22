@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Wed Aug 14 17:32:21 2019 (+0200)
+## Last-Updated: Thu Aug 22 10:58:59 2019 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 157
+##     Update #: 158
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -77,7 +77,7 @@ makelogdir('logs')
 scriptname=os.path.basename(__file__)
 global streamlog, log           # global to ensure that later manipulation of loglevel is possible
 streamlog = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='WARNING')
-log = setup_multiprocess_logger(name=scriptname, log_file='logs/'+scriptname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='INFO')
+log = setup_multiprocess_logger(name=scriptname, log_file='logs/'+scriptname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='WARNING')
 
 import argparse
 import pprint
