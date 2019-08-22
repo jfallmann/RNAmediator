@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Thu Aug 22 13:47:35 2019 (+0200)
+## Last-Updated: Thu Aug 22 13:52:30 2019 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 357
+##     Update #: 361
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -661,27 +661,29 @@ def fold_unconstraint(seq):
             )
         log.error(logid+''.join(tbe.format()))
 
-def write_out(result):
+def write_out(resultlist):
 
-    fa, fname, gibbs, ddg, nrg, const, window, span, outdir, condition = result
-    logid = scriptname+'.write_out: '
-    goi, chrom, strand = idfromfa(fa.id)
-    temp_outdir = os.path.join(outdir,goi)
     try:
-        if fname != 'STDOUT':
-            if not os.path.exists(temp_outdir):
-                os.makedirs(temp_outdir)
-            if not os.path.exists(os.path.join(temp_outdir, '_'.join([goi, chrom, strand, fname, const, window, span])+'.gz')):
-                o = gzip.open(os.path.join(temp_outdir, '_'.join([goi, chrom, strand, fname, const, window, span])+'.gz'), 'wb')
-                o.write(bytes(str.join('\t',['Condition','FreeNRG(gibbs)','deltaG','OpeningNRG'])+'\n',encoding='UTF-8'))
-                o.write(bytes(str.join('\t',[condition, str(gibbs), str(ddg), str(nrg), str(const)])+'\n',encoding='UTF-8'))
+        for result in resultlist:
+            fa, fname, gibbs, ddg, nrg, const, window, span, outdir, condition = result
+            logid = scriptname+'.write_out: '
+            goi, chrom, strand = idfromfa(fa.id)
+            temp_outdir = os.path.join(outdir,goi)
+
+            if fname != 'STDOUT':
+                if not os.path.exists(temp_outdir):
+                    os.makedirs(temp_outdir)
+                if not os.path.exists(os.path.join(temp_outdir, '_'.join([goi, chrom, strand, fname, const, window, span])+'.gz')):
+                    o = gzip.open(os.path.join(temp_outdir, '_'.join([goi, chrom, strand, fname, const, window, span])+'.gz'), 'wb')
+                    o.write(bytes(str.join('\t',['Condition','FreeNRG(gibbs)','deltaG','OpeningNRG','Constraint'])+'\n',encoding='UTF-8'))
+                    o.write(bytes(str.join('\t',[condition, str(gibbs), str(ddg), str(nrg), str(const)])+'\n',encoding='UTF-8'))
+                else:
+                    log.info(os.path.join(temp_outdir, '_'.join([goi, chrom, strand, fname, const, window, span])+'.gz')+' exists, will append!')
+                    o = gzip.open(os.path.join(temp_outdir, '_'.join([goi, chrom, strand, fname, const, window, span])+'.gz'), 'ab')
+                    o.write(bytes(str.join('\t',[condition, str(gibbs), str(ddg), str(nrg), str(const)])+'\n',encoding='UTF-8'))
             else:
-                log.info(os.path.join(temp_outdir, '_'.join([goi, chrom, strand, fname, const, window, span])+'.gz')+' exists, will append!')
-                o = gzip.open(os.path.join(temp_outdir, '_'.join([goi, chrom, strand, fname, const, window, span])+'.gz'), 'ab')
-                o.write(bytes(str.join('\t',[condition, str(gibbs), str(ddg), str(nrg), str(const)])+'\n',encoding='UTF-8'))
-        else:
-            print(str.join('\t',['FreeNRG(gibbs)','deltaG','OpeningNRG','Constraint']))
-            print(str.join('\t',[str(gibbs), str(ddg), str(nrg), str(const)]))
+                print(str.join('\t',['Condition','FreeNRG(gibbs)','deltaG','OpeningNRG','Constraint']))
+                print(str.join('\t',[condition, str(gibbs), str(ddg), str(nrg), str(const)]))
 
     except Exception as err:
         exc_type, exc_value, exc_tb = sys.exc_info()
