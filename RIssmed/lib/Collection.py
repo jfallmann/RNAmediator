@@ -7,9 +7,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Thu Aug 22 11:23:12 2019 (+0200)
+## Last-Updated: Thu Aug 22 13:13:15 2019 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 218
+##     Update #: 219
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -873,7 +873,6 @@ def print_globallists():
             exc_type, exc_value, exc_tb,
             )
         clog.error(logid+''.join(tbe.format()))
-
 
 #def bpp_callback(v, v_size, i, maxsize, what, data):
 #   if what & RNA.PROBS_WINDOW_BPP:

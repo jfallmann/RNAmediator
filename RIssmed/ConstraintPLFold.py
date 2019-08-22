@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Thu Aug 22 10:58:59 2019 (+0200)
+## Last-Updated: Thu Aug 22 13:21:05 2019 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 158
+##     Update #: 161
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -258,6 +258,9 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
     for fa in SeqIO.parse(seq,'fasta'):
         fa.seq = str(fa.seq).upper()
         goi, chrom, strand = idfromfa(fa.id)
+
+        if len(fa.seq) < window:
+            raise Exception('Sequence of '+goi+' to short, seqlenght '+str(len(seqtofold))+' with window size '+str(window))
 
         if pattern and pattern not in goi:
             next

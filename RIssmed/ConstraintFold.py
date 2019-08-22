@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Thu Aug 22 11:10:26 2019 (+0200)
+## Last-Updated: Thu Aug 22 13:43:58 2019 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 349
+##     Update #: 353
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -287,8 +287,10 @@ def fold(sequence, window, span, unconstraint, unpaired, paired, length, gc, num
 
             for fa in SeqIO.parse(seq,'fasta'):
                 goi, chrom, strand = idfromfa(fa.id)
+                if len(fa.seq) < window:
+                    raise Exception('Sequence of '+goi+' to short, seqlenght '+str(len(seqtofold))+' with window size '+str(window))xs
 
-                outdict[goi]=manager.list()  # add a managed list to append results to
+#                outdict[goi]=manager.list()  # add a managed list to append results to
 
                 if pattern and pattern not in goi:
                     next
@@ -347,14 +349,14 @@ def fold(sequence, window, span, unconstraint, unpaired, paired, length, gc, num
                             cons = str(start)+'-'+str(end)
                             const = np.array([start, end])
 
-                        pool.apply_async(constrain_seq, args=(fa, start, end, conslength, const, cons, window, span, xs, unconstraint, paired, unpaired, save, outdir, genecoords, plot, outdict[goi]))
+                        pool.apply_async(constrain_seq, args=(fa, start, end, conslength, const, cons, window, span, xs, unconstraint, paired, unpaired, save, outdir, genecoords, plot))
 
             pool.close()
             pool.join()
 
-            for result in [outdict[gene] for gene in outdict]:
-                for r in result:
-                    write_out(r)
+#            for result in [outdict[gene] for gene in outdict]:
+#                for r in result:
+#                    write_out(r)
 
         log.info(logid+"DONE: output in: " + str(outdir))
 
@@ -367,12 +369,13 @@ def fold(sequence, window, span, unconstraint, unpaired, paired, length, gc, num
 
 ##### Functions #####
 
-def constrain_seq(fa, start, end, conslength, const, cons, window, span, xs, unconstraint, paired, unpaired, save, outdir, genecoords, plot, outlist):
+def constrain_seq(fa, start, end, conslength, const, cons, window, span, xs, unconstraint, paired, unpaired, save, outdir, genecoords, plot):
     #   DEBUGGING
     #   pp = pprint.PrettyPrinter(indent=4)#use with pp.pprint(datastructure)
 
     logid = scriptname+'.constrain_seq: '
     try:
+        outlist = list()
         goi, chrom, strand = idfromfa(fa.id)
         dist, fstart, fend = [None, None, None]
         if ':' in cons:
@@ -400,7 +403,7 @@ def constrain_seq(fa, start, end, conslength, const, cons, window, span, xs, unc
             if toend > len(fa.seq):
                 toend = len(fa.seq)
             if fend is not None and toend < fend:
-                log.error(logid+'Constraint '+str(cons)+' out of sequence range '+str(toend)+'!Skipping!')  # One of the constraints is outside the sequence window
+                log.warning(logid+'Constraint '+str(cons)+' out of sequence range '+str(toend)+'!Skipping!')  # One of the constraints is outside the sequence window
                 return
             seqtofold = str(fa.seq[tostart:toend+1])
         else:
@@ -409,8 +412,8 @@ def constrain_seq(fa, start, end, conslength, const, cons, window, span, xs, unc
             seqtofold = str(fa.seq[:])
 
         if len(seqtofold) < window:
-            log.error(logid+'Sequence of '+goi+' to short, seqlenght '+str(len(seqtofold))+' with window size '+str(window)+'!Skipping! ')
-            return(logid+'Sequence of '+goi+' to short, seqlenght '+str(len(seqtofold))+' with window size '+str(window)+'!Skipping!')
+            log.warning(logid+'Sequence of '+goi+' to short, seqlenght '+str(len(seqtofold))+' with window size '+str(window)+'!Skipping! ')
+            raise Exception('Sequence of '+goi+' to short, seqlenght '+str(len(seqtofold))+' with window size '+str(window))
 
         #check constraints
         if tostart < 0:
@@ -556,8 +559,7 @@ def constrain_seq(fa, start, end, conslength, const, cons, window, span, xs, unc
                 outlist.append([fa, fn, gibbs_u, dg_u, nrg_u, printcons, str(window), str(span), outdir, 'secondconstraint_unpaired'])  # secondconstraint_unpaired
                 outlist.append([fa, fn, gibbs_p, dg_p, nrg_p, printcons, str(window), str(span), outdir, 'secondconstraint_paired'])  # secondconstraint_paired
 
-
-        return outlist
+        write_out(outlist)
 
     except Exception as err:
         exc_type, exc_value, exc_tb = sys.exc_info()
