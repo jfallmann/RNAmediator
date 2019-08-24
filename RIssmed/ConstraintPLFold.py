@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Thu Aug 22 14:55:59 2019 (+0200)
+## Last-Updated: Fri Aug 23 16:35:36 2019 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 162
+##     Update #: 164
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -905,7 +905,7 @@ def write_constraint(sid, seq, paired, unpaired, data_u, data_p, constrain, regi
     try:
         goi, chrom, strand = idfromfa(sid)
         temp_outdir = os.path.join(outdir,goi)
-#print outputs to file or STDERR
+        #print outputs to file or STDERR
         if paired != 'STDOUT':
             if not os.path.exists(temp_outdir):
                 os.makedirs(temp_outdir)
@@ -915,7 +915,7 @@ def write_constraint(sid, seq, paired, unpaired, data_u, data_p, constrain, regi
                     if out and len(out)>1:
                         o.write(bytes(out,encoding='UTF-8'))
                     else:
-                        eprint("No output produced "+sid)
+                        log.error("No output produced "+sid)
         else:
             print(print_up(data_p['up'],len(seq),region))
 
@@ -928,7 +928,7 @@ def write_constraint(sid, seq, paired, unpaired, data_u, data_p, constrain, regi
                     if out and len(out)>1:
                         o.write(bytes(out,encoding='UTF-8'))
                     else:
-                        eprint("No output produced "+sid)
+                        log.error("No output produced "+sid)
         else:
             print(print_up(data_u['up'],len(seq),region))
 
@@ -1195,7 +1195,7 @@ if __name__ == '__main__':
     try:
         args=parseargs()
         if args.loglevel != 'WARNING':
-          streamlog = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
+#          streamlog = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
           log = setup_multiprocess_logger(name=scriptname, log_file='logs/'+scriptname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
 
         log.info(logid+'Running '+scriptname+' on '+str(args.procs)+' cores')

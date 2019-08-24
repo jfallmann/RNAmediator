@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Thu Aug 22 14:48:48 2019 (+0200)
+## Last-Updated: Fri Aug 23 17:05:52 2019 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 159
+##     Update #: 179
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -112,6 +112,7 @@ def parseargs():
     parser.add_argument("-g", "--genes", type=str, help='Genomic coordinates bed for genes, either standard bed format or AnnotateBed.pl format')
     parser.add_argument("-z", "--procs", type=int, default=1, help='Number of parallel processed to run this job with, only important of no border is given and we need to fold')
     parser.add_argument("--loglevel", type=str, default='WARNING', choices=['WARNING','ERROR','INFO','DEBUG'], help="Set log level")
+    parser.add_argument("-w", "--padding", type=int, default=0, help='Padding around constraint that will be excluded from report, default is 0, so only directly overlapping effects will be ignored')
 
     if len(sys.argv)==1:
         parser.print_help(sys.stderr)
@@ -119,7 +120,7 @@ def parseargs():
 
     return parser.parse_args()
 
-def screen_genes(pat, cutoff, border, ulim, procs, roi, outdir, genes):
+def screen_genes(pat, cutoff, border, ulim, procs, roi, outdir, genes, padding):
 
     logid = scriptname+'.screen_genes: '
     try:
@@ -172,11 +173,9 @@ def screen_genes(pat, cutoff, border, ulim, procs, roi, outdir, genes):
                 log.warning(logid+'Could not find files for Gene '+str(goi)+' and window '+str(window)+' and span '+str(span)+' Will skip')
                 continue
 
-            log.debug([','.join(raw), ','.join(paired), ','.join(unpaired)])
-
             try:
                 for i in range(len(r)):
-                    pool.apply_async(judge_diff, args=(raw[i], u[i], p[i], gs, ge, ulim, cutoff, border, outdir))
+                    pool.apply_async(judge_diff, args=(raw[i], u[i], p[i], gs, ge, ulim, cutoff, border, outdir, padding))
             except Exception as err:
                 exc_type, exc_value, exc_tb = sys.exc_info()
                 tbe = tb.TracebackException(
@@ -194,7 +193,7 @@ def screen_genes(pat, cutoff, border, ulim, procs, roi, outdir, genes):
             )
         log.error(logid+''.join(tbe.format()))
 
-def judge_diff(raw, u, p, gs, ge, ulim, cutoff, border, outdir):
+def judge_diff(raw, u, p, gs, ge, ulim, cutoff, border, outdir, padding):
 
     logid = scriptname+'.judge_diff: '
     try:
@@ -204,6 +203,10 @@ def judge_diff(raw, u, p, gs, ge, ulim, cutoff, border, outdir):
 
         cs = cs - ws - 1#fit to window and make 0-based
         ce = ce - ws - 1#fit to window and make 0-based
+
+        if 0 > any([cs,ce,ws,we]):
+            raise Exception('One of '+str([cs,ce,ws,we])+ ' lower than 0! this should not happen for '+','.join([goi, chrom, strand, cons, reg, f, window, span]))
+
         if strand is not '-':
             ws = ws + gs -1 #get genomic coords
             we = we + gs
@@ -222,12 +225,17 @@ def judge_diff(raw, u, p, gs, ge, ulim, cutoff, border, outdir):
 
         noc = pl_to_array(raw, ulim-1)
 
+        mult = int((len(noc)/int(window))/2)
+        log.debug(logid+'Multiplyer: '+str(mult))
+        conswindow = (int(window)*(mult-1),int(window)*(mult+1))
+        log.debug(logid+'Constraint Window: '+str(conswindow))
+
         if abs(noc[ce]) > cutoff:
             uc = pl_to_array(u, ulim-1)
             pc = pl_to_array(p, ulim-1)
 
-            for pos in range(len(uc)):
-                if pos not in range(cs,ce+1):
+            for pos in range(conswindow[0],conswindow[1]+1):
+                if pos not in range(cs-padding,ce+1+padding):
                     if border1 < uc[pos] and uc[pos] < border2:
                         if ce < pos:# get distance up or downstream
                             dist = (pos - ce) * -1 # no -1 or we have 0 overlap
@@ -243,7 +251,7 @@ def judge_diff(raw, u, p, gs, ge, ulim, cutoff, border, outdir):
                             gend = gpos + ulim
                             gcons = str(we-ce-1)+'-'+str(we-cs)
 
-                        out['u'].append('\t'.join([str(chrom), str(gpos), str(gend), str(goi) + '|' + str(cons) + '|' + str(gcons), str(uc[pos]), str(strand), str(dist), str(int(noc[pos]))]))
+                        out['u'].append('\t'.join([str(chrom), str(gpos), str(gend), str(goi) + '|' + str(cons) + '|' + str(gcons), str(uc[pos]), str(strand), str(dist), str(noc[pos]), str(noc[pos]-uc[pos])]))
 
                     if border1 < pc[pos] and pc[pos] < border2:
                         if ce < pos:# get distance up or downstream
@@ -260,7 +268,7 @@ def judge_diff(raw, u, p, gs, ge, ulim, cutoff, border, outdir):
                             gend = gpos + ulim
                             gcons = str(we-ce-1)+'-'+str(we-cs)
 
-                        out['p'].append('\t'.join([str(chrom), str(gpos), str(gend), str(goi) + '|' + str(cons) + '|' + str(gcons), str(pc[pos]), str(strand), str(dist), str(int(noc[pos]))]))
+                        out['p'].append('\t'.join([str(chrom), str(gpos), str(gend), str(goi) + '|' + str(cons) + '|' + str(gcons), str(pc[pos]), str(strand), str(dist), str(noc[pos]), str(noc[pos]-pc[pos])]))
 
         savelists(out, outdir)
 
@@ -300,11 +308,11 @@ if __name__ == '__main__':
     try:
         args=parseargs()
         if args.loglevel != 'WARNING':
-          streamlog = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
+            #          streamlog = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
           log = setup_multiprocess_logger(name=scriptname, log_file='logs/'+scriptname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
 
         log.info(logid+'Running '+scriptname+' on '+str(args.procs)+' cores')
-        screen_genes(args.pattern, args.cutoff, args.border, args.ulimit, args.procs, args.roi, args.outdir, args.genes)
+        screen_genes(args.pattern, args.cutoff, args.border, args.ulimit, args.procs, args.roi, args.outdir, args.genes, args.padding)
     except Exception as err:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(

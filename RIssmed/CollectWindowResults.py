@@ -8,9 +8,9 @@
 ## Created: Thu Aug 15 13:49:46 2019 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Thu Aug 22 14:00:00 2019 (+0200)
+## Last-Updated: Thu Aug 22 15:14:37 2019 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 56
+##     Update #: 57
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -203,7 +203,10 @@ def calc(p, gs, ge, border, outdir):
             if ddg is not None:
                 if ddg > border1 and ddg < border2:
                     out[cons].append('\t'.join([str(chrom), str(gs), str(ge),  str(goi), str(ddg), str(strand), str(cons)]))
-        write_out(out, outdir)
+        if out:
+            write_out(out, outdir)
+        else:
+            log.warning(logid+'No ddg above cutoffs for gene '+str(goi))
         return
 
     except Exception as err:
