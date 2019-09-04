@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Wed Sep  4 09:40:37 2019 (+0200)
+## Last-Updated: Wed Sep  4 10:06:29 2019 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 165
+##     Update #: 176
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -252,15 +252,14 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
     # Create process pool with processes
     num_processes = procs or 1
     pool = multiprocessing.Pool(processes=num_processes, maxtasksperchild=1)
-#    logger = multiprocessing.log_to_stderr()   #LOGGING FOR DEBUG
-#    logger.setLevel(logging.DEBUG)   #LOGGING FOR DEBUG
 
     for fa in SeqIO.parse(seq,'fasta'):
         fa.seq = str(fa.seq).upper()
         goi, chrom, strand = idfromfa(fa.id)
 
         if len(fa.seq) < window:
-            raise Exception('Sequence of '+goi+' to short, seqlenght '+str(len(seqtofold))+' with window size '+str(window))
+            log.warning(str('Sequence of '+goi+' to short, seqlenght '+str(len(fa.seq))+' with window size '+str(window)))
+            continue
 
         if pattern and pattern not in goi:
             next
@@ -1195,7 +1194,6 @@ if __name__ == '__main__':
     try:
         args=parseargs()
         if args.loglevel != 'WARNING':
-#          streamlog = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
           log = setup_multiprocess_logger(name=scriptname, log_file='logs/'+scriptname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
 
         log.info(logid+'Running '+scriptname+' on '+str(args.procs)+' cores')
