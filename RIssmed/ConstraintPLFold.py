@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Fri Aug 23 16:35:36 2019 (+0200)
+## Last-Updated: Wed Sep  4 09:40:37 2019 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 164
+##     Update #: 165
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -467,7 +467,7 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                             [fstart, fend], [start, end] = [[int(x) for x in cn.split('-',1)] for cn in entry.split(':',1)]
                             cons = str(fstart)+'-'+str(fend)+':'+str(start)+'-'+str(end)
                             if start < 0 or fstart < 0 or end > len(fa.seq) or fend > len(fa.seq):
-                                log.warning(logid+'Constraint out of sequence bounds! skipping! '+','.join([len(fa.seq),str(start)+'-'+str(end),str(fstart)+'-'+str(fend)]) )
+                                log.warning(logid+'Constraint out of sequence bounds! skipping! '+','.join(map(str,[goi,len(fa.seq),str(start)+'-'+str(end),str(fstart)+'-'+str(fend)])))
                                 continue
 
                         else:
@@ -476,7 +476,7 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                             cons = str(start)+'-'+str(end)+'_'+str(tostart)+'-'+str(toend)
 
                             if start < 0 or end > len(fa.seq):
-                                log.warning(logid+'Constraint out of sequence bounds! skipping! '+','.join(map(str,[len(fa.seq),str(start)+'-'+str(end)])) )
+                                log.warning(logid+'Constraint out of sequence bounds! skipping! '+','.join(map(str,[goi,len(fa.seq),str(start)+'-'+str(end)])))
                                 continue
 
                         if checkexisting(str(fa.id), paired, unpaired, cons, region, window, span, outdir):

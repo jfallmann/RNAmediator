@@ -38,3 +38,15 @@ python /home/fall/Projects/INPROGRESS/RIssmed/RIssmed/ConstraintFold.py -s 17_22
 **** Collect
 cd Window_paired
 python ~/Projects/INPROGRESS/RIssmed/RIssmed/CollectWindowResults.py -z 1 -g ../TargetGenes_17_221.bed -b " -1,1" -p 100,90 -o Collection
+* Run on FUBP and U2AF65
+cd /scr/k70san2/fall/Constraints/Mainz/ReStart_U2AF65_FUBP
+ca rissmed
+rsync -auv ../U2AF65_FUBP_NEW65/*.bed .
+rsync -auv ../U2AF65_FUBP_NEW65/*.fa*gz .
+** Reprocess, for Preprocess see ~/Projects/INPROGRESS/FoldConstraints/Cooperativity_Mainz/workflow.org
+*** Get local coords of Fu binding on 65 extension, closestBed -D a gives us dist in regard to a, as we consider strand in fasta this is important, Binding site size is 5!
+perl -lane '{if ($F[5] eq "\+" or $F[5] eq "u" or $F[5] eq "." or $F[5] > 0){$start = $F[1]-$F[15]+1;}else{$start = $F[16]-$F[2]+1} if ($start > 0 ){ $end = $start+5; print join("\t",$F[0],$start,$end,@F[3..5])}}' Annotated_65_Fu_closest_gene_overlap.bed |sort -k1,1 -k2,2n > 65_local_constraints.bed
+perl -lane '{if ($F[5] eq "\+" or $F[5] eq "u" or $F[5] eq "." or $F[5] > 0){$start = $F[8]-$F[15]+1;}else{$start = $F[16]-$F[9]+1} if ($start > 0 ){ $end = $start+5; print join("\t",$F[0],$start,$end,@F[3..5])}}' Annotated_65_Fu_closest_gene_overlap.bed |sort -k1,1 -k2,2n > Fu_local_constraints.bed
+** Run prob folding
+on k61
+rm -f log error;~/Projects/INPROGRESS/RIssmed/RIssmed/ConstraintPLFold.py -s 65_Fu_targets.fa.gz -w 250 -l 160 -u 5 -r raw -n unpaired -p paired -x 65_local_constraints.bed -o 65_local -z 30 --loglevel WARNING
