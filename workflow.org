@@ -50,3 +50,8 @@ perl -lane '{if ($F[5] eq "\+" or $F[5] eq "u" or $F[5] eq "." or $F[5] > 0){$st
 ** Run prob folding
 on k61
 rm -f log error;~/Projects/INPROGRESS/RIssmed/RIssmed/ConstraintPLFold.py -s 65_Fu_targets.fa.gz -w 250 -l 160 -u 5 -r raw -n unpaired -p paired -x 65_local_constraints.bed -o 65_local -z 30 --loglevel WARNING
+rm -f log error;~/Projects/INPROGRESS/RIssmed/RIssmed/ConstraintPLFold.py -s 65_Fu_targets.fa.gz -w 250 -l 160 -u 5 -r raw -n unpaired -p paired -x Fu_local_constraints.bed -o Fu_local -z 30 --loglevel WARNING
+*** Collect
+cd 65_local
+python ~/Projects/INPROGRESS/RIssmed/RIssmed/CollectConsResults.py -u 5 -z 8 -g ../TargetGenes_65_Fu.bed -b 0,1 -c 0 -p 250,160 -o Collection_65
+
