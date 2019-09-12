@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Fri Aug 23 17:05:52 2019 (+0200)
+## Last-Updated: Thu Sep 12 11:43:44 2019 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 179
+##     Update #: 180
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -234,7 +234,7 @@ def judge_diff(raw, u, p, gs, ge, ulim, cutoff, border, outdir, padding):
             uc = pl_to_array(u, ulim-1)
             pc = pl_to_array(p, ulim-1)
 
-            for pos in range(conswindow[0],conswindow[1]+1):
+            for pos in range(conswindow[0],conswindow[1]):
                 if pos not in range(cs-padding,ce+1+padding):
                     if border1 < uc[pos] and uc[pos] < border2:
                         if ce < pos:# get distance up or downstream
