@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Thu Sep 12 11:43:44 2019 (+0200)
+## Last-Updated: Sun Sep 15 22:50:18 2019 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 180
+##     Update #: 183
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -217,7 +217,7 @@ def judge_diff(raw, u, p, gs, ge, ulim, cutoff, border, outdir, padding):
 
         border1, border2 = map(float,border.split(',')) #defines how big a diff has to be to be of importance
 
-        log.info(logid+'Continuing calculation with cutoff: ' + str(cutoff) + ' and borders ' + str(border1) + ' and ' + str(border2))
+        log.info(logid+'Continuing '+str(goi)+' calculation with cutoff: ' + str(cutoff) + ' and borders ' + str(border1) + ' and ' + str(border2))
 
         out = {}
         out['p'] = []
@@ -234,7 +234,7 @@ def judge_diff(raw, u, p, gs, ge, ulim, cutoff, border, outdir, padding):
             uc = pl_to_array(u, ulim-1)
             pc = pl_to_array(p, ulim-1)
 
-            for pos in range(conswindow[0],conswindow[1]):
+            for pos in range(conswindow[0]-1,conswindow[1]-1):  # Check coords
                 if pos not in range(cs-padding,ce+1+padding):
                     if border1 < uc[pos] and uc[pos] < border2:
                         if ce < pos:# get distance up or downstream
