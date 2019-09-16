@@ -7,9 +7,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Thu Aug 22 13:13:15 2019 (+0200)
+## Last-Updated: Mon Sep 16 11:40:51 2019 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 219
+##     Update #: 222
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -793,18 +793,12 @@ def pl_to_array(name, ulim):
     try:
         clog.debug('\t'.join([logid,name]))
         return np.array(np.loadtxt(name, usecols=ulim, unpack=True, delimiter='\t'))
-#        data = []
-#        with gzip.open(name,'rt') as o:
-#            for line in o:
-#                cells = line.rstrip().split('\t')
-#                data.append(float(cells[ulim]))
-#        return data
     except Exception as err:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
         exc_type, exc_value, exc_tb,
         )
-        clog.error(logid+''.join(tbe.format()))
+        clog.error(logid+' '+name+': '.join(tbe.format()))
 
 def idfromfa(id):
     logid = scriptname+'.idfromfa: '

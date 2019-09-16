@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Sun Sep 15 22:50:18 2019 (+0200)
+## Last-Updated: Mon Sep 16 12:01:35 2019 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 183
+##     Update #: 190
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -227,14 +227,22 @@ def judge_diff(raw, u, p, gs, ge, ulim, cutoff, border, outdir, padding):
 
         mult = int((len(noc)/int(window))/2)
         log.debug(logid+'Multiplyer: '+str(mult))
-        conswindow = (int(window)*(mult-1),int(window)*(mult+1))
+        cws = int(window)*(mult-1)
+        cwe = int(window)*(mult+1)
+        if cwe > len(noc):
+            cwe = len(noc)
+        conswindow = (cws,cwe)
         log.debug(logid+'Constraint Window: '+str(conswindow))
 
         if abs(noc[ce]) > cutoff:
             uc = pl_to_array(u, ulim-1)
             pc = pl_to_array(p, ulim-1)
 
-            for pos in range(conswindow[0]-1,conswindow[1]-1):  # Check coords
+            if not uc.all() or not pc.all():
+                log.warning(logid+'Reading fold did not work for '+str(goi)+'; '+str(u)+'; '+str(p))
+                return
+
+            for pos in range(conswindow[0],conswindow[1]):  # Check coords
                 if pos not in range(cs-padding,ce+1+padding):
                     if border1 < uc[pos] and uc[pos] < border2:
                         if ce < pos:# get distance up or downstream
