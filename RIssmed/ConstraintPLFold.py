@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Wed Sep  4 10:06:29 2019 (+0200)
+## Last-Updated: Tue Oct  8 18:29:02 2019 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 176
+##     Update #: 180
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -679,12 +679,14 @@ def constrain_seq(sid, seq, start, end, conslength, const, cons, window, span, r
         log.debug(''.join(map(str,[logid, sid, region, seqtofold, cons, start, end, tostart, start-tostart, end-tostart+1])))
 
         #enforce paired
-        for x in range(start-tostart, end-tostart+1):
-            fc_p.hc_add_bp_nonspecific(x,0) #0 means without direction  ( $ d < 0 $: pairs upstream, $ d > 0 $: pairs downstream, $ d == 0 $: no direction)
+        fc_p = constrain_paired(fc_p, start-tostart+1, end-tostart+1)
+        #for x in range(start-tostart, end-tostart+1):
+        #    fc_p.hc_add_bp_nonspecific(x,0) #0 means without direction  ( $ d < 0 $: pairs upstream, $ d > 0 $: pairs downstream, $ d == 0 $: no direction)
 
         #enforce unpaired
-        for x in range(start-tostart, end-tostart+1):
-            fc_u.hc_add_up(x)
+        fc_u = constrain_unpaired(fc_u,start-tostart+1,end-tostart+1)
+        #for x in range(start-tostart, end-tostart+1):
+        #    fc_u.hc_add_up(x)
 
         #new data struct
         data_pn = {'up': []}

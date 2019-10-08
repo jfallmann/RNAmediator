@@ -8,9 +8,9 @@
 # Created: Tue Jul 11 13:29:38 2017 (+0200)
 # Version:
 # Package-Requires: ()
-# Last-Updated: Mon Aug 12 11:21:15 2019 (+0200)
+# Last-Updated: Wed Oct  2 11:47:03 2019 (+0200)
 #           By: Joerg Fallmann
-#     Update #: 163
+#     Update #: 167
 # URL:
 # Doc URL:
 # Keywords:
@@ -55,7 +55,12 @@ import gzip
 import traceback as tb
 # own
 from lib.Collection import *
-import lib.logger
+from lib.logger import makelogdir, setup_logger
+# Create log dir
+makelogdir('logs')
+# Define loggers
+scriptname=os.path.basename(__file__)
+log = setup_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='WARNING')
 
 def parseargs():
     parser = argparse.ArgumentParser(description='Generate random sequences of length l, if needed with gc content of g.')
@@ -67,9 +72,6 @@ def parseargs():
     return parser.parse_args()
 
 def createrandseq(length, gc, number, alphabet, verbosity=False):
-    # Define loggers
-    log1 = logging.getLogger('Randseq.createrandseq')
-
     try:
         nucs = list(alphabet)
         seqs=[]
@@ -99,12 +101,9 @@ def createrandseq(length, gc, number, alphabet, verbosity=False):
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
         )
-        log1.error(''.join(tbe.format()))
+        log.error(''.join(tbe.format()))
 
 def randseq(items, length):
-    # Define loggers
-    log2 = logging.getLogger('Randseq.randseq')
-
     try:
         l=''
         for i in range(length):
@@ -115,12 +114,9 @@ def randseq(items, length):
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
         )
-        log2.error(''.join(tbe.format()))
+        log.error(''.join(tbe.format()))
 
 def weightedrandseq(items, probs , length):
-    # Define loggers
-    log3 = logging.getLogger('Randseq.weightedrandseq')
-
     try:
         seq=[]
         for i in items:
@@ -139,14 +135,12 @@ def weightedrandseq(items, probs , length):
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
         )
-        log3.error(''.join(tbe.format()))
+        log.error(''.join(tbe.format()))
 
 
 #choices(items,weights=w,k=nr)
 
 if __name__ == '__main__':
-    # Define loggers
-    log1 = logging.getLogger('Randseq.main')
     try:
         args=parseargs()
         rand = "\n".join(createrandseq(args.length, args.gc, args.number, args.alphabet, args.verbosity))
@@ -159,7 +153,6 @@ if __name__ == '__main__':
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
         )
-        log1.error(''.join(tbe.format()))
-
+        log.error(''.join(tbe.format()))
 #
 # Randseq.py ends here

@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Mon Sep 16 12:01:35 2019 (+0200)
+## Last-Updated: Tue Oct  8 19:17:27 2019 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 190
+##     Update #: 250
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -99,8 +99,9 @@ from multiprocessing import Manager, Pool
 #Biopython stuff
 from Bio import SeqIO
 from Bio.Seq import Seq
+import math
+from scipy.stats import zscore as zsc
 
-#parse args
 def parseargs():
     parser = argparse.ArgumentParser(description='Calculate the regions with highest accessibility diff for given Sequence Pattern')
     parser.add_argument("-p", "--pattern", type=str, default='250,150', help='Pattern for files and window, e.g. Seq1_30,250')
@@ -153,8 +154,8 @@ def screen_genes(pat, cutoff, border, ulim, procs, roi, outdir, genes, padding):
 
             #get files with specified pattern
             raw = os.path.abspath(os.path.join(goi, goi + '*_raw_*' + str(window) + '_' + str(span) + '.gz'))
-            paired = os.path.abspath(os.path.join(goi, 'StruCons_' + goi + '*_diffnu_*' + str(window) + '_' + str(span) + '.gz'))
-            unpaired = os.path.abspath(os.path.join(goi, 'StruCons_' + goi + '*_diffnp_*' + str(window) + '_' + str(span) + '.gz'))
+            unpaired = os.path.abspath(os.path.join(goi, 'StruCons_' + goi + '*_diffnu_*' + str(window) + '_' + str(span) + '.gz'))
+            paired = os.path.abspath(os.path.join(goi, 'StruCons_' + goi + '*_diffnp_*' + str(window) + '_' + str(span) + '.gz'))
 
             #search for files
             r = natsorted(glob.glob(raw), key=lambda y: y.lower())
@@ -223,6 +224,9 @@ def judge_diff(raw, u, p, gs, ge, ulim, cutoff, border, outdir, padding):
         out['p'] = []
         out['u'] = []
 
+        RT = (-1.9872041*10**(-3))*(37+273.15)
+        log.debug(logid+'RT is '+str(RT))
+
         noc = pl_to_array(raw, ulim-1)
 
         mult = int((len(noc)/int(window))/2)
@@ -238,10 +242,27 @@ def judge_diff(raw, u, p, gs, ge, ulim, cutoff, border, outdir, padding):
             uc = pl_to_array(u, ulim-1)
             pc = pl_to_array(p, ulim-1)
 
-            if not uc.all() or not pc.all():
-                log.warning(logid+'Reading fold did not work for '+str(goi)+'; '+str(u)+'; '+str(p))
-                return
+            log.debug(logid+'unpaired: '+str(u)+' and paired: '+str(p)+' Content: '+str(uc[ulim:ulim+10])+' test '+str(np.all(uc[ulim:ulim+10])))
 
+#            if not np.any(uc[ulim:]):
+#                log.warning(logid+'Reading unpaired fold did not work for '+str(goi)+'; '+str(u))
+#                return
+
+#            if not np.all(pc[ulim:cws-1]) or not np.all(pc[cwe:]):
+#                log.warning(logid+'Reading paired fold did not work for '+str(goi)+'; '+str(p))
+#                return
+
+            accdiffu = noc-uc
+            accdiffp = noc-pc
+            nrgdiffu = np.array(RT*np.log(accdiffu))
+            nrgdiffp = np.array(RT*np.log(accdiffp))
+            log.debug(logid+'NRG: '+str(nrgdiffu[:10]))
+            kdu = np.array([math.exp(x) for x in np.array(nrgdiffu//RT)])#math.exp(np.array(nrgdiffu//RT)))
+            kdp = np.array([math.exp(x) for x in np.array(nrgdiffp//RT)])#math.exp(np.array(nrgdiffp//RT)))
+            log.debug(logid+'KD: '+str(kdu[:10])+' mean: '+str(np.nanmean(kdu))+' std: '+str(np.nanstd(kdu)))
+            zscoresu = np.array((kdu - np.nanmean(kdu))/np.nanstd(kdu,ddof=0)) #np.array(zsc(kdu[~np.isnan(kdu)]))
+            zscoresp = np.array((kdp - np.nanmean(kdp))/np.nanstd(kdp,ddof=0))#np.array(zsc(kdp[~np.isnan(kdp)]))
+            log.debug(logid+'zscore: '+str(zscoresu[:10]))
             for pos in range(conswindow[0],conswindow[1]):  # Check coords
                 if pos not in range(cs-padding,ce+1+padding):
                     if border1 < uc[pos] and uc[pos] < border2:
@@ -259,7 +280,12 @@ def judge_diff(raw, u, p, gs, ge, ulim, cutoff, border, outdir, padding):
                             gend = gpos + ulim
                             gcons = str(we-ce-1)+'-'+str(we-cs)
 
-                        out['u'].append('\t'.join([str(chrom), str(gpos), str(gend), str(goi) + '|' + str(cons) + '|' + str(gcons), str(uc[pos]), str(strand), str(dist), str(noc[pos]), str(noc[pos]-uc[pos])]))
+                        accdiff = accdiffu[pos]
+                        nrgdiff = nrgdiffu[pos]
+                        kd = kdu[pos]
+                        zscore = zscoresu[pos]
+
+                        out['u'].append('\t'.join([str(chrom), str(gpos), str(gend), str(goi) + '|' + str(cons) + '|' + str(gcons), str(uc[pos]), str(strand), str(dist), str(noc[pos]), str(accdiff), str(nrgdiff), str(kd), str(zscore)]))
 
                     if border1 < pc[pos] and pc[pos] < border2:
                         if ce < pos:# get distance up or downstream
@@ -276,7 +302,12 @@ def judge_diff(raw, u, p, gs, ge, ulim, cutoff, border, outdir, padding):
                             gend = gpos + ulim
                             gcons = str(we-ce-1)+'-'+str(we-cs)
 
-                        out['p'].append('\t'.join([str(chrom), str(gpos), str(gend), str(goi) + '|' + str(cons) + '|' + str(gcons), str(pc[pos]), str(strand), str(dist), str(noc[pos]), str(noc[pos]-pc[pos])]))
+                        accdiff = accdiffp[pos]
+                        nrgdiff = nrgdiffp[pos]
+                        kd = kdp[pos]
+                        zscore = zscoresp[pos]
+
+                        out['p'].append('\t'.join([str(chrom), str(gpos), str(gend), str(goi) + '|' + str(cons) + '|' + str(gcons), str(pc[pos]), str(strand), str(dist), str(noc[pos]), str(accdiff), str(nrgdiff), str(kd)]))
 
         savelists(out, outdir)
 
