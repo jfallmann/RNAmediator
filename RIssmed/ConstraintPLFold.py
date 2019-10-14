@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Tue Oct  8 18:29:02 2019 (+0200)
+## Last-Updated: Mon Oct 14 10:01:14 2019 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 180
+##     Update #: 189
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -77,7 +77,6 @@ makelogdir('logs')
 scriptname=os.path.basename(__file__)
 global streamlog, log           # global to ensure that later manipulation of loglevel is possible
 streamlog = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='WARNING')
-log = setup_multiprocess_logger(name=scriptname, log_file='logs/'+scriptname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='WARNING')
 
 import argparse
 import pprint
@@ -89,6 +88,7 @@ import importlib
 import multiprocessing
 #from multiprocessing import Manager
 import traceback as tb
+import shlex
 from Randseq import createrandseq
 #Biopython stuff
 from Bio import SeqIO
@@ -257,12 +257,12 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
         fa.seq = str(fa.seq).upper()
         goi, chrom, strand = idfromfa(fa.id)
 
-        if len(fa.seq) < window:
-            log.warning(str('Sequence of '+goi+' to short, seqlenght '+str(len(fa.seq))+' with window size '+str(window)))
+        if len(fa.seq) < window*multi:
+            log.warning(str('Sequence of '+goi+' too short, seqlenght '+str(len(fa.seq))+' with window size '+str(window)+' and multiplyer '+str(multi)))
             continue
 
         if pattern and pattern not in goi:
-            next
+            continue
         else:
             log.info(logid+'Working on ' + goi + "\t" + fa.id)
 ##prepare plots
@@ -876,7 +876,11 @@ def write_unconstraint(sid, seq, unconstraint, data, region, window, span, outdi
     try:
         if unconstraint != 'STDOUT':
             if not os.path.exists(temp_outdir):
-                os.makedirs(temp_outdir)
+                try:
+                    os.makedirs(temp_outdir, exist_ok = True)  # Multiprocessing can lead to did not just yet exist but suddenly does error and we don not want to catch that
+                except OSError as e:
+                    if e.errno != errno.EEXIST:
+                        raise
             if rawentry:
                 if not os.path.exists(os.path.join(temp_outdir,str(goi+'_'+chrom+'_'+strand+'_'+rawentry+'_'+unconstraint+'_'+window+'_'+str(span)+'.gz'))):
                     with gzip.open(os.path.join(temp_outdir,goi+'_'+chrom+'_'+strand+'_'+rawentry+'_'+unconstraint+'_'+window+'_'+str(span)+'.gz'), 'wb') as o:
@@ -1195,10 +1199,11 @@ if __name__ == '__main__':
     logid = scriptname+'.main: '
     try:
         args=parseargs()
-        if args.loglevel != 'WARNING':
-          log = setup_multiprocess_logger(name=scriptname, log_file='logs/'+scriptname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
+        logname = scriptname+'_'+args.constrain
+        log = setup_multiprocess_logger(name=logname, log_file='logs/'+logname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
 
-        log.info(logid+'Running '+scriptname+' on '+str(args.procs)+' cores')
+        log.info(logid+'Running '+scriptname+' on '+str(args.procs)+' cores.')
+        log.info(logid+'CLI: '+sys.argv[0], ' '.join( [shlex.quote(s) for s in sys.argv[1:]] ))
         preprocess(args.sequence, args.window, args.span, args.region, args.multi, args.unconstraint, args.unpaired, args.paired, args.length, args.gc, args.number, args.constrain, args.conslength, args.alphabet, args.plot, args.save, args.procs, args.vrna, args.temprange, args.outdir, args.verbosity, args.pattern, args.cutoff)
     except Exception as err:
         exc_type, exc_value, exc_tb = sys.exc_info()
