@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Mon Oct 14 10:01:14 2019 (+0200)
+## Last-Updated: Mon Oct 14 10:30:20 2019 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 189
+##     Update #: 190
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -121,7 +121,7 @@ def parseargs():
     parser.add_argument("--plot", type=str, default='0', choices=['0','svg', 'png'], help='Create image of the (un-)constraint sequence, you can select the file format here (svg,png). These images can later on be animated with ImageMagick like `convert -delay 120 -loop 0 *.svg animated.gif`.')
     parser.add_argument("--save", type=int, default=1, help='Save the output as gz files')
     parser.add_argument("-o", "--outdir", type=str, default='', help='Directory to write to')
-    parser.add_argument("-z", "--procs", type=int, default=1, help='Number of parallel processed to run this job with')
+    parser.add_argument("-z", "--procs", type=int, default=1, help='Number of parallel processes to run this job with')
     parser.add_argument("--vrna", type=str, default='', help="Append path to vrna RNA module to sys.path")
     parser.add_argument("--pattern", type=str, default='', help="Helper var, only used if called from other prog where a pattern for files is defined")
     parser.add_argument("-v", "--verbosity", type=int, default=0, choices=[0, 1], help="increase output verbosity")
