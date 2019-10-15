@@ -7,9 +7,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Tue Oct 15 15:40:51 2019 (+0200)
+## Last-Updated: Tue Oct 15 15:44:10 2019 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 228
+##     Update #: 229
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -792,9 +792,9 @@ def read_gzip_linewise (name):
     logid = scriptname+'.read_gzip_linewise: '
     try:
         clog.debug('\t'.join([logid,name]))
-         with altgzip.AltGzipFile('trailing-garbage.gz') as gz:
-             data = gz.read()
-             for line in data:
+        with altgzip.AltGzipFile('trailing-garbage.gz') as gz:
+            data = gz.read()
+            for line in data:
                 yield line
     except Exception as err:
         exc_type, exc_value, exc_tb = sys.exc_info()
