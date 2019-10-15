@@ -7,9 +7,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Mon Sep 16 11:40:51 2019 (+0200)
+## Last-Updated: Tue Oct 15 15:37:19 2019 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 222
+##     Update #: 225
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -786,13 +786,26 @@ def read_precalc_plfold(data, name, seq):
         exc_type, exc_value, exc_tb,
         )
         clog.error(logid+''.join(tbe.format()))
-    return 1
+
+def read_gzip_linewise (name):
+    logid = scriptname+'.read_gzip_linewise: '
+    try:
+        clog.debug('\t'.join([logid,name]))
+        with gzip.open(name,'rt') as fi:
+            for line in fi:
+                yield line
+    except Exception as err:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+        exc_type, exc_value, exc_tb,
+        )
+        clog.error(logid+''.join(tbe.format()))
 
 def pl_to_array(name, ulim):
     logid = scriptname+'.pl_to_array: '
     try:
         clog.debug('\t'.join([logid,name]))
-        return np.array(np.loadtxt(name, usecols=ulim, unpack=True, delimiter='\t'))
+        return np.array(np.loadtxt(read_gzip_linewise(name), usecols=ulim, unpack=True, delimiter='\t'))
     except Exception as err:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
