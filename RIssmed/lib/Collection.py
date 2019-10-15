@@ -7,9 +7,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Tue Oct 15 15:37:19 2019 (+0200)
+## Last-Updated: Tue Oct 15 15:38:58 2019 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 225
+##     Update #: 226
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -89,6 +89,7 @@ from collections import defaultdict
 #Biopython stuff
 from Bio import SeqIO
 from Bio.Seq import Seq
+import lib.altgzip
 
 # Code:All subs from here on
 def create_kmers(choices, length):
