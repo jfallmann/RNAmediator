@@ -7,9 +7,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Tue Oct 15 16:15:32 2019 (+0200)
+## Last-Updated: Tue Oct 15 17:03:00 2019 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 243
+##     Update #: 245
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -89,7 +89,6 @@ from collections import defaultdict
 #Biopython stuff
 from Bio import SeqIO
 from Bio.Seq import Seq
-from lib.altgzip import *
 
 # Code:All subs from here on
 def create_kmers(choices, length):
@@ -764,7 +763,6 @@ def printdiff(a, o=None):
         exc_type, exc_value, exc_tb,
         )
         clog.error(logid+''.join(tbe.format()))
-
 
 def read_precalc_plfold(data, name, seq):
     logid = scriptname+'.read_precalc_plfold: '

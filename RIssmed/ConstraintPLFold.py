@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Tue Oct 15 16:21:10 2019 (+0200)
+## Last-Updated: Tue Oct 15 17:02:37 2019 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 193
+##     Update #: 197
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -942,7 +942,7 @@ def write_constraint(sid, seq, paired, unpaired, data_u, data_p, constrain, regi
                 if not os.path.exists(temp_outdir):
                     os.makedirs(temp_outdir)
                 if not os.path.exists(os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_diffnu_'+window+'_'+str(span)+'.gz')):
-                    printdiff(diff_nu,os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_diffnu_'+window+'_'+str(span)+'.gz')
+                    printdiff(diff_nu,os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_diffnu_'+window+'_'+str(span)+'.gz'))
             else:
                 npprint(diff_nu)
 
