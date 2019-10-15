@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Mon Oct 14 10:30:20 2019 (+0200)
+## Last-Updated: Tue Oct 15 16:21:10 2019 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 190
+##     Update #: 193
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -942,8 +942,7 @@ def write_constraint(sid, seq, paired, unpaired, data_u, data_p, constrain, regi
                 if not os.path.exists(temp_outdir):
                     os.makedirs(temp_outdir)
                 if not os.path.exists(os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_diffnu_'+window+'_'+str(span)+'.gz')):
-                    with gzip.open(os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_diffnu_'+window+'_'+str(span)+'.gz'), 'wb') as o:
-                        printdiff(diff_nu,o)
+                    printdiff(diff_nu,os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_diffnu_'+window+'_'+str(span)+'.gz')
             else:
                 npprint(diff_nu)
 
@@ -952,8 +951,7 @@ def write_constraint(sid, seq, paired, unpaired, data_u, data_p, constrain, regi
                 if not os.path.exists(temp_outdir):
                     os.makedirs(temp_outdir)
                 if not os.path.exists(os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_diffnp_'+window+'_'+str(span)+'.gz')):
-                    with gzip.open(os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_diffnp_'+window+'_'+str(span)+'.gz'), 'wb') as o:
-                        printdiff(diff_np,o)
+                    printdiff(diff_np,os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_diffnp_'+window+'_'+str(span)+'.gz'))
             else:
                 npprint(diff_np)
     except Exception as err:
@@ -1053,8 +1051,7 @@ def prepare_write_cons(sid, seq, paired, unpaired, data_u, data_p, constrain, re
                 if not os.path.exists(temp_outdir):
                     os.makedirs(temp_outdir)
                 if not os.path.exists(os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_diffnu_'+window+'_'+str(span)+'.gz')):
-                    with gzip.open(os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_diffnu_'+window+'_'+str(span)+'.gz'), 'wb') as o:
-                        printdiff(diff_nu,o)
+                    printdiff(diff_nu,os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_diffnu_'+window+'_'+str(span)+'.gz'))
             else:
                 npprint(diff_nu)
 
@@ -1063,8 +1060,7 @@ def prepare_write_cons(sid, seq, paired, unpaired, data_u, data_p, constrain, re
                 if not os.path.exists(temp_outdir):
                     os.makedirs(temp_outdir)
                 if not os.path.exists(os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_diffnp_'+window+'_'+str(span)+'.gz')):
-                    with gzip.open(os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_diffnp_'+window+'_'+str(span)+'.gz'), 'wb') as o:
-                        printdiff(diff_np,o)
+                    printdiff(diff_np,os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_diffnp_'+window+'_'+str(span)+'.gz'))
             else:
                 npprint(diff_np)
     except Exception as err:

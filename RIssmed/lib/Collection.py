@@ -7,9 +7,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Tue Oct 15 15:44:10 2019 (+0200)
+## Last-Updated: Tue Oct 15 16:15:32 2019 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 229
+##     Update #: 243
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -89,7 +89,7 @@ from collections import defaultdict
 #Biopython stuff
 from Bio import SeqIO
 from Bio.Seq import Seq
-import lib.altgzip
+from lib.altgzip import *
 
 # Code:All subs from here on
 def create_kmers(choices, length):
@@ -788,26 +788,11 @@ def read_precalc_plfold(data, name, seq):
         )
         clog.error(logid+''.join(tbe.format()))
 
-def read_gzip_linewise (name):
-    logid = scriptname+'.read_gzip_linewise: '
-    try:
-        clog.debug('\t'.join([logid,name]))
-        with altgzip.AltGzipFile('trailing-garbage.gz') as gz:
-            data = gz.read()
-            for line in data:
-                yield line
-    except Exception as err:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-        exc_type, exc_value, exc_tb,
-        )
-        clog.error(logid+''.join(tbe.format()))
-
 def pl_to_array(name, ulim):
     logid = scriptname+'.pl_to_array: '
     try:
         clog.debug('\t'.join([logid,name]))
-        return np.array(np.loadtxt(read_gzip_linewise(name), usecols=ulim, unpack=True, delimiter='\t'))
+        return np.array(np.loadtxt(name, usecols=ulim, unpack=True, delimiter='\t'))
     except Exception as err:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
