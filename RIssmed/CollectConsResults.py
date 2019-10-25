@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Tue Oct  8 19:17:27 2019 (+0200)
+## Last-Updated: Sat Oct 26 00:04:31 2019 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 250
+##     Update #: 251
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -154,8 +154,8 @@ def screen_genes(pat, cutoff, border, ulim, procs, roi, outdir, genes, padding):
 
             #get files with specified pattern
             raw = os.path.abspath(os.path.join(goi, goi + '*_raw_*' + str(window) + '_' + str(span) + '.gz'))
-            unpaired = os.path.abspath(os.path.join(goi, 'StruCons_' + goi + '*_diffnu_*' + str(window) + '_' + str(span) + '.gz'))
-            paired = os.path.abspath(os.path.join(goi, 'StruCons_' + goi + '*_diffnp_*' + str(window) + '_' + str(span) + '.gz'))
+            unpaired = os.path.abspath(os.path.join(goi, 'StruCons_' + goi + '*_diffnu_*' + str(window) + '_' + str(span) + '.npy'))
+            paired = os.path.abspath(os.path.join(goi, 'StruCons_' + goi + '*_diffnp_*' + str(window) + '_' + str(span) + '.npy'))
 
             #search for files
             r = natsorted(glob.glob(raw), key=lambda y: y.lower())
@@ -227,7 +227,7 @@ def judge_diff(raw, u, p, gs, ge, ulim, cutoff, border, outdir, padding):
         RT = (-1.9872041*10**(-3))*(37+273.15)
         log.debug(logid+'RT is '+str(RT))
 
-        noc = pl_to_array(raw, ulim-1)
+        noc = pl_to_array(raw, ulim-1,txt)
 
         mult = int((len(noc)/int(window))/2)
         log.debug(logid+'Multiplyer: '+str(mult))

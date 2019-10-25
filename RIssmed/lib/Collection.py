@@ -7,9 +7,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Fri Oct 25 15:25:57 2019 (+0200)
+## Last-Updated: Sat Oct 26 00:04:35 2019 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 247
+##     Update #: 250
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -756,7 +756,8 @@ def npprint(a, o=None):#, format_string ='{0:.2f}'):
 def printdiff(a, o=None):
     logid = scriptname+'.printdiff: '
     try:
-        np.savetxt(o, a, delimiter='\t', encoding='bytes')
+        np.save(o, a)
+        #np.savetxt(o, a, delimiter='\t', encoding='bytes')
     except Exception as err:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
@@ -786,11 +787,14 @@ def read_precalc_plfold(data, name, seq):
         )
         clog.error(logid+''.join(tbe.format()))
 
-def pl_to_array(name, ulim):
+def pl_to_array(name, ulim, fmt='npy'):
     logid = scriptname+'.pl_to_array: '
     try:
         clog.debug('\t'.join([logid,name]))
-        return np.array(np.loadtxt(name, usecols=ulim, unpack=True, delimiter='\t', encoding='bytes'))
+        if fmt == 'txt':
+            return np.array(np.loadtxt(name, usecols=ulim, unpack=True, delimiter='\t', encoding='bytes'))
+        elif fmt == 'npy':
+            return np.array(np.loadtxt(name)[:,ulim])
     except Exception as err:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(

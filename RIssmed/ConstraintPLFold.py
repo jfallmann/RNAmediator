@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Tue Oct 15 17:02:37 2019 (+0200)
+## Last-Updated: Fri Oct 25 23:51:41 2019 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 197
+##     Update #: 199
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -941,8 +941,8 @@ def write_constraint(sid, seq, paired, unpaired, data_u, data_p, constrain, regi
             if unpaired != 'STDOUT':
                 if not os.path.exists(temp_outdir):
                     os.makedirs(temp_outdir)
-                if not os.path.exists(os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_diffnu_'+window+'_'+str(span)+'.gz')):
-                    printdiff(diff_nu,os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_diffnu_'+window+'_'+str(span)+'.gz'))
+                if not os.path.exists(os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_diffnu_'+window+'_'+str(span)+'.npy')):
+                    printdiff(diff_nu,os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_diffnu_'+window+'_'+str(span)+'.npy'))
             else:
                 npprint(diff_nu)
 
@@ -950,8 +950,8 @@ def write_constraint(sid, seq, paired, unpaired, data_u, data_p, constrain, regi
             if unpaired != 'STDOUT':
                 if not os.path.exists(temp_outdir):
                     os.makedirs(temp_outdir)
-                if not os.path.exists(os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_diffnp_'+window+'_'+str(span)+'.gz')):
-                    printdiff(diff_np,os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_diffnp_'+window+'_'+str(span)+'.gz'))
+                if not os.path.exists(os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_diffnp_'+window+'_'+str(span)+'.npy')):
+                    printdiff(diff_np,os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_diffnp_'+window+'_'+str(span)+'.npy'))
             else:
                 npprint(diff_np)
     except Exception as err:
@@ -1050,8 +1050,8 @@ def prepare_write_cons(sid, seq, paired, unpaired, data_u, data_p, constrain, re
             if unpaired != 'STDOUT':
                 if not os.path.exists(temp_outdir):
                     os.makedirs(temp_outdir)
-                if not os.path.exists(os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_diffnu_'+window+'_'+str(span)+'.gz')):
-                    printdiff(diff_nu,os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_diffnu_'+window+'_'+str(span)+'.gz'))
+                if not os.path.exists(os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_diffnu_'+window+'_'+str(span)+'.npy')):
+                    printdiff(diff_nu,os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_diffnu_'+window+'_'+str(span)+'.npy'))
             else:
                 npprint(diff_nu)
 
@@ -1059,8 +1059,8 @@ def prepare_write_cons(sid, seq, paired, unpaired, data_u, data_p, constrain, re
             if unpaired != 'STDOUT':
                 if not os.path.exists(temp_outdir):
                     os.makedirs(temp_outdir)
-                if not os.path.exists(os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_diffnp_'+window+'_'+str(span)+'.gz')):
-                    printdiff(diff_np,os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_diffnp_'+window+'_'+str(span)+'.gz'))
+                if not os.path.exists(os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_diffnp_'+window+'_'+str(span)+'.npy')):
+                    printdiff(diff_np,os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_diffnp_'+window+'_'+str(span)+'.npy'))
             else:
                 npprint(diff_np)
     except Exception as err:
