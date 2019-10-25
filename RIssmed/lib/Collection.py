@@ -7,9 +7,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Tue Oct 15 17:03:00 2019 (+0200)
+## Last-Updated: Fri Oct 25 15:25:57 2019 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 245
+##     Update #: 247
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -756,7 +756,7 @@ def npprint(a, o=None):#, format_string ='{0:.2f}'):
 def printdiff(a, o=None):
     logid = scriptname+'.printdiff: '
     try:
-        np.savetxt(o, a, delimiter='\t')
+        np.savetxt(o, a, delimiter='\t', encoding='bytes')
     except Exception as err:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
@@ -790,7 +790,7 @@ def pl_to_array(name, ulim):
     logid = scriptname+'.pl_to_array: '
     try:
         clog.debug('\t'.join([logid,name]))
-        return np.array(np.loadtxt(name, usecols=ulim, unpack=True, delimiter='\t'))
+        return np.array(np.loadtxt(name, usecols=ulim, unpack=True, delimiter='\t', encoding='bytes'))
     except Exception as err:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
