@@ -794,7 +794,7 @@ def pl_to_array(name, ulim, fmt='npy'):
         if fmt == 'txt':
             return np.array(np.loadtxt(name, usecols=ulim, unpack=True, delimiter='\t', encoding='bytes'))
         elif fmt == 'npy':
-            return np.array(np.loadtxt(name)[:,ulim])
+            return np.array(np.load(name)[:,ulim])
     except Exception as err:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
