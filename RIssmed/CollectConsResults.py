@@ -227,7 +227,7 @@ def judge_diff(raw, u, p, gs, ge, ulim, cutoff, border, outdir, padding):
         RT = (-1.9872041*10**(-3))*(37+273.15)
         log.debug(logid+'RT is '+str(RT))
 
-        noc = pl_to_array(raw, ulim-1,txt)
+        noc = pl_to_array(raw, ulim-1,'txt')
 
         mult = int((len(noc)/int(window))/2)
         log.debug(logid+'Multiplyer: '+str(mult))
