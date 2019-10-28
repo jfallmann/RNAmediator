@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Mon Oct 28 08:23:58 2019 (+0100)
+## Last-Updated: Mon Oct 28 09:02:05 2019 (+0100)
 ##           By: Joerg Fallmann
-##     Update #: 252
+##     Update #: 253
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -111,7 +111,7 @@ def parseargs():
     parser.add_argument("-r", "--roi", type=str, default=None, help='Define Region of Interest that will be compared')
     parser.add_argument("-o", "--outdir", type=str, default='', help='Directory to write to')
     parser.add_argument("-g", "--genes", type=str, help='Genomic coordinates bed for genes, either standard bed format or AnnotateBed.pl format')
-    parser.add_argument("-z", "--procs", type=int, default=1, help='Number of parallel processed to run this job with, only important of no border is given and we need to fold')
+    parser.add_argument("-z", "--procs", type=int, default=1, help='Number of parallel processes to run this job with, only important of no border is given and we need to fold')
     parser.add_argument("--loglevel", type=str, default='WARNING', choices=['WARNING','ERROR','INFO','DEBUG'], help="Set log level")
     parser.add_argument("-w", "--padding", type=int, default=0, help='Padding around constraint that will be excluded from report, default is 0, so only directly overlapping effects will be ignored')
 
