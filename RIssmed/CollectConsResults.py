@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Sat Oct 26 00:04:31 2019 (+0200)
+## Last-Updated: Mon Oct 28 08:23:58 2019 (+0100)
 ##           By: Joerg Fallmann
-##     Update #: 251
+##     Update #: 252
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -254,8 +254,8 @@ def judge_diff(raw, u, p, gs, ge, ulim, cutoff, border, outdir, padding):
 
             accdiffu = noc-uc
             accdiffp = noc-pc
-            nrgdiffu = np.array(RT*np.log(accdiffu))
-            nrgdiffp = np.array(RT*np.log(accdiffp))
+            nrgdiffu = np.array(RT*np.log(abs(accdiffu)))
+            nrgdiffp = np.array(RT*np.log(abs(accdiffp)))
             log.debug(logid+'NRG: '+str(nrgdiffu[:10]))
             kdu = np.array([math.exp(x) for x in np.array(nrgdiffu//RT)])#math.exp(np.array(nrgdiffu//RT)))
             kdp = np.array([math.exp(x) for x in np.array(nrgdiffp//RT)])#math.exp(np.array(nrgdiffp//RT)))
