@@ -1,3 +1,4 @@
+
 * Preprocess
 ** Sort
 grep miR-17- Predicted_Target_Locations.default_predictions.hg19.bed |cut -f1-3,6 |sort -k1,1 -k2,2n > mir17.bed
@@ -15,8 +16,8 @@ grep ENSG Annotated_17_221_closest.bed | perl -lane 'print join("\t",$F[0],$F[15
 ** Create fastas
 fastaFromBed -fi hg38.extended.fa -bed TargetGenes_17_221.bed -name+ -s |gzip > 17_221_targets.fa.gz
 ** Convert to local coords
-perl -lane '{if ($F[5] eq "\+" or $F[5] eq "u" or $F[5] eq "." or $F[5] > 0){$start = $F[1]-$F[15]+1;}else{$start = $F[16]-$F[2]+1} if ($start > 0 ){ $end = $start+9; print join("\t",$F[0],$start,$end,@F[3..5])}}' Annotated_17_221_closest.bed |sort -k1,1 -k2,2n -u > 17_local_constraints.bed
-perl -lane '{if ($F[5] eq "\+" or $F[5] eq "u" or $F[5] eq "." or $F[5] > 0){$start = $F[8]-$F[15]+1;}else{$start = $F[16]-$F[9]+1} if ($start > 0 ){ $end = $start+9; print join("\t",$F[0],$start,$end,@F[3..5])}}' Annotated_17_221_closest.bed |sort -k1,1 -k2,2n -u > 221_local_constraints.bed
+perl -lane '{if ($F[5] eq "\+" or $F[5] eq "u" or $F[5] eq "." or $F[5] > 0){$start = $F[1]-$F[15];}else{$start = $F[16]-$F[2]} if ($start >= 0 ){ $end = $start+9; print join("\t",$F[0],$start,$end,@F[3..5])}}' Annotated_17_221_closest.bed |sort -k1,1 -k2,2n -u > 17_local_constraints.bed
+perl -lane '{if ($F[5] eq "\+" or $F[5] eq "u" or $F[5] eq "." or $F[5] > 0){$start = $F[8]-$F[15];}else{$start = $F[16]-$F[9]} if ($start >= 0 ){ $end = $start+9; print join("\t",$F[0],$start,$end,@F[3..5])}}' Annotated_17_221_closest.bed |sort -k1,1 -k2,2n -u > 221_local_constraints.bed
 ** Create paired constraint
 perl -lane 'if ($F[0]=~ /chr/ && $F[7] =~ /chr/){print join("\t",$F[0],$F[1]-$F[15]+1,$F[2]-$F[15]+1,@F[3..7],$F[8]-$F[15]+1,$F[9]-$F[15]+1,@F[10..$#F])}' Annotated_17_221_closest.bed |perl -lane 'if($F[1]>=0 && $F[2] >= 0 && $F[8] >= 0 && $F[9] >= 0){print $_}' |grep ENSG |sort -k1,1 -k2,2n -u > Local_Paired_17_221_constraints.bed
 ** Run on miRNA 17/221
@@ -45,13 +46,24 @@ rsync -auv ../U2AF65_FUBP_NEW65/*.bed .
 rsync -auv ../U2AF65_FUBP_NEW65/*.fa*gz .
 ** Reprocess, for Preprocess see ~/Projects/INPROGRESS/FoldConstraints/Cooperativity_Mainz/workflow.org
 *** Get local coords of Fu binding on 65 extension, closestBed -D a gives us dist in regard to a, as we consider strand in fasta this is important, Binding site size is 5!
-perl -lane '{if ($F[5] eq "\+" or $F[5] eq "u" or $F[5] eq "." or $F[5] > 0){$start = $F[1]-$F[15]+1;}else{$start = $F[16]-$F[2]+1} if ($start > 0 ){ $end = $start+5; next if ($end + $F[15] > $F[16]); print join("\t",$F[0],$start,$end,@F[3..5])}}' Annotated_65_Fu_closest_gene_overlap.bed |sort -k1,1 -k2,2n -u > 65_local_constraints.bed
-perl -lane '{if ($F[5] eq "\+" or $F[5] eq "u" or $F[5] eq "." or $F[5] > 0){$start = $F[8]-$F[15]+1;}else{$start = $F[16]-$F[9]+1} if ($start > 0 ){ $end = $start+5; next if ($end + $F[15] > $F[16]); print join("\t",$F[0],$start,$end,@F[3..5])}}' Annotated_65_Fu_closest_gene_overlap.bed |sort -k1,1 -k2,2n -u > Fu_local_constraints.bed
+perl -lane '{if ($F[5] eq "\+" or $F[5] eq "u" or $F[5] eq "." or $F[5] > 0){$start = $F[1]-$F[15];}else{$start = $F[16]-$F[2]} if ($start > 0 ){ $end = $start+5; next if ($end + $F[15] > $F[16]); print join("\t",$F[0],$start,$end,@F[3..5])}}' Annotated_65_Fu_closest_gene_overlap.bed |sort -k1,1 -k2,2n -u > 65_local_constraints.bed
+perl -lane '{if ($F[5] eq "\+" or $F[5] eq "u" or $F[5] eq "." or $F[5] > 0){$start = $F[8]-$F[15];}else{$start = $F[16]-$F[9]} if ($start > 0 ){ $end = $start+5; next if ($end + $F[15] > $F[16]); print join("\t",$F[0],$start,$end,@F[3..5])}}' Annotated_65_Fu_closest_gene_overlap.bed |sort -k1,1 -k2,2n -u > Fu_local_constraints.bed
 ** Run prob folding
 on k61
-rm -f log error;~/Projects/INPROGRESS/RIssmed/RIssmed/ConstraintPLFold.py -s 65_Fu_targets.fa.gz -w 250 -l 160 -u 5 -r raw -n unpaired -p paired -x 65_local_constraints.bed -o 65_local -z 30 --loglevel WARNING
-rm -f log error;~/Projects/INPROGRESS/RIssmed/RIssmed/ConstraintPLFold.py -s 65_Fu_targets.fa.gz -w 250 -l 160 -u 5 -r raw -n unpaired -p paired -x Fu_local_constraints.bed -o Fu_local -z 30 --loglevel WARNING
+ca rissmed
+~/Projects/INPROGRESS/RIssmed/RIssmed/ConstraintPLFold.py -s 65_Fu_targets.fa.gz -w 120 -l 80 -u 5 -r raw -n unpaired -p paired -x 65_local_constraints.bed -o 65_local_refresh -z 15 --loglevel WARNING
+~/Projects/INPROGRESS/RIssmed/RIssmed/ConstraintPLFold.py -s 65_Fu_targets.fa.gz -w 120 -l 80 -u 5 -r raw -n unpaired -p paired -x Fu_local_constraints.bed -o Fu_local_refresh -z 15 --loglevel WARNING
 *** Collect
-cd 65_local
-python ~/Projects/INPROGRESS/RIssmed/RIssmed/CollectConsResults.py -u 5 -z 8 -g ../TargetGenes_65_Fu.bed -b 0,1 -c 0 -p 250,160 -o Collection_65
-
+**** 65
+cd 65_screen
+rsync -auv /scr/jack2/fall/Projects/Cooperativity/U2AF65_FUBP/TargetGenes_65_Fu.bed .
+python ~/Projects/INPROGRESS/RIssmed/RIssmed/CollectConsResults.py -u 5 -z 8 -g ../TargetGenes_65_Fu.bed -b-1,1 -c 0 -p 250,160 -o Collection_65
+**** Fu
+cd Fu_screen
+rsync -auv /scr/jack2/fall/Projects/Cooperativity/U2AF65_FUBP/TargetGenes_65_Fu.bed .
+python ~/Projects/INPROGRESS/RIssmed/RIssmed/CollectConsResults.py -u 5 -z 8 -g ../TargetGenes_65_Fu.bed -b-1,1 -c 0 -p 250,160 -o Collection_Fu
+** Window folding
+*** Preprocess
+perl -lane 'if ($F[0]=~ /chr/ && $F[7] =~ /chr/){print join("\t",$F[0],$F[1]-$F[15]+1,$F[2]-$F[15]+1,@F[3..7],$F[8]-$F[15]+1,$F[9]-$F[15]+1,@F[10..$#F])}' Annotated_65_Fu_closest_gene_overlap.bed |perl -lane 'if($F[1]>=0 && $F[2] >= 0 && $F[8] >= 0 && $F[9] >= 0){print $_}' |grep ENSG |sort -k1,1 -k2,2n -u > Local_Paired_65_Fu_constraints.bed
+*** Run
+python ~/Projects/INPROGRESS/RIssmed/RIssmed/ConstraintFold.py -s 65_Fu_targets.fa.gz -w 250 -l 150 -n unpaired -p paired -r add -x Minimal_paired_65_Fu_constraints.bed -i TargetGenes_65_Fu.bed -z 8 -o Window_paired_65_FU
