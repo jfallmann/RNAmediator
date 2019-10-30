@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Mon Oct 28 09:02:05 2019 (+0100)
+## Last-Updated: Tue Oct 29 13:28:32 2019 (+0100)
 ##           By: Joerg Fallmann
-##     Update #: 253
+##     Update #: 255
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -322,14 +322,24 @@ def savelists(out, outdir):
 
     logid = scriptname+'.savelist: '
     try:
+        #if not os.path.isfile(os.path.abspath(os.path.join(outdir, 'Collection_unpaired.bed.gz'))):
+        #    with gzip.open(os.path.abspath(os.path.join(outdir, 'Collection_unpaired.bed.gz')), 'ab') as o:
+        #        o.write(bytes('\n'.join(out['u']),encoding='UTF-8'))
+        #        o.write(bytes('\n',encoding='UTF-8'))
+        #
+        #if not os.path.isfile(os.path.abspath(os.path.join(outdir, 'Collection_paired.bed.gz'))):
+        #    with gzip.open(os.path.abspath(os.path.join(outdir, 'Collection_paired.bed.gz')), 'ab') as o:
+        #        o.write(bytes('\n'.join(out['p']),encoding='UTF-8'))
+        #        o.write(bytes('\n',encoding='UTF-8'))
+        #[str(chrom), str(gpos), str(gend), str(goi) + '|' + str(cons) + '|' + str(gcons), str(uc[pos]), str(strand), str(dist), str(noc[pos]), str(accdiff), str(nrgdiff), str(kd), str(zscore)]
         if len(out['u']) > 0:
-            o = gzip.open(os.path.abspath(os.path.join(outdir, 'Collection_unpaired.bed.gz')), 'ab')
-            o.write(bytes('\n'.join(out['u']),encoding='UTF-8'))
-            o.write(bytes('\n',encoding='UTF-8'))
+            with gzip.open(os.path.abspath(os.path.join(outdir, 'Collection_unpaired.bed.gz')), 'ab') as o:
+                o.write(bytes('\n'.join(out['u']),encoding='UTF-8'))
+                o.write(bytes('\n',encoding='UTF-8'))
         if len(out['p']) > 0:
-            o = gzip.open(os.path.abspath(os.path.join(outdir, 'Collection_paired.bed.gz')), 'ab')
-            o.write(bytes('\n'.join(out['p']),encoding='UTF-8'))
-            o.write(bytes('\n',encoding='UTF-8'))
+            with gzip.open(os.path.abspath(os.path.join(outdir, 'Collection_paired.bed.gz')), 'ab') as o:
+                o.write(bytes('\n'.join(out['p']),encoding='UTF-8'))
+                o.write(bytes('\n',encoding='UTF-8'))
     except Exception as err:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
