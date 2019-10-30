@@ -1,4 +1,3 @@
-
 * Preprocess
 ** Sort
 grep miR-17- Predicted_Target_Locations.default_predictions.hg19.bed |cut -f1-3,6 |sort -k1,1 -k2,2n > mir17.bed
@@ -19,7 +18,7 @@ fastaFromBed -fi hg38.extended.fa -bed TargetGenes_17_221.bed -name+ -s |gzip > 
 perl -lane '{if ($F[5] eq "\+" or $F[5] eq "u" or $F[5] eq "." or $F[5] > 0){$start = $F[1]-$F[15];}else{$start = $F[16]-$F[2]} if ($start >= 0 ){ $end = $start+9; print join("\t",$F[0],$start,$end,@F[3..5])}}' Annotated_17_221_closest.bed |sort -k1,1 -k2,2n -u > 17_local_constraints.bed
 perl -lane '{if ($F[5] eq "\+" or $F[5] eq "u" or $F[5] eq "." or $F[5] > 0){$start = $F[8]-$F[15];}else{$start = $F[16]-$F[9]} if ($start >= 0 ){ $end = $start+9; print join("\t",$F[0],$start,$end,@F[3..5])}}' Annotated_17_221_closest.bed |sort -k1,1 -k2,2n -u > 221_local_constraints.bed
 ** Create paired constraint
-perl -lane 'if ($F[0]=~ /chr/ && $F[7] =~ /chr/){print join("\t",$F[0],$F[1]-$F[15]+1,$F[2]-$F[15]+1,@F[3..7],$F[8]-$F[15]+1,$F[9]-$F[15]+1,@F[10..$#F])}' Annotated_17_221_closest.bed |perl -lane 'if($F[1]>=0 && $F[2] >= 0 && $F[8] >= 0 && $F[9] >= 0){print $_}' |grep ENSG |sort -k1,1 -k2,2n -u > Local_Paired_17_221_constraints.bed
+perl -lane 'if ($F[0]=~ /chr/ && $F[7] =~ /chr/){print join("\t",$F[0],$F[1]-$F[15],$F[2]-$F[15],@F[3..7],$F[8]-$F[15],$F[9]-$F[15],@F[10..$#F])}' Annotated_17_221_closest.bed |perl -lane 'if($F[1]>=0 && $F[2] >= 0 && $F[8] >= 0 && $F[9] >= 0){print $_}' |grep ENSG |sort -k1,1 -k2,2n -u > Local_Paired_17_221_constraints.bed
 ** Run on miRNA 17/221
 *** PLFold
 **** Calculate
@@ -64,6 +63,10 @@ rsync -auv /scr/jack2/fall/Projects/Cooperativity/U2AF65_FUBP/TargetGenes_65_Fu.
 python ~/Projects/INPROGRESS/RIssmed/RIssmed/CollectConsResults.py -u 5 -z 8 -g ../TargetGenes_65_Fu.bed -b-1,1 -c 0 -p 250,160 -o Collection_Fu
 ** Window folding
 *** Preprocess
-perl -lane 'if ($F[0]=~ /chr/ && $F[7] =~ /chr/){print join("\t",$F[0],$F[1]-$F[15]+1,$F[2]-$F[15]+1,@F[3..7],$F[8]-$F[15]+1,$F[9]-$F[15]+1,@F[10..$#F])}' Annotated_65_Fu_closest_gene_overlap.bed |perl -lane 'if($F[1]>=0 && $F[2] >= 0 && $F[8] >= 0 && $F[9] >= 0){print $_}' |grep ENSG |sort -k1,1 -k2,2n -u > Local_Paired_65_Fu_constraints.bed
+perl -lane 'if ($F[0]=~ /chr/ && $F[7] =~ /chr/){print join("\t",$F[0],$F[1]-$F[15],$F[2]-$F[15],@F[3..7],$F[8]-$F[15],$F[9]-$F[15],@F[10..$#F])}' Annotated_65_Fu_closest_gene_overlap.bed |perl -lane 'if($F[1]>=0 && $F[2] >= 0 && $F[8] >= 0 && $F[9] >= 0){print $_}' |grep ENSG |sort -k1,1 -k2,2n -u > Local_Paired_65_Fu_constraints.bed
+cut -f 1-6,8-13 Local_Paired_65_Fu_constraints.bed > Minimal_paired_65_Fu_constraints.bed
 *** Run
-python ~/Projects/INPROGRESS/RIssmed/RIssmed/ConstraintFold.py -s 65_Fu_targets.fa.gz -w 250 -l 150 -n unpaired -p paired -r add -x Minimal_paired_65_Fu_constraints.bed -i TargetGenes_65_Fu.bed -z 8 -o Window_paired_65_FU
+python ~/Projects/INPROGRESS/RIssmed/RIssmed/ConstraintFold.py -s 65_Fu_targets.fa.gz -w 120 -l 80 -n unpaired -p paired -r add -x Minimal_paired_65_Fu_constraints.bed -i TargetGenes_65_Fu.bed -z 25 -o Window_paired_65_FU
+*** Collect
+cd Window_paired_65_Fu
+python ~/Projects/INPROGRESS/RIssmed/RIssmed/CollectWindowResults.py -z 4 -g ../TargetGenes_65_Fu.bed -b-1,1 -p 120,80 -o Collection_Window_paired
