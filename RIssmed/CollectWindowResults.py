@@ -8,9 +8,9 @@
 ## Created: Thu Aug 15 13:49:46 2019 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Thu Aug 22 15:14:37 2019 (+0200)
+## Last-Updated: Thu Oct 31 13:19:42 2019 (+0100)
 ##           By: Joerg Fallmann
-##     Update #: 57
+##     Update #: 60
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -196,13 +196,17 @@ def calc(p, gs, ge, border, outdir):
         ddgs = get_ddg(p)
         log.debug(logid+str(ddgs))
 
+        RT = (-1.9872041*10**(-3))*(37+273.15)
+        log.debug(logid+'RT is '+str(RT))
+
         for cons in ddgs:
             if not cons in out:
                 out[cons] = list()
             ddg=calc_ddg(ddgs[cons])
             if ddg is not None:
                 if ddg > border1 and ddg < border2:
-                    out[cons].append('\t'.join([str(chrom), str(gs), str(ge),  str(goi), str(ddg), str(strand), str(cons)]))
+                    dkd = math.exp(ddg//RT)
+                    out[cons].append('\t'.join([str(chrom), str(gs), str(ge),  str(goi), str(ddg), str(strand), str(cons),str(dkd)+'\n']))
         if out:
             write_out(out, outdir)
         else:
@@ -226,11 +230,9 @@ def write_out(out, outdir):
             if not os.path.exists(os.path.abspath(os.path.join(outdir, 'Collection_window.bed.gz'))):
                 o = gzip.open(os.path.abspath(os.path.join(outdir, 'Collection_window.bed.gz')), 'wb')
                 o.write(bytes('\n'.join(out[cons]),encoding='UTF-8'))
-                o.write(bytes('\n',encoding='UTF-8'))
             else:
                 o = gzip.open(os.path.abspath(os.path.join(outdir, 'Collection_window.bed.gz')), 'ab')
                 o.write(bytes('\n'.join(out[cons]),encoding='UTF-8'))
-                o.write(bytes('\n',encoding='UTF-8'))
     except Exception as err:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(

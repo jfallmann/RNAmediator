@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Thu Aug 22 13:54:38 2019 (+0200)
+## Last-Updated: Thu Oct 31 13:12:54 2019 (+0100)
 ##           By: Joerg Fallmann
-##     Update #: 362
+##     Update #: 363
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -451,12 +451,12 @@ def constrain_seq(fa, start, end, conslength, const, cons, window, span, xs, unc
             gs, ge = map(int, genecoords[goi][0].split(sep='-'))
             if len(check) < 3:
                 s,e = check
-                sp, ep = [s+gs, e+gs]
+                sp, ep = [s+tostart+gs, e+tostart+gs]
                 gtostart, gtoend = [tostart+gs, toend+gs]
                 printcons = str.join('|',[str.join('-',[str(tostart), str(toend)]), str.join('-',[str(gtostart), str(gtoend)]), str.join('-',[str(s), str(e)]), str.join('-',[str(sp), str(ep)])])
             else:
                 s,e,os,oe = check
-                sp,ep,osp,oep = [s+gs, e+gs, os+gs, oe+gs]
+                sp,ep,osp,oep = [s+tostart+gs, e+tostart+gs, os+tostart+gs, oe+tostart+gs]
                 gtostart, gtoend = [tostart+gs, toend+gs]
                 log.debug(logid+'PAIRED:'+';'.join(map(str,[s,e,os,oe,gs,ge,sp,ep,osp,oep,tostart,toend,gtostart,gtoend])))
                 printcons = str.join('|',[str.join('-', [str(tostart), str(toend)]), str.join('-',[str(gtostart), str(gtoend)]), str.join(':',[str.join('-',[str(s),str(e)]), str.join('-',[str(os),str(oe)])]), str.join(':',[str.join('-',[str(sp),str(ep)]), str.join('-',[str(osp),str(oep)])])])
