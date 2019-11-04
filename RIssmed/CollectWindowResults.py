@@ -8,9 +8,9 @@
 ## Created: Thu Aug 15 13:49:46 2019 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Thu Oct 31 13:19:42 2019 (+0100)
+## Last-Updated: Mon Nov  4 11:24:12 2019 (+0100)
 ##           By: Joerg Fallmann
-##     Update #: 60
+##     Update #: 61
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -228,11 +228,11 @@ def write_out(out, outdir):
             if not os.path.exists(outdir):
                 os.makedirs(outdir)
             if not os.path.exists(os.path.abspath(os.path.join(outdir, 'Collection_window.bed.gz'))):
-                o = gzip.open(os.path.abspath(os.path.join(outdir, 'Collection_window.bed.gz')), 'wb')
-                o.write(bytes('\n'.join(out[cons]),encoding='UTF-8'))
+                with gzip.open(os.path.abspath(os.path.join(outdir, 'Collection_window.bed.gz')), 'wb') as o:
+                    o.write(bytes('\n'.join(out[cons]),encoding='UTF-8'))
             else:
-                o = gzip.open(os.path.abspath(os.path.join(outdir, 'Collection_window.bed.gz')), 'ab')
-                o.write(bytes('\n'.join(out[cons]),encoding='UTF-8'))
+                with gzip.open(os.path.abspath(os.path.join(outdir, 'Collection_window.bed.gz')), 'ab') as o:
+                    o.write(bytes('\n'.join(out[cons]),encoding='UTF-8'))
     except Exception as err:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
