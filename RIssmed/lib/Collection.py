@@ -7,9 +7,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Tue Nov  5 14:20:44 2019 (+0100)
+## Last-Updated: Tue Nov  5 15:56:40 2019 (+0100)
 ##           By: Joerg Fallmann
-##     Update #: 251
+##     Update #: 252
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -322,7 +322,7 @@ def readPairedConstraintsFromBed(bed, linewise=None):
                 start_one = int(entries[1])+1
                 end_one = entries[2]
                 goi = entries[3]
-                start_two = int(entries[second])
+                start_two = int(entries[second])+1
                 end_two = int(entries[second+1])
                 if linewise:
                     cons['lw'].append('-'.join([str(start_one), str(end_one), str(start_two), str(end_two)]))
