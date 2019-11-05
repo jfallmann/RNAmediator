@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Tue Oct 29 13:28:32 2019 (+0100)
+## Last-Updated: Tue Nov  5 14:30:01 2019 (+0100)
 ##           By: Joerg Fallmann
-##     Update #: 255
+##     Update #: 257
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -257,8 +257,8 @@ def judge_diff(raw, u, p, gs, ge, ulim, cutoff, border, outdir, padding):
             nrgdiffu = np.array(RT*np.log(abs(accdiffu)))
             nrgdiffp = np.array(RT*np.log(abs(accdiffp)))
             log.debug(logid+'NRG: '+str(nrgdiffu[:10]))
-            kdu = np.array([math.exp(x) for x in np.array(nrgdiffu//RT)])#math.exp(np.array(nrgdiffu//RT)))
-            kdp = np.array([math.exp(x) for x in np.array(nrgdiffp//RT)])#math.exp(np.array(nrgdiffp//RT)))
+            kdu = np.array([math.exp(x) for x in np.array(nrgdiffu/RT)])#math.exp(np.array(nrgdiffu//RT)))
+            kdp = np.array([math.exp(x) for x in np.array(nrgdiffp/RT)])#math.exp(np.array(nrgdiffp//RT)))
             log.debug(logid+'KD: '+str(kdu[:10])+' mean: '+str(np.nanmean(kdu))+' std: '+str(np.nanstd(kdu)))
             zscoresu = np.array((kdu - np.nanmean(kdu))/np.nanstd(kdu,ddof=0)) #np.array(zsc(kdu[~np.isnan(kdu)]))
             zscoresp = np.array((kdp - np.nanmean(kdp))/np.nanstd(kdp,ddof=0))#np.array(zsc(kdp[~np.isnan(kdp)]))

@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Fri Oct 25 23:51:41 2019 (+0200)
+## Last-Updated: Tue Nov  5 14:31:36 2019 (+0100)
 ##           By: Joerg Fallmann
-##     Update #: 199
+##     Update #: 215
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -112,7 +112,7 @@ def parseargs():
     parser.add_argument("-n", "--unpaired", type=str, default='STDOUT', help='Print output of unpaired folding to file with this name')
     parser.add_argument("-p", "--paired", type=str, default='STDOUT', help='Print output of paired folding to file with this name')
     parser.add_argument("-e", "--length", type=int, default=100, help='Length of randseq')
-    parser.add_argument("-g", "--gc", type=int, default=0, help='GC content, needs to be %%2==0 or will be rounded')
+    parser.add_argument("--gc", type=int, default=0, help='GC content, needs to be %%2==0 or will be rounded')
     parser.add_argument("-b", "--number", type=int, default=1, help='Number of random seqs to generate')
     parser.add_argument("-x", "--constrain", type=str, default='sliding', help='Region to constrain, either sliding window (default) or region to constrain (e.g. 1-10) or path to file containing regions following the naming pattern $fastaID_constraints e.g. Sequence1_constraints, if paired, the first entry of the file will become a fixed constraint and paired with all the others, choices = [off,sliding,temperature, tempprobe, the string file or a filename, paired, or simply 1-10,2-11 or 1-10;15-20,2-11;16-21 for paired or ono(oneonone),filename to use one line of constraint file for one sequence from fasta]')
     parser.add_argument("-y", "--conslength", type=int, default=0, help='Length of region to constrain for slidingwindow')
@@ -124,6 +124,7 @@ def parseargs():
     parser.add_argument("-z", "--procs", type=int, default=1, help='Number of parallel processes to run this job with')
     parser.add_argument("--vrna", type=str, default='', help="Append path to vrna RNA module to sys.path")
     parser.add_argument("--pattern", type=str, default='', help="Helper var, only used if called from other prog where a pattern for files is defined")
+    parser.add_argument("-g", "--genes", type=str, default='', help='Genomic coordinates bed for genes, either standard bed format or AnnotateBed.pl format')
     parser.add_argument("-v", "--verbosity", type=int, default=0, choices=[0, 1], help="increase output verbosity")
     parser.add_argument("--loglevel", type=str, default='WARNING', choices=['WARNING','ERROR','INFO','DEBUG'], help="Set log level")
 
@@ -133,7 +134,7 @@ def parseargs():
 
     return parser.parse_args()
 
-def preprocess(sequence, window, span, region, multi, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, plot, save, procs, vrna, temprange, outdir, verbosity=False, pattern=None, cutoff=None):
+def preprocess(sequence, window, span, region, multi, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, plot, save, procs, vrna, temprange, outdir, genes, verbosity=False, pattern=None, cutoff=None):
 
     logid = scriptname+'.preprocess: '
 
@@ -149,6 +150,11 @@ def preprocess(sequence, window, span, region, multi, unconstraint, unpaired, pa
     if ( plot == '0' and not save):
         log.error(logid+'Neither plot nor save are active, this script will take a long time and produce nothing, please activate at least one of the two!')
         raise ValueError('Neither plot nor save are active, this script will take a long time and produce nothing, please activate at least one of the two!')
+
+    if genes is not '':
+        genecoords = parse_annotation_bed(genes) #get genomic coords to print to bed later, should always be just one set of coords per gene
+    else:
+        genecoords = None
 
     mode = 'generic'
     if 'ono' == str(constrain.split(',')[0]):
@@ -192,7 +198,7 @@ def preprocess(sequence, window, span, region, multi, unconstraint, unpaired, pa
                 constraint = constraintlist['lw'][seqnr]
                 #           kwords = {'verbosity':verbosity, 'pattern':pattern, 'cutoff':cutoff, 'seqnr':seqnr, 'mode':mode, 'constraintlist' : 'Parsed'}
                 try:
-                    pool.apply_async(parafold, (sseq, window, span, region, multi, unconstraint, unpaired, paired, length, gc, number, constraint, conslength, alphabet, plot, save, procs, vrna, temprange, outdir, pattern, cutoff, seqnr))
+                    pool.apply_async(parafold, (sseq, window, span, region, multi, unconstraint, unpaired, paired, length, gc, number, constraint, conslength, alphabet, plot, save, procs, vrna, temprange, outdir, pattern, cutoff, seqnr, genecoords))
                     seqnr += 1
                 except Exception as err:
                     exc_type, exc_value, exc_tb = sys.exc_info()
@@ -214,7 +220,7 @@ def preprocess(sequence, window, span, region, multi, unconstraint, unpaired, pa
 
     else:
         try:
-            fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, plot, save, procs, vrna, temprange, outdir, verbosity=verbosity, pattern=pattern, cutoff=cutoff)
+            fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, plot, save, procs, vrna, temprange, outdir, genecoords, verbosity=verbosity, pattern=pattern, cutoff=cutoff)
         except Exception as err:
             exc_type, exc_value, exc_tb = sys.exc_info()
             tbe = tb.TracebackException(
@@ -223,7 +229,7 @@ def preprocess(sequence, window, span, region, multi, unconstraint, unpaired, pa
             log.error(logid+''.join(tbe.format()))
     return 1
 
-def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, plot, save, procs, vrna, temprange, outdir, verbosity=False, pattern=None, cutoff=None, seqnr=None, mode=None, constraintlist=None):
+def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, plot, save, procs, vrna, temprange, outdir, genecoords, verbosity=False, pattern=None, cutoff=None, seqnr=None, mode=None, constraintlist=None):
 
     logid = scriptname+'.fold: '
     #set path for VRNA lib if necessary
@@ -256,7 +262,12 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
     for fa in SeqIO.parse(seq,'fasta'):
         fa.seq = str(fa.seq).upper()
         goi, chrom, strand = idfromfa(fa.id)
-
+        if genecoords:
+            if goi in genecoords:
+                gs, ge = map(int, genecoords[goi][0].split(sep='-'))
+            else:
+                gs, ge = 0
+                log.warning(logid+'No coords found for gene '+goi+'! Assuming coordinates are already local!')
         if len(fa.seq) < window*multi:
             log.warning(str('Sequence of '+goi+' too short, seqlenght '+str(len(fa.seq))+' with window size '+str(window)+' and multiplyer '+str(multi)))
             continue
@@ -463,14 +474,15 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                         # In case we want to constrain pairwise
                         fstart, fend = [None,None]
                         if constrain == 'paired' or ':' in entry:
-                            [fstart, fend], [start, end] = [[int(x) for x in cn.split('-',1)] for cn in entry.split(':',1)]
+                            [fstart, fend], [start, end] = [[int(x)-gs for x in cn.split('-',1)] for cn in entry.split(':',1)]
+
                             cons = str(fstart)+'-'+str(fend)+':'+str(start)+'-'+str(end)
                             if start < 0 or fstart < 0 or end > len(fa.seq) or fend > len(fa.seq):
                                 log.warning(logid+'Constraint out of sequence bounds! skipping! '+','.join(map(str,[goi,len(fa.seq),str(start)+'-'+str(end),str(fstart)+'-'+str(fend)])))
                                 continue
 
                         else:
-                            start,end = map(int,entry.split('-',1))
+                            start,end = map(lambda x: x-gs,list(map(int,entry.split('-',1))))
                             tostart, toend = expand_window(start, end, window, multi, len(fa.seq))
                             cons = str(start)+'-'+str(end)+'_'+str(tostart)+'-'+str(toend)
 
@@ -524,7 +536,7 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
     log.info(logid+"DONE: output in: " + str(outdir))
     return 1
 
-def parafold(sequence, window, span, region, multi, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, plot, save, procs, vrna, temprange, outdir, pattern, cutoff, seqnr):
+def parafold(sequence, window, span, region, multi, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, plot, save, procs, vrna, temprange, outdir, pattern, cutoff, seqnr, genecoords):
 
     logid = scriptname+'.parafold: '
     seq = sequence
@@ -552,6 +564,12 @@ def parafold(sequence, window, span, region, multi, unconstraint, unpaired, pair
         for fa in SeqIO.parse(seq,'fasta'):
             fa.seq = str(fa.seq).upper()
             goi, chrom, strand = idfromfa(fa.id)
+            if genecoords:
+                if goi in genecoords:
+                    gs, ge = map(int, genecoords[goi][0].split(sep='-'))
+                else:
+                    gs, ge = 0
+                    log.warning(logid+'No coords found for gene '+goi+'! Assuming coordinates are already local!')
 
             if pattern and pattern not in goi:
                 next
@@ -601,7 +619,7 @@ def parafold(sequence, window, span, region, multi, unconstraint, unpaired, pair
                     # we now have a list of constraints and for the raw seq comparison we only need to fold windows around these constraints
                     # In case we want to constrain pairwise
                     data = { 'up': [] }
-                    start,end = map(int,entry.split('-',1))
+                    start,end = map(lambda x:x-gs,list(map(int,entry.split('-',1))))
 
                     if start < 0 or end > len(fa.seq):
                         log.warning(logid+'Constraint out of sequence bounds! skipping! '+','.join([len(fa.seq),str(start)+'-'+str(end)]))
@@ -1200,7 +1218,7 @@ if __name__ == '__main__':
 
         log.info(logid+'Running '+scriptname+' on '+str(args.procs)+' cores.')
         log.info(logid+'CLI: '+sys.argv[0], ' '.join( [shlex.quote(s) for s in sys.argv[1:]] ))
-        preprocess(args.sequence, args.window, args.span, args.region, args.multi, args.unconstraint, args.unpaired, args.paired, args.length, args.gc, args.number, args.constrain, args.conslength, args.alphabet, args.plot, args.save, args.procs, args.vrna, args.temprange, args.outdir, args.verbosity, args.pattern, args.cutoff)
+        preprocess(args.sequence, args.window, args.span, args.region, args.multi, args.unconstraint, args.unpaired, args.paired, args.length, args.gc, args.number, args.constrain, args.conslength, args.alphabet, args.plot, args.save, args.procs, args.vrna, args.temprange, args.outdir, args.genes, args.verbosity, args.pattern, args.cutoff)
     except Exception as err:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(

@@ -8,9 +8,9 @@
 ## Created: Thu Aug 15 13:49:46 2019 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Mon Nov  4 11:24:12 2019 (+0100)
+## Last-Updated: Tue Nov  5 13:59:53 2019 (+0100)
 ##           By: Joerg Fallmann
-##     Update #: 61
+##     Update #: 62
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -205,7 +205,7 @@ def calc(p, gs, ge, border, outdir):
             ddg=calc_ddg(ddgs[cons])
             if ddg is not None:
                 if ddg > border1 and ddg < border2:
-                    dkd = math.exp(ddg//RT)
+                    dkd = math.exp(ddg/RT)
                     out[cons].append('\t'.join([str(chrom), str(gs), str(ge),  str(goi), str(ddg), str(strand), str(cons),str(dkd)+'\n']))
         if out:
             write_out(out, outdir)

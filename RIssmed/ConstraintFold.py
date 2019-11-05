@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Thu Oct 31 13:12:54 2019 (+0100)
+## Last-Updated: Tue Nov  5 15:29:02 2019 (+0100)
 ##           By: Joerg Fallmann
-##     Update #: 363
+##     Update #: 378
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -113,7 +113,7 @@ def parseargs():
     parser.add_argument("-n", "--unpaired", type=str, default='STDOUT', help='Print output of unpaired folding to file with this name')
     parser.add_argument("-p", "--paired", type=str, default='STDOUT', help='Print output of paired folding to file with this name')
     parser.add_argument("-e", "--length", type=int, default=100, help='Length of randseq')
-    parser.add_argument("-g", "--gc", type=int, default=0, help='GC content, needs to be %%2==0 or will be rounded')
+    parser.add_argument("--gc", type=int, default=0, help='GC content, needs to be %%2==0 or will be rounded')
     parser.add_argument("-b", "--number", type=int, default=1, help='Number of random seqs to generate')
     parser.add_argument("-x", "--constrain", type=str, default='sliding', help='Region to constrain, either sliding window (default) or region to constrain (e.g. 1-10) or path to file containing regions following the naming pattern $fastaID_constraints, if paired, the first entry of the file will become a fixed constraint and paired with all the others, e.g. Sequence1_constraints, choices = [off,sliding,temperature, tempprobe, file, paired, or simply 1-10,2-11 or 1-10;15-20,2-11:16-21 for paired]')
     parser.add_argument("-y", "--conslength", type=int, default=0, help='Length of region to constrain for slidingwindow')
@@ -125,7 +125,7 @@ def parseargs():
     parser.add_argument("-z", "--procs", type=int, default=1, help='Number of parallel processed to run this job with')
     parser.add_argument("--vrna", type=str, default='', help="Append path to vrna RNA module to sys.path")
     parser.add_argument("--pattern", type=str, default='', help="Helper var, only used if called from other prog where a pattern for files is defined")
-    parser.add_argument("-i", "--genes", type=str, help='Genomic coordinates bed for genes, either standard bed format or AnnotateBed.pl format')
+    parser.add_argument("-g", "--genes", type=str, help='Genomic coordinates bed for genes, either standard bed format or AnnotateBed.pl format')
     parser.add_argument("-v", "--verbosity", type=int, default=0, choices=[0, 1], help="increase output verbosity")
     parser.add_argument("--loglevel", type=str, default='WARNING', choices=['WARNING','ERROR','INFO','DEBUG'], help="Set log level")
 
@@ -150,6 +150,7 @@ def preprocess(sequence, window, span, unconstraint, unpaired, paired, length, g
 
         if ( plot == '0' and not save):
             raise ValueError('Neither plot nor save are active, this script will take a long time and produce nothing, please activate at least one of the two!')
+
         genecoords = parse_annotation_bed(genes) #get genomic coords to print to bed later, should always be just one set of coords per gene
 
         fold(sequence, window, span, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, plot, save, procs, vrna, temprange, outdir, genecoords, verbosity=verbosity, pattern=pattern, cutoff=cutoff)
@@ -287,13 +288,19 @@ def fold(sequence, window, span, unconstraint, unpaired, paired, length, gc, num
 
             for fa in SeqIO.parse(seq,'fasta'):
                 goi, chrom, strand = idfromfa(fa.id)
+                if genecoords:
+                    if goi in genecoords:
+                        gs, ge = map(int, genecoords[goi][0].split(sep='-'))
+                    else:
+                        gs, ge = 0
+                        log.warning(logid+'No coords found for gene '+goi+'! Assuming coordinates are already local!')
+
                 if len(fa.seq) < window:
                     log.warning('Sequence of '+goi+' to short, seqlenght '+str(len(fa.seq))+' with window size '+str(window))
                     continue
-#                outdict[goi]=manager.list()  # add a managed list to append results to
 
                 if pattern and pattern not in goi:
-                    next
+                    continue
                 else:
                     log.info(logid+'Working on ' + goi)
                     xvals = []
@@ -333,18 +340,18 @@ def fold(sequence, window, span, unconstraint, unpaired, paired, length, gc, num
                         fstart, fend = [None,None]
                         if constrain == 'paired':
                             log.info(logid+'Calculating constraint pair\t' + entry)
-                            fstart, fend, start, end = map(int,entry.split(',',1).split('-',1))
+                            fstart, fend, start, end = map(lambda x:x-gs, list(map(int,entry.split(',',1).split('-',1))))
                         elif any(x in constrain for x in ['paired', 'Paired']):
-                            fstart, fend, start, end = map(int,entry.split('-'))
+                            fstart, fend, start, end = map(lambda x:x-gs, list(map(int,entry.split('-'))))
                         else:
                             log.info(logid+'Calculating constraint\t' + entry)
-                            start,end = map(int,entry.split('-',1))
+                            start,end = map(lambda x:x-gs, list(map(int,entry.split('-',1))))
                             #for all constraints we now extract subsequences to compare against
                             #we no longer fold the whole raw sequence but only the constraint region +- window size
 
                         if fstart and fend:
                             cons = str(start)+'-'+str(end)+':'+str(fstart)+'-'+str(fend)
-                            const = np.sort(np.array([start, end, fstart, fend]))  # Is sorting ok?
+                            const = np.sort(np.array([start, end, fstart, fend]))
                         else:
                             cons = str(start)+'-'+str(end)
                             const = np.array([start, end])
@@ -353,10 +360,6 @@ def fold(sequence, window, span, unconstraint, unpaired, paired, length, gc, num
 
             pool.close()
             pool.join()
-
-#            for result in [outdict[gene] for gene in outdict]:
-#                for r in result:
-#                    write_out(r)
 
         log.info(logid+"DONE: output in: " + str(outdir))
 
@@ -386,18 +389,16 @@ def constrain_seq(fa, start, end, conslength, const, cons, window, span, xs, unc
         else:
             start, end = const
 
-        if dist:
-            tostart = start - (window - abs(dist))
-            toend = fend + (window - abs(dist)) + 1
-            log.debug(logid+'Considering distance '+str(dist)+' between constraints '+str(const)+' for window extraction from '+str(tostart)+' to '+str(toend))
-        else:
-            tostart = start - window
-            toend = end + window + 1
-
         #we no longer fold the whole sequence but only the constraint region +- window size
         if window is not None:
-            tostart = start - window
-            toend = end + window + 1
+            if dist:
+                tostart = start - (window - abs(dist))
+                toend = fend + (window - abs(dist)) + 1
+                log.debug(logid+'Considering distance '+str(dist)+' between constraints '+str(const)+' for window extraction from '+str(tostart)+' to '+str(toend))
+            else:
+                tostart = start - window
+                toend = end + window + 1
+
             if tostart < 0:
                 tostart = 0
             if toend > len(fa.seq):
@@ -405,7 +406,7 @@ def constrain_seq(fa, start, end, conslength, const, cons, window, span, xs, unc
             if fend is not None and toend < fend:
                 log.warning(logid+'Constraint '+str(cons)+' out of sequence range '+str(toend)+'!Skipping!')  # One of the constraints is outside the sequence window
                 return
-            seqtofold = str(fa.seq[tostart:toend+1])
+            seqtofold = str(fa.seq[tostart:toend])
         else:
             tostart = 0
             toend = 0
@@ -414,12 +415,6 @@ def constrain_seq(fa, start, end, conslength, const, cons, window, span, xs, unc
         if len(seqtofold) < window:
             log.warning(logid+'Sequence of '+goi+' to short, seqlenght '+str(len(seqtofold))+' with window size '+str(window)+'!Skipping! ')
             raise Exception('Sequence of '+goi+' to short, seqlenght '+str(len(seqtofold))+' with window size '+str(window))
-
-        #check constraints
-        if tostart < 0:
-            tostart = 0
-        if toend > len(fa.seq):
-            toend = len(fa.seq)
 
         cstart = start-tostart
         cend =  end-tostart
@@ -451,12 +446,12 @@ def constrain_seq(fa, start, end, conslength, const, cons, window, span, xs, unc
             gs, ge = map(int, genecoords[goi][0].split(sep='-'))
             if len(check) < 3:
                 s,e = check
-                sp, ep = [s+tostart+gs, e+tostart+gs]
+                sp, ep = [s+tostart+gs-1, e+tostart+gs]
                 gtostart, gtoend = [tostart+gs, toend+gs]
                 printcons = str.join('|',[str.join('-',[str(tostart), str(toend)]), str.join('-',[str(gtostart), str(gtoend)]), str.join('-',[str(s), str(e)]), str.join('-',[str(sp), str(ep)])])
             else:
                 s,e,os,oe = check
-                sp,ep,osp,oep = [s+tostart+gs, e+tostart+gs, os+tostart+gs, oe+tostart+gs]
+                sp,ep,osp,oep = [s+tostart+gs-1, e+tostart+gs, os+tostart+gs-1, oe+tostart+gs]
                 gtostart, gtoend = [tostart+gs, toend+gs]
                 log.debug(logid+'PAIRED:'+';'.join(map(str,[s,e,os,oe,gs,ge,sp,ep,osp,oep,tostart,toend,gtostart,gtoend])))
                 printcons = str.join('|',[str.join('-', [str(tostart), str(toend)]), str.join('-',[str(gtostart), str(gtoend)]), str.join(':',[str.join('-',[str(s),str(e)]), str.join('-',[str(os),str(oe)])]), str.join(':',[str.join('-',[str(sp),str(ep)]), str.join('-',[str(osp),str(oep)])])])
