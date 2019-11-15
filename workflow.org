@@ -57,10 +57,17 @@ ca rissmed
 cd 65_screen
 rsync -auv /scr/jack2/fall/Projects/Cooperativity/U2AF65_FUBP/TargetGenes_65_Fu.bed .
 python ~/Projects/INPROGRESS/RIssmed/RIssmed/CollectConsResults.py -u 5 -z 8 -g ../TargetGenes_65_Fu.bed -b-1,1 -c 0 -p 250,160 -o Collection_65
+
 **** Fu
 cd Fu_screen
 rsync -auv /scr/jack2/fall/Projects/Cooperativity/U2AF65_FUBP/TargetGenes_65_Fu.bed .
 python ~/Projects/INPROGRESS/RIssmed/RIssmed/CollectConsResults.py -u 5 -z 8 -g ../TargetGenes_65_Fu.bed -b-1,1 -c 0 -p 250,160 -o Collection_Fu
+
+**** Intersect
+intersectBed -s -a Collection_Fu/Sig_Collection_unpaired.bed.gz -b Sorted_65_peaks_hg38.bed -wa -wb |gzip > Intersect_65_sig_Fu.bed.gz
+intersectBed -s -a Collection_65/Sig_Collection_unpaired.bed.gz -b Sorted_FU_peaks_hg38.bed -wa -wb |gzip > Intersect_Fu_sig_65.bed.gz
+intersectBed -s -a Collection_Fu/Sig_Collection_unpaired.bed.gz -b Sorted_FU_peaks_hg38.bed -wa -wb |gzip > Intersect_Fu_sig_Fu.bed.gz
+intersectBed -s -a Collection_65/Sig_Collection_unpaired.bed.gz -b Sorted_65_peaks_hg38.bed -wa -wb |gzip > Intersect_65_sig_65.bed.gz
 ** Window folding
 *** Preprocess
 cat Annotated_65_Fu_closest_gene_overlap.bed |perl -lane 'if($F[1]>=0 && $F[2] >= 0 && $F[8] >= 0 && $F[9] >= 0){print $_}' |grep ENSG |sort -k1,1 -k2,2n -u > Paired_65_Fu_constraints.bed
