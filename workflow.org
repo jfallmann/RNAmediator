@@ -41,17 +41,31 @@ python ~/Projects/INPROGRESS/RIssmed/RIssmed/CollectWindowResults.py -z 1 -g ../
 * Run on FUBP and U2AF65
 cd /scr/k70san2/fall/Constraints/Mainz/ReStart_U2AF65_FUBP
 ca rissmed
-rsync -auv ../U2AF65_FUBP_NEW65/*.bed .
-rsync -auv ../U2AF65_FUBP_NEW65/*.fa*gz .
-** Reprocess, for Preprocess see ~/Projects/INPROGRESS/FoldConstraints/Cooperativity_Mainz/workflow.org
-*** Get local coords of Fu binding on 65 extension, closestBed -D a gives us dist in regard to a, as we consider strand in fasta this is important, Binding site size is 5!
-perl -lane '{if ($F[5] eq "\+" or $F[5] eq "u" or $F[5] eq "." or $F[5] > 0){$start = $F[1]-$F[15];}else{$start = $F[16]-$F[2]} if ($start > 0 ){ $end = $start+5; next if ($end + $F[15] > $F[16]); print join("\t",$F[0],$start,$end,@F[3..5])}}' Annotated_65_Fu_closest_gene_overlap.bed |sort -k1,1 -k2,2n -u > 65_local_constraints.bed
-perl -lane '{if ($F[5] eq "\+" or $F[5] eq "u" or $F[5] eq "." or $F[5] > 0){$start = $F[8]-$F[15];}else{$start = $F[16]-$F[9]} if ($start > 0 ){ $end = $start+5; next if ($end + $F[15] > $F[16]); print join("\t",$F[0],$start,$end,@F[3..5])}}' Annotated_65_Fu_closest_gene_overlap.bed |sort -k1,1 -k2,2n -u > Fu_local_constraints.bed
+#rsync -auv ../U2AF65_FUBP_NEW65/*.fa*gz .
+** Reprocess, for Preprocess of old files see ~/Projects/INPROGRESS/FoldConstraints/Cooperativity_Mainz/workflow.org
+*** Sort
+sort -k1,1 -k2,2n U2AF65_peaks_reproducible_3CL.bed |uniq > Sorted_65_peaks_hg38.bed
+sort -k1,1 -k2,2n FUBP1_peaks_reproducible_3CL.bed |uniq > Sorted_Fu_peaks_hg38.bed
+*** Find closest pairs
+closestBed -D a -d -io -s -a Sorted_65_peaks_hg38.bed -b Sorted_Fu_peaks_hg38.bed |grep -v -P "\-1\t\-1" > Closest_65_Fu.bed
+python -c "import sys;[sys.stdout.write('\t'.join(line.split('\t')[:])) for line in sys.stdin if (int(line.split('\t')[12]) <= 150 and int(line.split('\t')[12]) >= -150)]" < Closest_65_Fu.bed > Closest_65_Fu_150.bed
+*** Merge and annotate
+rsync -auv jack:/scratch2/fall/Data/Annotation/Homo_sapiens.GRCh38.88.gtf.gz .
+perl ~/Work/Projects/Workflows/scripts/AnnotateBed.pl -b Closest_65_Fu_150.bed -a Homo_sapiens.GRCh38.88.gtf.gz -w ON --specific gene |sort -V|uniq|perl -wlane 'print "chr".$_' |gzip > Annotated_65_Fu_closest.bed.gz
+grep -w gene <(zcat Annotated_65_Fu_closest.bed.gz) |sort -V |gzip > Annotated_65_Fu_closest_gene_overlap.bed.gz
+perl -wlane 'print join("\t",$F[0],$F[15],$F[16],$F[14],".",$F[5])' <(zcat Annotated_65_Fu_closest_gene_overlap.bed.gz)|sort -V |uniq> TargetGenes_65_Fu.bed
+perl -wlane 'print join("\t",@F[0..5])' <(zcat Annotated_65_Fu_closest.bed.gz)|sort -V |uniq > 65_peaks_for_folding.bed
+perl -wlane 'print join("\t",@F[7..9],$F[3],@F[11..12])' <(zcat Annotated_65_Fu_closest.bed.gz)|sort -V |uniq > Fu_peaks_for_folding.bed
+*** Get fasta with strand info!!!
+fastaFromBed -fi hg38.extended.fa -bed TargetGenes_65_Fu.bed -name+ -s |gzip > 65_Fu_targets.fa.gz
+*** TODO Get local coords of Fu binding on 65 extension, closestBed -D a gives us dist in regard to a, as we consider strand in fasta this is important
+perl -lane '{if ($F[5] eq "\+" or $F[5] eq "u" or $F[5] eq "." or $F[5] > 0){$start = $F[1]-$F[15]+1;}else{$start = $F[16]-$F[2]+1} if ($start > 0 ){ $end = $start+9; print join("\t",$F[0],$start,$end,@F[3..5])}}' Annotated_65_Fu_closest_gene_overlap.bed |sort -k1,1 -k2,2n > 65_local_constraints.bed
+perl -lane '{if ($F[5] eq "\+" or $F[5] eq "u" or $F[5] eq "." or $F[5] > 0){$start = $F[8]-$F[15]+1;}else{$start = $F[16]-$F[9]+1} if ($start > 0 ){ $end = $start+9; print join("\t",$F[0],$start,$end,@F[3..5])}}' Annotated_65_Fu_closest_gene_overlap.bed |sort -k1,1 -k2,2n > Fu_local_constraints.bed
 ** Run prob folding
 on k61
 ca rissmed
-~/Projects/INPROGRESS/RIssmed/RIssmed/ConstraintPLFold.py -s 65_Fu_targets.fa.gz -w 120 -l 80 -u 5 -r raw -n unpaired -p paired -x 65_local_constraints.bed -o 65_local_refresh -z 15 --loglevel WARNING
-~/Projects/INPROGRESS/RIssmed/RIssmed/ConstraintPLFold.py -s 65_Fu_targets.fa.gz -w 120 -l 80 -u 5 -r raw -n unpaired -p paired -x Fu_local_constraints.bed -o Fu_local_refresh -z 15 --loglevel WARNING
+~/Projects/INPROGRESS/RIssmed/RIssmed/ConstraintPLFold.py -s 65_Fu_targets.fa.gz -w 250 -l 150 -u 5 -g TargetGenes_65_Fu.bed -r raw -n unpaired -p paired -x 65_peaks_for_folding.bed -o 65_local_reproduce -z 30 --loglevel WARNING -m 2
+~/Projects/INPROGRESS/RIssmed/RIssmed/ConstraintPLFold.py -s 65_Fu_targets.fa.gz -w 250 -l 150 -u 5 -g TargetGenes_65_Fu.bed -r raw -n unpaired -p paired -x Fu_peaks_for_folding.bed -o Fu_local_reproduce -z 30 --loglevel WARNING -m 2
 *** Collect
 **** 65
 cd 65_screen
