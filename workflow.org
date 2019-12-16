@@ -71,12 +71,15 @@ ca rissmed
 cd 65_screen
 rsync -auv /scr/jack2/fall/Projects/Cooperativity/U2AF65_FUBP/TargetGenes_65_Fu.bed .
 python ~/Projects/INPROGRESS/RIssmed/RIssmed/CollectConsResults.py -u 5 -z 8 -g ../TargetGenes_65_Fu.bed -b-1,1 -c 0 -p 250,160 -o Collection_65
-
+cd Collection_65
+zcat Collection_unpaired.bed.gz|perl -wlane 'if ($F[-1]<-2 || $F[-1] > 2){print}'|gzip > Sig_Collection_unpaired.bed.gz
+zcat Collection_paired.bed.gz|perl -wlane 'if ($F[-1]<-2 || $F[-1] > 2){print}'|gzip > Sig_Collection_paired.bed.gz
 **** Fu
 cd Fu_screen
 rsync -auv /scr/jack2/fall/Projects/Cooperativity/U2AF65_FUBP/TargetGenes_65_Fu.bed .
 python ~/Projects/INPROGRESS/RIssmed/RIssmed/CollectConsResults.py -u 5 -z 8 -g ../TargetGenes_65_Fu.bed -b-1,1 -c 0 -p 250,160 -o Collection_Fu
-
+zcat Collection_unpaired.bed.gz|perl -wlane 'if ($F[-1]<-2 || $F[-1] > 2){print}'|gzip > Sig_Collection_unpaired.bed.gz
+zcat Collection_paired.bed.gz|perl -wlane 'if ($F[-1]<-2 || $F[-1] > 2){print}'|gzip > Sig_Collection_paired.bed.gz
 **** Intersect
 intersectBed -s -a Collection_Fu/Sig_Collection_unpaired.bed.gz -b Sorted_65_peaks_hg38.bed -wa -wb |gzip > Intersect_65_sig_Fu.bed.gz
 intersectBed -s -a Collection_65/Sig_Collection_unpaired.bed.gz -b Sorted_FU_peaks_hg38.bed -wa -wb |gzip > Intersect_Fu_sig_65.bed.gz
