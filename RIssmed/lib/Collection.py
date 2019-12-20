@@ -7,9 +7,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Tue Nov  5 15:56:40 2019 (+0100)
+## Last-Updated: Fri Dec 20 20:34:13 2019 (+0100)
 ##           By: Joerg Fallmann
-##     Update #: 252
+##     Update #: 255
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -272,11 +272,11 @@ def parse_annotation_bed(bed, annotated=None):
             entries = line.rstrip().split('\t')
             goi = entries[3]
             if annotated:
-                start = int(entries[10])
-                end   = int(entries[11])-1
+                start = int(entries[10])+1
+                end   = int(entries[11])
             else:
-                start = int(entries[1])
-                end   = int(entries[2])-1
+                start = int(entries[1])+1
+                end   = int(entries[2])
             anno[str(goi)].append('-'.join([str(start),str(end)]))
         return anno
     except Exception as err:
@@ -822,7 +822,7 @@ def idfromfa(id):
 def constrain_paired(fc, start, end):
     logid = scriptname+'.constrain_paired: '
     try:
-        for x in range(start, end+1):
+        for x in range(start+1, end+1):
             fc.hc_add_bp_nonspecific(x,0) #0 means without direction  ( $ d < 0 $: pairs upstream, $ d > 0 $: pairs downstream, $ d == 0 $: no direction)
         return fc
     except Exception as err:
@@ -835,7 +835,7 @@ def constrain_paired(fc, start, end):
 def constrain_unpaired(fc, start, end):
     logid = scriptname+'.constrain_unpaired: '
     try:
-        for x in range(start, end+1):
+        for x in range(start+1, end+1):
             fc.hc_add_up(x)
         return fc
     except Exception as err:

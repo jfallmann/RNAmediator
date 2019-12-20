@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Tue Nov  5 14:31:36 2019 (+0100)
+## Last-Updated: Fri Dec 20 20:40:13 2019 (+0100)
 ##           By: Joerg Fallmann
-##     Update #: 215
+##     Update #: 220
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -339,7 +339,7 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                         for const in probeargs[1:]:
                             conss, conse = map(int,const.split('-'))
                             strt = conss-window*multi
-                            endt = conse+window*multi+1
+                            endt = conse+window*multi
                             if strt < 0:
                                 strt = 0
                             if endt > len(fa.seq):
@@ -697,12 +697,12 @@ def constrain_seq(sid, seq, start, end, conslength, const, cons, window, span, r
         log.debug(''.join(map(str,[logid, sid, region, seqtofold, cons, start, end, tostart, start-tostart, end-tostart+1])))
 
         #enforce paired
-        fc_p = constrain_paired(fc_p, start-tostart+1, end-tostart+1)
+        fc_p = constrain_paired(fc_p, start-tostart, end-tostart)
         #for x in range(start-tostart, end-tostart+1):
         #    fc_p.hc_add_bp_nonspecific(x,0) #0 means without direction  ( $ d < 0 $: pairs upstream, $ d > 0 $: pairs downstream, $ d == 0 $: no direction)
 
         #enforce unpaired
-        fc_u = constrain_unpaired(fc_u,start-tostart+1,end-tostart+1)
+        fc_u = constrain_unpaired(fc_u,start-tostart,end-tostart)
         #for x in range(start-tostart, end-tostart+1):
         #    fc_u.hc_add_up(x)
 
@@ -784,18 +784,22 @@ def constrain_seq_paired(sid, seq, fstart, fend, start, end, conslength, const, 
         fc_u = RNA.fold_compound(seqtofold, md, RNA.OPTION_WINDOW)
 
         #enforce paired
-        for x in range(start-tostart, end-tostart+1):
-            fc_p.hc_add_bp_nonspecific(x,0) #0 means without direction  ( $ d < 0 $: pairs upstream, $ d > 0 $: pairs downstream, $ d == 0 $: no direction)
+        fc_p = constrain_paired(fc_u,start-tostart,end-tostart)
+        #for x in range(start-tostart, end-tostart+1):
+        #    fc_p.hc_add_bp_nonspecific(x,0) #0 means without direction  ( $ d < 0 $: pairs upstream, $ d > 0 $: pairs downstream, $ d == 0 $: no direction)
         #enforce paired
-        for x in range(fstart-tostart, fend-tostart+1):
-            fc_p.hc_add_bp_nonspecific(x,0) #0 means without direction  ( $ d < 0 $: pairs upstream, $ d >
+        fc_p = constrain_uaired(fc_u,fstart-tostart,fend-tostart)
+        #for x in range(fstart-tostart, fend-tostart+1):
+        #    fc_p.hc_add_bp_nonspecific(x,0) #0 means without direction  ( $ d < 0 $: pairs upstream, $ d >
 
         #enforce unpaired
-        for x in range(start-tostart, end-tostart+1):
-            fc_u.hc_add_up(x)
+        fc_u = constrain_unpaired(fc_u,start-tostart,end-tostart)
+        #for x in range(start-tostart, end-tostart+1):
+        #    fc_u.hc_add_up(x)
         #enforce unpaired
-        for x in range(fstart-tostart, fend-tostart+1):
-            fc_u.hc_add_up(x)
+        fc_u = constrain_unpaired(fc_u,fstart-tostart,fend-tostart)
+        #for x in range(fstart-tostart, fend-tostart+1):
+        #    fc_u.hc_add_up(x)
 
         #new data struct
         data_pn = {'up': []}
@@ -1193,7 +1197,7 @@ def expand_window(start, end, window, multiplyer, seqlen):
         tostart = start - multiplyer*window
         if tostart < 0:
             tostart = 0
-        toend = end + multiplyer*window + 1
+        toend = end + multiplyer*window
         if toend > seqlen:
             toend = seqlen
         return [tostart, toend]
