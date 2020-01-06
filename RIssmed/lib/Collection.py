@@ -7,9 +7,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Fri Dec 20 20:34:13 2019 (+0100)
+## Last-Updated: Mon Jan  6 15:44:33 2020 (+0100)
 ##           By: Joerg Fallmann
-##     Update #: 255
+##     Update #: 258
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -794,7 +794,7 @@ def pl_to_array(name, ulim, fmt='npy'):
         if fmt == 'txt':
             return np.array(np.loadtxt(name, usecols=ulim, unpack=True, delimiter='\t', encoding='bytes'))
         elif fmt == 'npy':
-            return np.array(np.load(name)[:,ulim])
+            return np.array(np.load(name)[:,ulim-1])
     except Exception as err:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(

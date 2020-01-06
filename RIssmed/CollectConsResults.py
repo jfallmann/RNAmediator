@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Mon Jan  6 12:10:58 2020 (+0100)
+## Last-Updated: Mon Jan  6 15:40:39 2020 (+0100)
 ##           By: Joerg Fallmann
-##     Update #: 275
+##     Update #: 285
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -153,7 +153,7 @@ def screen_genes(pat, cutoff, border, ulim, procs, roi, outdir, genes, padding):
             gs, ge = map(int, genecoords[goi][0].split(sep='-'))
 
             #get files with specified pattern
-            raw = os.path.abspath(os.path.join(goi, goi + '*_raw_*' + str(window) + '_' + str(span) + '.gz'))
+            raw = os.path.abspath(os.path.join(goi, goi + '*_raw_*' + str(window) + '_' + str(span) + '.npy'))
             unpaired = os.path.abspath(os.path.join(goi, 'StruCons_' + goi + '*_diffnu_*' + str(window) + '_' + str(span) + '.npy'))
             paired = os.path.abspath(os.path.join(goi, 'StruCons_' + goi + '*_diffnp_*' + str(window) + '_' + str(span) + '.npy'))
 
@@ -232,7 +232,7 @@ def judge_diff(raw, u, p, gs, ge, ulim, cutoff, border, outdir, padding):
         RT = (-1.9872041*10**(-3))*(37+273.15)
         log.debug(logid+'RT is '+str(RT))
 
-        noc = pl_to_array(raw, ulim-1,'txt')
+        noc = pl_to_array(raw, ulim)
 
         mult = int((len(noc)/int(window))/2)
         log.debug(logid+'Multiplyer: '+str(mult))
@@ -244,8 +244,8 @@ def judge_diff(raw, u, p, gs, ge, ulim, cutoff, border, outdir, padding):
         log.debug(logid+'Constraint Window: '+str(conswindow))
 
         if abs(noc[ce]) > cutoff:
-            uc = pl_to_array(u, ulim-1)
-            pc = pl_to_array(p, ulim-1)
+            uc = pl_to_array(u, ulim)
+            pc = pl_to_array(p, ulim)
 
             log.debug(logid+'unpaired: '+str(u)+' and paired: '+str(p)+' Content: '+str(uc[ulim:ulim+10])+' test '+str(np.all(uc[ulim:ulim+10])))
 
@@ -264,7 +264,7 @@ def judge_diff(raw, u, p, gs, ge, ulim, cutoff, border, outdir, padding):
             log.debug(logid+'zscore: '+str(zscoresu[:10]))
 
 
-            for pos in range(conswindow[0],conswindow[1]+1):
+            for pos in range(conswindow[0]-1,conswindow[1]):
                 if pos not in range(cs-padding,ce+1+padding):
                     if border1 < uc[pos] and uc[pos] < border2:
                         if ce < pos:# get distance up or downstream
@@ -274,9 +274,9 @@ def judge_diff(raw, u, p, gs, ge, ulim, cutoff, border, outdir, padding):
 
                         ###There is no strandedness anymore!!!
                         #if strand is not '-':
-                        gpos = pos + ws
+                        gpos = pos + ws - 1
                         gend = gpos + ulim
-                        gcons = str(cs+ws)+'-'+str(ce+ws)
+                        gcons = str(cs+ws+1)+'-'+str(ce+ws+1)
                         #else:
                         #    gpos = we - pos - ulim-1
                         #    gend = gpos + ulim
@@ -297,9 +297,9 @@ def judge_diff(raw, u, p, gs, ge, ulim, cutoff, border, outdir, padding):
 
                         ###There is no strandedness anymore!!!
                         #if strand is not '-':
-                        gpos = pos + ws
+                        gpos = pos + ws - 1
                         gend = gpos + ulim
-                        gcons = str(cs+ws)+'-'+str(ce+ws)
+                        gcons = str(cs+ws+1)+'-'+str(ce+ws+1)
                         #else:
                         #    gpos = we - pos - ulim-1
                         #    gend = gpos + ulim

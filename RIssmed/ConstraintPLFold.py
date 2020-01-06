@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Mon Jan  6 11:30:28 2020 (+0100)
+## Last-Updated: Mon Jan  6 15:47:08 2020 (+0100)
 ##           By: Joerg Fallmann
-##     Update #: 238
+##     Update #: 245
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -912,12 +912,18 @@ def write_unconstraint(sid, seq, unconstraint, data, region, window, span, outdi
                             o.write(bytes(out,encoding='UTF-8'))
                         else:
                             print("No output produced "+sid)
+                if not os.path.exists(os.path.join(temp_outdir,str(goi+'_'+chrom+'_'+strand+'_'+rawentry+'_'+unconstraint+'_'+window+'_'+str(span)+'.npy'))):
+                    printdiff(up_to_array(data['up']),os.path.join(temp_outdir,str(goi+'_'+chrom+'_'+strand+'_'+rawentry+'_'+unconstraint+'_'+window+'_'+str(span)+'.npy')))
+
             else:
                 if not os.path.exists(os.path.join(temp_outdir,str(goi+'_'+chrom+'_'+strand+'_'+str(gr)+'_'+unconstraint+'_'+window+'_'+str(span)+'.gz'))):
                     with gzip.open(os.path.join(temp_outdir,goi+'_'+chrom+'_'+strand+'_'+str(gr)+'_'+unconstraint+'_'+window+'_'+str(span)+'.gz'), 'wb') as o:
                         out = print_up(data['up'],len(seq),region)
                         if out and len(out)>1:
                             o.write(bytes(out,encoding='UTF-8'))
+                if not os.path.exists(os.path.join(temp_outdir,str(goi+'_'+chrom+'_'+strand+'_'+str(gr)+'_'+unconstraint+'_'+window+'_'+str(span)+'.npy'))):
+                    printdiff(up_to_array(data['up']),os.path.join(temp_outdir,str(goi+'_'+chrom+'_'+strand+'_'+str(gr)+'_'+unconstraint+'_'+window+'_'+str(span)+'.npy')))
+
         else:
             print (print_up(data['up'],len(seq),region))
     except Exception as err:
