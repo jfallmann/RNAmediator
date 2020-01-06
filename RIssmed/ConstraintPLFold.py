@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Fri Dec 20 20:40:13 2019 (+0100)
+## Last-Updated: Mon Jan  6 11:30:28 2020 (+0100)
 ##           By: Joerg Fallmann
-##     Update #: 220
+##     Update #: 238
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -156,6 +156,8 @@ def preprocess(sequence, window, span, region, multi, unconstraint, unpaired, pa
     else:
         genecoords = None
 
+    log.debug(logid+'GeneCoords: '+str(genecoords))
+
     mode = 'generic'
     if 'ono' == str(constrain.split(',')[0]):
         constrain = constrain.split(',')[1]
@@ -234,7 +236,7 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
     logid = scriptname+'.fold: '
     #set path for VRNA lib if necessary
     if vrna:
-        sys.path=[vrna] + sys.path
+        sys.path = [vrna] + sys.path
     try:
         seq = parseseq(sequence)
 
@@ -266,7 +268,7 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
             if goi in genecoords:
                 gs, ge = map(int, genecoords[goi][0].split(sep='-'))
             else:
-                gs, ge = 0
+                gs, ge = 0, 0
                 log.warning(logid+'No coords found for gene '+goi+'! Assuming coordinates are already local!')
         if len(fa.seq) < window*multi:
             log.warning(str('Sequence of '+goi+' too short, seqlenght '+str(len(fa.seq))+' with window size '+str(window)+' and multiplyer '+str(multi)))
@@ -276,17 +278,17 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
             continue
         else:
             log.info(logid+'Working on ' + goi + "\t" + fa.id)
-##prepare plots
-#       if plot != '0':
-#           manager = Manager()
-#           animations = manager.list()
+            ##prepare plots
+            #       if plot != '0':
+            #           manager = Manager()
+            #           animations = manager.list()
             animations = []
             xvals = []
             for y in range(1,len(fa.seq)+1):
                 xvals.append(y)
                 xs = np.array(xvals)
                 xvals = []
-#set kT for nrg2prob and vice versa calcs
+            #set kT for nrg2prob and vice versa calcs
             kT = 0.61632077549999997
             #define data structures
             #           data = { 'bpp': [], 'up': [] }
@@ -315,7 +317,6 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                 an = up_to_array(data['up'],int(region),len(fa.seq))#convert to array for fast diff calc
 
             if constrain == 'temperature':
-#                printlog('Calculating probs for temperature constraint '+temprange)
                 ts, te = map(int,temprange.split('-'))
 
                 try:
@@ -376,7 +377,7 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
 
                 try:
                     for temp in range(ts,te+1):
-# Create the process, and connect it to the worker function
+                        # Create the process, and connect it to the worker function
                         pool.apply_async(constrain_temp, args=(str(fa.id), str(fa.seq), temp, window, span, region, multi, an, animations, xs, save, outdir, plot),error_callback=eprint)
                 except Exception as err:
                     exc_type, exc_value, exc_tb = sys.exc_info()
@@ -628,7 +629,7 @@ def parafold(sequence, window, span, region, multi, unconstraint, unpaired, pair
                     log.info(logid+'Calculating constraint\t' + entry)
                     tostart, toend = expand_window(start, end, window, multi, len(fa.seq))
 
-                    seqtofold = str(fa.seq[tostart:toend]).upper()
+                    seqtofold = str(fa.seq[tostart:toend+1]).upper()
                     const = np.array([start, end])
 
                     log.info(logid+'Constraint: ' + str(entry) + '\tSeqlength: ' + str(len(fa.seq)) + '\tFoldlength: ' + str(len(seqtofold)) + ' : ' + str(tostart) + " - " + str(toend))
@@ -673,7 +674,7 @@ def constrain_seq(sid, seq, start, end, conslength, const, cons, window, span, r
         #for all constraints we now extract subsequences to compare against
         #we no longer fold the whole raw sequence but only the constraint region +- window size
         tostart, toend = expand_window(start, end, window, multi, len(seq))
-        seqtofold = str(seq[tostart:toend])
+        seqtofold = str(seq[tostart:toend+1])
 
         cons = str('-'.join([str(start),str(end)])+'_'+'-'.join([str(tostart),str(toend)]))
 
@@ -694,15 +695,15 @@ def constrain_seq(sid, seq, start, end, conslength, const, cons, window, span, r
         fc_p = RNA.fold_compound(seqtofold, md, RNA.OPTION_WINDOW)
         fc_u = RNA.fold_compound(seqtofold, md, RNA.OPTION_WINDOW)
 
-        log.debug(''.join(map(str,[logid, sid, region, seqtofold, cons, start, end, tostart, start-tostart, end-tostart+1])))
+        log.debug(' '.join(map(str,[logid, sid, region, seqtofold, cons, start, end, tostart, start-tostart, end-tostart+1])))
 
         #enforce paired
-        fc_p = constrain_paired(fc_p, start-tostart, end-tostart)
+        fc_p = constrain_paired(fc_p, start-tostart, end-tostart+1)
         #for x in range(start-tostart, end-tostart+1):
         #    fc_p.hc_add_bp_nonspecific(x,0) #0 means without direction  ( $ d < 0 $: pairs upstream, $ d > 0 $: pairs downstream, $ d == 0 $: no direction)
 
         #enforce unpaired
-        fc_u = constrain_unpaired(fc_u,start-tostart,end-tostart)
+        fc_u = constrain_unpaired(fc_u,start-tostart,end-tostart+1)
         #for x in range(start-tostart, end-tostart+1):
         #    fc_u.hc_add_up(x)
 
@@ -762,7 +763,7 @@ def constrain_seq_paired(sid, seq, fstart, fend, start, end, conslength, const, 
     try:
         #we no longer fold the whole sequence but only the constraint region +- window size
         tostart, toend = expand_window(start, end, window, multi, len(seq))
-        seqtofold = str(seq[tostart:toend]) ###TEST
+        seqtofold = str(seq[tostart:toend+1]) ###TEST
 
         if start < 0 or end > len(seq) or fstart < 0 or fend > len(seq):
             log.warning(logid+'Constraint out of sequence bounds! skipping! '+','.join([len(seq), str(start)+'-'+str(end), str(fstart)+'-'+str(fend)]) )
@@ -784,20 +785,20 @@ def constrain_seq_paired(sid, seq, fstart, fend, start, end, conslength, const, 
         fc_u = RNA.fold_compound(seqtofold, md, RNA.OPTION_WINDOW)
 
         #enforce paired
-        fc_p = constrain_paired(fc_u,start-tostart,end-tostart)
+        fc_p = constrain_paired(fc_u,start-tostart,end-tostart+1)
         #for x in range(start-tostart, end-tostart+1):
         #    fc_p.hc_add_bp_nonspecific(x,0) #0 means without direction  ( $ d < 0 $: pairs upstream, $ d > 0 $: pairs downstream, $ d == 0 $: no direction)
         #enforce paired
-        fc_p = constrain_uaired(fc_u,fstart-tostart,fend-tostart)
+        fc_p = constrain_uaired(fc_u,fstart-tostart,fend-tostart+1)
         #for x in range(fstart-tostart, fend-tostart+1):
         #    fc_p.hc_add_bp_nonspecific(x,0) #0 means without direction  ( $ d < 0 $: pairs upstream, $ d >
 
         #enforce unpaired
-        fc_u = constrain_unpaired(fc_u,start-tostart,end-tostart)
+        fc_u = constrain_unpaired(fc_u,start-tostart,end-tostart+1)
         #for x in range(start-tostart, end-tostart+1):
         #    fc_u.hc_add_up(x)
         #enforce unpaired
-        fc_u = constrain_unpaired(fc_u,fstart-tostart,fend-tostart)
+        fc_u = constrain_unpaired(fc_u,fstart-tostart,fend-tostart+1)
         #for x in range(fstart-tostart, fend-tostart+1):
         #    fc_u.hc_add_up(x)
 
@@ -1221,7 +1222,8 @@ if __name__ == '__main__':
         log = setup_multiprocess_logger(name=logname, log_file='logs/'+logname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
 
         log.info(logid+'Running '+scriptname+' on '+str(args.procs)+' cores.')
-        log.info(logid+'CLI: '+sys.argv[0], ' '.join( [shlex.quote(s) for s in sys.argv[1:]] ))
+        log.info(logid+'CLI: '+sys.argv[0]+'{}'.format(' '.join( [shlex.quote(s) for s in sys.argv[1:]] )))
+
         preprocess(args.sequence, args.window, args.span, args.region, args.multi, args.unconstraint, args.unpaired, args.paired, args.length, args.gc, args.number, args.constrain, args.conslength, args.alphabet, args.plot, args.save, args.procs, args.vrna, args.temprange, args.outdir, args.genes, args.verbosity, args.pattern, args.cutoff)
     except Exception as err:
         exc_type, exc_value, exc_tb = sys.exc_info()

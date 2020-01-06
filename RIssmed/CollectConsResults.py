@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Tue Nov  5 14:30:01 2019 (+0100)
+## Last-Updated: Mon Jan  6 12:10:58 2020 (+0100)
 ##           By: Joerg Fallmann
-##     Update #: 257
+##     Update #: 275
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -199,6 +199,7 @@ def judge_diff(raw, u, p, gs, ge, ulim, cutoff, border, outdir, padding):
     logid = scriptname+'.judge_diff: '
     try:
         goi, chrom, strand, cons, reg, f, window, span = map(str,os.path.basename(raw).split(sep='_'))
+        span = span.split(sep='.')[0]
         cs, ce = map(int, cons.split(sep='-'))
         ws, we = map(int, reg.split(sep='-'))
 
@@ -208,13 +209,17 @@ def judge_diff(raw, u, p, gs, ge, ulim, cutoff, border, outdir, padding):
         if 0 > any([cs,ce,ws,we]):
             raise Exception('One of '+str([cs,ce,ws,we])+ ' lower than 0! this should not happen for '+','.join([goi, chrom, strand, cons, reg, f, window, span]))
 
-        if strand is not '-':
-            ws = ws + gs -1 #get genomic coords
-            we = we + gs
-        else:
-            wst = ws            # temp ws for we calc
-            ws = ge - we - 1#get genomic coords
-            we = ge - wst
+        #if strand is not '-':
+        #else:
+        #    wst = ws         #temp ws for we calc
+        #    ws = ge - we - 1 #get genomic coords
+        #    we = ge - wst
+
+        ###There is no strandedness anymore, everything is already 5'-3' diirection'
+        ws = ws + gs -1 #get genomic coords
+        we = we + gs
+
+        log.debug(logid+'DiffCoords: '+' '.join(map(str,[goi, chrom, strand, cons, reg, f, window, span, gs, ge, cs, ce, ws, we])))
 
         border1, border2 = map(float,border.split(',')) #defines how big a diff has to be to be of importance
 
@@ -244,26 +249,22 @@ def judge_diff(raw, u, p, gs, ge, ulim, cutoff, border, outdir, padding):
 
             log.debug(logid+'unpaired: '+str(u)+' and paired: '+str(p)+' Content: '+str(uc[ulim:ulim+10])+' test '+str(np.all(uc[ulim:ulim+10])))
 
-#            if not np.any(uc[ulim:]):
-#                log.warning(logid+'Reading unpaired fold did not work for '+str(goi)+'; '+str(u))
-#                return
-
-#            if not np.all(pc[ulim:cws-1]) or not np.all(pc[cwe:]):
-#                log.warning(logid+'Reading paired fold did not work for '+str(goi)+'; '+str(p))
-#                return
-
             accdiffu = noc-uc
             accdiffp = noc-pc
             nrgdiffu = np.array(RT*np.log(abs(accdiffu)))
             nrgdiffp = np.array(RT*np.log(abs(accdiffp)))
             log.debug(logid+'NRG: '+str(nrgdiffu[:10]))
+
             kdu = np.array([math.exp(x) for x in np.array(nrgdiffu/RT)])#math.exp(np.array(nrgdiffu//RT)))
             kdp = np.array([math.exp(x) for x in np.array(nrgdiffp/RT)])#math.exp(np.array(nrgdiffp//RT)))
             log.debug(logid+'KD: '+str(kdu[:10])+' mean: '+str(np.nanmean(kdu))+' std: '+str(np.nanstd(kdu)))
+
             zscoresu = np.array((kdu - np.nanmean(kdu))/np.nanstd(kdu,ddof=0)) #np.array(zsc(kdu[~np.isnan(kdu)]))
             zscoresp = np.array((kdp - np.nanmean(kdp))/np.nanstd(kdp,ddof=0))#np.array(zsc(kdp[~np.isnan(kdp)]))
             log.debug(logid+'zscore: '+str(zscoresu[:10]))
-            for pos in range(conswindow[0],conswindow[1]):  # Check coords
+
+
+            for pos in range(conswindow[0],conswindow[1]+1):
                 if pos not in range(cs-padding,ce+1+padding):
                     if border1 < uc[pos] and uc[pos] < border2:
                         if ce < pos:# get distance up or downstream
@@ -271,14 +272,15 @@ def judge_diff(raw, u, p, gs, ge, ulim, cutoff, border, outdir, padding):
                         else:
                             dist = cs - pos
 
-                        if strand is not '-':
-                            gpos = pos + ws
-                            gend = gpos + ulim
-                            gcons = str(cs+ws)+'-'+str(ce+ws)
-                        else:
-                            gpos = we - pos - ulim-1
-                            gend = gpos + ulim
-                            gcons = str(we-ce-1)+'-'+str(we-cs)
+                        ###There is no strandedness anymore!!!
+                        #if strand is not '-':
+                        gpos = pos + ws
+                        gend = gpos + ulim
+                        gcons = str(cs+ws)+'-'+str(ce+ws)
+                        #else:
+                        #    gpos = we - pos - ulim-1
+                        #    gend = gpos + ulim
+                        #    gcons = str(we-ce-1)+'-'+str(we-cs)
 
                         accdiff = accdiffu[pos]
                         nrgdiff = nrgdiffu[pos]
@@ -293,14 +295,15 @@ def judge_diff(raw, u, p, gs, ge, ulim, cutoff, border, outdir, padding):
                         else:
                             dist = cs - pos
 
-                        if strand is not '-':
-                            gpos = pos + ws
-                            gend = gpos + ulim
-                            gcons = str(cs+ws)+'-'+str(ce+ws)
-                        else:
-                            gpos = we - pos - ulim-1
-                            gend = gpos + ulim
-                            gcons = str(we-ce-1)+'-'+str(we-cs)
+                        ###There is no strandedness anymore!!!
+                        #if strand is not '-':
+                        gpos = pos + ws
+                        gend = gpos + ulim
+                        gcons = str(cs+ws)+'-'+str(ce+ws)
+                        #else:
+                        #    gpos = we - pos - ulim-1
+                        #    gend = gpos + ulim
+                        #    gcons = str(we-ce-1)+'-'+str(we-cs)
 
                         accdiff = accdiffp[pos]
                         nrgdiff = nrgdiffp[pos]
