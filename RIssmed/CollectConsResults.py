@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Mon Jan  6 15:40:39 2020 (+0100)
+## Last-Updated: Mon Jan 13 13:18:22 2020 (+0100)
 ##           By: Joerg Fallmann
-##     Update #: 285
+##     Update #: 294
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -249,20 +249,28 @@ def judge_diff(raw, u, p, gs, ge, ulim, cutoff, border, outdir, padding):
 
             log.debug(logid+'unpaired: '+str(u)+' and paired: '+str(p)+' Content: '+str(uc[ulim:ulim+10])+' test '+str(np.all(uc[ulim:ulim+10])))
 
-            accdiffu = noc-uc
-            accdiffp = noc-pc
+            epsilon = 10 ** -50
+            accdiffu = noc-uc+epsilon
+            accdiffp = noc-pc+epsilon
+
+            numpy.seterr(divide = 'ignore') #ignore 0 for logs
             nrgdiffu = np.array(RT*np.log(abs(accdiffu)))
             nrgdiffp = np.array(RT*np.log(abs(accdiffp)))
-            log.debug(logid+'NRG: '+str(nrgdiffu[:10]))
+            numpy.seterr(divide = 'enable')
 
-            kdu = np.array([math.exp(x) for x in np.array(nrgdiffu/RT)])#math.exp(np.array(nrgdiffu//RT)))
-            kdp = np.array([math.exp(x) for x in np.array(nrgdiffp/RT)])#math.exp(np.array(nrgdiffp//RT)))
+            #replace -inf with nan
+            nrgdiffu[np.isneginf(nrgdiffu)] = np.nan
+            nrgdiffp[np.isneginf(nrgdiffp)] = np.nan
+
+            kdu = np.exp(nrgdiffu/RT)#math.exp(np.array(nrgdiffu//RT)))
+            kdp = np.exp(nrgdiffp/RT)#math.exp(np.array(nrgdiffp//RT)))
+
+            log.debug(logid+'NRG: '+str(nrgdiffu[:10]))
             log.debug(logid+'KD: '+str(kdu[:10])+' mean: '+str(np.nanmean(kdu))+' std: '+str(np.nanstd(kdu)))
 
             zscoresu = np.array((kdu - np.nanmean(kdu))/np.nanstd(kdu,ddof=0)) #np.array(zsc(kdu[~np.isnan(kdu)]))
             zscoresp = np.array((kdp - np.nanmean(kdp))/np.nanstd(kdp,ddof=0))#np.array(zsc(kdp[~np.isnan(kdp)]))
             log.debug(logid+'zscore: '+str(zscoresu[:10]))
-
 
             for pos in range(conswindow[0]-1,conswindow[1]):
                 if pos not in range(cs-padding,ce+1+padding):
