@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Mon Jan 13 15:06:05 2020 (+0100)
+## Last-Updated: Mon Jan 13 15:07:32 2020 (+0100)
 ##           By: Joerg Fallmann
-##     Update #: 295
+##     Update #: 296
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -256,7 +256,7 @@ def judge_diff(raw, u, p, gs, ge, ulim, cutoff, border, outdir, padding):
             np.seterr(divide = 'ignore') #ignore 0 for logs
             nrgdiffu = np.array(RT*np.log(abs(accdiffu)))
             nrgdiffp = np.array(RT*np.log(abs(accdiffp)))
-            np.seterr(divide = 'enable')
+            np.seterr(divide = 'warn')
 
             #replace -inf with nan
             nrgdiffu[np.isneginf(nrgdiffu)] = np.nan
