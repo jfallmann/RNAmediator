@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Mon Jan 13 13:18:22 2020 (+0100)
+## Last-Updated: Mon Jan 13 15:06:05 2020 (+0100)
 ##           By: Joerg Fallmann
-##     Update #: 294
+##     Update #: 295
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -253,10 +253,10 @@ def judge_diff(raw, u, p, gs, ge, ulim, cutoff, border, outdir, padding):
             accdiffu = noc-uc+epsilon
             accdiffp = noc-pc+epsilon
 
-            numpy.seterr(divide = 'ignore') #ignore 0 for logs
+            np.seterr(divide = 'ignore') #ignore 0 for logs
             nrgdiffu = np.array(RT*np.log(abs(accdiffu)))
             nrgdiffp = np.array(RT*np.log(abs(accdiffp)))
-            numpy.seterr(divide = 'enable')
+            np.seterr(divide = 'enable')
 
             #replace -inf with nan
             nrgdiffu[np.isneginf(nrgdiffu)] = np.nan
