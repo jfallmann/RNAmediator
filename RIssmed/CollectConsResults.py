@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Mon Jan 13 15:07:32 2020 (+0100)
+## Last-Updated: Tue Jan 14 09:55:49 2020 (+0100)
 ##           By: Joerg Fallmann
-##     Update #: 296
+##     Update #: 298
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -268,8 +268,15 @@ def judge_diff(raw, u, p, gs, ge, ulim, cutoff, border, outdir, padding):
             log.debug(logid+'NRG: '+str(nrgdiffu[:10]))
             log.debug(logid+'KD: '+str(kdu[:10])+' mean: '+str(np.nanmean(kdu))+' std: '+str(np.nanstd(kdu)))
 
+            np.seterr(divide = 'ignore') #ignore 0 for logs
             zscoresu = np.array((kdu - np.nanmean(kdu))/np.nanstd(kdu,ddof=0)) #np.array(zsc(kdu[~np.isnan(kdu)]))
             zscoresp = np.array((kdp - np.nanmean(kdp))/np.nanstd(kdp,ddof=0))#np.array(zsc(kdp[~np.isnan(kdp)]))
+            np.seterr(divide = 'warn')
+
+            #replace -inf with nan
+            zscoresu[np.isneginf(zscoresu)] = np.nan
+            zscoresp[np.isneginf(zscoresp)] = np.nan
+
             log.debug(logid+'zscore: '+str(zscoresu[:10]))
 
             for pos in range(conswindow[0]-1,conswindow[1]):
@@ -295,7 +302,8 @@ def judge_diff(raw, u, p, gs, ge, ulim, cutoff, border, outdir, padding):
                         kd = kdu[pos]
                         zscore = zscoresu[pos]
 
-                        out['u'].append('\t'.join([str(chrom), str(gpos), str(gend), str(goi) + '|' + str(cons) + '|' + str(gcons), str(uc[pos]), str(strand), str(dist), str(noc[pos]), str(accdiff), str(nrgdiff), str(kd), str(zscore)]))
+                        if not any([x is np.nan for x in [accdiff,nrgdiff,kd,zscore]]):
+                            out['u'].append('\t'.join([str(chrom), str(gpos), str(gend), str(goi) + '|' + str(cons) + '|' + str(gcons), str(uc[pos]), str(strand), str(dist), str(noc[pos]), str(accdiff), str(nrgdiff), str(kd), str(zscore)]))
 
                     if border1 < pc[pos] and pc[pos] < border2:
                         if ce < pos:# get distance up or downstream
@@ -318,7 +326,8 @@ def judge_diff(raw, u, p, gs, ge, ulim, cutoff, border, outdir, padding):
                         kd = kdp[pos]
                         zscore = zscoresp[pos]
 
-                        out['p'].append('\t'.join([str(chrom), str(gpos), str(gend), str(goi) + '|' + str(cons) + '|' + str(gcons), str(pc[pos]), str(strand), str(dist), str(noc[pos]), str(accdiff), str(nrgdiff), str(kd)]))
+                        if not any([x is np.nan for x in [accdiff,nrgdiff,kd,zscore]]):
+                            out['p'].append('\t'.join([str(chrom), str(gpos), str(gend), str(goi) + '|' + str(cons) + '|' + str(gcons), str(pc[pos]), str(strand), str(dist), str(noc[pos]), str(accdiff), str(nrgdiff), str(kd)]))
 
         savelists(out, outdir)
 
