@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Tue Jan 14 09:55:49 2020 (+0100)
+## Last-Updated: Wed Jan 15 13:06:50 2020 (+0100)
 ##           By: Joerg Fallmann
-##     Update #: 298
+##     Update #: 301
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -113,7 +113,7 @@ def parseargs():
     parser.add_argument("-g", "--genes", type=str, help='Genomic coordinates bed for genes, either standard bed format or AnnotateBed.pl format')
     parser.add_argument("-z", "--procs", type=int, default=1, help='Number of parallel processes to run this job with, only important of no border is given and we need to fold')
     parser.add_argument("--loglevel", type=str, default='WARNING', choices=['WARNING','ERROR','INFO','DEBUG'], help="Set log level")
-    parser.add_argument("-w", "--padding", type=int, default=0, help='Padding around constraint that will be excluded from report, default is 0, so only directly overlapping effects will be ignored')
+    parser.add_argument("-w", "--padding", type=int, default=1, help='Padding around constraint that will be excluded from report, default is 1, so directly overlapping effects will be ignored')
 
     if len(sys.argv)==1:
         parser.print_help(sys.stderr)
@@ -269,8 +269,8 @@ def judge_diff(raw, u, p, gs, ge, ulim, cutoff, border, outdir, padding):
             log.debug(logid+'KD: '+str(kdu[:10])+' mean: '+str(np.nanmean(kdu))+' std: '+str(np.nanstd(kdu)))
 
             np.seterr(divide = 'ignore') #ignore 0 for logs
-            zscoresu = np.array((kdu - np.nanmean(kdu))/np.nanstd(kdu,ddof=0)) #np.array(zsc(kdu[~np.isnan(kdu)]))
-            zscoresp = np.array((kdp - np.nanmean(kdp))/np.nanstd(kdp,ddof=0))#np.array(zsc(kdp[~np.isnan(kdp)]))
+            zscoresu = np.array(np.divide(kdu - np.nanmean(kdu), np.nanstd(kdu,ddof=0), out=np.zeros_like(kdu - np.nanmean(kdu)), where=np.nanstd(kdu,ddof=0)!=0)) #np.array(zsc(kdu[~np.isnan(kdu)]))
+            zscoresp = np.array(np.divide(kdp - np.nanmean(kdp), np.nanstd(kdp,ddof=0), out=np.zeros_like(kdp - np.nanmean(kdp)), where=np.nanstd(kdp,ddof=0)!=0)) #np.array((kdp - np.nanmean(kdp))/np.nanstd(kdp,ddof=0))#np.array(zsc(kdp[~np.isnan(kdp)]))
             np.seterr(divide = 'warn')
 
             #replace -inf with nan
@@ -280,7 +280,7 @@ def judge_diff(raw, u, p, gs, ge, ulim, cutoff, border, outdir, padding):
             log.debug(logid+'zscore: '+str(zscoresu[:10]))
 
             for pos in range(conswindow[0]-1,conswindow[1]):
-                if pos not in range(cs-padding,ce+1+padding):
+                if pos not in range(cs-padding-ulim,ce+1+padding+ulim):
                     if border1 < uc[pos] and uc[pos] < border2:
                         if ce < pos:# get distance up or downstream
                             dist = (pos - ce) * -1 # no -1 or we have 0 overlap
