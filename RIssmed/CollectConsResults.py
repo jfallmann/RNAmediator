@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Wed Jan 15 13:06:50 2020 (+0100)
+## Last-Updated: Thu Jan 16 15:14:08 2020 (+0100)
 ##           By: Joerg Fallmann
-##     Update #: 301
+##     Update #: 307
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -244,18 +244,18 @@ def judge_diff(raw, u, p, gs, ge, ulim, cutoff, border, outdir, padding):
         log.debug(logid+'Constraint Window: '+str(conswindow))
 
         if abs(noc[ce]) > cutoff:
-            uc = pl_to_array(u, ulim)
-            pc = pl_to_array(p, ulim)
+            uc = pl_to_array(u, ulim)  # This is the diffacc for unpaired constraint
+            pc = pl_to_array(p, ulim)  # This is the diffacc for paired constraint
 
             log.debug(logid+'unpaired: '+str(u)+' and paired: '+str(p)+' Content: '+str(uc[ulim:ulim+10])+' test '+str(np.all(uc[ulim:ulim+10])))
 
             epsilon = 10 ** -50
-            accdiffu = noc-uc+epsilon
-            accdiffp = noc-pc+epsilon
+            preaccu = noc-uc+epsilon
+            preaccp = noc-pc+epsilon
 
             np.seterr(divide = 'ignore') #ignore 0 for logs
-            nrgdiffu = np.array(RT*np.log(abs(accdiffu)))
-            nrgdiffp = np.array(RT*np.log(abs(accdiffp)))
+            nrgdiffu = np.array(RT*np.log(abs(uc)))
+            nrgdiffp = np.array(RT*np.log(abs(pc)))
             np.seterr(divide = 'warn')
 
             #replace -inf with nan
@@ -297,13 +297,13 @@ def judge_diff(raw, u, p, gs, ge, ulim, cutoff, border, outdir, padding):
                         #    gend = gpos + ulim
                         #    gcons = str(we-ce-1)+'-'+str(we-cs)
 
-                        accdiff = accdiffu[pos]
+                        preacc = preaccu[pos] - epsilon
                         nrgdiff = nrgdiffu[pos]
                         kd = kdu[pos]
                         zscore = zscoresu[pos]
 
                         if not any([x is np.nan for x in [accdiff,nrgdiff,kd,zscore]]):
-                            out['u'].append('\t'.join([str(chrom), str(gpos), str(gend), str(goi) + '|' + str(cons) + '|' + str(gcons), str(uc[pos]), str(strand), str(dist), str(noc[pos]), str(accdiff), str(nrgdiff), str(kd), str(zscore)]))
+                            out['u'].append('\t'.join([str(chrom), str(gpos), str(gend), str(goi) + '|' + str(cons) + '|' + str(gcons), str(uc[pos]), str(strand), str(dist), str(noc[pos]), str(preacc), str(nrgdiff), str(kd), str(zscore)]))
 
                     if border1 < pc[pos] and pc[pos] < border2:
                         if ce < pos:# get distance up or downstream
@@ -321,13 +321,13 @@ def judge_diff(raw, u, p, gs, ge, ulim, cutoff, border, outdir, padding):
                         #    gend = gpos + ulim
                         #    gcons = str(we-ce-1)+'-'+str(we-cs)
 
-                        accdiff = accdiffp[pos]
+                        preacc = preaccp[pos] - epsilon
                         nrgdiff = nrgdiffp[pos]
                         kd = kdp[pos]
                         zscore = zscoresp[pos]
 
                         if not any([x is np.nan for x in [accdiff,nrgdiff,kd,zscore]]):
-                            out['p'].append('\t'.join([str(chrom), str(gpos), str(gend), str(goi) + '|' + str(cons) + '|' + str(gcons), str(pc[pos]), str(strand), str(dist), str(noc[pos]), str(accdiff), str(nrgdiff), str(kd)]))
+                            out['p'].append('\t'.join([str(chrom), str(gpos), str(gend), str(goi) + '|' + str(cons) + '|' + str(gcons), str(pc[pos]), str(strand), str(dist), str(noc[pos]), str(preacc), str(nrgdiff), str(kd)]))
 
         savelists(out, outdir)
 
