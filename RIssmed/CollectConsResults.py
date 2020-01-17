@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Thu Jan 16 15:17:36 2020 (+0100)
+## Last-Updated: Fri Jan 17 19:22:29 2020 (+0100)
 ##           By: Joerg Fallmann
-##     Update #: 309
+##     Update #: 310
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -262,8 +262,8 @@ def judge_diff(raw, u, p, gs, ge, ulim, cutoff, border, outdir, padding):
             nrgdiffu[np.isneginf(nrgdiffu)] = np.nan
             nrgdiffp[np.isneginf(nrgdiffp)] = np.nan
 
-            kdu = np.exp(nrgdiffu/RT)#math.exp(np.array(nrgdiffu//RT)))
-            kdp = np.exp(nrgdiffp/RT)#math.exp(np.array(nrgdiffp//RT)))
+            kdu = np.exp(nrgdiffu/RT)#math.exp(np.array(nrgdiffu//RT))) ###THIS IS BASICALLY ACCESSIBILITY AGAIN
+            kdp = np.exp(nrgdiffp/RT)#math.exp(np.array(nrgdiffp//RT))) ###THIS IS BASICALLY ACCESSIBILITY AGAIN
 
             log.debug(logid+'NRG: '+str(nrgdiffu[:10]))
             log.debug(logid+'KD: '+str(kdu[:10])+' mean: '+str(np.nanmean(kdu))+' std: '+str(np.nanstd(kdu)))
