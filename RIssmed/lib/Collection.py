@@ -7,9 +7,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Mon Jan  6 15:44:33 2020 (+0100)
+## Last-Updated: Tue Feb  4 15:02:45 2020 (+0100)
 ##           By: Joerg Fallmann
-##     Update #: 258
+##     Update #: 259
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -277,7 +277,7 @@ def parse_annotation_bed(bed, annotated=None):
             else:
                 start = int(entries[1])+1
                 end   = int(entries[2])
-            anno[str(goi)].append('-'.join([str(start),str(end)]))
+            anno[str(goi)].append('-'.join([str(start),str(end)]))  # Need strand info here!
         return anno
     except Exception as err:
         exc_type, exc_value, exc_tb = sys.exc_info()

@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Mon Jan  6 15:47:08 2020 (+0100)
+## Last-Updated: Tue Feb  4 15:03:39 2020 (+0100)
 ##           By: Joerg Fallmann
-##     Update #: 245
+##     Update #: 251
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -46,7 +46,7 @@
 ######################################################################
 ##
 ### Change Log:
-##
+##  Strand specificity is broken now, need to make sure genomic coordinates are where we expect them to be again, same is true for CollectConsResults!
 ##
 ######################################################################
 ##
@@ -570,7 +570,9 @@ def parafold(sequence, window, span, region, multi, unconstraint, unpaired, pair
                     gs, ge = map(int, genecoords[goi][0].split(sep='-'))
                 else:
                     gs, ge = 0
-                    log.warning(logid+'No coords found for gene '+goi+'! Assuming coordinates are already local!')
+            else:
+                gs, ge = 0
+                log.warning(logid+'No coords found for gene '+goi+'! Assuming coordinates are already local!')
 
             if pattern and pattern not in goi:
                 next
@@ -726,17 +728,18 @@ def constrain_seq(sid, seq, start, end, conslength, const, cons, window, span, r
         au = up_to_array(data_u['up'])#,region,len(seqtofold))
         ap = up_to_array(data_p['up'])#,region,len(seqtofold))
 
+        # Calculating accessibility difference between unconstraint and constraint fold, <0 means less accessible with constraint, >0 means more accessible upon constraint
         if not an or len(an) < 1 or len(data['up']) < 1:
             data['up'] = fold_unconstraint(str(seqtofold), sid, region, window, span, unconstraint, save, outdir, cons)
             an = up_to_array(data['up'])#,int(region),len(seqtofold))
 
         if not np.array_equal(an, au):
-            diff_nu = an - au
+            diff_nu = au - an
         else:
             log.info(logid+'No influence on Structure with unpaired constraint at ' + cons)
             diff_nu = None
         if not np.array_equal(an, ap):
-            diff_np = an - ap
+            diff_np = ap - an
         else:
             log.info(logid+'No influence on Structure with paired constraint at ' + cons)
             diff_np = None
@@ -821,17 +824,18 @@ def constrain_seq_paired(sid, seq, fstart, fend, start, end, conslength, const, 
         au = up_to_array(data_u['up'],region,len(seqtofold))
         ap = up_to_array(data_p['up'],region,len(seqtofold))
 
+        # Calculating accessibility difference between unconstraint and constraint fold, <0 means less accessible with constraint, >0 means more accessible upon constraint
         if not an or len(an) < 1 or len(data['up']) < 1:
             data['up'] = fold_unconstraint(str(seqtofold), sid, region, window, span, unconstraint, save, outdir, cons)
             an = up_to_array(data['up'],int(region),len(seqtofold))
 
         if not np.array_equal(an, au):
-            diff_nu = an - au
+            diff_nu = au - an
         else:
             log.info(logid+'No influence on Structure with unpaired constraint at ' + cons)
             diff_nu = None
         if not np.array_equal(an, ap):
-            diff_np = an - ap
+            diff_np = ap - an
         else:
             log.info(logid+'No influence on Structure with paired constraint at ' + cons)
             diff_np = None

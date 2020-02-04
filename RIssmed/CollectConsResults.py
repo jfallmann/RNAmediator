@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Fri Jan 17 19:22:29 2020 (+0100)
+## Last-Updated: Tue Feb  4 09:37:17 2020 (+0100)
 ##           By: Joerg Fallmann
-##     Update #: 310
+##     Update #: 314
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -203,8 +203,8 @@ def judge_diff(raw, u, p, gs, ge, ulim, cutoff, border, outdir, padding):
         cs, ce = map(int, cons.split(sep='-'))
         ws, we = map(int, reg.split(sep='-'))
 
-        cs = cs - ws - 1#fit to window and make 0-based
-        ce = ce - ws - 1#fit to window and make 0-based
+        cs = cs - ws #fit to window and make 0-based
+        ce = ce - ws #fit to window and make 0-based
 
         if 0 > any([cs,ce,ws,we]):
             raise Exception('One of '+str([cs,ce,ws,we])+ ' lower than 0! this should not happen for '+','.join([goi, chrom, strand, cons, reg, f, window, span]))
@@ -216,7 +216,7 @@ def judge_diff(raw, u, p, gs, ge, ulim, cutoff, border, outdir, padding):
         #    we = ge - wst
 
         ###There is no strandedness anymore, everything is already 5'-3' diirection'
-        ws = ws + gs -1 #get genomic coords
+        ws = ws + gs - 1 #get genomic coords
         we = we + gs
 
         log.debug(logid+'DiffCoords: '+' '.join(map(str,[goi, chrom, strand, cons, reg, f, window, span, gs, ge, cs, ce, ws, we])))
@@ -250,8 +250,8 @@ def judge_diff(raw, u, p, gs, ge, ulim, cutoff, border, outdir, padding):
             log.debug(logid+'unpaired: '+str(u)+' and paired: '+str(p)+' Content: '+str(uc[ulim:ulim+10])+' test '+str(np.all(uc[ulim:ulim+10])))
 
             epsilon = 10 ** -50
-            preaccu = noc-uc+epsilon
-            preaccp = noc-pc+epsilon
+            preaccu = noc+uc+epsilon
+            preaccp = noc+pc+epsilon
 
             np.seterr(divide = 'ignore') #ignore 0 for logs
             nrgdiffu = np.array(RT*np.log(abs(uc)))
