@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Wed Feb  5 09:59:43 2020 (+0100)
+## Last-Updated: Wed Feb  5 10:04:43 2020 (+0100)
 ##           By: Joerg Fallmann
-##     Update #: 279
+##     Update #: 281
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -719,20 +719,11 @@ def constrain_seq(sid, seq, start, end, conslength, const, cons, window, span, r
         #    fc_u.hc_add_up(x)
 
         #new data struct
-        data_pn = {'up': []}
-        data_un = {'up': []}
-
-        fc_p.probs_window(region, RNA.PROBS_WINDOW_UP, up_callback, data_pn)
-        fc_u.probs_window(region, RNA.PROBS_WINDOW_UP, up_callback, data_un)
-
-        #we now fill the list with values from the unconstraint sequence to get the same length
         data_p = {'up': []}
         data_u = {'up': []}
 
-        data_p['up'].extend(data_pn['up'][:])
-        data_pn = None # remove unneeded list
-        data_u['up'].extend(data_un['up'][:])
-        data_un = None # remove unneeded list
+        fc_p.probs_window(region, RNA.PROBS_WINDOW_UP, up_callback, data_p)
+        fc_u.probs_window(region, RNA.PROBS_WINDOW_UP, up_callback, data_u)
 
         au = up_to_array(data_u['up'])#create numpy array from output
         ap = up_to_array(data_p['up'])#create numpy array from output
@@ -815,20 +806,11 @@ def constrain_seq_paired(sid, seq, fstart, fend, start, end, conslength, const, 
         #    fc_u.hc_add_up(x)
 
         #new data struct
-        data_pn = {'up': []}
-        data_un = {'up': []}
-
-        fc_p.probs_window(region, RNA.PROBS_WINDOW_UP, up_callback, data_pn)
-        fc_u.probs_window(region, RNA.PROBS_WINDOW_UP, up_callback, data_un)
-
-        #we now fill the list with values from the unconstraint sequence to get the same length
         data_p = {'up': []}
         data_u = {'up': []}
 
-        data_p['up'].extend(data_pn['up'][:])
-        data_pn = None # remove unneeded list
-        data_u['up'].extend(data_un['up'][:])
-        data_un = None # remove unneeded list
+        fc_p.probs_window(region, RNA.PROBS_WINDOW_UP, up_callback, data_p)
+        fc_u.probs_window(region, RNA.PROBS_WINDOW_UP, up_callback, data_u)
 
         au = up_to_array(data_u['up'],region,len(seqtofold))
         ap = up_to_array(data_p['up'],region,len(seqtofold))
