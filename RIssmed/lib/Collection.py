@@ -7,9 +7,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Tue Feb  4 15:02:45 2020 (+0100)
+## Last-Updated: Wed Feb  5 09:07:07 2020 (+0100)
 ##           By: Joerg Fallmann
-##     Update #: 259
+##     Update #: 268
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -90,7 +90,14 @@ from collections import defaultdict
 from Bio import SeqIO
 from Bio.Seq import Seq
 
-# Code:All subs from here on
+############################################################
+######################## Functions #########################
+############################################################
+
+################
+# Random Seqs  #
+################
+
 def create_kmers(choices, length):
     logid = scriptname+'.create_kmers: '
     try:
@@ -142,6 +149,10 @@ def weightedrandseq(alphabet, probs , length):
             exc_type, exc_value, exc_tb,
         )
         clog.error(logid+''.join(tbe.format()))
+
+################
+#  DS tweaker  #
+################
 
 def removekey(d, key):
     logid = scriptname+'.removekey: '
@@ -228,6 +239,10 @@ def gethighest_dict(a, n):
         )
         clog.error(logid+''.join(tbe.format()))
 
+####################
+# Numpy processing #
+####################
+
 def toarray(file, ulim=None):
     logid = scriptname+'.toarray: '
     try:
@@ -257,6 +272,28 @@ def convertcol(entry):
         )
         clog.error(logid+''.join(tbe.format()))
 
+####################
+# FILE processing  #
+####################
+
+def get_location(entry):
+    logid = scriptname+'.get_start_end: '
+    try:
+        start = end = strand = None
+        start, end = map(int, entry.split(sep='|')[0].split(sep='-'))
+        strand = map(str, entry.split(sep='|')[1])
+
+        if any(None in [start,end,strand]):
+            log.warning(logid+'Undefined variable: '+str([start,end,strand]))
+        return start, end, strand
+
+    except Exception as err:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+            exc_type, exc_value, exc_tb,
+        )
+        clog.error(logid+''.join(tbe.format()))
+
 def parse_annotation_bed(bed, annotated=None):
     logid = scriptname+'.parse_annotation_bed: '
     anno = defaultdict(list)
@@ -271,13 +308,15 @@ def parse_annotation_bed(bed, annotated=None):
         for line in f:
             entries = line.rstrip().split('\t')
             goi = entries[3]
+            strand = entries[5]
             if annotated:
                 start = int(entries[10])+1
                 end   = int(entries[11])
+                strand = entries[14]
             else:
                 start = int(entries[1])+1
                 end   = int(entries[2])
-            anno[str(goi)].append('-'.join([str(start),str(end)]))  # Need strand info here!
+            anno[str(goi)].append('|'.join(['-'.join([str(start),str(end)]),strand]))  # Need strand info here!
         return anno
     except Exception as err:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -295,10 +334,11 @@ def readConstraintsFromBed(bed, linewise=None):
             start = int(entries[1])+1
             end = entries[2]
             goi = entries[3]
+            strand = entries[5]
             if linewise:
-                cons['lw'].append('-'.join([str(start),str(end)]))
+                cons['lw'].append('|'.join(['-'.join([str(start),str(end)]),strand]))
             else:
-                cons[str(goi)].append('-'.join([str(start),str(end)]))
+                cons[str(goi)].append('|'.join(['-'.join([str(start),str(end)]),strand]))
         return cons
     except Exception as err:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -322,12 +362,13 @@ def readPairedConstraintsFromBed(bed, linewise=None):
                 start_one = int(entries[1])+1
                 end_one = entries[2]
                 goi = entries[3]
+                strand = entries[5]
                 start_two = int(entries[second])+1
                 end_two = int(entries[second+1])
                 if linewise:
-                    cons['lw'].append('-'.join([str(start_one), str(end_one), str(start_two), str(end_two)]))
+                    cons['lw'].append('|'.join(['-'.join([str(start_one), str(end_one), str(start_two), str(end_two)])),strand])
                 else:
-                    cons[str(goi)].append('-'.join([str(start_one), str(end_one), str(start_two), str(end_two)]))
+                    cons[str(goi)].append('|'.join(['-'.join([str(start_one), str(end_one), str(start_two), str(end_two)])),strand])
         return cons
     except Exception as err:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -345,10 +386,13 @@ def readConstraintsFromCSV(csv, linewise=None):
     try:
         for line in csv:
             entries = split(',',line.rstrip())
+            start = entries[1]
+            end   = entries[2]
+            strand = entries[5]
             if linewise:
-                cons['def'].append('-'.join([str(entries[1]),str(entries[2])]))
+                cons['def'].append('|'.join(['-'.join([str(start),str(end)]),strand]))
             else:
-                cons[entries[3]].append('-'.join([str(entries[1]),str(entries[2])]))
+                cons[entries[3]].append('|'.join(['-'.join([str(start),str(end)]),strand]))
         return cons
     except Exception as err:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -366,16 +410,22 @@ def readConstraintsFromGeneric(generic, linewise=None):
     try:
         for line in csv:
             entries = re.split(r'[ ,|;"]+', line.rstrip())
-            if len(entries > 2):
+            if len(entries > 3):
+                start = entries[2]
+                end = entries[3]
+                strand = entries[5]
                 if linewise:
-                    cons['lw'].append('-'.join([str(entries[1]),str(entries[2])]))
+                    cons['lw'].append('|'.join(['-'.join([str(start),str(end)]),strand]))
                 else:
-                    cons[entries[0]].append('-'.join([str(entries[1]),str(entries[2])]))
+                    cons[entries[0]].append('|'.join(['-'.join([str(start),str(end)]),strand]))
             else:
+                start = entries[2]
+                end = entries[3]
+                strand = '.'
                 if linewise:
-                    cons['lw'].append('-'.join([str(entries[1]),str(entries[2])]))
+                    cons['lw'].append('|'.join(['-'.join([str(start),str(end)]),strand]))
                 else:
-                    cons['generic'].append('-'.join(str(entries[1:2])))
+                    cons['generic'].append('|'.join(['-'.join([str(start),str(end)]),strand]))
         return cons
     except Exception as err:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -383,6 +433,10 @@ def readConstraintsFromGeneric(generic, linewise=None):
             exc_type, exc_value, exc_tb,
         )
         clog.error(logid+''.join(tbe.format()))
+
+##############################
+####### Validity check #######
+##############################
 
 def isvalid(x=None):
     logid = scriptname+'.isvalid: '
