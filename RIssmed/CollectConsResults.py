@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Tue Feb  4 09:37:17 2020 (+0100)
+## Last-Updated: Wed Feb  5 10:07:44 2020 (+0100)
 ##           By: Joerg Fallmann
-##     Update #: 314
+##     Update #: 318
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -150,7 +150,7 @@ def screen_genes(pat, cutoff, border, ulim, procs, roi, outdir, genes, padding):
         for goi in genecoords:
 
             log.info(logid+'Working on ' + goi)
-            gs, ge = map(int, genecoords[goi][0].split(sep='-'))
+            gs, ge, gstrand = get_location(genecoords[goi][0])
 
             #get files with specified pattern
             raw = os.path.abspath(os.path.join(goi, goi + '*_raw_*' + str(window) + '_' + str(span) + '.npy'))
@@ -176,7 +176,7 @@ def screen_genes(pat, cutoff, border, ulim, procs, roi, outdir, genes, padding):
 
             try:
                 for i in range(len(r)):
-                    pool.apply_async(judge_diff, args=(raw[i], u[i], p[i], gs, ge, ulim, cutoff, border, outdir, padding))
+                    pool.apply_async(judge_diff, args=(raw[i], u[i], p[i], gs, ge, gstrand, ulim, cutoff, border, outdir, padding))
             except Exception as err:
                 exc_type, exc_value, exc_tb = sys.exc_info()
                 tbe = tb.TracebackException(
@@ -194,7 +194,7 @@ def screen_genes(pat, cutoff, border, ulim, procs, roi, outdir, genes, padding):
             )
         log.error(logid+''.join(tbe.format()))
 
-def judge_diff(raw, u, p, gs, ge, ulim, cutoff, border, outdir, padding):
+def judge_diff(raw, u, p, gs, ge, gstrand, ulim, cutoff, border, outdir, padding):
 
     logid = scriptname+'.judge_diff: '
     try:
@@ -209,15 +209,14 @@ def judge_diff(raw, u, p, gs, ge, ulim, cutoff, border, outdir, padding):
         if 0 > any([cs,ce,ws,we]):
             raise Exception('One of '+str([cs,ce,ws,we])+ ' lower than 0! this should not happen for '+','.join([goi, chrom, strand, cons, reg, f, window, span]))
 
-        #if strand is not '-':
-        #else:
-        #    wst = ws         #temp ws for we calc
-        #    ws = ge - we - 1 #get genomic coords
-        #    we = ge - wst
+        if gstrand is not '-':
+            ws = ws + gs - 1 #get genomic coords
+            we = we + gs
 
-        ###There is no strandedness anymore, everything is already 5'-3' diirection'
-        ws = ws + gs - 1 #get genomic coords
-        we = we + gs
+        else:
+            wst = ws         #temp ws for we calc
+            ws = ge - we - 1 #get genomic coords
+            we = ge - wst
 
         log.debug(logid+'DiffCoords: '+' '.join(map(str,[goi, chrom, strand, cons, reg, f, window, span, gs, ge, cs, ce, ws, we])))
 
