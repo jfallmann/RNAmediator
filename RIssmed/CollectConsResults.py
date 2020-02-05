@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Wed Feb  5 10:07:44 2020 (+0100)
+## Last-Updated: Wed Feb  5 10:22:52 2020 (+0100)
 ##           By: Joerg Fallmann
-##     Update #: 318
+##     Update #: 321
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -210,12 +210,12 @@ def judge_diff(raw, u, p, gs, ge, gstrand, ulim, cutoff, border, outdir, padding
             raise Exception('One of '+str([cs,ce,ws,we])+ ' lower than 0! this should not happen for '+','.join([goi, chrom, strand, cons, reg, f, window, span]))
 
         if gstrand is not '-':
-            ws = ws + gs - 1 #get genomic coords
+            ws = ws + gs #get genomic coords
             we = we + gs
 
         else:
             wst = ws         #temp ws for we calc
-            ws = ge - we - 1 #get genomic coords
+            ws = ge - we #get genomic coords
             we = ge - wst
 
         log.debug(logid+'DiffCoords: '+' '.join(map(str,[goi, chrom, strand, cons, reg, f, window, span, gs, ge, cs, ce, ws, we])))
@@ -286,15 +286,14 @@ def judge_diff(raw, u, p, gs, ge, gstrand, ulim, cutoff, border, outdir, padding
                         else:
                             dist = cs - pos
 
-                        ###There is no strandedness anymore!!!
-                        #if strand is not '-':
-                        gpos = pos + ws - 1
-                        gend = gpos + ulim
-                        gcons = str(cs+ws+1)+'-'+str(ce+ws+1)
-                        #else:
-                        #    gpos = we - pos - ulim-1
-                        #    gend = gpos + ulim
-                        #    gcons = str(we-ce-1)+'-'+str(we-cs)
+                        if strand is not '-':
+                            gpos = pos + ws - 1
+                            gend = gpos + ulim
+                            gcons = str(cs+ws)+'-'+str(ce+ws)
+                        else:   # Do we need this again?
+                            gpos = we - pos - ulim - 1
+                            gend = gpos + ulim
+                            gcons = str(we-ce-1)+'-'+str(we-cs)
 
                         preacc = preaccu[pos] - epsilon
                         nrgdiff = nrgdiffu[pos]
