@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Wed Feb  5 10:04:43 2020 (+0100)
+## Last-Updated: Wed Feb  5 18:58:30 2020 (+0100)
 ##           By: Joerg Fallmann
-##     Update #: 281
+##     Update #: 332
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -486,7 +486,7 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                                 if gstrand == '+' or gstrand == '.':
                                     [fstart, fend], [start, end] = [[x - gs for x in get_location(cn)[:2]] for cn in entry.split(':',1)]
                                 else:
-                                    [fstart, fend], [start, end] = [[ge - x for x in get_location(cn)[:2:-1]] for cn in entry.split(':',1)]
+                                    [fstart, fend], [start, end] = [[ge - x for x in get_location(cn)[:2][::-1]] for cn in entry.split(':',1)]
                                 cons = str(fstart)+'-'+str(fend)+':'+str(start)+'-'+str(end)
                                 if start < 0 or fstart < 0 or end > len(fa.seq) or fend > len(fa.seq):
                                     log.warning(logid+'Constraint out of sequence bounds! skipping! '+','.join(map(str,[goi,len(fa.seq),str(start)+'-'+str(end),str(fstart)+'-'+str(fend)])))
@@ -494,12 +494,13 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
 
                             else:
                                 if gstrand == '+' or gstrand == '.':
-                                    start,end = map(lambda x: x - gs,list(get_location(entry)[:2]))
+                                    start, end = [x - gs for x in get_location(entry)[:2]]
                                 else:
-                                    start,end = map(lambda x: ge - x,list(get_location(entry)[:2:-1]))
+                                    start, end = [ge - x for x in get_location(entry)[:2][::-1]]
 
                                 tostart, toend = expand_window(start, end, window, multi, len(fa.seq))
                                 cons = str(start)+'-'+str(end)+'_'+str(tostart)+'-'+str(toend)
+                                log.debug(logid+str.join(' ',[goi,cons,gstrand]))
 
                                 if start < 0 or end > len(fa.seq):
                                     log.warning(logid+'Constraint out of sequence bounds! skipping! '+','.join(map(str,[goi,len(fa.seq),str(start)+'-'+str(end)])))
@@ -635,7 +636,7 @@ def parafold(sequence, window, span, region, multi, unconstraint, unpaired, pair
                     if gstrand == '+' or gstrand == '.':
                         start,end = map(lambda x: x - gs,list(get_location(entry)[:2]))
                     else:
-                        start,end = map(lambda x: ge - x,list(get_location(entry)[:2:-1]))
+                        start,end = map(lambda x: ge - x,list(get_location(entry)[:2][::-1]))
 
                     tostart, toend = expand_window(start, end, window, multi, len(fa.seq))
                     cons = str(start)+'-'+str(end)+'_'+str(tostart)+'-'+str(toend)
@@ -684,10 +685,12 @@ def constrain_seq(sid, seq, start, end, conslength, const, cons, window, span, r
 
         #for all constraints we now extract subsequences to compare against
         #we no longer fold the whole raw sequence but only the constraint region +- window size
-        tostart, toend = expand_window(start, end, window, multi, len(seq))
-        seqtofold = str(seq[tostart:toend+1])
+        tostart, toend = expand_window(start, end, window, multi, len(seq))  # Yes this is a duplicate but not if used in other context as standalone function
+        seqtofold = str(seq[tostart-1:toend])
 
         cons = str('-'.join([str(start),str(end)])+'_'+'-'.join([str(tostart),str(toend)]))
+
+        log.debug(logid+str.join(' ',[goi,cons,strand]))
 
         if start < 0 or end > len(seq):
             log.warning(logid+'Constraint out of sequence bounds! skipping! '+','.join([len(seq),str(start)+'-'+str(end)]) )
@@ -766,7 +769,7 @@ def constrain_seq_paired(sid, seq, fstart, fend, start, end, conslength, const, 
     try:
         #we no longer fold the whole sequence but only the constraint region +- window size
         tostart, toend = expand_window(start, end, window, multi, len(seq))
-        seqtofold = str(seq[tostart:toend+1]) ###TEST
+        seqtofold = str(seq[tostart-1:toend])
 
         if start < 0 or end > len(seq) or fstart < 0 or fend > len(seq):
             log.warning(logid+'Constraint out of sequence bounds! skipping! '+','.join([len(seq), str(start)+'-'+str(end), str(fstart)+'-'+str(fend)]) )
@@ -1198,10 +1201,10 @@ def expand_window(start, end, window, multiplyer, seqlen):
     try:
         tostart = start - multiplyer*window
         if tostart < 0:
-            tostart = 0
+            tostart = 1
         toend = end + multiplyer*window
         if toend > seqlen:
-            toend = seqlen
+            toend = seqlen+1
         return [tostart, toend]
     except Exception as err:
         exc_type, exc_value, exc_tb = sys.exc_info()

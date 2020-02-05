@@ -7,9 +7,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Wed Feb  5 09:07:07 2020 (+0100)
+## Last-Updated: Wed Feb  5 19:33:26 2020 (+0100)
 ##           By: Joerg Fallmann
-##     Update #: 268
+##     Update #: 302
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -277,15 +277,19 @@ def convertcol(entry):
 ####################
 
 def get_location(entry):
-    logid = scriptname+'.get_start_end: '
+    logid = scriptname+'.get_location: '
     try:
+        ret = list()
         start = end = strand = None
         start, end = map(int, entry.split(sep='|')[0].split(sep='-'))
-        strand = map(str, entry.split(sep='|')[1])
+        strand = str(entry.split(sep='|')[1])
+        ret.extend([start, end, strand])
 
-        if any(None in [start,end,strand]):
-            log.warning(logid+'Undefined variable: '+str([start,end,strand]))
-        return start, end, strand
+        if any([x == None for x in ret]):
+            log.warning(logid+'Undefined variable: '+str(ret))
+
+        clog.debug(logid+str.join(' ',[str(entry),str(ret)]))
+        return ret
 
     except Exception as err:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -299,9 +303,9 @@ def parse_annotation_bed(bed, annotated=None):
     anno = defaultdict(list)
     if os.path.isfile(os.path.abspath(bed)):
         if '.gz' in bed:
-            f = gzip.open(bed,'rt')
+            f = gzip.open(os.path.abspath(bed),'rt')
         else:
-            f = open(bed,'rt')
+            f = open(os.path.abspath(bed),'rt')
     else:
         f = bed
     try:
@@ -366,9 +370,9 @@ def readPairedConstraintsFromBed(bed, linewise=None):
                 start_two = int(entries[second])+1
                 end_two = int(entries[second+1])
                 if linewise:
-                    cons['lw'].append('|'.join(['-'.join([str(start_one), str(end_one), str(start_two), str(end_two)])),strand])
+                    cons['lw'].append('|'.join(['-'.join([str(start_one), str(end_one), str(start_two), str(end_two)]),strand]))
                 else:
-                    cons[str(goi)].append('|'.join(['-'.join([str(start_one), str(end_one), str(start_two), str(end_two)])),strand])
+                    cons[str(goi)].append('|'.join(['-'.join([str(start_one), str(end_one), str(start_two), str(end_two)]),strand]))
         return cons
     except Exception as err:
         exc_type, exc_value, exc_tb = sys.exc_info()

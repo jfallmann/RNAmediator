@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Wed Feb  5 10:22:52 2020 (+0100)
+## Last-Updated: Wed Feb  5 19:34:53 2020 (+0100)
 ##           By: Joerg Fallmann
-##     Update #: 321
+##     Update #: 331
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -110,6 +110,7 @@ def parseargs():
     parser.add_argument("-u", "--ulimit", type=int, default=1, help='Stretch of nucleotides used during plfold run (-u option)')
     parser.add_argument("-r", "--roi", type=str, default=None, help='Define Region of Interest that will be compared')
     parser.add_argument("-o", "--outdir", type=str, default='', help='Directory to write to')
+    parser.add_argument("-d", "--dir", type=str, default='', help='Directory to read from')
     parser.add_argument("-g", "--genes", type=str, help='Genomic coordinates bed for genes, either standard bed format or AnnotateBed.pl format')
     parser.add_argument("-z", "--procs", type=int, default=1, help='Number of parallel processes to run this job with, only important of no border is given and we need to fold')
     parser.add_argument("--loglevel", type=str, default='WARNING', choices=['WARNING','ERROR','INFO','DEBUG'], help="Set log level")
@@ -148,7 +149,6 @@ def screen_genes(pat, cutoff, border, ulim, procs, roi, outdir, genes, padding):
         pool = multiprocessing.Pool(processes=num_processes, maxtasksperchild=1)
 
         for goi in genecoords:
-
             log.info(logid+'Working on ' + goi)
             gs, ge, gstrand = get_location(genecoords[goi][0])
 
@@ -289,7 +289,7 @@ def judge_diff(raw, u, p, gs, ge, gstrand, ulim, cutoff, border, outdir, padding
                         if strand is not '-':
                             gpos = pos + ws - 1
                             gend = gpos + ulim
-                            gcons = str(cs+ws)+'-'+str(ce+ws)
+                            gcons = str(cs+ws-1)+'-'+str(ce+ws)
                         else:   # Do we need this again?
                             gpos = we - pos - ulim - 1
                             gend = gpos + ulim
@@ -376,7 +376,10 @@ if __name__ == '__main__':
         args=parseargs()
         if args.loglevel != 'WARNING':
             #          streamlog = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
-          log = setup_multiprocess_logger(name=scriptname, log_file='logs/'+scriptname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
+            log = setup_multiprocess_logger(name=scriptname, log_file='logs/'+scriptname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
+        if args.dir != '':
+            args.genes = os.path.abspath(args.genes)
+            os.chdir(os.path.abspath(args.dir))
 
         log.info(logid+'Running '+scriptname+' on '+str(args.procs)+' cores')
         screen_genes(args.pattern, args.cutoff, args.border, args.ulimit, args.procs, args.roi, args.outdir, args.genes, args.padding)
