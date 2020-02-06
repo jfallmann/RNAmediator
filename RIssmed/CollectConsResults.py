@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Wed Feb  5 19:34:53 2020 (+0100)
+## Last-Updated: Thu Feb  6 15:06:03 2020 (+0100)
 ##           By: Joerg Fallmann
-##     Update #: 331
+##     Update #: 371
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -204,18 +204,18 @@ def judge_diff(raw, u, p, gs, ge, gstrand, ulim, cutoff, border, outdir, padding
         ws, we = map(int, reg.split(sep='-'))
 
         cs = cs - ws #fit to window and make 0-based
-        ce = ce - ws #fit to window and make 0-based
+        ce = ce - ws #fit to window and make 0-based closed
 
         if 0 > any([cs,ce,ws,we]):
             raise Exception('One of '+str([cs,ce,ws,we])+ ' lower than 0! this should not happen for '+','.join([goi, chrom, strand, cons, reg, f, window, span]))
 
         if gstrand is not '-':
-            ws = ws + gs #get genomic coords
-            we = we + gs
+            ws = ws + gs - 2 #get genomic coords 0 based closed, ws and gs are 1 based
+            we = we + gs - 2
 
         else:
-            wst = ws         #temp ws for we calc
-            ws = ge - we #get genomic coords
+            wst = ws     #temp ws for we calc
+            ws = ge - we #get genomic coords 0 based closed, ge and we are 1 based
             we = ge - wst
 
         log.debug(logid+'DiffCoords: '+' '.join(map(str,[goi, chrom, strand, cons, reg, f, window, span, gs, ge, cs, ce, ws, we])))
@@ -236,10 +236,13 @@ def judge_diff(raw, u, p, gs, ge, gstrand, ulim, cutoff, border, outdir, padding
         mult = int((len(noc)/int(window))/2)
         log.debug(logid+'Multiplyer: '+str(mult))
         cws = int(window)*(mult-1)
-        cwe = int(window)*(mult+1)
+        if cws < window:
+
+
+        cwe = int(window)*(mult+1)+ulim-1
         if cwe > len(noc):
             cwe = len(noc)
-        conswindow = (cws,cwe)
+        conswindow = (cws,cwe) #0-based half open
         log.debug(logid+'Constraint Window: '+str(conswindow))
 
         if abs(noc[ce]) > cutoff:
@@ -278,7 +281,14 @@ def judge_diff(raw, u, p, gs, ge, gstrand, ulim, cutoff, border, outdir, padding
 
             log.debug(logid+'zscore: '+str(zscoresu[:10]))
 
-            for pos in range(conswindow[0]-1,conswindow[1]):
+            '''
+            Collect positions of interest with padding around constraint
+            Constraints are influencing close by positions strongest so strong influence of binding there is expected
+            '''
+
+            log.debug(logid+'WINDOWS: '+str.join(' ',map(str,[goi,conswindow[0],conswindow[1]+1,strand,ws,cs,ce,we,str(cs+ws-1)+'-'+str(ce+ws),str(we-ce-1)+'-'+str(we-cs)])))
+
+            for pos in range(conswindow[0],conswindow[1]+1):
                 if pos not in range(cs-padding-ulim,ce+1+padding+ulim):
                     if border1 < uc[pos] and uc[pos] < border2:
                         if ce < pos:# get distance up or downstream
@@ -287,12 +297,12 @@ def judge_diff(raw, u, p, gs, ge, gstrand, ulim, cutoff, border, outdir, padding
                             dist = cs - pos
 
                         if strand is not '-':
-                            gpos = pos + ws - 1
-                            gend = gpos + ulim
-                            gcons = str(cs+ws-1)+'-'+str(ce+ws)
-                        else:   # Do we need this again?
-                            gpos = we - pos - ulim - 1
-                            gend = gpos + ulim
+                            gpos = pos + ws #already 0-based
+                            gend = gpos + ulim #0-based half-open
+                            gcons = str(cs+ws)+'-'+str(ce+ws+1)
+                        else:
+                            gpos = we - pos - ulim #already 0-based
+                            gend = gpos + ulim + 1 #0-based half-open
                             gcons = str(we-ce-1)+'-'+str(we-cs)
 
                         preacc = preaccu[pos] - epsilon
@@ -309,15 +319,14 @@ def judge_diff(raw, u, p, gs, ge, gstrand, ulim, cutoff, border, outdir, padding
                         else:
                             dist = cs - pos
 
-                        ###There is no strandedness anymore!!!
-                        #if strand is not '-':
-                        gpos = pos + ws - 1
-                        gend = gpos + ulim
-                        gcons = str(cs+ws+1)+'-'+str(ce+ws+1)
-                        #else:
-                        #    gpos = we - pos - ulim-1
-                        #    gend = gpos + ulim
-                        #    gcons = str(we-ce-1)+'-'+str(we-cs)
+                        if strand is not '-':
+                            gpos = pos + ws #already 0-based
+                            gend = gpos + ulim #0-based half-open
+                            gcons = str(cs+ws)+'-'+str(ce+ws+1)
+                        else:
+                            gpos = we - pos - ulim #already 0-based
+                            gend = gpos + ulim + 1 #0-based half-open
+                            gcons = str(we-ce-1)+'-'+str(we-cs)
 
                         preacc = preaccp[pos] - epsilon
                         nrgdiff = nrgdiffp[pos]
