@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Thu Feb  6 15:06:03 2020 (+0100)
+## Last-Updated: Fri Feb  7 14:27:36 2020 (+0100)
 ##           By: Joerg Fallmann
-##     Update #: 371
+##     Update #: 403
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -235,9 +235,10 @@ def judge_diff(raw, u, p, gs, ge, gstrand, ulim, cutoff, border, outdir, padding
 
         mult = int((len(noc)/int(window))/2)
         log.debug(logid+'Multiplyer: '+str(mult))
+        if mult <=1:
+            log.warning(logid+'Window is overlapping end of Gene on at least one end, no guarantee that border effects of folding and centering on constraints can be resolved, this result will be skipped!')
+            return 1
         cws = int(window)*(mult-1)
-        if cws < window:
-
 
         cwe = int(window)*(mult+1)+ulim-1
         if cwe > len(noc):
@@ -289,7 +290,7 @@ def judge_diff(raw, u, p, gs, ge, gstrand, ulim, cutoff, border, outdir, padding
             log.debug(logid+'WINDOWS: '+str.join(' ',map(str,[goi,conswindow[0],conswindow[1]+1,strand,ws,cs,ce,we,str(cs+ws-1)+'-'+str(ce+ws),str(we-ce-1)+'-'+str(we-cs)])))
 
             for pos in range(conswindow[0],conswindow[1]+1):
-                if pos not in range(cs-padding-ulim,ce+1+padding+ulim):
+                if pos not in range(cs-padding+1-ulim ,ce+padding+1+2*ulim):
                     if border1 < uc[pos] and uc[pos] < border2:
                         if ce < pos:# get distance up or downstream
                             dist = (pos - ce) * -1 # no -1 or we have 0 overlap
@@ -297,13 +298,17 @@ def judge_diff(raw, u, p, gs, ge, gstrand, ulim, cutoff, border, outdir, padding
                             dist = cs - pos
 
                         if strand is not '-':
-                            gpos = pos + ws #already 0-based
+                            gpos = pos + ws - ulim #already 0-based
                             gend = gpos + ulim #0-based half-open
-                            gcons = str(cs+ws)+'-'+str(ce+ws+1)
+                            gcst = cs+ws
+                            gcen = ce+ws+1
+                            gcons = str(gcst)+'-'+str(gcen)
                         else:
-                            gpos = we - pos - ulim #already 0-based
-                            gend = gpos + ulim + 1 #0-based half-open
-                            gcons = str(we-ce-1)+'-'+str(we-cs)
+                            gpos = we - pos #already 0-based
+                            gend = gpos + ulim  #0-based half-open
+                            gcst = we-ce-1
+                            gcen = we-cs
+                            gcons = str(gcst)+'-'+str(gcen)
 
                         preacc = preaccu[pos] - epsilon
                         nrgdiff = nrgdiffu[pos]
@@ -320,18 +325,24 @@ def judge_diff(raw, u, p, gs, ge, gstrand, ulim, cutoff, border, outdir, padding
                             dist = cs - pos
 
                         if strand is not '-':
-                            gpos = pos + ws #already 0-based
+                            gpos = pos + ws - ulim #already 0-based
                             gend = gpos + ulim #0-based half-open
-                            gcons = str(cs+ws)+'-'+str(ce+ws+1)
+                            gcst = cs+ws
+                            gcen = ce+ws+1
+                            gcons = str(gcst)+'-'+str(gcen)
                         else:
-                            gpos = we - pos - ulim #already 0-based
-                            gend = gpos + ulim + 1 #0-based half-open
-                            gcons = str(we-ce-1)+'-'+str(we-cs)
+                            gpos = we - pos #already 0-based
+                            gend = gpos + ulim  #0-based half-open
+                            gcst = we-ce-1
+                            gcen = we-cs
+                            gcons = str(gcst)+'-'+str(gcen)
 
-                        preacc = preaccp[pos] - epsilon
-                        nrgdiff = nrgdiffp[pos]
-                        kd = kdp[pos]
-                        zscore = zscoresp[pos]
+                        #if gpos not in range(gcst-padding+1-2*ulim ,gcen+padding+ulim):
+
+                        preacc = preaccu[pos] - epsilon
+                        nrgdiff = nrgdiffu[pos]
+                        kd = kdu[pos]
+                        zscore = zscoresu[pos]
 
                         if not any([x is np.nan for x in [preacc,nrgdiff,kd,zscore]]):
                             out['p'].append('\t'.join([str(chrom), str(gpos), str(gend), str(goi) + '|' + str(cons) + '|' + str(gcons), str(pc[pos]), str(strand), str(dist), str(noc[pos]), str(preacc), str(nrgdiff), str(kd)]))
