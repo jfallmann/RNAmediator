@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Wed Feb  5 18:58:30 2020 (+0100)
+## Last-Updated: Thu Feb 13 15:13:48 2020 (+0100)
 ##           By: Joerg Fallmann
-##     Update #: 332
+##     Update #: 339
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -687,8 +687,11 @@ def constrain_seq(sid, seq, start, end, conslength, const, cons, window, span, r
         #we no longer fold the whole raw sequence but only the constraint region +- window size
         tostart, toend = expand_window(start, end, window, multi, len(seq))  # Yes this is a duplicate but not if used in other context as standalone function
         seqtofold = str(seq[tostart-1:toend])
-
         cons = str('-'.join([str(start),str(end)])+'_'+'-'.join([str(tostart),str(toend)]))
+
+        if len(seqtofold < (toend-tostart)):
+            log.error(logid+'Sequence to small, skipping '+str(sid)+'\t'+str(cons))
+            return
 
         log.debug(logid+str.join(' ',[goi,cons,strand]))
 
@@ -780,6 +783,10 @@ def constrain_seq_paired(sid, seq, fstart, fend, start, end, conslength, const, 
             return
 
         cons = str('-'.join([str(start),str(end)])+'_'+'-'.join([str(tostart),str(toend)]))
+
+        if len(seqtofold < (toend-tostart)):
+            log.error(logid+'Sequence to small, skipping '+str(sid)+'\t'+str(cons))
+            return
 
         #refresh model details
         md = RNA.md()
