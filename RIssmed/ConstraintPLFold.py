@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Thu Feb 13 15:13:48 2020 (+0100)
+## Last-Updated: Thu Feb 13 15:59:52 2020 (+0100)
 ##           By: Joerg Fallmann
-##     Update #: 339
+##     Update #: 345
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -156,7 +156,7 @@ def preprocess(sequence, window, span, region, multi, unconstraint, unpaired, pa
     else:
         genecoords = None
 
-    log.debug(logid+'GeneCoords: '+str(genecoords))
+    #log.debug(logid+'GeneCoords: '+str(genecoords))
 
     mode = 'generic'
     if 'ono' == str(constrain.split(',')[0]):  # One constraint line per sequence
@@ -689,7 +689,7 @@ def constrain_seq(sid, seq, start, end, conslength, const, cons, window, span, r
         seqtofold = str(seq[tostart-1:toend])
         cons = str('-'.join([str(start),str(end)])+'_'+'-'.join([str(tostart),str(toend)]))
 
-        if len(seqtofold < (toend-tostart)):
+        if len(seqtofold) < (toend-tostart):
             log.error(logid+'Sequence to small, skipping '+str(sid)+'\t'+str(cons))
             return
 
@@ -784,7 +784,7 @@ def constrain_seq_paired(sid, seq, fstart, fend, start, end, conslength, const, 
 
         cons = str('-'.join([str(start),str(end)])+'_'+'-'.join([str(tostart),str(toend)]))
 
-        if len(seqtofold < (toend-tostart)):
+        if len(seqtofold) < (toend-tostart):
             log.error(logid+'Sequence to small, skipping '+str(sid)+'\t'+str(cons))
             return
 
@@ -857,32 +857,43 @@ def constrain_seq_paired(sid, seq, fstart, fend, start, end, conslength, const, 
     return 1
 
 def constrain_temp(sid, seq, temp, window, span, region, multi, an, animations, xs, save, outdir, plot):
+    try:
+        if len(seq) < int(window):
+            log.error(logid+'Sequence to small, skipping '+str(sid)+'\t'+str(temp))
+            return
 
-    #refresh model details
-    md = RNA.md()
-    md.max_bp_span = span
-    md.window_size = window
-    #set temperature
-    md.temperature = temp
-    #create new fold_compound objects
-    fc_t = RNA.fold_compound(str(seq), md, RNA.OPTION_WINDOW)
-    #new data struct
-    data_t = {'up': []}
 
-    fc_t.probs_window(region, RNA.PROBS_WINDOW_UP, up_callback, data_t)
+        #refresh model details
+        md = RNA.md()
+        md.max_bp_span = span
+        md.window_size = window
+        #set temperature
+        md.temperature = temp
+        #create new fold_compound objects
+        fc_t = RNA.fold_compound(str(seq), md, RNA.OPTION_WINDOW)
+        #new data struct
+        data_t = {'up': []}
 
-    at = up_to_array(data_t['up'],region,len(seq))
+        fc_t.probs_window(region, RNA.PROBS_WINDOW_UP, up_callback, data_t)
 
-    diff_nt = an - at
+        at = up_to_array(data_t['up'],region,len(seq))
 
-#####Set temp, and rewrite save and plot for temp
-    if save:
-        write_temp(sid, seq, str(temp), data_t, int(region), diff_nt, str(window), str(span), outdir)
+        diff_nt = an - at
 
-    if plot == 'svg' or plot == 'png':
-        plot_temp(sid, seq, at, temp, xs, plot, outdir)
+    #####Set temp, and rewrite save and plot for temp
+        if save:
+            write_temp(sid, seq, str(temp), data_t, int(region), diff_nt, str(window), str(span), outdir)
 
-    return 1
+        if plot == 'svg' or plot == 'png':
+            plot_temp(sid, seq, at, temp, xs, plot, outdir)
+        return 1
+
+    except Exception as err:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+            exc_type, exc_value, exc_tb,
+        )
+        log.error(logid+''.join(tbe.format()))
 
 def write_unconstraint(sid, seq, unconstraint, data, region, window, span, outdir, rawentry=None):
 
@@ -1181,6 +1192,10 @@ def fold_unconstraint(seq, id, region, window, span, unconstraint, save, outdir,
     logid = scriptname+'.fold_unconstraint: '
     data = { 'up': [] }
     try:
+        if len(seq) < int(window):
+            log.error(logid+'Sequence to small, skipping '+str(sid)+'\t'+str(cons))
+            return
+
         md = RNA.md()
         md.max_bp_span = span
         md.window_size = window
