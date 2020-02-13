@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Thu Feb 13 15:59:52 2020 (+0100)
+## Last-Updated: Thu Feb 13 23:19:51 2020 (+0100)
 ##           By: Joerg Fallmann
-##     Update #: 345
+##     Update #: 346
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -690,7 +690,7 @@ def constrain_seq(sid, seq, start, end, conslength, const, cons, window, span, r
         cons = str('-'.join([str(start),str(end)])+'_'+'-'.join([str(tostart),str(toend)]))
 
         if len(seqtofold) < (toend-tostart):
-            log.error(logid+'Sequence to small, skipping '+str(sid)+'\t'+str(cons))
+            log.warning(logid+'Sequence to small, skipping '+str(sid)+'\t'+str(cons))
             return
 
         log.debug(logid+str.join(' ',[goi,cons,strand]))
@@ -785,7 +785,7 @@ def constrain_seq_paired(sid, seq, fstart, fend, start, end, conslength, const, 
         cons = str('-'.join([str(start),str(end)])+'_'+'-'.join([str(tostart),str(toend)]))
 
         if len(seqtofold) < (toend-tostart):
-            log.error(logid+'Sequence to small, skipping '+str(sid)+'\t'+str(cons))
+            log.warning(logid+'Sequence to small, skipping '+str(sid)+'\t'+str(cons))
             return
 
         #refresh model details
@@ -859,7 +859,7 @@ def constrain_seq_paired(sid, seq, fstart, fend, start, end, conslength, const, 
 def constrain_temp(sid, seq, temp, window, span, region, multi, an, animations, xs, save, outdir, plot):
     try:
         if len(seq) < int(window):
-            log.error(logid+'Sequence to small, skipping '+str(sid)+'\t'+str(temp))
+            log.warning(logid+'Sequence to small, skipping '+str(sid)+'\t'+str(temp))
             return
 
 
