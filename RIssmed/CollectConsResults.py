@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Mon Feb 17 12:08:42 2020 (+0100)
+## Last-Updated: Mon Feb 17 17:51:19 2020 (+0100)
 ##           By: Joerg Fallmann
-##     Update #: 411
+##     Update #: 417
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -379,14 +379,15 @@ if __name__ == '__main__':
     logid = scriptname+'.main: '
     try:
         args=parseargs()
-        if args.loglevel != 'WARNING':
-            #          streamlog = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
-            log = setup_multiprocess_logger(name=scriptname, log_file='logs/'+scriptname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
+        logname = scriptname+'_'+args.outdir
+        log = setup_multiprocess_logger(name=logname, log_file='logs/'+logname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
         if args.dir != '':
             args.genes = os.path.abspath(args.genes)
             os.chdir(os.path.abspath(args.dir))
 
         log.info(logid+'Running '+scriptname+' on '+str(args.procs)+' cores')
+        log.info(logid+'CLI: '+sys.argv[0]+'{}'.format(' '.join( [shlex.quote(s) for s in sys.argv[1:]] )))
+
         screen_genes(args.pattern, args.cutoff, args.border, args.ulimit, args.procs, args.roi, args.outdir, args.genes, args.padding)
     except Exception as err:
         exc_type, exc_value, exc_tb = sys.exc_info()
