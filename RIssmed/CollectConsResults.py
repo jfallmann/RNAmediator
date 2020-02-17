@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Mon Feb 17 10:05:16 2020 (+0100)
+## Last-Updated: Mon Feb 17 12:07:07 2020 (+0100)
 ##           By: Joerg Fallmann
-##     Update #: 408
+##     Update #: 410
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -236,7 +236,7 @@ def judge_diff(raw, u, p, gs, ge, gstrand, ulim, cutoff, border, outdir, padding
         mult = int((len(noc)/int(window))/2)
         log.debug(logid+'Multiplyer: '+str(mult))
         if mult <=1:
-            log.warning(logid+'Window '+str(window)+' is overlapping end of Gene '+str([goi, chrom, strand, cons, reg, f, window, span])+'on at least one end, no guarantee that border effects of folding and centering on constraints can be resolved, this result will be skipped!')
+            log.warning(logid+'Window '+str(window)+' expansion with multiplyer '+str(mult)+' is overlapping end of Gene '+str([goi, gs, ge, cons, reg, f, span])+' on at least one end, no guarantee that border effects of folding and centering on constraints can be resolved, this result will be skipped!')
             return 1
         cws = int(window)*(mult-1)
 

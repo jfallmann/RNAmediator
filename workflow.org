@@ -82,10 +82,10 @@ perl -lane '{if ($F[5] eq "\+" or $F[5] eq "u" or $F[5] eq "." or $F[5] > 0){$st
  zcat Collection_unpaired.bed.gz|perl -wlane 'if ($F[-1]<-2 || $F[-1] > 2){print}'|gzip > SigFu_Collection_unpaired.bed.gz
  zcat Collection_paired.bed.gz|perl -wlane 'if ($F[-1]<-2 || $F[-1] > 2){print}'|gzip > SigFu_Collection_paired.bed.gz
 ***** Intersect
- intersectBed -s -a Sig65_Collection_unpaired.bed.gz -b Fu_peaks_for_folding.bed -wa -wb |gzip > Intersect_sig65_Fu.bed.gz
- intersectBed -s -a Sig65_Collection_unpaired.bed.gz -b 65_peaks_for_folding.bed -wa -wb |gzip > Intersect_sig65_65.bed.gz
- intersectBed -s -a SigFu_Collection_unpaired.bed.gz -b Fu_peaks_for_folding.bed -wa -wb |gzip > Intersect_sigFu_Fu.bed.gz
- intersectBed -s -a SigFu_Collection_unpaired.bed.gz -b 65_peaks_for_folding.bed -wa -wb |gzip > Intersect_sigFu_65.bed.gz
+ intersectBed -s -a Sig65_Collection_unpaired.bed.gz -b Fu_peaks_for_folding.bed -wa -wb |sort -k1,1 -k2,2n|uniq|gzip > Intersect_sig65_Fu.bed.gz
+ intersectBed -s -a Sig65_Collection_unpaired.bed.gz -b 65_peaks_for_folding.bed -wa -wb |sort -k1,1 -k2,2n|uniq|gzip > Intersect_sig65_65.bed.gz
+ intersectBed -s -a SigFu_Collection_unpaired.bed.gz -b Fu_peaks_for_folding.bed -wa -wb |sort -k1,1 -k2,2n|uniq|gzip > Intersect_sigFu_Fu.bed.gz
+ intersectBed -s -a SigFu_Collection_unpaired.bed.gz -b 65_peaks_for_folding.bed -wa -wb |sort -k1,1 -k2,2n|uniq|gzip > Intersect_sigFu_65.bed.gz
 *** on slurm
 ssh k70
 cd /scr/k70san2/fall/Constraints/Mainz/Reproduced_U2AF65_FUBP
