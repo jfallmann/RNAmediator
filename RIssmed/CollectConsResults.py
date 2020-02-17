@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Fri Feb  7 14:27:36 2020 (+0100)
+## Last-Updated: Mon Feb 17 10:00:46 2020 (+0100)
 ##           By: Joerg Fallmann
-##     Update #: 403
+##     Update #: 407
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -291,24 +291,24 @@ def judge_diff(raw, u, p, gs, ge, gstrand, ulim, cutoff, border, outdir, padding
 
             for pos in range(conswindow[0],conswindow[1]+1):
                 if pos not in range(cs-padding+1-ulim ,ce+padding+1+2*ulim):
+                    if strand is not '-':
+                        gpos = pos + ws - ulim + 1 #already 0-based
+                        gend = gpos + ulim #0-based half-open
+                        gcst = cs+ws+1
+                        gcen = ce+ws+2
+                        gcons = str(gcst)+'-'+str(gcen)
+                    else:
+                        gpos = we - pos #already 0-based
+                        gend = gpos + ulim  #0-based half-open
+                        gcst = we-ce-1
+                        gcen = we-cs
+                        gcons = str(gcst)+'-'+str(gcen)
+
                     if border1 < uc[pos] and uc[pos] < border2:
                         if ce < pos:# get distance up or downstream
                             dist = (pos - ce) * -1 # no -1 or we have 0 overlap
                         else:
                             dist = cs - pos
-
-                        if strand is not '-':
-                            gpos = pos + ws - ulim #already 0-based
-                            gend = gpos + ulim #0-based half-open
-                            gcst = cs+ws
-                            gcen = ce+ws+1
-                            gcons = str(gcst)+'-'+str(gcen)
-                        else:
-                            gpos = we - pos #already 0-based
-                            gend = gpos + ulim  #0-based half-open
-                            gcst = we-ce-1
-                            gcen = we-cs
-                            gcons = str(gcst)+'-'+str(gcen)
 
                         preacc = preaccu[pos] - epsilon
                         nrgdiff = nrgdiffu[pos]
@@ -323,21 +323,6 @@ def judge_diff(raw, u, p, gs, ge, gstrand, ulim, cutoff, border, outdir, padding
                             dist = (pos - ce) * -1 # no -1 or we have 0 overlap
                         else:
                             dist = cs - pos
-
-                        if strand is not '-':
-                            gpos = pos + ws - ulim #already 0-based
-                            gend = gpos + ulim #0-based half-open
-                            gcst = cs+ws
-                            gcen = ce+ws+1
-                            gcons = str(gcst)+'-'+str(gcen)
-                        else:
-                            gpos = we - pos #already 0-based
-                            gend = gpos + ulim  #0-based half-open
-                            gcst = we-ce-1
-                            gcen = we-cs
-                            gcons = str(gcst)+'-'+str(gcen)
-
-                        #if gpos not in range(gcst-padding+1-2*ulim ,gcen+padding+ulim):
 
                         preacc = preaccu[pos] - epsilon
                         nrgdiff = nrgdiffu[pos]
