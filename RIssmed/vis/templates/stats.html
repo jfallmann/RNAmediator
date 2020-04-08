@@ -1,13 +1,13 @@
-<script src=”https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
 
-<form method=”post” >
-	<input name=”GeneID” placeholder=”GeneID” >
-	<input name=”Constraint” placeholder=”Constraint position” >
-	<input type=”number” name=”Zscore” placeholder=”Zscore cutoff”>
-	<input type=”submit” value=”Submit GeneID and cutoff” >
+<form method="post" >
+	<input name="GeneID" placeholder="GeneID" >
+	<input name="Constraint" placeholder="Constraint position" >
+	<input type="number" name="Zscore" placeholder="Zscore cutoff">
+	<input type="submit" value="Submit GeneID and cutoff" >
 </form>
 
-<div class=”div” id=”graphDiv” style=”border: thin solid black”>
+<div class="div" id="graphDiv" style="border: thin solid black">
  <p>
  <b>
 	 <i>
@@ -20,10 +20,11 @@
 
 <script>
  chart = {
-	 const svg = d3.create("svg")
-				   .attr("viewBox", [0, 0, width, height]);
+	 const svg = d3.select("#graphDiv")
+	 svg.append("svg")
+	 svg.attr("viewBox", [0, 0, width, height]);
 
-	 const gradient = DOM.uid();
+	 #const gradient = DOM.uid();
 
 	 svg.append("g")
 		.call(xAxis);
@@ -59,19 +60,18 @@
  height = 500
  margin = ({top: 20, right: 30, bottom: 30, left: 40})
 
- data =  d3.json(“/get-data”, function(error, root){
+ data =  d3.json("/get-data", function(error, root){
 	 partition.nodes(root);
 	 x.domain([0, root.value]).nice();
 	 down(root, 0);
  });
 
-
  x = d3.scaleLinear()
-       .domain(d3.extent(data, d => d.date))
+       .domain(d3.extent(data, d => d.values.0))
        .range([margin.left, width - margin.right])
 
  y = d3.scaleLinear()
-       .domain(d3.extent(data, d => d.value)).nice()
+       .domain(d3.extent(data, d => d.values.1)).nice()
        .range([height - margin.bottom, margin.top])
 
  color = d3.scaleSequential(y.domain(), d3.interpolateTurbo)
@@ -89,9 +89,9 @@
 
  line = d3.line()
 		  .curve(d3.curveStep)
-		  .defined(d => !isNaN(d.value))
-		  .x(d => x(d.date))
-		  .y(d => y(d.value))
+		  .defined(d => !isNaN(d.diff))
+		  .x(d => x(d.values.0))
+		  .y(d => y(d.values.1))
 
 
  d3 = require("d3@5")
