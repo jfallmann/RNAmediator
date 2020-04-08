@@ -7,9 +7,9 @@
 # Created: Tue Apr  7 16:51:00 2020 (+0200)
 # Version:
 # Package-Requires: ()
-# Last-Updated: Tue Apr  7 17:59:03 2020 (+0200)
+# Last-Updated: Wed Apr  8 11:01:22 2020 (+0200)
 #           By: Joerg Fallmann
-#     Update #: 8
+#     Update #: 19
 # URL:
 # Doc URL:
 # Keywords:
@@ -78,21 +78,64 @@ def serve(file):
 
     data=DataStore()
 
-    #homepage
 
-    @app.route(“/”,methods=[“GET”,”POST”])#We are defining a home page function below. We will get the #CountryName and the Year from the form we defined in the html def homepage():
-    data.CountryName = request.form.get(‘Country_field’,’India’)
-    data.Year = request.form.get(‘Year_field’, 2013)
-    data.CountryName=CountryName
+    @app.route(“/”,methods=[“GET”,”POST”])
 
+    #Load data
     df = pd.read_csv(file, delimiter='\t', names=['Chr','Start','End','Constraint','Accessibility_difference','Strand','Distance_to_constraint','Accessibility_no_constraint','Accessibility_constraint','Energy_Difference','Kd_change','Zscore','ChrBS','StartBS','EndBS','NameBS','ScoreBS','StrandBS'])
-    GeneID = data.Constraint.split('|')[0]
-    Constraint = data.Constraint.split('|')[2]
-    Zscore = data.Zscore
-    prob_no = data.Accessibility_no_constraint
-    prob_cons = data.Accessibility_constraint
-    probdiff = data.Accessibility_difference
 
+    # Get values from form
+    data.GeneID = request.form.get(‘GeneID’,’’)
+    data.Constraint = request.form.get(‘Constraint’, '')
+    data.Zscore = request.form.get(‘Zscore’, '0')
+
+    def prep_json(df):
+        # Filter
+        GeneID = data.GeneID if data.GeneId != '' else str.split('|', df.loc[0,'Constraint'])[0]
+        Constraint = data.Constraint if data.Constraint != '' else str.split('|', df.loc[0,'Constraint'])[-1]
+        Zscore = data.Zscore
+
+        # Filter the data frame (df)
+        df = df[GeneID in df.Constraint ]
+        df = df[Constraint in df.Constraint]
+        df = df[['Start', 'Accessibility_difference', 'Accessibility_no_constraint', 'Accessibility_constraint', 'Zscore']]
+
+        #df1 = df.groupby(['GeneID', 'Start']).sum()
+        #df1 = df1.reset_index()#Lets create a dict
+
+        d = {"name": GeneID, "values": []}
+
+        for line in df.values:
+            pos = line[0]
+            diff = line[1]
+            prob_no = line[2]
+            prob_cons = line[3]
+            zscore = line[4]
+
+            # make a list of keys
+            #keys_list = []
+            #for item in d['children']:
+            #    keys_list.append(item['name'])
+
+            # if 'the_parent' is NOT a key in the flare.json yet, append it
+            if not Category in keys_list:
+                d['children'].append({"name": Category, "children":      [{"name": Cat, "size": value}]})
+
+        # if 'the_parent' IS a key in the flare.json, add a new child to it
+        else:
+            d['children'][keys_list.index(Category)]  ['children'].append({"name": Cat, "size": value})
+
+        flare = d
+
+        return render_template(“stats.html”,GeneID=GeneID,Constraint=Constraint,Zscore=Zscore)
+
+    @app.route(“/get-data”,methods=[“GET”,”POST”])
+
+    def returnProdData():
+        f=data.Prod
+        return jsonify(f)
+
+    app.run(debug=True)
 
 ####################
 ####    MAIN    ####
