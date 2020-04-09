@@ -1,4 +1,4 @@
-<script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script src="https://d3js.org/d3.v5.min.js" charset="utf-8"></script>
 
 <form method="post" >
 	<input name="GeneID" placeholder="GeneID" >
@@ -8,96 +8,99 @@
 </form>
 
 <div class="div" id="graphDiv" style="border: thin solid black">
- <p>
- <b>
-	 <i>
-		 Probabilities of being unpaired (Accessibility) for Gene {{GeneID}} before and after interaction (Zoom and pan to see details)</b>
-		 <br> <br>
-	 </i>
- </p>
+	<p>
+		<b>
+			<i>
+				Probabilities of being unpaired (Accessibility) for Gene {{GeneID}} before and after interaction (Zoom and pan to see details)</b>
+				<br> <br>
+			</i>
+	</p>
 </div>
 
-
 <script>
- chart = {
-	 const svg = d3.select("#graphDiv")
-	 svg.append("svg")
-	 svg.attr("viewBox", [0, 0, width, height]);
 
-	 #const gradient = DOM.uid();
-
-	 svg.append("g")
-		.call(xAxis);
-
-	 svg.append("g")
-		.call(yAxis);
-
-	 svg.append("linearGradient")
-		.attr("id", gradient.id)
-		.attr("gradientUnits", "userSpaceOnUse")
-		.attr("x1", 0)
-		.attr("y1", height - margin.bottom)
-		.attr("x2", 0)
-		.attr("y2", margin.top)
-		.selectAll("stop")
-		.data(d3.ticks(0, 1, 10))
-		.join("stop")
-		.attr("offset", d => d)
-		.attr("stop-color", color.interpolator());
-
-	 svg.append("path")
-		.datum(data)
-		.attr("fill", "none")
-		.attr("stroke", gradient)
-		.attr("stroke-width", 1.5)
-		.attr("stroke-linejoin", "round")
-		.attr("stroke-linecap", "round")
-		.attr("d", line);
-
-	 return svg.node();
- }
+ data =  d3.json("/get-data").then(function(data) {
+	 console.log(data);
+ });
 
  height = 500
+ width  = 500
  margin = ({top: 20, right: 30, bottom: 30, left: 40})
 
- data =  d3.json("/get-data", function(error, root){
+ const svg = d3.select("#graphDiv")
+ svg.append("svg")
+ svg.attr("viewBox", [0, 0, width, height]);
+
+</script>
+
+<!--
 	 partition.nodes(root);
 	 x.domain([0, root.value]).nice();
 	 down(root, 0);
- });
 
- x = d3.scaleLinear()
-       .domain(d3.extent(data, d => d.values.0))
-       .range([margin.left, width - margin.right])
 
- y = d3.scaleLinear()
-       .domain(d3.extent(data, d => d.values.1)).nice()
-       .range([height - margin.bottom, margin.top])
+	 x = d3.scaleLinear()
+     .domain(d3.extent(data, d => d.values.0))
+     .range([margin.left, width - margin.right])
 
- color = d3.scaleSequential(y.domain(), d3.interpolateTurbo)
+	 y = d3.scaleLinear()
+     .domain(d3.extent(data, d => d.values.1)).nice()
+     .range([height - margin.bottom, margin.top])
 
- xAxis = g => g
+	 color = d3.scaleSequential(y.domain(), d3.interpolateTurbo)
+
+	 xAxis = g => g
      .attr("transform", `translate(0,${height - margin.bottom})`)
      .call(d3.axisBottom(x).ticks(width / 80).tickSizeOuter(0))
      .call(g => g.select(".domain").remove())
 
- yAxis = g => g
+	 yAxis = g => g
      .attr("transform", `translate(${margin.left},0)`)
      .call(d3.axisLeft(y))
      .call(g => g.select(".domain").remove())
      .call(g => g.select(".tick:last-of-type text").append("tspan").text(data.y))
 
- line = d3.line()
-		  .curve(d3.curveStep)
-		  .defined(d => !isNaN(d.diff))
-		  .x(d => x(d.values.0))
-		  .y(d => y(d.values.1))
+	 line = d3.line()
+	 .curve(d3.curveStep)
+	 .defined(d => !isNaN(d.diff))
+	 .x(d => x(d.values.0))
+	 .y(d => y(d.values.1))
 
+	 const svg = d3.select("#graphDiv")
+	 svg.append("svg")
+	 svg.attr("viewBox", [0, 0, width, height]);
 
- d3 = require("d3@5")
- import {legend} from "@d3/color-legend"
+	 svg.append("g")
+	 .call(xAxis);
 
-</script>
+	 svg.append("g")
+	 .call(yAxis);
+
+	 svg.append("linearGradient")
+	 .attr("id", gradient.id)
+	 .attr("gradientUnits", "userSpaceOnUse")
+	 .attr("x1", 0)
+	 .attr("y1", height - margin.bottom)
+	 .attr("x2", 0)
+	 .attr("y2", margin.top)
+	 .selectAll("stop")
+	 .data(d3.ticks(0, 1, 10))
+	 .join("stop")
+	 .attr("offset", d => d)
+	 .attr("stop-color", color.interpolator());
+
+	 svg.append("path")
+	 .datum(data)
+	 .attr("fill", "none")
+	 .attr("stroke", gradient)
+	 .attr("stroke-width", 1.5)
+	 .attr("stroke-linejoin", "round")
+	 .attr("stroke-linecap", "round")
+	 .attr("d", line);
+
+	 </script>
+
+-->
 
 <style>
  svg {

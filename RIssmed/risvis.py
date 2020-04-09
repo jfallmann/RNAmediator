@@ -8,9 +8,9 @@
 # Created: Tue Apr  7 16:51:00 2020 (+0200)
 # Version:
 # Package-Requires: ()
-# Last-Updated: Wed Apr  8 14:35:34 2020 (+0200)
+# Last-Updated: Thu Apr  9 15:22:38 2020 (+0200)
 #           By: Joerg Fallmann
-#     Update #: 122
+#     Update #: 123
 # URL:
 # Doc URL:
 # Keywords:
@@ -143,7 +143,7 @@ def serve(file, app):
 
         @app.route('/get-data',methods=['GET','POST'])
         def returnData():
-            log.info(str(data.data))
+            log.info('get: '+str(data.data))
             return jsonify(data.data)
 
     except Exception as err:
