@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Mon May 11 11:11:23 2020 (+0200)
+## Last-Updated: Mon May 11 15:24:21 2020 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 380
+##     Update #: 405
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -67,22 +67,20 @@
 ##
 ### Code:
 ### IMPORTS
+##load own modules
 import os, sys, inspect
+import argparse
+import multiprocessing
+from lib.logger import makelogdir, setup_multiprocess_logger
 ##load own modules
 from lib.Collection import *
-from lib.logger import makelogdir, setup_multiprocess_logger
-# Define loggers
-scriptname=os.path.basename(__file__).replace('.py','')
 
-import argparse
 import pprint
 from io import StringIO
 import time
 import math
 import gzip
 import importlib
-import multiprocessing
-#from multiprocessing import Manager
 import traceback as tb
 import shlex
 from Randseq import createrandseq
@@ -186,14 +184,14 @@ def preprocess(sequence, window, span, region, multi, unconstraint, unpaired, pa
                 sseq = StringIO(records[seqnr].format("fasta"))
                 constraint = constraintlist['lw'][seqnr]
 
-                pool.apply_async(parafold, (sseq, window, span, region, multi, unconstraint, unpaired, paired, length, gc, number, constraint, conslength, alphabet, plot, save, procs, vrna, temprange, outdir, pattern, cutoff, seqnr, genecoords))
+                pool.apply_async(parafold, (sseq, window, span, region, multi, unconstraint, unpaired, paired, length, gc, number, constraint, conslength, alphabet, save, procs, vrna, temprange, outdir, pattern, cutoff, seqnr, genecoords))
                 seqnr += 1
 
             pool.close()
             pool.join()               #timeout
 
         else:
-            fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, plot, save, procs, vrna, temprange, outdir, genecoords, verbosity=verbosity, pattern=pattern, cutoff=cutoff)
+            fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, save, procs, vrna, temprange, outdir, genecoords, verbosity=verbosity, pattern=pattern, cutoff=cutoff)
     except Exception as err:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
@@ -201,7 +199,7 @@ def preprocess(sequence, window, span, region, multi, unconstraint, unpaired, pa
         )
         log.error(logid+''.join(tbe.format()))
 
-def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, plot, save, procs, vrna, temprange, outdir, genecoords, verbosity=False, pattern=None, cutoff=None, seqnr=None, mode=None, constraintlist=None):
+def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, save, procs, vrna, temprange, outdir, genecoords, verbosity=False, pattern=None, cutoff=None, seqnr=None, mode=None, constraintlist=None):
 
     logid = scriptname+'.fold: '
     try:
@@ -282,7 +280,7 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                     try:
                         for temp in range(ts,te+1):
                         # Create the process, and connect it to the worker function
-                            pool.apply_async(constrain_temp, args=(str(fa.id), str(fa.seq), temp, window, span, region, an, save, outdir, plot))
+                            pool.apply_async(constrain_temp, args=(str(fa.id), str(fa.seq), temp, window, span, region, an, save, outdir))
                     except Exception as err:
                         exc_type, exc_value, exc_tb = sys.exc_info()
                         tbe = tb.TracebackException(
@@ -339,7 +337,7 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                     try:
                         for temp in range(ts,te+1):
                             # Create the process, and connect it to the worker function
-                            pool.apply_async(constrain_temp, args=(str(fa.id), str(fa.seq), temp, window, span, region, multi, an, save, outdir, plot),error_callback=eprint)
+                            pool.apply_async(constrain_temp, args=(str(fa.id), str(fa.seq), temp, window, span, region, multi, an, save, outdir),error_callback=eprint)
                     except Exception as err:
                         exc_type, exc_value, exc_tb = sys.exc_info()
                         tbe = tb.TracebackException(
@@ -386,7 +384,7 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                             for start in range(1,len(fa.seq)-conslength+2):
                                 end = start+conslength-1
                                 conslist.append(str(start)+'-'+str(end)+'|'+str(gstrand))
-                        elif ',' in constrain:
+                        elif '-' in constrain:
                             log.info(logid+'Calculating probs for constraint ' + constrain)
                             constraintlist = constrain.split(',')
                         else:
@@ -405,6 +403,8 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                         for start in range(1,len(fa.seq)-conslength+2):
                             end = start+conslength-1
                             conslist.append(str(start)+'-'+str(end)+'|'+str(gstrand))
+                    elif '-' in constrain:
+                        conslist.extend([str(start)+'-'+str(end)+'|'+str(gstrand) for start,end in [str(x).split('-') for x in constrain.split(',')]])
                     else:
                         log.info(logid+'Calculating probs for constraint ' + constrain)
                         conslist = constrain.split(',')
@@ -459,9 +459,9 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                                 log.info(logid+'Constraining to '+str(fstart) + ' and ' + str(fend))
                                 goi, chrom, strand = idfromfa(fa.id)
 
-                                pool.apply_async(constrain_seq_paired, args=(str(fa.id), str(fa.seq), fstart, fend, start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, plot, data, an, unconstraint))
+                                pool.apply_async(constrain_seq_paired, args=(str(fa.id), str(fa.seq), fstart, fend, start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an, unconstraint))
                             else:
-                                pool.apply_async(constrain_seq, args=(str(fa.id), str(fa.seq), start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, plot, data, an, unconstraint))
+                                pool.apply_async(constrain_seq, args=(str(fa.id), str(fa.seq), start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an, unconstraint))
 
         pool.close()
         pool.join()       #timeout
@@ -475,7 +475,7 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
     log.info(logid+"DONE: output in: " + str(outdir))
     return 1
 
-def parafold(sequence, window, span, region, multi, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, plot, save, procs, vrna, temprange, outdir, pattern, cutoff, seqnr, genecoords):
+def parafold(sequence, window, span, region, multi, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, save, procs, vrna, temprange, outdir, pattern, cutoff, seqnr, genecoords):
 
     logid = scriptname+'.parafold: '
     seq = sequence
@@ -573,7 +573,7 @@ def parafold(sequence, window, span, region, multi, unconstraint, unpaired, pair
                     an = None
 
                     try:
-                        constrain_seq(str(fa.id), str(fa.seq), start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, plot, data, an)
+                        constrain_seq(str(fa.id), str(fa.seq), start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an)
                     except Exception as err:
                         exc_type, exc_value, exc_tb = sys.exc_info()
                         tbe = tb.TracebackException(
@@ -592,7 +592,7 @@ def parafold(sequence, window, span, region, multi, unconstraint, unpaired, pair
     return 1
 
 ##### Functions #####
-def constrain_seq(sid, seq, start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, plot, data, an=None, unconstraint=None):
+def constrain_seq(sid, seq, start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an=None, unconstraint=None):
     #   DEBUGGING
     #   pp = pprint.PrettyPrinter(indent=4)#use with pp.pprint(datastructure)
     logid = scriptname+'.constrain_seq: '
@@ -678,7 +678,7 @@ def constrain_seq(sid, seq, start, end, conslength, const, cons, window, span, r
 
     return 1
 
-def constrain_seq_paired(sid, seq, fstart, fend, start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, plot, data, an, unconstraint):
+def constrain_seq_paired(sid, seq, fstart, fend, start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an, unconstraint):
     #   DEBUGGING
     #   pp = pprint.PrettyPrinter(indent=4)#use with pp.pprint(datastructure)
     logid = scriptname+'.constrain_seq_paired: '
@@ -766,7 +766,7 @@ def constrain_seq_paired(sid, seq, fstart, fend, start, end, conslength, const, 
 
     return 1
 
-def constrain_temp(sid, seq, temp, window, span, region, multi, an, save, outdir, plot):
+def constrain_temp(sid, seq, temp, window, span, region, multi, an, save, outdir):
     try:
         if len(seq) < int(window):
             log.warning(logid+'Sequence to small, skipping '+str(sid)+'\t'+str(temp))
@@ -835,7 +835,7 @@ def write_unconstraint(sid, seq, unconstraint, data, region, window, span, outdi
                         if out and len(out)>1:
                             o.write(bytes(out,encoding='UTF-8'))
                         else:
-                            print("No output produced "+sid)
+                            log.warning("No output produced "+sid)
                 if not os.path.exists(os.path.join(temp_outdir,str(goi+'_'+chrom+'_'+strand+'_'+rawentry+'_'+unconstraint+'_'+window+'_'+str(span)+'.npy'))):
                     printdiff(up_to_array(data['up']),os.path.join(temp_outdir,str(goi+'_'+chrom+'_'+strand+'_'+rawentry+'_'+unconstraint+'_'+window+'_'+str(span)+'.npy')))
 
@@ -995,7 +995,7 @@ def prepare_write_cons(sid, seq, paired, unpaired, data_u, data_p, constrain, re
                     if out and len(out)>1:
                         o.write(bytes(out,encoding='UTF-8'))
                     else:
-                        eprint("No output produced "+sid)
+                        log.warning("No output produced "+sid)
         else:
             print(print_up(data_u['up'],len(seq),region))
 
@@ -1152,9 +1152,13 @@ if __name__ == '__main__':
     logid = scriptname+'.main: '
     try:
         args=parseargs()
-        log = setup_multiprocess_logger(name=scriptname, log_file='LOGS/'+scriptname+'.log', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
-        log = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
+        # Define loggers
+        scriptname = os.path.basename(__file__).replace('.py','')
+        logfile = 'LOGS/'+scriptname+'.log'
+        log = setup_multiprocess_logger(name=scriptname, log_file=logfile, filemode='a', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M')
+        log = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M')
 
+        log.setLevel(args.loglevel)
         log.info(logid+'Running '+scriptname+' on '+str(args.procs)+' cores.')
         log.info(logid+'CLI: '+sys.argv[0]+'{}'.format(' '.join( [shlex.quote(s) for s in sys.argv[1:]] )))
 

@@ -7,9 +7,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Mon May 11 11:07:03 2020 (+0200)
+## Last-Updated: Mon May 11 15:39:01 2020 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 317
+##     Update #: 350
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -87,14 +87,18 @@ from Bio.Seq import Seq
 try:
     scriptname = os.path.basename(inspect.stack()[-1].filename).replace('.py','')
     log = logging.getLogger(scriptname)
+
     if not (log.hasHandlers()):
         if not os.path.isfile(os.path.abspath('LOGS/'+scriptname+'.log')):
             logdir =  os.path.abspath('LOGS')
             if not os.path.exists(logdir):
                 os.makedirs(logdir)
-            open(os.path.abspath('LOGS/'+scriptname+'.log'),'a').close()
+        open(os.path.abspath('LOGS/'+scriptname+'.log'),'a').close()
 
         handler = logging.FileHandler(os.path.abspath('LOGS/'+scriptname+'.log'), mode='a')
+        handler.setFormatter(logging.Formatter(fmt='%(asctime)s %(levelname)-8s %(name)-12s %(message)s',datefmt='%m-%d %H:%M'))
+        log.addHandler(handler)
+        handler = logging.StreamHandler(sys.stderr)
         handler.setFormatter(logging.Formatter(fmt='%(asctime)s %(levelname)-8s %(name)-12s %(message)s',datefmt='%m-%d %H:%M'))
         log.addHandler(handler)
         lvl = log.level if log.level else 'DEBUG'
@@ -934,6 +938,18 @@ def print_globallists():
     try:
         for name, value in globals().deepcopy().items():
             print(name, value)
+    except Exception as err:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+            exc_type, exc_value, exc_tb,
+            )
+        log.error(logid+''.join(tbe.format()))
+
+def backup(file):
+    logid = scriptname+'.backup: '
+    try:
+        if os.path.exists(file):
+            os.rename(file,file+'.bak')
     except Exception as err:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(

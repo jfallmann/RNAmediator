@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Mon May 11 11:10:56 2020 (+0200)
+## Last-Updated: Mon May 11 15:26:18 2020 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 425
+##     Update #: 454
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -69,8 +69,11 @@
 ### IMPORTS
 import os, sys, inspect
 ##load own modules
-from lib.Collection import *
 from lib.logger import makelogdir, setup_multiprocess_logger
+
+scriptname=os.path.basename(__file__).replace('.py','')
+
+from lib.Collection import *
 #other modules
 import argparse
 import pprint
@@ -114,7 +117,7 @@ def parseargs():
     parser.add_argument("-z", "--procs", type=int, default=1, help='Number of parallel processed to run this job with')
     parser.add_argument("--vrna", type=str, default='', help="Append path to vrna RNA module to sys.path")
     parser.add_argument("--pattern", type=str, default='', help="Helper var, only used if called from other prog where a pattern for files is defined")
-    parser.add_argument("-g", "--genes", type=str, help='Genomic coordinates bed for genes, either standard bed format or AnnotateBed.pl format')
+    parser.add_argument("-g", "--genes", type=str, default='', help='Genomic coordinates bed for genes, either standard bed format or AnnotateBed.pl format')
     parser.add_argument("-v", "--verbosity", type=int, default=0, choices=[0, 1], help="increase output verbosity")
     parser.add_argument("--loglevel", type=str, default='WARNING', choices=['WARNING','ERROR','INFO','DEBUG'], help="Set log level")
 
@@ -191,6 +194,11 @@ def fold(sequence, window, span, unconstraint, unpaired, paired, length, gc, num
                 else:
                     log.info(logid+'Working on ' + goi)
 
+                if not window:
+                    window = len(fa.seq)
+                if not span:
+                    span = len(fa.seq)
+
                 for temp in range(ts,te+1):
                     an = [np.nan]
                     # Create the process, and connect it to the worker function
@@ -237,7 +245,7 @@ def fold(sequence, window, span, unconstraint, unpaired, paired, length, gc, num
                 constraintlist = ['NOCONS']
             elif constrain == 'sliding':
                 constraintlist = list()
-            elif ',' in constrain:
+            elif '-' in constrain:
                 log.info(logid+'Calculating probs for constraint ' + constrain)
                 constraintlist = constrain.split(',')
             else:
@@ -263,6 +271,11 @@ def fold(sequence, window, span, unconstraint, unpaired, paired, length, gc, num
                     gstrand = '.'
                     log.warning(logid+'No coords found for gene '+goi+'! Assuming coordinates are already local!')
 
+                if not window:
+                    window = len(fa.seq)
+                if not span:
+                    span = len(fa.seq)
+
                 if len(fa.seq) < window:
                     log.warning('Sequence of '+goi+' to short, seqlenght '+str(len(fa.seq))+' with window size '+str(window))
                     continue
@@ -281,7 +294,9 @@ def fold(sequence, window, span, unconstraint, unpaired, paired, length, gc, num
                 elif constrain == 'sliding':
                     for start in range(1,len(fa.seq)-conslength+2):
                         end = start+conslength-1
-                        conslist.append(str(start)+'-'+str(end))
+                        conslist.append(str(start)+'-'+str(end)+'|'+str(gstrand))
+                elif '-' in constrain:
+                    conslist.extend([str(start)+'-'+str(end)+'|'+str(gstrand) for start,end in [str(x).split('-') for x in constrain.split(',')]])
                 else:
                     log.info(logid+'Could not map constraints to sequence for '+goi)
                     continue
@@ -341,6 +356,12 @@ def constrain_seq(fa, start, end, conslength, const, cons, window, span, unconst
     try:
         outlist = list()
         goi, chrom, strand = idfromfa(fa.id)
+
+        if not window:
+            window = len(fa.seq)
+        if not span:
+            span = len(fa.seq)
+
         dist, fstart, fend = [None, None, None]
         if ':' in cons:
             start, end, fstart, fend = const
@@ -368,10 +389,8 @@ def constrain_seq(fa, start, end, conslength, const, cons, window, span, unconst
                 log.warning(logid+'Constraint '+str(cons)+' out of sequence range '+str(toend)+'!Skipping!')  # One of the constraints is outside the sequence window
                 return
             seqtofold = str(fa.seq[tostart:toend])
-        else:
-            tostart = 0
-            toend = 0
-            seqtofold = str(fa.seq[:])
+
+        log.debug(logid+','.join([str(start),str(end),str(tostart),str(toend),'SEQUENCE: '+seqtofold]))
 
         if len(seqtofold) < window:
             log.warning(logid+'Sequence of '+goi+' to short, seqlenght '+str(len(seqtofold))+' with window size '+str(window)+'!Skipping! ')
@@ -404,8 +423,21 @@ def constrain_seq(fa, start, end, conslength, const, cons, window, span, unconst
 
         for check in checklist:
             s,e,os,oe = [None,None,None,None]
-            log.debug(logid+'GENECOORDS: '+str(goi)+': '+str(genecoords[goi]))
-            gs, ge, gstrand = get_location(genecoords[goi][0])
+            if genecoords:
+                if goi in genecoords:
+                    gs, ge, gstrand = get_location(genecoords[goi][0])
+                    if gstrand != strand:
+                        log.warning(logid+'Strand values differ between Gene annotation and FASTA file! Please check your input for '+str(goi))
+                else:
+                    gs, ge, gstrand = 0, 0, '.'
+                    log.warning(logid+'No coords found for gene '+goi+'! Assuming coordinates are already local!')
+            else:
+                gs = ge = 0
+                gstrand = '.'
+                log.warning(logid+'No coords found for gene '+goi+'! Assuming coordinates are already local!')
+
+            log.debug(logid+'GENECOORDS: '+str(goi)+': '+str.join(',',[str(gs),str(ge),str(gstrand)]))
+
             if len(check) < 3:
                 s,e = check
                 sp, ep = [s+tostart+gs-1, e+tostart+gs]
@@ -654,9 +686,10 @@ if __name__ == '__main__':
     logid = scriptname+'.main: '
     try:
         args=parseargs()
-        log = setup_multiprocess_logger(name=scriptname, log_file='LOGS/'+scriptname+'.log', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
-        log = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
-
+        logfile = 'LOGS/'+scriptname+'.log'
+        log = setup_multiprocess_logger(name=scriptname, log_file=logfile, filemode='a', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M')
+        log = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M')
+        log.setLevel(args.loglevel)
         log.info(logid+'Running ConstraintFold on '+str(args.procs)+' cores')
         preprocess(args.sequence, args.window, args.span, args.unconstraint, args.unpaired, args.paired, args.length, args.gc, args.number, args.constrain, args.conslength, args.alphabet, args.save, args.procs, args.vrna, args.temprange, args.outdir, args.genes, args.verbosity, args.pattern, args.cutoff)
     except Exception as err:

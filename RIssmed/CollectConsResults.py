@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Mon Feb 17 17:51:19 2020 (+0100)
+## Last-Updated: Mon May 11 15:27:01 2020 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 417
+##     Update #: 450
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -62,30 +62,19 @@
 ### Code:
 ### IMPORTS
 import os, sys, inspect
-
 ##load own modules
-from lib.Collection import *
 from lib.logger import makelogdir, setup_multiprocess_logger
-# Create log dir
-makelogdir('LOGS')
-# Define loggers
-scriptname=os.path.basename(__file__)
-global streamlog, log           # global to ensure that later manipulation of loglevel is possible
-streamlog = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='WARNING')
-log = setup_multiprocess_logger(name=scriptname, log_file='LOGS/'+scriptname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='WARNING')
-
+from lib.Collection import *
 ##other modules
 import glob
 import argparse
 from io import StringIO
-import subprocess
+#import subprocess
 import gzip
 import importlib
 import pprint
 import traceback as tb
-#numpy and matplolib and pyplot
-from matplotlib import pyplot as plt
-from matplotlib.patches import Rectangle # need that for histogram legend, don't ask
+#numpy
 import numpy as np
 #collections
 from collections import Counter
@@ -95,12 +84,12 @@ from operator import itemgetter
 from natsort import natsorted, ns
 #multiprocessing
 import multiprocessing
-from multiprocessing import Manager, Pool
 #Biopython stuff
 from Bio import SeqIO
 from Bio.Seq import Seq
 import math
 from scipy.stats import zscore as zsc
+import shlex
 
 def parseargs():
     parser = argparse.ArgumentParser(description='Calculate the regions with highest accessibility diff for given Sequence Pattern')
@@ -170,6 +159,8 @@ def screen_genes(pat, cutoff, border, ulim, procs, roi, outdir, genes, padding):
             paired = [os.path.abspath(i) for i in p]
             unpaired = [os.path.abspath(i) for i in u]
 
+            log.debug(logid+'PATHS: '+str(raw)+'\t'+str(paired)+'\t'+str(unpaired))
+
             if not raw or not paired or not unpaired:
                 log.warning(logid+'Could not find files for Gene '+str(goi)+' and window '+str(window)+' and span '+str(span)+' Will skip')
                 continue
@@ -232,6 +223,7 @@ def judge_diff(raw, u, p, gs, ge, gstrand, ulim, cutoff, border, outdir, padding
         log.debug(logid+'RT is '+str(RT))
 
         noc = pl_to_array(raw, ulim)
+        log.debug(logid+'RAW: '+str(raw)+'\t'+str(noc))
 
         mult = int((len(noc)/int(window))/2)
         log.debug(logid+'Multiplyer: '+str(mult))
@@ -379,8 +371,11 @@ if __name__ == '__main__':
     logid = scriptname+'.main: '
     try:
         args=parseargs()
-        logname = scriptname+'_'+args.outdir
-        log = setup_multiprocess_logger(name=logname, log_file='LOGS/'+logname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
+        logfile = 'LOGS/'+scriptname+'.log'
+        log = setup_multiprocess_logger(name=scriptname, log_file=logfile, filemode='a', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M')
+        log = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M')
+        log.setLevel(args.loglevel)
+
         if args.dir != '':
             args.genes = os.path.abspath(args.genes)
             os.chdir(os.path.abspath(args.dir))

@@ -8,9 +8,9 @@
 ## Created: Thu Aug 15 13:49:46 2019 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Tue Nov  5 13:59:53 2019 (+0100)
+## Last-Updated: Mon May 11 15:46:56 2020 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 62
+##     Update #: 72
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -65,16 +65,10 @@
 import os, sys, inspect
 
 ##load own modules
-from lib.Collection import *
 from lib.logger import makelogdir, setup_multiprocess_logger
-# Create log dir
-makelogdir('LOGS')
-# Define loggers
-scriptname=os.path.basename(__file__)
-global streamlog, log           # global to ensure that later manipulation of loglevel is possible
-streamlog = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='WARNING')
-log = setup_multiprocess_logger(name=scriptname, log_file='LOGS/'+scriptname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='WARNING')
-
+scriptname=os.path.basename(__file__).replace('.py','')
+logfile = 'LOGS/'+scriptname+'.log'
+from lib.Collection import *
 ##other modules
 import glob
 import argparse
@@ -144,7 +138,7 @@ def screen_genes(pat, border, procs, outdir, genes):
         for goi in genecoords:
 
             log.info(logid+'Working on ' + goi)
-            gs, ge = map(int, genecoords[goi][0].split(sep='-'))
+            gs, ge, gstrand = get_location(genecoords[goi][0])
 
             #get files with specified pattern
             paired = os.path.abspath(os.path.join(goi, goi + '*_pairedconstraint_*' + str(window) + '_' + str(span) + '.gz'))
@@ -249,10 +243,9 @@ if __name__ == '__main__':
     logid = scriptname+'.main: '
     try:
         args=parseargs()
-        if args.loglevel != 'WARNING':
-          streamlog = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
-          log = setup_multiprocess_logger(name=scriptname, log_file='LOGS/'+scriptname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
-
+        log = setup_multiprocess_logger(name=scriptname, log_file=logfile, filemode='a', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M')
+        log = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M')
+        log.setLevel(args.loglevel)
         log.info(logid+'Running '+scriptname+' on '+str(args.procs)+' cores')
         screen_genes(args.pattern, args.border, args.procs, args.outdir, args.genes)
     except Exception as err:

@@ -7,9 +7,9 @@
 # Created: Mon Aug 12 10:26:55 2019 (+0200)
 # Version:
 # Package-Requires: ()
-# Last-Updated: Wed Sep  4 10:07:31 2019 (+0200)
+# Last-Updated: Mon May 11 15:48:47 2020 (+0200)
 #           By: Joerg Fallmann
-#     Update #: 60
+#     Update #: 73
 # URL:
 # Doc URL:
 # Keywords:
@@ -56,7 +56,7 @@ def makelogdir(logdir):
         os.makedirs(logdir)
     return logdir
 
-def setup_logger(name, log_file, filemode='w', logformat=None, datefmt=None, level='WARNING', proc=1):
+def setup_logger(name, log_file, filemode='a', logformat=None, datefmt=None, level='WARNING', proc=1):
     """Function setup as many loggers as you want"""
 
     if proc > 1:
@@ -64,9 +64,10 @@ def setup_logger(name, log_file, filemode='w', logformat=None, datefmt=None, lev
     else:
         logger = logging.getLogger(name)
     if log_file is not 'stderr':
+        backup(log_file)
         handler = logging.FileHandler(log_file, mode=filemode)
     else:
-        handler = logging.StreamHandler()
+        handler = logging.StreamHandler(sys.stderr)
 
     handler.setFormatter(logging.Formatter(fmt=logformat,datefmt=datefmt))
 
@@ -75,14 +76,16 @@ def setup_logger(name, log_file, filemode='w', logformat=None, datefmt=None, lev
 
     return logger
 
-def setup_multiprocess_logger(name, log_file, filemode='w', logformat=None, datefmt=None, level='WARNING'):
+def setup_multiprocess_logger(name, log_file, filemode='a', logformat=None, datefmt=None, level='WARNING'):
     """Function setup as many loggers as you want"""
 
     logger = multiprocessing.get_logger() # does not take name argument
+
     if log_file is not 'stderr':
+        backup(log_file)
         handler = logging.FileHandler(log_file, mode=filemode)
     else:
-        handler = logging.StreamHandler()
+        handler = logging.StreamHandler(sys.stderr)
 
     handler.setFormatter(logging.Formatter(fmt=logformat,datefmt=datefmt))
 
@@ -90,6 +93,14 @@ def setup_multiprocess_logger(name, log_file, filemode='w', logformat=None, date
     logger.addHandler(handler)
 
     return logger
+
+def backup(file):
+    if os.path.exists(file):
+        os.rename(file,file+'.bak')
+    logdir =  os.path.abspath('LOGS')
+    if not os.path.exists(logdir):
+        os.makedirs(logdir)
+        open(os.path.abspath(file),'a').close()
 
 if __name__ == '__main__':
     try:
