@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Wed Aug 14 08:46:41 2019 (+0200)
+## Last-Updated: Mon May 11 11:24:04 2020 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 156
+##     Update #: 159
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -71,12 +71,6 @@ import os, sys, inspect
 ##load own modules
 from lib.Collection import *
 from lib.logger import makelogdir, setup_multiprocess_logger
-# Create log dir
-makelogdir('LOGS')
-# Define loggers
-scriptname=os.path.basename(__file__)
-streamlog = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='WARNING')
-log = setup_multiprocess_logger(name=scriptname, log_file='LOGS/'+scriptname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='DEBUG')
 
 #other modules
 import argparse
@@ -94,9 +88,6 @@ from Bio import SeqIO
 from Bio.Seq import Seq
 #numpy and matplolib and pyplot
 import numpy as np
-import matplotlib
-from matplotlib import animation #, rc
-import matplotlib.pyplot as plt
 from random import choices, choice, shuffle # need this if tempprobing was choosen
 from Randseq import createrandseq
 
@@ -111,7 +102,7 @@ def parseargs():
     parser.add_argument("-g", "--gc", type=int, default=0, help='GC content, needs to be %2==0 or will be rounded')
     parser.add_argument("-b", "--number", type=int, default=1, help='Number of random seqs to generate')
     parser.add_argument("-a", "--alphabet", type=str, default='AUCG', help='alphabet for random seqs')
-    parser.add_argument("--plot", type=str, default='0', choices=['0','svg', 'png'], help='Create image of the (un-)constraint sequence, you can select the file format here (svg,png). These images can later on be animated with ImageMagick like `convert -delay 120 -loop 0 *.svg animated.gif`.')
+    #parser.add_argument("--plot", type=str, default='0', choices=['0','svg', 'png'], help='Create image of the (un-)constraint sequence, you can select the file format here (svg,png). These images can later on be animated with ImageMagick like `convert -delay 120 -loop 0 *.svg animated.gif`.')
     parser.add_argument("--save", type=int, default=1, help='Save the output as gz files')
     parser.add_argument("-o", "--outdir", type=str, default='', help='Directory to write to')
     parser.add_argument("-z", "--procs", type=int, default=1, help='Number of parallel processed to run this job with')
@@ -121,7 +112,7 @@ def parseargs():
 
     return parser.parse_args()
 
-def fold(sequence, window, span, region, printto, length, gc, number, alphabet, plot, save, procs, vrna, outdir, verbosity=False, pattern=None):
+def fold(sequence, window, span, region, printto, length, gc, number, alphabet, save, procs, vrna, outdir, verbosity=False, pattern=None):
 
     logid = scriptname+'.fold: '
     #set path for output
@@ -152,9 +143,6 @@ def fold(sequence, window, span, region, printto, length, gc, number, alphabet, 
             exc_type, exc_value, exc_tb,
             )
         log.error(logid+''.join(tbe.format()))
-
-    if ( plot == '0' and not save):
-        raise ValueError('Neither plot nor save are active, this script will take a long time and produce nothing, please activate at least one of the two!')
 
     if ( sequence == 'random' ):
         rand = "\n".join(createrandseq(length, gc, number, alphabet))
@@ -189,7 +177,6 @@ def fold(sequence, window, span, region, printto, length, gc, number, alphabet, 
             next
         else:
             printlog('Working on ' + goi)
-##prepare plots
 #set kT for nrg2prob and vice versa calcs
             kT = 0.61632077549999997
 # Create process pool with processes
@@ -200,7 +187,7 @@ def fold(sequence, window, span, region, printto, length, gc, number, alphabet, 
                 for reg in range(0,len(fa.seq)-window+1):
 #subseq
                     seqtofold = str(fa.seq[reg:reg+window])
-                    pool.apply_async(fold_windows, args=(fa, seqtofold, reg, window, span, region, save, printto, outdir, plot))
+                    pool.apply_async(fold_windows, args=(fa, seqtofold, reg, window, span, region, save, printto, outdir))
             except Exception as err:
                 exc_type, exc_value, exc_tb = sys.exc_info()
                 tbe = tb.TracebackException(
@@ -214,7 +201,7 @@ def fold(sequence, window, span, region, printto, length, gc, number, alphabet, 
     printlog("DONE: output in: " + str(outdir))
 
 ##### Functions #####
-def fold_windows(fa, seq, reg, window, span, region, save, printto, outdir, plot):
+def fold_windows(fa, seq, reg, window, span, region, save, printto, outdir):
 #   DEBUGGING
 #   pp = pprint.PrettyPrinter(indent=4)#use with pp.pprint(datastructure)
     logid = scriptname+'.fold_windows: '
@@ -416,11 +403,15 @@ def checkexisting(fa, region, winnr, window, span, outdir):
 
 if __name__ == '__main__':
 
-    args=parseargs()
-    logid = scriptname+'.main: '
     try:
-        log.info(logid+'Running '+scriptname+' on '+str(args.procs)+' cores')
-        fold(args.sequence, args.window, args.span, args.region, args.printto, args.length, args.gc, args.number, args.alphabet, args.plot, args.save, args.procs, args.vrna, args.outdir, args.verbosity, args.pattern)
+        scriptname=os.path.basename(__file__).replace('.py','')
+        args=parseargs()
+        logid = scriptname+'.main: '
+
+        log = setup_multiprocess_logger(name=scriptname, log_file='LOGS/'+scriptname+'.log', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
+        log = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
+
+        fold(args.sequence, args.window, args.span, args.region, args.printto, args.length, args.gc, args.number, args.alphabet, args.save, args.procs, args.vrna, args.outdir, args.verbosity, args.pattern)
             except Exception as err:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
