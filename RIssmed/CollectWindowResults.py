@@ -68,12 +68,12 @@ import os, sys, inspect
 from lib.Collection import *
 from lib.logger import makelogdir, setup_multiprocess_logger
 # Create log dir
-makelogdir('logs')
+makelogdir('LOGS')
 # Define loggers
 scriptname=os.path.basename(__file__)
 global streamlog, log           # global to ensure that later manipulation of loglevel is possible
 streamlog = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='WARNING')
-log = setup_multiprocess_logger(name=scriptname, log_file='logs/'+scriptname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='WARNING')
+log = setup_multiprocess_logger(name=scriptname, log_file='LOGS/'+scriptname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='WARNING')
 
 ##other modules
 import glob
@@ -251,7 +251,7 @@ if __name__ == '__main__':
         args=parseargs()
         if args.loglevel != 'WARNING':
           streamlog = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
-          log = setup_multiprocess_logger(name=scriptname, log_file='logs/'+scriptname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
+          log = setup_multiprocess_logger(name=scriptname, log_file='LOGS/'+scriptname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
 
         log.info(logid+'Running '+scriptname+' on '+str(args.procs)+' cores')
         screen_genes(args.pattern, args.border, args.procs, args.outdir, args.genes)

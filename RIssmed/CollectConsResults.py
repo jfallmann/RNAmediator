@@ -67,12 +67,12 @@ import os, sys, inspect
 from lib.Collection import *
 from lib.logger import makelogdir, setup_multiprocess_logger
 # Create log dir
-makelogdir('logs')
+makelogdir('LOGS')
 # Define loggers
 scriptname=os.path.basename(__file__)
 global streamlog, log           # global to ensure that later manipulation of loglevel is possible
 streamlog = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='WARNING')
-log = setup_multiprocess_logger(name=scriptname, log_file='logs/'+scriptname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='WARNING')
+log = setup_multiprocess_logger(name=scriptname, log_file='LOGS/'+scriptname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='WARNING')
 
 ##other modules
 import glob
@@ -256,7 +256,7 @@ def judge_diff(raw, u, p, gs, ge, gstrand, ulim, cutoff, border, outdir, padding
             preaccu = noc+uc+epsilon
             preaccp = noc+pc+epsilon
 
-            np.seterr(divide = 'ignore') #ignore 0 for logs
+            np.seterr(divide = 'ignore') #ignore 0 for LOGS
             nrgdiffu = np.array(RT*np.log(abs(uc)))
             nrgdiffp = np.array(RT*np.log(abs(pc)))
             np.seterr(divide = 'warn')
@@ -271,7 +271,7 @@ def judge_diff(raw, u, p, gs, ge, gstrand, ulim, cutoff, border, outdir, padding
             log.debug(logid+'NRG: '+str(nrgdiffu[:10]))
             log.debug(logid+'KD: '+str(kdu[:10])+' mean: '+str(np.nanmean(kdu))+' std: '+str(np.nanstd(kdu)))
 
-            np.seterr(divide = 'ignore') #ignore 0 for logs
+            np.seterr(divide = 'ignore') #ignore 0 for LOGS
             zscoresu = np.array(np.divide(kdu - np.nanmean(kdu), np.nanstd(kdu,ddof=0), out=np.zeros_like(kdu - np.nanmean(kdu)), where=np.nanstd(kdu,ddof=0)!=0)) #np.array(zsc(kdu[~np.isnan(kdu)]))
             zscoresp = np.array(np.divide(kdp - np.nanmean(kdp), np.nanstd(kdp,ddof=0), out=np.zeros_like(kdp - np.nanmean(kdp)), where=np.nanstd(kdp,ddof=0)!=0)) #np.array((kdp - np.nanmean(kdp))/np.nanstd(kdp,ddof=0))#np.array(zsc(kdp[~np.isnan(kdp)]))
             np.seterr(divide = 'warn')
@@ -380,7 +380,7 @@ if __name__ == '__main__':
     try:
         args=parseargs()
         logname = scriptname+'_'+args.outdir
-        log = setup_multiprocess_logger(name=logname, log_file='logs/'+logname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
+        log = setup_multiprocess_logger(name=logname, log_file='LOGS/'+logname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
         if args.dir != '':
             args.genes = os.path.abspath(args.genes)
             os.chdir(os.path.abspath(args.dir))

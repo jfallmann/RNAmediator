@@ -58,7 +58,7 @@ import shlex
 
 from lib.logger import makelogdir, setup_logger
 # Create log dir
-makelogdir('logs')
+makelogdir('LOGS')
 scriptname=os.path.basename(__file__)
 logname = scriptname
 log = setup_logger(name=logname, log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M')
@@ -162,7 +162,7 @@ if __name__ == '__main__':
     logid = scriptname+'.main: '
     try:
         args=parseargs()
-        log = setup_logger(name=logname, log_file='logs/'+logname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
+        log = setup_logger(name=logname, log_file='LOGS/'+logname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
         log.setLevel(args.loglevel)
 
         log.info(logid+'Running '+scriptname)

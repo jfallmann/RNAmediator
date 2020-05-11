@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Tue Nov  5 15:29:02 2019 (+0100)
+## Last-Updated: Mon May 11 11:10:56 2020 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 378
+##     Update #: 425
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -71,14 +71,6 @@ import os, sys, inspect
 ##load own modules
 from lib.Collection import *
 from lib.logger import makelogdir, setup_multiprocess_logger
-# Create log dir
-makelogdir('logs')
-# Define loggers
-scriptname=os.path.basename(__file__)
-global streamlog, log           # global to ensure that later manipulation of loglevel is possible
-streamlog = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='WARNING')
-log = setup_multiprocess_logger(name=scriptname, log_file='logs/'+scriptname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='WARNING')
-
 #other modules
 import argparse
 import pprint
@@ -95,11 +87,8 @@ from Randseq import createrandseq
 #Biopython stuff
 from Bio import SeqIO
 from Bio.Seq import Seq
-#numpy and matplolib and pyplot
+#numpy
 import numpy as np
-import matplotlib
-from matplotlib import animation #, rc
-import matplotlib.pyplot as plt
 from random import choices, choice, shuffle # need this if tempprobing was choosen
 import collections
 
@@ -119,7 +108,7 @@ def parseargs():
     parser.add_argument("-y", "--conslength", type=int, default=0, help='Length of region to constrain for slidingwindow')
     parser.add_argument("-t", "--temprange", type=str, default='', help='Temperature range for structure prediction (e.g. 37-60)')
     parser.add_argument("-a", "--alphabet", type=str, default='AUCG', help='alphabet for random seqs')
-    parser.add_argument("--plot", type=str, default='0', choices=['0','svg', 'png'], help='Create image of the (un-)constraint sequence, you can select the file format here (svg,png). These images can later on be animated with ImageMagick like `convert -delay 120 -loop 0 *.svg animated.gif`.')
+    #parser.add_argument("--plot", type=str, default='0', choices=['0','svg', 'png'], help='Create image of the (un-)constraint sequence, you can select the file format here (svg,png). These images can later on be animated with ImageMagick like `convert -delay 120 -loop 0 *.svg animated.gif`.')
     parser.add_argument("--save", type=int, default=1, help='Save the output as gz files')
     parser.add_argument("-o", "--outdir", type=str, default='', help='Directory to write to')
     parser.add_argument("-z", "--procs", type=int, default=1, help='Number of parallel processed to run this job with')
@@ -135,9 +124,10 @@ def parseargs():
 
     return parser.parse_args()
 
-def preprocess(sequence, window, span, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, plot, save, procs, vrna, temprange, outdir, genes, verbosity=False, pattern=None, cutoff=None):
+def preprocess(sequence, window, span, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, save, procs, vrna, temprange, outdir, genes, verbosity=False, pattern=None, cutoff=None):
 
     logid = scriptname+'.preprocess: '
+
     try:
         #set path for output
         if outdir:
@@ -148,12 +138,12 @@ def preprocess(sequence, window, span, unconstraint, unpaired, paired, length, g
         else:
             outdir = os.path.abspath(os.getcwd())
 
-        if ( plot == '0' and not save):
-            raise ValueError('Neither plot nor save are active, this script will take a long time and produce nothing, please activate at least one of the two!')
+        if genes is not '':
+            genecoords = parse_annotation_bed(genes) #get genomic coords to print to bed later, should always be just one set of coords per gene
+        else:
+            genecoords = None
 
-        genecoords = parse_annotation_bed(genes) #get genomic coords to print to bed later, should always be just one set of coords per gene
-
-        fold(sequence, window, span, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, plot, save, procs, vrna, temprange, outdir, genecoords, verbosity=verbosity, pattern=pattern, cutoff=cutoff)
+        fold(sequence, window, span, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, save, procs, vrna, temprange, outdir, genecoords, verbosity=verbosity, pattern=pattern, cutoff=cutoff)
 
     except Exception as err:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -162,7 +152,7 @@ def preprocess(sequence, window, span, unconstraint, unpaired, paired, length, g
         )
         log.error(logid+''.join(tbe.format()))
 
-def fold(sequence, window, span, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, plot, save, procs, vrna, temprange, outdir, genecoords, verbosity=False, pattern=None, cutoff=None):
+def fold(sequence, window, span, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, save, procs, vrna, temprange, outdir, genecoords, verbosity=False, pattern=None, cutoff=None):
 
     logid = scriptname+'.fold: '
     try:
@@ -171,75 +161,45 @@ def fold(sequence, window, span, unconstraint, unpaired, paired, length, gc, num
         #set path for VRNA lib if necessary
         if vrna:
             sys.path=[vrna] + sys.path
-        try:
-            global RNA
-            RNA = importlib.import_module('RNA')
-            globals().update(
+
+        global RNA
+        RNA = importlib.import_module('RNA')
+        globals().update(
             {n: getattr(RNA, n) for n in RNA.__all__}
-                if hasattr(RNA, '__all__')
-                else {k: v for (k, v) in RNA.__dict__.items() if not k.startswith('_')
-                })
-            md = RNA.md()
-            md = None
-        except Exception as err:
-            exc_type, exc_value, exc_tb = sys.exc_info()
-            tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
-            )
-            log.error(logid+''.join(tbe.format()))
-            return
+            if hasattr(RNA, '__all__')
+            else {k: v for (k, v) in RNA.__dict__.items() if not k.startswith('_')
+            })
+        md = RNA.md()
+        md = None
 
         # Create process pool with processes
         num_processes = procs or 1
         pool = multiprocessing.Pool(processes=num_processes, maxtasksperchild=1)
-    #    logger = multiprocessing.log_to_stderr()   #LOGGING FOR DEBUG
-    #    logger.setLevel(logging.DEBUG)
-
-        if ( plot == '0' and not save):
-            raise ValueError('Neither plot nor save are active, this script will take a long time and produce nothing, please activate at least one of the two!')
-
-        ##prepare plots
-        #       if plot != '0':
-        manager = Manager()
-        animations = manager.list()
-        outdict = collections.defaultdict()  # Does not throw keyerror on missing key
 
         # constraints
         if constrain == 'temperature':
             log.info(logid+'Calculating probs for temperature constraint '+temprange)
-            # Create process pool with processes
-            num_processes = procs
-            pool = multiprocessing.Pool(processes=num_processes)
-            processes = []
 
             ts, te = map(int,temprange.split('-'))
 
             for fa in SeqIO.parse(seq,'fasta'):
+                fa.seq = str(fa.seq).upper()
                 goi, chrom, strand = idfromfa(fa.id)
 
                 if pattern and pattern not in goi:
                     next
                 else:
                     log.info(logid+'Working on ' + goi)
-                    xvals = []
-                    for y in range(1,len(fa.seq)+1):
-                        xvals.append(y)
-                    xs = np.array(xvals)
-                    xvals = []
 
                 for temp in range(ts,te+1):
+                    an = [np.nan]
                     # Create the process, and connect it to the worker function
-                    pool.apply_async(constrain_temp, args=(fa, temp, window, span, an, animations, xs, save, outdir, plot))
-
+                    pool.apply_async(constrain_temp, args=(fa, temp, window, span, an, save, outdir))
             pool.close()
             pool.join()
 
         else:
-            #Create process pool with processes
-            num_processes = procs
-            pool = multiprocessing.Pool(processes=num_processes)
             conslist = list()
-            constraintlist= list()
 
             if (os.path.isfile(constrain)):
                 if '.bed' in constrain:
@@ -267,6 +227,7 @@ def fold(sequence, window, span, unconstraint, unpaired, paired, length, gc, num
                         f = open(constrain,'rt')
                     constraintlist = readConstraintsFromGeneric(f)
                 f.close()
+
             elif constrain == 'file' or constrain == 'paired':
                 log.info(logid+'Calculating probs for constraint from file ' + str(goi + '_constraints'))
                 with open(goi+'_constraints','rt') as o:
@@ -281,19 +242,26 @@ def fold(sequence, window, span, unconstraint, unpaired, paired, length, gc, num
                 constraintlist = constrain.split(',')
             else:
                 log.error(logid+'Could not compute constraints from input')
-                return
+                sys.exit()
 
             if not constraintlist:
                 raise Exception('No constraints available, exiting')
 
             for fa in SeqIO.parse(seq,'fasta'):
+                fa.seq = str(fa.seq).upper()
                 goi, chrom, strand = idfromfa(fa.id)
                 if genecoords:
                     if goi in genecoords:
-                        gs, ge = map(int, genecoords[goi][0].split(sep='-'))
+                        gs, ge, gstrand = get_location(genecoords[goi][0])
+                        if gstrand != strand:
+                            log.warning(logid+'Strand values differ between Gene annotation and FASTA file! Please check your input for '+str(goi))
                     else:
-                        gs, ge = 0
+                        gs, ge, gstrand = 0, 0, '.'
                         log.warning(logid+'No coords found for gene '+goi+'! Assuming coordinates are already local!')
+                else:
+                    gs = ge = 0
+                    gstrand = '.'
+                    log.warning(logid+'No coords found for gene '+goi+'! Assuming coordinates are already local!')
 
                 if len(fa.seq) < window:
                     log.warning('Sequence of '+goi+' to short, seqlenght '+str(len(fa.seq))+' with window size '+str(window))
@@ -303,34 +271,24 @@ def fold(sequence, window, span, unconstraint, unpaired, paired, length, gc, num
                     continue
                 else:
                     log.info(logid+'Working on ' + goi)
-                    xvals = []
-                    for y in range(1,len(fa.seq)+1):
-                        xvals.append(y)
-                    xs = np.array(xvals)
-                    xvals = []
 
-                try:
-                   if goi in constraintlist:
-                       conslist = constraintlist[goi]
-                   elif 'generic' in constraintlist:
-                       conslist = constraintlist['generic']
-                   elif 'NOCONS' in constraintlist:
-                       conslist = constraintlist
-                   elif constrain == 'sliding':
-                       for start in range(1,len(fa.seq)-conslength+2):
-                           end = start+conslength-1
-                           conslist.append(str(start)+'-'+str(end))
-                   else:
-                       log.info(logid+'Could not map constraints to sequence for '+goi)
-                       continue
-                except Exception as err:
-                        exc_type, exc_value, exc_tb = sys.exc_info()
-                        tbe = tb.TracebackException(
-                            exc_type, exc_value, exc_tb,
-                        )
-                        log.error(logid+''.join(tbe.format()))
+                if goi in constraintlist:
+                    conslist = constraintlist[goi]
+                elif 'generic' in constraintlist:
+                    conslist = constraintlist['generic']
+                elif 'NOCONS' in constraintlist:
+                    conslist = constraintlist
+                elif constrain == 'sliding':
+                    for start in range(1,len(fa.seq)-conslength+2):
+                        end = start+conslength-1
+                        conslist.append(str(start)+'-'+str(end))
+                else:
+                    log.info(logid+'Could not map constraints to sequence for '+goi)
+                    continue
 
                 for entry in conslist:
+                    log.debug(logid+'ENTRY: '+str(entry))
+
                     if entry == 'NOCONS': # in case we just want to fold the sequence without constraints at all
                         gibbs_uc = [pool.apply_async(fold_unconstraint, args=(fa.seq))]
                         return (gibbs_uc)
@@ -338,25 +296,28 @@ def fold(sequence, window, span, unconstraint, unpaired, paired, length, gc, num
                     else:
                         # we now have a list of constraints and for the raw seq comparison we only need to fold windows around these constraints
                         fstart, fend = [None,None]
-                        if constrain == 'paired':
-                            log.info(logid+'Calculating constraint pair\t' + entry)
-                            fstart, fend, start, end = map(lambda x:x-gs, list(map(int,entry.split(',',1).split('-',1))))
-                        elif any(x in constrain for x in ['paired', 'Paired']):
-                            fstart, fend, start, end = map(lambda x:x-gs, list(map(int,entry.split('-'))))
-                        else:
-                            log.info(logid+'Calculating constraint\t' + entry)
-                            start,end = map(lambda x:x-gs, list(map(int,entry.split('-',1))))
-                            #for all constraints we now extract subsequences to compare against
-                            #we no longer fold the whole raw sequence but only the constraint region +- window size
+                        if any(x in constrain for x in ['paired','Paired']) or ':' in entry:  # Not strand dependend, still genomic coords
+                            if gstrand == '+' or gstrand == '.':
+                                [fstart, fend], [start, end] = [[x - gs for x in get_location(cn)[:2]] for cn in entry.split(':',1)]
+                            else:
+                                [fstart, fend], [start, end] = [[ge - x for x in get_location(cn)[:2][::-1]] for cn in entry.split(':',1)]
+                            cons = str(fstart)+'-'+str(fend)+':'+str(start)+'-'+str(end)
+                            const = np.array([fstart, fend, start, end])
+                            if start < 0 or fstart < 0 or end > len(fa.seq) or fend > len(fa.seq):
+                                log.warning(logid+'Constraint out of sequence bounds! skipping! '+','.join(map(str,[goi,len(fa.seq),str(start)+'-'+str(end),str(fstart)+'-'+str(fend)])))
+                                continue
 
-                        if fstart and fend:
-                            cons = str(start)+'-'+str(end)+':'+str(fstart)+'-'+str(fend)
-                            const = np.sort(np.array([start, end, fstart, fend]))
                         else:
+                            if gstrand == '+' or gstrand == '.':
+                                start, end = [x - gs for x in get_location(entry)[:2]]
+                            else:
+                                start, end = [ge - x for x in get_location(entry)[:2][::-1]]
+
                             cons = str(start)+'-'+str(end)
+                            log.debug(logid+str.join(' ',[goi,cons,gstrand]))
                             const = np.array([start, end])
 
-                        pool.apply_async(constrain_seq, args=(fa, start, end, conslength, const, cons, window, span, xs, unconstraint, paired, unpaired, save, outdir, genecoords, plot))
+                        pool.apply_async(constrain_seq, args=(fa, start, end, conslength, const, cons, window, span, unconstraint, paired, unpaired, save, outdir, genecoords))
 
             pool.close()
             pool.join()
@@ -372,7 +333,7 @@ def fold(sequence, window, span, unconstraint, unpaired, paired, length, gc, num
 
 ##### Functions #####
 
-def constrain_seq(fa, start, end, conslength, const, cons, window, span, xs, unconstraint, paired, unpaired, save, outdir, genecoords, plot):
+def constrain_seq(fa, start, end, conslength, const, cons, window, span, unconstraint, paired, unpaired, save, outdir, genecoords):
     #   DEBUGGING
     #   pp = pprint.PrettyPrinter(indent=4)#use with pp.pprint(datastructure)
 
@@ -443,7 +404,8 @@ def constrain_seq(fa, start, end, conslength, const, cons, window, span, xs, unc
 
         for check in checklist:
             s,e,os,oe = [None,None,None,None]
-            gs, ge = map(int, genecoords[goi][0].split(sep='-'))
+            log.debug(logid+'GENECOORDS: '+str(goi)+': '+str(genecoords[goi]))
+            gs, ge, gstrand = get_location(genecoords[goi][0])
             if len(check) < 3:
                 s,e = check
                 sp, ep = [s+tostart+gs-1, e+tostart+gs]
@@ -563,8 +525,7 @@ def constrain_seq(fa, start, end, conslength, const, cons, window, span, xs, unc
             )
         log.error(logid+''.join(tbe.format()))
 
-def constrain_temp(fa, temp, window, span, an, animations, xs, save, outdir, plot):
-#   print('FOLDING ' + str(fa.seq) + ' at temp ' + str(temp))
+def constrain_temp(fa, temp, window, span, an, save, outdir):
 #refresh model details
     logid = scriptname+'.constrain_temp: '
     log.info(logid+'Constraining Temp to ' + temp)
@@ -599,14 +560,11 @@ def constrain_temp(fa, temp, window, span, an, animations, xs, save, outdir, plo
 
 	    diff_nt = an - at
 
-	    #####Set temp, and rewrite save and plot for temp
+	    #####Set temp, and rewrite save for temp
 	    if save:
 	        log.info(logid+'SAVINGTEMP')
 	        write_temp(fa, str(temp), data_t, diff_nt, str(window), outdir)
 
-	    if plot == 'svg' or plot == 'png':
-	        log.info(logid+'PLOTTING '+str(plot))
-	        plot_temp(fa, at, temp, xs, plot, outdir)
     except Exception as err:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
@@ -692,20 +650,19 @@ def write_out(resultlist):
 ####################
 
 if __name__ == '__main__':
-
+    scriptname=os.path.basename(__file__).replace('.py','')
     logid = scriptname+'.main: '
     try:
         args=parseargs()
-        if args.loglevel != 'WARNING':
-          streamlog = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
-          log = setup_multiprocess_logger(name=scriptname, log_file='logs/'+scriptname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
+        log = setup_multiprocess_logger(name=scriptname, log_file='LOGS/'+scriptname+'.log', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
+        log = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
 
         log.info(logid+'Running ConstraintFold on '+str(args.procs)+' cores')
-        preprocess(args.sequence, args.window, args.span, args.unconstraint, args.unpaired, args.paired, args.length, args.gc, args.number, args.constrain, args.conslength, args.alphabet, args.plot, args.save, args.procs, args.vrna, args.temprange, args.outdir, args.genes, args.verbosity, args.pattern, args.cutoff)
+        preprocess(args.sequence, args.window, args.span, args.unconstraint, args.unpaired, args.paired, args.length, args.gc, args.number, args.constrain, args.conslength, args.alphabet, args.save, args.procs, args.vrna, args.temprange, args.outdir, args.genes, args.verbosity, args.pattern, args.cutoff)
     except Exception as err:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
         )
-        log.error(logid+''.join(tbe.format()))
+        print(logid+''.join(tbe.format()),file=sys.stderr)
 # ConstraintFold.py ends here

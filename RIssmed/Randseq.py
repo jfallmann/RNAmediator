@@ -57,7 +57,7 @@ import traceback as tb
 from lib.Collection import *
 from lib.logger import makelogdir, setup_logger
 # Create log dir
-makelogdir('logs')
+makelogdir('LOGS')
 # Define loggers
 scriptname=os.path.basename(__file__)
 log = setup_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='WARNING')
