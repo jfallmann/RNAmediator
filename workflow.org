@@ -106,3 +106,28 @@ python ~/Projects/INPROGRESS/RIssmed/RIssmed/ConstraintFold.py -s 65_Fu_targets.
 *** Collect
 cd Window_paired_65_Fu
 python ~/Projects/INPROGRESS/RIssmed/RIssmed/CollectWindowResults.py -z 4 -g ../TargetGenes_65_Fu.bed -b-1,1 -p 120,80 -o Collection_Window_paired
+* MiRNA coop
+conda activate base
+cd /scr/k61san/fall/RIssmed/miRNAs
+** data
+wget http://mirwalk.umm.uni-heidelberg.de/download/hsa_miRWalk_3UTR.zip .  
+wget ftp://ftp.ncbi.nlm.nih.gov/genomes/archive/old_refseq/H_sapiens/ARCHIVE/ANNOTATION_RELEASE.109/RNA/rna.fa.gz .
+wget ftp://ftp.ncbi.nlm.nih.gov/genomes/archive/old_refseq/H_sapiens/ARCHIVE/ANNOTATION_RELEASE.109/GFF/ref_GRCh38.p12_top_level.gff3.gz 
+wget ftp://ftp.ncbi.nlm.nih.gov/genomes/refseq/vertebrate_mammalian/Homo_sapiens/latest_assembly_versions/GCF_000001405.39_GRCh38.p13/GCF_000001405.39_GRCh38.p13_genomic.fna.gz
+wget ftp://ftp.ncbi.nlm.nih.gov/genomes/refseq/vertebrate_mammalian/Homo_sapiens/all_assembly_versions/GCF_000001405.38_GRCh38.p12/GCF_000001405.38_GRCh38.p12_genomic.fna.gz
+** preprocess
+unzip hsa_miRWalk_3UTR.zip
+#get genes and chromosomes
+tail -n+2 hsa_miRWalk_3UTR.txt| cut -f3|sort -u > mirWalk_targets
+zcat ref_GRCh38.p12_top_level.gff3.gz|grep $'\tgene\t' |gzip > genes.gff3.gz
+rm -f targetmatches;for i in `cat mirWalk_targets`;do a=$(fgrep "Name=$i;" <(zcat genes.gff3.gz));echo "$i\t$a" >> targetmatches;done
+perl -wlane 'next unless ($F[1]);next if ($F[0]=~/NT_|Best|NC_/ || $F[1] =~ /Best/);print join("\t",$F[1],($F[4]-1),$F[5],$F[0],0,$F[7])' targetmatches |gzip > targetgenes.bed.gz
+
+ca bedtools
+zcat GCF_000001405.38_GRCh38.p12_genomic.fna.gz > hg38_refseq109.fa
+fastaFromBed -fi hg38_refseq109.fa -bed targetgenes.bed.gz -s -name+ -fullHeader |gzip > targetgenes.fa.gz
+
+perlswitch perl-5.22.2
+perl ~/Scripts/Perlen/JoinFiles.pl -f hsa_miRWalk_3UTR.txt,targetgenes.bed.gz -d $'\t' -j 3,4 |gzip > targetinfo
+
+perl -wlane '@c=split(","$F[3]); print join("\t",$F[6],$c[0]-1,$c[1],$F[2]."|".$F[0],)' targetinfo
