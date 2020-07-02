@@ -7,9 +7,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Mon May 11 15:39:01 2020 (+0200)
+## Last-Updated: Thu Jul  2 15:38:23 2020 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 350
+##     Update #: 351
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -880,6 +880,7 @@ def pl_to_array(name, ulim, fmt='npy'):
 def idfromfa(id):
     logid = scriptname+'.idfromfa: '
     goi, chrom, strand = [None, None, None]
+    id = id.replace('_','-')
     try:
         goi, chrom = id.split(':')[::2]
         strand = str(id.split(':')[3].split('(')[1][0])

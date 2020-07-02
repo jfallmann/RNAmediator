@@ -121,13 +121,70 @@ unzip hsa_miRWalk_3UTR.zip
 tail -n+2 hsa_miRWalk_3UTR.txt| cut -f3|sort -u > mirWalk_targets
 zcat ref_GRCh38.p12_top_level.gff3.gz|grep $'\tgene\t' |gzip > genes.gff3.gz
 rm -f targetmatches;for i in `cat mirWalk_targets`;do a=$(fgrep "Name=$i;" <(zcat genes.gff3.gz));echo "$i\t$a" >> targetmatches;done
-perl -wlane 'next unless ($F[1]);next if ($F[0]=~/NT_|Best|NC_/ || $F[1] =~ /Best/);print join("\t",$F[1],($F[4]-1),$F[5],$F[0],0,$F[7])' targetmatches |gzip > targetgenes.bed.gz
+perl -wlane 'next unless ($F[1]);next if ($F[0]=~/NT_|Best|NC_/ || $F[1] =~ /Best/);print join("\t","chr".$F[1],($F[4]-1),$F[5],$F[0],0,$F[7])' targetmatches |sort -k1,1 -k2,2n|gzip > targetgenes.bed.gz
 
 ca bedtools
-zcat GCF_000001405.38_GRCh38.p12_genomic.fna.gz > hg38_refseq109.fa
-fastaFromBed -fi hg38_refseq109.fa -bed targetgenes.bed.gz -s -name+ -fullHeader |gzip > targetgenes.fa.gz
+zcat GCF_000001405.38_GRCh38.p12_genomic.fna.gz |perl -wlane 'if ($_ =~ /^>/){@l=split(" ",$_);($h=$l[0])=~s/\>/\>chr/;print $h}else{print}'> hg38_refseq109.fa
+fastaFromBed -fi hg38_refseq109.fa -bed <(zcat targetgenes.bed.gz) -s -name+ -fullHeader |gzip > targetgenes.fa.gz
 
 perlswitch perl-5.22.2
-perl ~/Scripts/Perlen/JoinFiles.pl -f hsa_miRWalk_3UTR.txt,targetgenes.bed.gz -d $'\t' -j 3,4 |gzip > targetinfo
+perl ~/Scripts/Perlen/JoinFiles.pl -f hsa_miRWalk_3UTR.txt,targetgenes.bed.gz -d $'\t' -j 3,4 |gzip > targetinfo.gz
+zcat targetinfo.gz|grep -v 'NA'|perl -wlane '@c=split(",",$F[3]); print join("\t",$F[5],($c[0]-1),$c[1],$F[0],$F[4],$F[-1],$F[2])' | sort -k1,1 -k2,2n -u|gzip> targetsites.bed.gz
+** run on slurm
+ca rissmed
+sbatch --export ALL rissmed_mirna.sh
+sbatch --export ALL rissmed_collect.sh
+*** rissmed_mirna.sh
+ #!/bin/zsh
+ #SBATCH --job-name=RIssMed
+ #SBATCH --nodes=1
+ #SBATCH --nodelist=k72
+ #SBATCH --ntasks=1
+ #SBATCH --cpus-per-task=30
+ #SBATCH --time=96:00:00
+ #SBATCH --mem=50G
+ #SBATCH --mail-user=fall@bioinf.uni-leipzig.de
+ #SBATCH --mail-type=FAIL,BEGIN,END
+ #SBATCH --output=/scr/k70san2/fall/SLURM/RIssMed.%J.log
+ ##SBATCH --error=/scr/k70san2/fall/SLURM/RIssMed.%J.err
 
-perl -wlane '@c=split(","$F[3]); print join("\t",$F[6],$c[0]-1,$c[1],$F[2]."|".$F[0],)' targetinfo
+ echo "JOB = $SLURM_JOB_NAME"
+ echo "Date              = $(date)"
+ echo "Hostname          = $(hostname -s)"
+ echo "Working Directory = $(pwd)"
+ echo ""
+ echo "Number of Nodes Allocated      = $SLURM_JOB_NUM_NODES"
+ echo "Number of Tasks Allocated      = $SLURM_NTASKS"
+ echo "Number of Cores/Task Allocated = $SLURM_CPUS_PER_TASK"
+
+ ca rissmed
+ ~/Projects/INPROGRESS/RIssmed/RIssmed/ConstraintPLFold.py -s targetgenes.fa.gz -w 250 -l 150 -u 7 -r raw -n unpaired -p paired -x targetsites.bed.gz -o mirwalk_coop -z 30 --loglevel DEBUG -m 2
+*** rissmed_collect.sh
+#!/bin/zsh
+#SBATCH --job-name=RIssMed
+#SBATCH --nodes=1
+#SBATCH --nodelist=k72
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=15
+#SBATCH --time=96:00:00
+#SBATCH --mem=50G
+#SBATCH --mail-user=fall@bioinf.uni-leipzig.de
+#SBATCH --mail-type=FAIL,BEGIN,END
+#SBATCH --output=/scr/k70san2/fall/SLURM/RIssMed.%J.log
+##SBATCH --error=/scr/k70san2/fall/SLURM/RIssMed.%J.err
+
+echo "JOB = $SLURM_JOB_NAME"
+echo "Date              = $(date)"
+echo "Hostname          = $(hostname -s)"
+echo "Working Directory = $(pwd)"
+echo ""
+echo "Number of Nodes Allocated      = $SLURM_JOB_NUM_NODES"
+echo "Number of Tasks Allocated      = $SLURM_NTASKS"
+echo "Number of Cores/Task Allocated = $SLURM_CPUS_PER_TASK"
+
+ca rissmed
+cd /scr/k70san2/fall/Constraints/miRNAs/mirwalk_coop
+~/Projects/INPROGRESS/RIssmed/RIssmed/CollectConsResults.py -u 7 -z 15 -g ../targetgenes.bed.gz -b-1,1 -c 0 -p 250,150 -o Collection_mirnas
+** Analysis
+
+
