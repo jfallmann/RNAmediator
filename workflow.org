@@ -82,7 +82,7 @@ perl -lane '{if ($F[5] eq "\+" or $F[5] eq "u" or $F[5] eq "." or $F[5] > 0){$st
  zcat Collection_unpaired.bed.gz|perl -wlane 'if ($F[-1]<-2 || $F[-1] > 2){print}'|gzip > SigFu_Collection_unpaired.bed.gz
  zcat Collection_paired.bed.gz|perl -wlane 'if ($F[-1]<-2 || $F[-1] > 2){print}'|gzip > SigFu_Collection_paired.bed.gz
 ***** Intersect
- intersectBed -s -a Sig65_Collection_unpaired.bed.gz -b Fu_peaks_for_folding.bed -wa -wb |sort -k1,1 -k2,2n|uniq|cat intersect_header -|cut -d$'\t' -f 1-15|sort -k1,1 -k2,2n|uniq|cat intersect_header -|cut -d$'\t' -f 1-15|gzip > Intersect_sig65_Fu.bed.gz
+ intersectBed -s -a Sig65_Collection_unpaired.bed.gz -b Fu_peaks_for_folding.bed -wa -wb |cut -d$'\t' -f 1-15|sort -k1,1 -k2,2n|uniq|cat intersect_header -|cut -d$'\t' -f 1-15|gzip > Intersect_sig65_Fu.bed.gz
  intersectBed -s -a Sig65_Collection_unpaired.bed.gz -b 65_peaks_for_folding.bed -wa -wb |cut -d$'\t' -f 1-15|sort -k1,1 -k2,2n|uniq|cat intersect_header -|cut -d$'\t' -f 1-15|gzip > Intersect_sig65_65.bed.gz
  intersectBed -s -a SigFu_Collection_unpaired.bed.gz -b Fu_peaks_for_folding.bed -wa -wb |cut -d$'\t' -f 1-15|sort -k1,1 -k2,2n|uniq|cat intersect_header -|cut -d$'\t' -f 1-15|gzip > Intersect_sigFu_Fu.bed.gz
  intersectBed -s -a SigFu_Collection_unpaired.bed.gz -b 65_peaks_for_folding.bed -wa -wb |cut -d$'\t' -f 1-15|sort -k1,1 -k2,2n|uniq|cat intersect_header -|cut -d$'\t' -f 1-15|gzip > Intersect_sigFu_65.bed.gz
@@ -186,5 +186,15 @@ ca rissmed
 cd /scr/k70san2/fall/Constraints/miRNAs/mirwalk_coop
 ~/Projects/INPROGRESS/RIssmed/RIssmed/CollectConsResults.py -u 7 -z 15 -g ../targetgenes.bed.gz -b-1,1 -c 0 -p 250,150 -o Collection_mirnas
 ** Analysis
+cd /scr/k70san2/fall/Constraints/miRNAs/mirwalk_coop/Collection_mirnas
+zcat Collection_unpaired.bed.gz|sed 's/-/_/'|sed 's/chr//'|sed 's/inf/5000/'|gzip > AllmiR_Collection_unpaired.bed.gz
+zcat Collection_unpaired.bed.gz|perl -wlane 'if ($F[-1]<-2 || $F[-1] > 2){print}'|sed 's/-/_/'|sed 's/chr//'|gzip > SigmiR_Collection_unpaired.bed.gz
+cd /scr/k70san2/fall/Constraints/miRNAs/
+ln -s ~/Projects/INPROGRESS/RIssmed/intersect_header .
+ln -s mirwalk_coop/Collection_mirnas/SigmiR_Collection_unpaired.bed.gz . 
+ln -s mirwalk_coop/Collection_mirnas/AllmiR_Collection_unpaired.bed.gz . 
+intersectBed -s -a SigmiR_Collection_unpaired.bed.gz -b targetsites.bed.gz -wa -wb |cut -d$'\t' -f 1-15|sort -k1,1 -k2,2n|uniq|cat intersect_header -|cut -d$'\t' -f 1-15|gzip > Intersect_sigmiRs.bed.gz
+intersectBed -s -a AllmiR_Collection_unpaired.bed.gz -b targetsites.bed.gz -wa -wb |cut -d$'\t' -f 1-15|sort -k1,1 -k2,2n|uniq|cat intersect_header -|cut -d$'\t' -f 1-15|gzip > Intersect_allmiRs.bed.gz
 
 
+intersectBed -s -a bla.gz -b targetsites.bed.gz -wa -wb |cut -d$'\t' -f 1-15|sort -k1,1 -k2,2n|uniq|cat intersect_header -|cut -d$'\t' -f 1-15|gzip > Intersect_allmiRs.bed.gz
