@@ -110,26 +110,54 @@ python ~/Projects/INPROGRESS/RIssmed/RIssmed/CollectWindowResults.py -z 4 -g ../
 conda activate base
 cd /scr/k61san/fall/RIssmed/miRNAs
 ** data
+http://www.targetscan.org/cgi-bin/targetscan/data_download.vert72.cgi
+http://mirwalk.umm.uni-heidelberg.de/resources/
+
 wget http://mirwalk.umm.uni-heidelberg.de/download/hsa_miRWalk_3UTR.zip .  
 wget ftp://ftp.ncbi.nlm.nih.gov/genomes/archive/old_refseq/H_sapiens/ARCHIVE/ANNOTATION_RELEASE.109/RNA/rna.fa.gz .
 wget ftp://ftp.ncbi.nlm.nih.gov/genomes/archive/old_refseq/H_sapiens/ARCHIVE/ANNOTATION_RELEASE.109/GFF/ref_GRCh38.p12_top_level.gff3.gz 
 wget ftp://ftp.ncbi.nlm.nih.gov/genomes/refseq/vertebrate_mammalian/Homo_sapiens/latest_assembly_versions/GCF_000001405.39_GRCh38.p13/GCF_000001405.39_GRCh38.p13_genomic.fna.gz
 wget ftp://ftp.ncbi.nlm.nih.gov/genomes/refseq/vertebrate_mammalian/Homo_sapiens/all_assembly_versions/GCF_000001405.38_GRCh38.p12/GCF_000001405.38_GRCh38.p12_genomic.fna.gz
+wget http://www.targetscan.org/vert_72/vert_72_data_download/Predicted_Target_Locations.default_predictions.hg19.bed.zip
+wget http://hgdownload.soe.ucsc.edu/goldenPath/hg19/liftOver/hg19ToHg38.over.chain.gz
+wget ftp://ftp.ensembl.org/pub/release-100/gff3/homo_sapiens/Homo_sapiens.GRCh38.100.chr.gff3.gz
+wget ftp://ftp.ensembl.org/pub/grch37/current/gtf/homo_sapiens/Homo_sapiens.GRCh37.87.gtf.gz
+wget http://www.targetscan.org/vert_72/vert_72_data_download/TSHuman_7_hg19_3UTRs.gff.zip
 ** preprocess
-unzip hsa_miRWalk_3UTR.zip
-#get genes and chromosomes
-tail -n+2 hsa_miRWalk_3UTR.txt| cut -f3|sort -u > mirWalk_targets
-zcat ref_GRCh38.p12_top_level.gff3.gz|grep $'\tgene\t' |gzip > genes.gff3.gz
-rm -f targetmatches;for i in `cat mirWalk_targets`;do a=$(fgrep "Name=$i;" <(zcat genes.gff3.gz));echo "$i\t$a" >> targetmatches;done
-perl -wlane 'next unless ($F[1]);next if ($F[0]=~/NT_|Best|NC_/ || $F[1] =~ /Best/);print join("\t","chr".$F[1],($F[4]-1),$F[5],$F[0],0,$F[7])' targetmatches |sort -k1,1 -k2,2n|gzip > targetgenes.bed.gz
+*** mirwalk
+ unzip hsa_miRWalk_3UTR.zip
+ #get genes and chromosomes
+ tail -n+2 hsa_miRWalk_3UTR.txt| cut -f3|sort -u > mirWalk_targets
+ zcat ref_GRCh38.p12_top_level.gff3.gz|grep $'\tgene\t' |gzip > genes.gff3.gz
+ rm -f targetmatches;for i in `cat mirWalk_targets`;do a=$(fgrep "Name=$i;" <(zcat genes.gff3.gz));echo "$i\t$a" >> targetmatches;done
+ perl -wlane 'next unless ($F[1]);next if ($F[0]=~/NT_|Best|NC_/ || $F[1] =~ /Best/);print join("\t","chr".$F[1],($F[4]-1),$F[5],$F[0],0,$F[7])' targetmatches |sort -k1,1 -k2,2n|gzip > targetgenes.bed.gz
 
-ca bedtools
-zcat GCF_000001405.38_GRCh38.p12_genomic.fna.gz |perl -wlane 'if ($_ =~ /^>/){@l=split(" ",$_);($h=$l[0])=~s/\>/\>chr/;print $h}else{print}'> hg38_refseq109.fa
-fastaFromBed -fi hg38_refseq109.fa -bed <(zcat targetgenes.bed.gz) -s -name+ -fullHeader |gzip > targetgenes.fa.gz
+ ca bedtools
+ zcat GCF_000001405.38_GRCh38.p12_genomic.fna.gz |perl -wlane 'if ($_ =~ /^>/){@l=split(" ",$_);($h=$l[0])=~s/\>/\>chr/;print $h}else{print}'> hg38_refseq109.fa
+ fastaFromBed -fi hg38_refseq109.fa -bed <(zcat targetgenes.bed.gz) -s -name+ -fullHeader |gzip > targetgenes.fa.gz
 
-perlswitch perl-5.22.2
-perl ~/Scripts/Perlen/JoinFiles.pl -f hsa_miRWalk_3UTR.txt,targetgenes.bed.gz -d $'\t' -j 3,4 |gzip > targetinfo.gz
-zcat targetinfo.gz|grep -v 'NA'|perl -wlane '@c=split(",",$F[3]); print join("\t",$F[5],($c[0]-1),$c[1],$F[0],$F[4],$F[-1],$F[2])' | sort -k1,1 -k2,2n -u|gzip> targetsites.bed.gz
+ perlswitch perl-5.22.2
+ perl ~/Scripts/Perlen/JoinFiles.pl -f hsa_miRWalk_3UTR.txt,targetgenes.bed.gz -d $'\t' -j 3,4 |gzip > targetinfo.gz
+ zcat targetinfo.gz|grep -v 'NA'|perl -wlane '@c=split(",",$F[3]); print join("\t",$F[5],($c[0]-1),$c[1],$F[0],$F[4],$F[-1],$F[2])' | sort -k1,1 -k2,2n -u|gzip> targetsites.bed.gz
+*** targetscan
+ cut -f1-6 Predicted_Target_Locations.default_predictions.hg19.bed |sort -k1,1 -k2,2n -u |perl -wlane 'if ($F[4] < 0){$F[4] = 0} print join("\t",@F[0..5])'> Targetscan_hg19_mir_genomic.bed
+
+ #ca ucsc
+ #liftOver Targetscan_hg19_mir_genomic.bed.gz hg19ToHg38.over.chain.gz Targetscan_hg38_mir_genomic.bed Unmapped_liftover19_38 ###COMPLETELY FUCKS UP GENE ANNOTATION
+
+ perl -wlane '@n=split(":",$F[3]);print join("\t",($F[0]=~s/chr//),$F[1],$F[2],$n[0],$F[4],$F[5],$n[1])' Targetscan_hg19_mir_genomic.bed|sort -k1,1 -k2,2n|gzip > targetsites_targetscan_hg19.bed.gz
+ intersectBed -s -a targetsites_targetscan_hg19.bed.gz -b Homo_sapiens.GRCh37.87.gtf.gz -wa -wb |gzip > Anno_targetsites_targetscan_hg19.bed.gz
+
+ 
+ cut -f4 Targetscan_hg38_mir_genomic.bed|cut -d$':' -f1|sort -u > Targetscan_targetgenes
+ rm -f targetmatches_tscan;for i in `cat Targetscan_targetgenes`;do a=$(fgrep "Name=$i;" <(zcat genes.gff3.gz));echo "$i\t$a" >> targetmatches_tscan;done
+ perl -wlane 'next unless ($F[1]);next if ($F[0]=~/NT_|Best|NC_/ || $F[1] =~ /Best/);print join("\t","chr".$F[1],($F[4]-1),$F[5],$F[0],0,$F[7])' targetmatches_tscan |sort -k1,1 -k2,2n|grep -v Gnomon|gzip > targetgenes_tscan.bed.gz
+
+ ca bedtools
+ #zcat GCF_000001405.38_GRCh38.p12_genomic.fna.gz |perl -wlane 'if ($_ =~ /^>/){@l=split(" ",$_);($h=$l[0])=~s/\>/\>chr/;print $h}else{print}'> hg38_refseq109.fa
+ fastaFromBed -fi hg38_refseq109.fa -bed <(zcat targetgenes_tscan.bed.gz|grep -v Gnomon) -s -name+ -fullHeader |gzip > tscan_targetgenes.fa.gz
+ 
+ 
 ** run on slurm
 ca rissmed
 sbatch --export ALL rissmed_mirna.sh
