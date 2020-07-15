@@ -145,19 +145,24 @@ wget http://www.targetscan.org/vert_72/vert_72_data_download/TSHuman_7_hg19_3UTR
  #ca ucsc
  #liftOver Targetscan_hg19_mir_genomic.bed.gz hg19ToHg38.over.chain.gz Targetscan_hg38_mir_genomic.bed Unmapped_liftover19_38 ###COMPLETELY FUCKS UP GENE ANNOTATION
 
- perl -wlane '@n=split(":",$F[3]);print join("\t",($F[0]=~s/chr//),$F[1],$F[2],$n[0],$F[4],$F[5],$n[1])' Targetscan_hg19_mir_genomic.bed|sort -k1,1 -k2,2n|gzip > targetsites_targetscan_hg19.bed.gz
+ perl -wlane '@n=split(":",$F[3]);($chr=$F[0])=~s/chr//;print join("\t",$chr,$F[1],$F[2],$n[0],$F[4],$F[5],$n[1])' Targetscan_hg19_mir_genomic.bed|sort -k1,1 -k2,2n|gzip > targetsites_targetscan_hg19.bed.gz
  intersectBed -s -a targetsites_targetscan_hg19.bed.gz -b Homo_sapiens.GRCh37.87.gtf.gz -wa -wb |gzip > Anno_targetsites_targetscan_hg19.bed.gz
+ #subset for min/max distance 10/250
+ closestBed -s -a Anno_targetsites_targetscan_hg19.bed.gz -b targetsites_targetscan_hg19.bed.gz -D a -io |gzip > Closest_Anno_targetsites_targetscan_hg19.bed.gz
+ zcat Closest_Anno_targetsites_targetscan_hg19.bed.gz|perl -wlane 'if (-250<=$F[-1]&&$F[-1]<=250){print}' |gzip > Testset_Anno_targetsites_targetscan_hg19.bed.gz
+ zcat Testset_Anno_targetsites_targetscan_hg19.bed.gz|perl -wlne '@F=split("\t",$_); print "chr".join("\t",@F[0..6])."\nchr".join("\t",@F[16..22])'|sort -u |sort -k1,1 -k2,2n| gzip > ToFold_targetsites_targetscan_hg19.bed.gz
 
- 
- cut -f4 Targetscan_hg38_mir_genomic.bed|cut -d$':' -f1|sort -u > Targetscan_targetgenes
- rm -f targetmatches_tscan;for i in `cat Targetscan_targetgenes`;do a=$(fgrep "Name=$i;" <(zcat genes.gff3.gz));echo "$i\t$a" >> targetmatches_tscan;done
- perl -wlane 'next unless ($F[1]);next if ($F[0]=~/NT_|Best|NC_/ || $F[1] =~ /Best/);print join("\t","chr".$F[1],($F[4]-1),$F[5],$F[0],0,$F[7])' targetmatches_tscan |sort -k1,1 -k2,2n|grep -v Gnomon|gzip > targetgenes_tscan.bed.gz
+ zcat ToFold_targetsites_targetscan_hg19.bed.gz|cut -f4 |cut -d$':' -f1|sort -u > Targetscan_targetgenes
+ fgrep $'gene\t' gencode.v19.annotation.sorted.gtf > gencode.v19.genes.sorted.gtf
+ rm -f targetmatches_tscan;for i in `cat Targetscan_targetgenes`;do a=$(fgrep "gene_name \"$i\";" <(cat gencode.v19.genes.sorted.gtf));echo "$i\t$a" >> targetmatches_tscan;done
+ perl -wlane 'next unless ($F[1]);next if ($F[0]=~/NT_|Best|NC_/ || $F[1] =~ /Best/);print join("\t",$F[1],($F[4]-1),$F[5],$F[0],0,$F[7])' targetmatches_tscan |sort -k1,1 -k2,2n|grep -v Gnomon|gzip > targetgenes_tscan.bed.gz
 
  ca bedtools
  #zcat GCF_000001405.38_GRCh38.p12_genomic.fna.gz |perl -wlane 'if ($_ =~ /^>/){@l=split(" ",$_);($h=$l[0])=~s/\>/\>chr/;print $h}else{print}'> hg38_refseq109.fa
- fastaFromBed -fi hg38_refseq109.fa -bed <(zcat targetgenes_tscan.bed.gz|grep -v Gnomon) -s -name+ -fullHeader |gzip > tscan_targetgenes.fa.gz
- 
- 
+ fastaFromBed -fi hg19.fa -bed <(zcat targetgenes_tscan.bed.gz|grep -v Gnomon) -s -name+ -fullHeader |gzip > tscan_targetgenes.fa.gz
+  
+ ~/Projects/INPROGRESS/RIssmed/RIssmed/ConstraintPLFold.py -s tscan_targetgenes.fa.gz -g targetgenes_tscan.bed.gz -w 250 -l 150 -u 7 -r raw -n unpaired -p paired -x ToFold_targetsites_targetscan_hg19.bed.gz -o targetscan_coop -z 20 -m 2
+
 ** run on slurm
 ca rissmed
 sbatch --export ALL rissmed_mirna.sh
