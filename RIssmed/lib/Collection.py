@@ -7,9 +7,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Thu Jul 16 08:36:47 2020 (+0200)
+## Last-Updated: Thu Jul 16 14:54:24 2020 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 353
+##     Update #: 355
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -87,7 +87,8 @@ from Bio.Seq import Seq
 
 try:
     scriptname = os.path.basename(inspect.stack()[-1].filename).replace('.py','')
-    log = logging.getLogger(scriptname)
+    print('LOGGING TO: '+str(scriptname))
+    log = logging.getLogger()
 
     if not (log.hasHandlers()):
         if not os.path.isfile(os.path.abspath('LOGS/'+scriptname+'.log')):

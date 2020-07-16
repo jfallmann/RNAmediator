@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Thu Jul 16 14:51:59 2020 (+0200)
+## Last-Updated: Thu Jul 16 14:54:14 2020 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 410
+##     Update #: 412
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -95,6 +95,7 @@ from lib.logger import makelogdir, setup_multiprocess_logger
 
 scriptname = os.path.basename(__file__).replace('.py','')
 makelogdir('LOGS')
+log = logging.getLogger()
 
 ##load own modules
 from lib.Collection import *
