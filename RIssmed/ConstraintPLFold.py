@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Thu Jul 16 15:23:10 2020 (+0200)
+## Last-Updated: Thu Jul 16 17:09:47 2020 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 423
+##     Update #: 424
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -96,7 +96,10 @@ from lib.logger import makelogdir, setup_multiprocess_logger, checklog
 scriptname = os.path.basename(__file__).replace('.py','')
 if not (checklog()):
     print('CREATING LOG FILES')
+    makelogdir('LOGS')
+    logfile = 'LOGS/'+scriptname+'.log'
     log = setup_multiprocess_logger(log_file='stderr', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M')
+    log = setup_multiprocess_logger(log_file=logfile, filemode='a', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M')
 
 ##load own modules
 from lib.Collection import *
@@ -1169,10 +1172,6 @@ if __name__ == '__main__':
             ts = str(datetime.datetime.fromtimestamp(os.path.getmtime(os.path.abspath('LOGS/'+scriptname+'.log'))).strftime("%Y%m%d_%H_%M_%S"))
             shutil.copy2('LOGS/'+scriptname+'.log','LOGS/'+scriptname+'_'+ts+'.log')
 
-        makelogdir('LOGS')
-        logfile = 'LOGS/'+scriptname+'.log'
-        log = setup_multiprocess_logger(log_file=logfile, filemode='a', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M')
-        log = setup_multiprocess_logger(log_file='stderr', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M')
         log.setLevel(args.loglevel)
         log.info(logid+'Running '+scriptname+' on '+str(args.procs)+' cores.')
         log.info(logid+'CLI: '+sys.argv[0]+'{}'.format(' '.join( [shlex.quote(s) for s in sys.argv[1:]] )))
