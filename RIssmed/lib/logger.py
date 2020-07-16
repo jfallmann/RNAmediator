@@ -7,9 +7,9 @@
 # Created: Mon Aug 12 10:26:55 2019 (+0200)
 # Version:
 # Package-Requires: ()
-# Last-Updated: Thu Jul 16 15:01:46 2020 (+0200)
+# Last-Updated: Thu Jul 16 15:03:15 2020 (+0200)
 #           By: Joerg Fallmann
-#     Update #: 77
+#     Update #: 78
 # URL:
 # Doc URL:
 # Keywords:
@@ -93,7 +93,7 @@ def setup_multiprocess_logger(name, log_file, filemode='a', logformat=None, date
     return logger
 
 def checklog():
-    test = logging.get_logger()
+    test = logging.getLogger()
     if not (test.hasHandlers()):
         return False
     else:
