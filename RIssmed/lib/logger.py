@@ -7,9 +7,9 @@
 # Created: Mon Aug 12 10:26:55 2019 (+0200)
 # Version:
 # Package-Requires: ()
-# Last-Updated: Mon May 11 15:48:47 2020 (+0200)
+# Last-Updated: Thu Jul 16 14:48:01 2020 (+0200)
 #           By: Joerg Fallmann
-#     Update #: 73
+#     Update #: 74
 # URL:
 # Doc URL:
 # Keywords:
@@ -64,7 +64,6 @@ def setup_logger(name, log_file, filemode='a', logformat=None, datefmt=None, lev
     else:
         logger = logging.getLogger(name)
     if log_file is not 'stderr':
-        backup(log_file)
         handler = logging.FileHandler(log_file, mode=filemode)
     else:
         handler = logging.StreamHandler(sys.stderr)
@@ -82,7 +81,6 @@ def setup_multiprocess_logger(name, log_file, filemode='a', logformat=None, date
     logger = multiprocessing.get_logger() # does not take name argument
 
     if log_file is not 'stderr':
-        backup(log_file)
         handler = logging.FileHandler(log_file, mode=filemode)
     else:
         handler = logging.StreamHandler(sys.stderr)
