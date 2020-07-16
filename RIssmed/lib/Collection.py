@@ -7,9 +7,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Thu Jul 16 15:04:21 2020 (+0200)
+## Last-Updated: Thu Jul 16 15:11:16 2020 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 357
+##     Update #: 358
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -86,7 +86,8 @@ from Bio.Seq import Seq
 ############################################################
 
 try:
-    scriptname = os.path.basename(inspect.stack()[-1].filename).replace('.py','')
+    #scriptname = os.path.basename(inspect.stack()[-1].filename).replace('.py','')
+    scriptname = os.path.basename(__file__).replace('.py','')
     print('LOGGING TO: '+str(scriptname))
     log = logging.getLogger()
 
