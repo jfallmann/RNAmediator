@@ -7,9 +7,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Thu Jul 16 15:11:16 2020 (+0200)
+## Last-Updated: Thu Jul 16 15:19:00 2020 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 358
+##     Update #: 366
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -87,8 +87,7 @@ from Bio.Seq import Seq
 
 try:
     #scriptname = os.path.basename(inspect.stack()[-1].filename).replace('.py','')
-    scriptname = os.path.basename(__file__).replace('.py','')
-    print('LOGGING TO: '+str(scriptname))
+    scriptn = os.path.basename(__file__).replace('.py','')
     log = logging.getLogger()
 
 except Exception as err:
@@ -104,7 +103,7 @@ except Exception as err:
 ################
 
 def create_kmers(choices, length):
-    logid = scriptname+'.create_kmers: '
+    logid = scriptn+'.create_kmers: '
     try:
         #     choices=['A','T','G','C']
         bases = list(choices)
@@ -120,7 +119,7 @@ def create_kmers(choices, length):
         log.error(logid+''.join(tbe.format()))
 
 def randseq(alphabet, length):
-    logid = scriptname+'.randseq: '
+    logid = scriptn+'.randseq: '
     try:
         l=''
         for i in range(length):
@@ -134,7 +133,7 @@ def randseq(alphabet, length):
         log.error(logid+''.join(tbe.format()))
 
 def weightedrandseq(alphabet, probs , length):
-    logid = scriptname+'.weightedrandseq: '
+    logid = scriptn+'.weightedrandseq: '
     try:
         seq=[]
         for i in alphabet:
@@ -160,7 +159,7 @@ def weightedrandseq(alphabet, probs , length):
 ################
 
 def removekey(d, key):
-    logid = scriptname+'.removekey: '
+    logid = scriptn+'.removekey: '
     try:
         r = dict(d)
         del r[key]
@@ -173,7 +172,7 @@ def removekey(d, key):
         log.error(logid+''.join(tbe.format()))
 
 def getlowest_list(a, n):
-    logid = scriptname+'.getlowest_list: '
+    logid = scriptn+'.getlowest_list: '
     try:
         if n > len(a) - 1:
             b = len(a) - 1
@@ -191,7 +190,7 @@ def getlowest_list(a, n):
         log.error(logid+''.join(tbe.format()))
 
 def gethighest_list(a, n):
-    logid = scriptname+'.gethighest_list: '
+    logid = scriptn+'.gethighest_list: '
     try:
         if len(a)-n < 0:
             b = len(a)-1
@@ -209,7 +208,7 @@ def gethighest_list(a, n):
         log.error(logid+''.join(tbe.format()))
 
 def getlowest_dict(a, n):
-    logid = scriptname+'.getlowest_dict: '
+    logid = scriptn+'.getlowest_dict: '
     try:
         if n > len(a):
             b = len(a)
@@ -227,7 +226,7 @@ def getlowest_dict(a, n):
         log.error(logid+''.join(tbe.format()))
 
 def gethighest_dict(a, n):
-    logid = scriptname+'.gethighest_dict: '
+    logid = scriptn+'.gethighest_dict: '
     try:
         if n > len(a):
             b = len(a)
@@ -249,7 +248,7 @@ def gethighest_dict(a, n):
 ####################
 
 def toarray(file, ulim=None):
-    logid = scriptname+'.toarray: '
+    logid = scriptn+'.toarray: '
     try:
         if not ulim:
             ulim = 1
@@ -263,7 +262,7 @@ def toarray(file, ulim=None):
         log.error(logid+''.join(tbe.format()))
 
 def convertcol(entry):
-    logid = scriptname+'.convertcol: '
+    logid = scriptn+'.convertcol: '
     try:
         if isinvalid(entry):
 #       if entry is None or entry == 'NA' or entry == 'nan' or entry is np.nan:
@@ -282,7 +281,7 @@ def convertcol(entry):
 ####################
 
 def get_location(entry):
-    logid = scriptname+'.get_location: '
+    logid = scriptn+'.get_location: '
     try:
         ret = list()
         start = end = strand = None
@@ -304,7 +303,7 @@ def get_location(entry):
         log.error(logid+''.join(tbe.format()))
 
 def parse_annotation_bed(bed, annotated=None):
-    logid = scriptname+'.parse_annotation_bed: '
+    logid = scriptn+'.parse_annotation_bed: '
     anno = defaultdict(list)
     if os.path.isfile(os.path.abspath(bed)):
         if '.gz' in bed:
@@ -335,7 +334,7 @@ def parse_annotation_bed(bed, annotated=None):
         log.error(logid+''.join(tbe.format()))
 
 def readConstraintsFromBed(bed, linewise=None):
-    logid = scriptname+'.readConstraintsFromBed: '
+    logid = scriptn+'.readConstraintsFromBed: '
     cons = defaultdict(list)
     try:
         for line in bed:
@@ -357,7 +356,7 @@ def readConstraintsFromBed(bed, linewise=None):
         log.error(logid+''.join(tbe.format()))
 
 def readPairedConstraintsFromBed(bed, linewise=None):
-    logid = scriptname+'.readPairedConstraintsFromBed: '
+    logid = scriptn+'.readPairedConstraintsFromBed: '
     cons = defaultdict(list)
     try:
         for line in bed:
@@ -386,7 +385,7 @@ def readPairedConstraintsFromBed(bed, linewise=None):
         log.error(logid+''.join(tbe.format()))
 
 def readConstraintsFromCSV(csv, linewise=None):
-    logid = scriptname+'.readConstraintsCSV: '
+    logid = scriptn+'.readConstraintsCSV: '
     cons = defaultdict(
         lambda: defaultdict(list)
     )
@@ -410,7 +409,7 @@ def readConstraintsFromCSV(csv, linewise=None):
         log.error(logid+''.join(tbe.format()))
 
 def readConstraintsFromGeneric(generic, linewise=None):
-    logid = scriptname+'.readConstraintsFromGeneric: '
+    logid = scriptn+'.readConstraintsFromGeneric: '
     cons = defaultdict(
         lambda: defaultdict(list)
     )
@@ -447,7 +446,7 @@ def readConstraintsFromGeneric(generic, linewise=None):
 ##############################
 
 def isvalid(x=None):
-    logid = scriptname+'.isvalid: '
+    logid = scriptn+'.isvalid: '
     try:
         if x:
             if x in ('None', 'nan', 'none', 'NA', 'NAN') or x is None or x is np.nan:
@@ -464,7 +463,7 @@ def isvalid(x=None):
         log.error(logid+''.join(tbe.format()))
 
 def isinvalid(x=None):
-    logid = scriptname+'.isinvalid: '
+    logid = scriptn+'.isinvalid: '
     try:
         if x:
             if x in ('None', 'nan', 'none', 'NA', 'NAN') or x is None or x is np.nan:
@@ -481,7 +480,7 @@ def isinvalid(x=None):
         log.error(logid+''.join(tbe.format()))
 
 def makeoutdir(outdir):
-    logid = scriptname+'.makeoutdir: '
+    logid = scriptn+'.makeoutdir: '
     try:
         if not os.path.isabs(outdir):
             outdir =  os.path.abspath(outdir)
@@ -496,7 +495,7 @@ def makeoutdir(outdir):
         log.error(logid+''.join(tbe.format()))
 
 def parseseq(sequence):
-    logid = scriptname+'.parseseq: '
+    logid = scriptn+'.parseseq: '
     try:
         if (isinstance(sequence, StringIO)):
             seq = sequence
@@ -528,7 +527,7 @@ def parseseq(sequence):
         log.error(logid+''.join(tbe.format()))
 
 def plot_data(fa, raw, consu, consp, const, xs, cons, saveas, outdir):
-    logid = scriptname+'.plot_data: '
+    logid = scriptn+'.plot_data: '
     anime = []
     #define xs for constraint line
     consl = []
@@ -574,7 +573,7 @@ def plot_data(fa, raw, consu, consp, const, xs, cons, saveas, outdir):
         log.error(logid+''.join(tbe.format()))
 
 def plot_temp(fa, raw, temp, xs, saveas, outdir):
-    logid = scriptname+'.plot_temp: '
+    logid = scriptn+'.plot_temp: '
     try:
         anime = []
         #define xs for constraint line
@@ -607,7 +606,7 @@ def plot_temp(fa, raw, temp, xs, saveas, outdir):
         log.error(logid+''.join(tbe.format()))
 
 def calc_gibbs(fc):
-    logid = scriptname+'.calc_gibbs: '
+    logid = scriptn+'.calc_gibbs: '
     try:
         return fc.pf()[1]
     except Exception as err:
@@ -618,7 +617,7 @@ def calc_gibbs(fc):
         log.error(logid+''.join(tbe.format()))
 
 def get_bppm(tmp, start, end):
-    logid = scriptname+'.get_bppm: '
+    logid = scriptn+'.get_bppm: '
     bppm = []
     try:
 #        log.debug('\t'.join(map(str,[tmp,start,end])))
@@ -639,7 +638,7 @@ def get_bppm(tmp, start, end):
         log.error(logid+''.join(tbe.format()))
 
 def get_ddg(file):
-    logid = scriptname+'.parseseq: '
+    logid = scriptn+'.parseseq: '
     try:
         ret = defaultdict()
         if (isinstance(file, str) and os.path.isfile(file)):
@@ -667,7 +666,7 @@ def get_ddg(file):
         log.error(logid+''.join(tbe.format()))
 
 def calc_ddg(ddgs):
-    logid = scriptname+'.calc_ddg: '
+    logid = scriptn+'.calc_ddg: '
 
     try:
         log.debug(logid+str(ddgs))
@@ -684,7 +683,7 @@ def calc_ddg(ddgs):
         log.error(logid+''.join(tbe.format()))
 
 def calc_bpp(bppm):
-    logid = scriptname+'.calc_bpp: '
+    logid = scriptn+'.calc_bpp: '
     bpp = 0.0;
     try:
         for entry in bppm:
@@ -700,7 +699,7 @@ def calc_bpp(bppm):
     return bpp
 
 def calc_nrg(bpp):
-    logid = scriptname+'.calc_nrg: '
+    logid = scriptn+'.calc_nrg: '
     #set kT for nrg2prob and vice versa calcs
     kT = 0.61632077549999997
     nrg = 0.0;
@@ -718,7 +717,7 @@ def calc_nrg(bpp):
 def print_region_up(data, seqlength=None, region=None):
     #   pp = pprint.PrettyPrinter(indent=4)#use with pp.pprint(datastructure)
     #   pp.pprint(data)
-    logid = scriptname+'.print_region_up: '
+    logid = scriptn+'.print_region_up: '
     try:
         if data:
             ups=''
@@ -744,7 +743,7 @@ def print_region_up(data, seqlength=None, region=None):
 def print_up(data=None, seqlength=None, region=None):
     #   pp = pprint.PrettyPrinter(indent=4)#use with pp.pprint(datastructure)
     #   pp.pprint(data)
-    logid = scriptname+'.print_up: '
+    logid = scriptn+'.print_up: '
     try:
         if data:
             ups=''
@@ -769,7 +768,7 @@ def print_up(data=None, seqlength=None, region=None):
 def up_to_array(data=None, region=None, seqlength=None):
     #   pp = pprint.PrettyPrinter(indent=4)#use with pp.pprint(datastructure)
     #   pp.pprint(data[165553:165588])
-    logid = scriptname+'.up_to_array: '
+    logid = scriptn+'.up_to_array: '
     try:
         if data:
             entries=[]
@@ -797,7 +796,7 @@ def up_to_array(data=None, region=None, seqlength=None):
         log.error(logid+''.join(tbe.format()))
 
 def npprint(a, o=None):#, format_string ='{0:.2f}'):
-    logid = scriptname+'.npprint: '
+    logid = scriptn+'.npprint: '
     try:
         out = ''
         it = np.nditer(a, flags=['f_index'])
@@ -816,7 +815,7 @@ def npprint(a, o=None):#, format_string ='{0:.2f}'):
         log.error(logid+''.join(tbe.format()))
 
 def printdiff(a, o=None):
-    logid = scriptname+'.printdiff: '
+    logid = scriptn+'.printdiff: '
     try:
         np.save(o, a)
         #np.savetxt(o, a, delimiter='\t', encoding='bytes')
@@ -828,7 +827,7 @@ def printdiff(a, o=None):
         log.error(logid+''.join(tbe.format()))
 
 def read_precalc_plfold(data, name, seq):
-    logid = scriptname+'.read_precalc_plfold: '
+    logid = scriptn+'.read_precalc_plfold: '
     try:
         for i in range(len(seq)):
             data.append([])
@@ -850,7 +849,7 @@ def read_precalc_plfold(data, name, seq):
         log.error(logid+''.join(tbe.format()))
 
 def pl_to_array(name, ulim, fmt='npy'):
-    logid = scriptname+'.pl_to_array: '
+    logid = scriptn+'.pl_to_array: '
     try:
         log.debug('\t'.join([logid,name]))
         if fmt == 'txt':
@@ -865,7 +864,7 @@ def pl_to_array(name, ulim, fmt='npy'):
         log.error(logid+' '+name+': '.join(tbe.format()))
 
 def idfromfa(id):
-    logid = scriptname+'.idfromfa: '
+    logid = scriptn+'.idfromfa: '
     goi, chrom, strand = [None, None, None]
     id = id.replace('_','-')
     try:
@@ -883,7 +882,7 @@ def idfromfa(id):
         sys.exit('Could not assign any value from fasta header, please check your fasta files')
 
 def constrain_paired(fc, start, end):
-    logid = scriptname+'.constrain_paired: '
+    logid = scriptn+'.constrain_paired: '
     try:
         for x in range(start+1, end+1):
             fc.hc_add_bp_nonspecific(x,0) #0 means without direction  ( $ d < 0 $: pairs upstream, $ d > 0 $: pairs downstream, $ d == 0 $: no direction)
@@ -896,7 +895,7 @@ def constrain_paired(fc, start, end):
         log.error(logid+''.join(tbe.format()))
 
 def constrain_unpaired(fc, start, end):
-    logid = scriptname+'.constrain_unpaired: '
+    logid = scriptn+'.constrain_unpaired: '
     try:
         for x in range(start+1, end+1):
             fc.hc_add_up(x)
@@ -909,7 +908,7 @@ def constrain_unpaired(fc, start, end):
         log.error(logid+''.join(tbe.format()))
 
 def print_globaldicts():
-    logid = scriptname+'.print_globaldicts: '
+    logid = scriptn+'.print_globaldicts: '
     try:
         for name, value in globals().copy().items():
             print(name, value)
@@ -922,7 +921,7 @@ def print_globaldicts():
 
 
 def print_globallists():
-    logid = scriptname+'.print_globallists: '
+    logid = scriptn+'.print_globallists: '
     try:
         for name, value in globals().deepcopy().items():
             print(name, value)
@@ -934,7 +933,7 @@ def print_globallists():
         log.error(logid+''.join(tbe.format()))
 
 def backup(file):
-    logid = scriptname+'.backup: '
+    logid = scriptn+'.backup: '
     try:
         if os.path.exists(file):
             os.rename(file,file+'.bak')
