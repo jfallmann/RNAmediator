@@ -7,9 +7,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Thu Jul 16 15:19:00 2020 (+0200)
+## Last-Updated: Thu Jul 16 15:24:39 2020 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 366
+##     Update #: 367
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -88,7 +88,7 @@ from Bio.Seq import Seq
 try:
     #scriptname = os.path.basename(inspect.stack()[-1].filename).replace('.py','')
     scriptn = os.path.basename(__file__).replace('.py','')
-    log = logging.getLogger()
+    log = logging.getLogger(__name__)
 
 except Exception as err:
     exc_type, exc_value, exc_tb = sys.exc_info()
