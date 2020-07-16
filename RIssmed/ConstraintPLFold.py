@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Thu Jul 16 15:06:10 2020 (+0200)
+## Last-Updated: Thu Jul 16 15:07:27 2020 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 418
+##     Update #: 419
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -96,6 +96,7 @@ from lib.logger import makelogdir, setup_multiprocess_logger, checklog
 scriptname = os.path.basename(__file__).replace('.py','')
 
 if not (checklog()):
+    print('CREATING LOG FILES')
     makelogdir('LOGS')
     logfile = 'LOGS/'+scriptname+'.log'
     log = setup_multiprocess_logger(log_file=logfile, filemode='a', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M')
