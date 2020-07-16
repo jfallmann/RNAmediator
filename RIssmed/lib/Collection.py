@@ -7,9 +7,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Thu Jul 16 14:59:06 2020 (+0200)
+## Last-Updated: Thu Jul 16 15:04:21 2020 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 356
+##     Update #: 357
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -89,22 +89,6 @@ try:
     scriptname = os.path.basename(inspect.stack()[-1].filename).replace('.py','')
     print('LOGGING TO: '+str(scriptname))
     log = logging.getLogger()
-
-    #if not (log.hasHandlers()):
-    #    if not os.path.isfile(os.path.abspath('LOGS/'+scriptname+'.log')):
-    #        logdir =  os.path.abspath('LOGS')
-    #        if not os.path.exists(logdir):
-    #            os.makedirs(logdir)
-    #    open(os.path.abspath('LOGS/'+scriptname+'.log'),'a').close()
-    #
-    #    handler = logging.FileHandler(os.path.abspath('LOGS/'+scriptname+'.log'), mode='a')
-    #    handler.setFormatter(logging.Formatter(fmt='%(asctime)s %(levelname)-8s %(name)-12s %(message)s',datefmt='%m-%d %H:%M'))
-    #    log.addHandler(handler)
-    #    handler = logging.StreamHandler(sys.stderr)
-    #    handler.setFormatter(logging.Formatter(fmt='%(asctime)s %(levelname)-8s %(name)-12s %(message)s',datefmt='%m-%d %H:%M'))
-    #    log.addHandler(handler)
-    #    lvl = log.level if log.level else 'INFO'
-    #    log.setLevel(lvl)
 
 except Exception as err:
     exc_type, exc_value, exc_tb = sys.exc_info()

@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Thu Jul 16 15:02:39 2020 (+0200)
+## Last-Updated: Thu Jul 16 15:05:21 2020 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 417
+##     Update #: 418
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -98,8 +98,8 @@ scriptname = os.path.basename(__file__).replace('.py','')
 if not (checklog()):
     makelogdir('LOGS')
     logfile = 'LOGS/'+scriptname+'.log'
-    log = setup_multiprocess_logger(name=scriptname, log_file=logfile, filemode='a', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M')
-    log = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M')
+    log = setup_multiprocess_logger(name=scriptname, log_file=logfile, filemode='a', logformat='%(asctime)s %(name)-12s %(message)s', datefmt='%m-%d %H:%M')
+    log = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(message)s', datefmt='%m-%d %H:%M')
 
 ##load own modules
 from lib.Collection import *
