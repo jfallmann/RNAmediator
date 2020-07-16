@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Thu Jul 16 17:09:47 2020 (+0200)
+## Last-Updated: Thu Jul 16 17:12:58 2020 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 424
+##     Update #: 427
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -98,6 +98,12 @@ if not (checklog()):
     print('CREATING LOG FILES')
     makelogdir('LOGS')
     logfile = 'LOGS/'+scriptname+'.log'
+    if not os.path.isfile(os.path.abspath(logfile)):
+            open(logfile,'a').close()
+        else:
+            ts = str(datetime.datetime.fromtimestamp(os.path.getmtime(os.path.abspath(logfile))).strftime("%Y%m%d_%H_%M_%S"))
+            shutil.copy2(logfile,'LOGS/'+scriptname+'_'+ts+'.log')
+
     log = setup_multiprocess_logger(log_file='stderr', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M')
     log = setup_multiprocess_logger(log_file=logfile, filemode='a', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M')
 
@@ -1165,12 +1171,6 @@ if __name__ == '__main__':
     logid = scriptname+'.main: '
     try:
         args=parseargs()
-
-        if not os.path.isfile(os.path.abspath('LOGS/'+scriptname+'.log')):
-            open('LOGS/'+scriptname+'.log','a').close()
-        else:
-            ts = str(datetime.datetime.fromtimestamp(os.path.getmtime(os.path.abspath('LOGS/'+scriptname+'.log'))).strftime("%Y%m%d_%H_%M_%S"))
-            shutil.copy2('LOGS/'+scriptname+'.log','LOGS/'+scriptname+'_'+ts+'.log')
 
         log.setLevel(args.loglevel)
         log.info(logid+'Running '+scriptname+' on '+str(args.procs)+' cores.')
