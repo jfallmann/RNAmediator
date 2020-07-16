@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Thu Jul 16 08:44:11 2020 (+0200)
+## Last-Updated: Thu Jul 16 08:47:48 2020 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 457
+##     Update #: 458
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -80,6 +80,8 @@ import importlib
 import multiprocessing
 from multiprocessing import get_context
 import traceback as tb
+import shutil
+import shlex
 from Randseq import createrandseq
 #Biopython stuff
 from Bio import SeqIO

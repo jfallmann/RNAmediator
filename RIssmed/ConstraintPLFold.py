@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Thu Jul 16 08:43:22 2020 (+0200)
+## Last-Updated: Thu Jul 16 08:47:24 2020 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 408
+##     Update #: 409
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -80,6 +80,7 @@ import gzip
 import importlib
 import traceback as tb
 import shlex
+import shutil
 from Randseq import createrandseq
 #Biopython stuff
 from Bio import SeqIO
