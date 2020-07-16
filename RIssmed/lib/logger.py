@@ -7,9 +7,9 @@
 # Created: Mon Aug 12 10:26:55 2019 (+0200)
 # Version:
 # Package-Requires: ()
-# Last-Updated: Thu Jul 16 15:03:15 2020 (+0200)
+# Last-Updated: Thu Jul 16 15:06:14 2020 (+0200)
 #           By: Joerg Fallmann
-#     Update #: 78
+#     Update #: 79
 # URL:
 # Doc URL:
 # Keywords:
@@ -75,7 +75,7 @@ def setup_logger(name, log_file, filemode='a', logformat=None, datefmt=None, lev
 
     return logger
 
-def setup_multiprocess_logger(name, log_file, filemode='a', logformat=None, datefmt=None, level='WARNING'):
+def setup_multiprocess_logger(log_file, filemode='a', logformat=None, datefmt=None, level='WARNING'):
     """Function setup as many loggers as you want"""
 
     logger = multiprocessing.get_logger() # does not take name argument
