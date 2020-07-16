@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Mon May 11 15:26:18 2020 (+0200)
+## Last-Updated: Thu Jul 16 08:44:11 2020 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 454
+##     Update #: 457
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -68,12 +68,6 @@
 ### Code:
 ### IMPORTS
 import os, sys, inspect
-##load own modules
-from lib.logger import makelogdir, setup_multiprocess_logger
-
-scriptname=os.path.basename(__file__).replace('.py','')
-
-from lib.Collection import *
 #other modules
 import argparse
 import pprint
@@ -84,7 +78,7 @@ import gzip
 import copy
 import importlib
 import multiprocessing
-from multiprocessing import Manager
+from multiprocessing import get_context
 import traceback as tb
 from Randseq import createrandseq
 #Biopython stuff
@@ -94,6 +88,25 @@ from Bio.Seq import Seq
 import numpy as np
 from random import choices, choice, shuffle # need this if tempprobing was choosen
 import collections
+
+#Logging
+import datetime
+from lib.logger import makelogdir, setup_multiprocess_logger
+
+scriptname = os.path.basename(__file__).replace('.py','')
+makelogdir('LOGS')
+if not os.path.isfile(os.path.abspath('LOGS/'+scriptname+'.log')):
+    open('LOGS/'+scriptname+'.log','a').close()
+else:
+    ts = str(datetime.datetime.fromtimestamp(os.path.getmtime(os.path.abspath('LOGS/'+scriptname+'.log'))).strftime("%Y%m%d_%H_%M_%S"))
+    shutil.copy2('LOGS/'+scriptname+'.log','LOGS/'+scriptname+'_'+ts+'.log')
+
+logfile = 'LOGS/'+scriptname+'.log'
+log = setup_multiprocess_logger(name=scriptname, log_file=logfile, filemode='a', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M')
+log = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M')
+
+##load own modules
+from lib.Collection import *
 
 def parseargs():
     parser = argparse.ArgumentParser(description='Calculate base pairing probs of given seqs or random seqs for given window size, span and region.')
@@ -177,34 +190,34 @@ def fold(sequence, window, span, unconstraint, unpaired, paired, length, gc, num
 
         # Create process pool with processes
         num_processes = procs or 1
-        pool = multiprocessing.Pool(processes=num_processes, maxtasksperchild=1)
+        with get_context("spawn").Pool(processes=num_processes-1, maxtasksperchild=1) as pool:
 
-        # constraints
-        if constrain == 'temperature':
-            log.info(logid+'Calculating probs for temperature constraint '+temprange)
+            # constraints
+            if constrain == 'temperature':
+                log.info(logid+'Calculating probs for temperature constraint '+temprange)
 
-            ts, te = map(int,temprange.split('-'))
+                ts, te = map(int,temprange.split('-'))
 
-            for fa in SeqIO.parse(seq,'fasta'):
-                fa.seq = str(fa.seq).upper()
-                goi, chrom, strand = idfromfa(fa.id)
+                for fa in SeqIO.parse(seq,'fasta'):
+                    fa.seq = str(fa.seq).upper()
+                    goi, chrom, strand = idfromfa(fa.id)
 
-                if pattern and pattern not in goi:
-                    next
-                else:
-                    log.info(logid+'Working on ' + goi)
+                    if pattern and pattern not in goi:
+                        next
+                    else:
+                        log.info(logid+'Working on ' + goi)
 
-                if not window:
-                    window = len(fa.seq)
-                if not span:
-                    span = len(fa.seq)
+                    if not window:
+                        window = len(fa.seq)
+                    if not span:
+                        span = len(fa.seq)
 
-                for temp in range(ts,te+1):
-                    an = [np.nan]
-                    # Create the process, and connect it to the worker function
-                    pool.apply_async(constrain_temp, args=(fa, temp, window, span, an, save, outdir))
-            pool.close()
-            pool.join()
+                    for temp in range(ts,te+1):
+                        an = [np.nan]
+                        # Create the process, and connect it to the worker function
+                        pool.apply_async(constrain_temp, args=(fa, temp, window, span, an, save, outdir))
+                pool.close()
+                pool.join()
 
         else:
             conslist = list()
@@ -686,9 +699,6 @@ if __name__ == '__main__':
     logid = scriptname+'.main: '
     try:
         args=parseargs()
-        logfile = 'LOGS/'+scriptname+'.log'
-        log = setup_multiprocess_logger(name=scriptname, log_file=logfile, filemode='a', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M')
-        log = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M')
         log.setLevel(args.loglevel)
         log.info(logid+'Running ConstraintFold on '+str(args.procs)+' cores')
         preprocess(args.sequence, args.window, args.span, args.unconstraint, args.unpaired, args.paired, args.length, args.gc, args.number, args.constrain, args.conslength, args.alphabet, args.save, args.procs, args.vrna, args.temprange, args.outdir, args.genes, args.verbosity, args.pattern, args.cutoff)

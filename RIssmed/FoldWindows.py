@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Mon May 11 11:24:04 2020 (+0200)
+## Last-Updated: Thu Jul 16 08:44:26 2020 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 159
+##     Update #: 162
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -68,9 +68,6 @@
 ### Code:
 ### IMPORTS
 import os, sys, inspect
-##load own modules
-from lib.Collection import *
-from lib.logger import makelogdir, setup_multiprocess_logger
 
 #other modules
 import argparse
@@ -81,7 +78,7 @@ import math
 import gzip
 import importlib
 import multiprocessing
-from multiprocessing import Manager
+from multiprocessing import get_context
 import traceback as tb
 #Biopython stuff
 from Bio import SeqIO
@@ -90,6 +87,25 @@ from Bio.Seq import Seq
 import numpy as np
 from random import choices, choice, shuffle # need this if tempprobing was choosen
 from Randseq import createrandseq
+
+#Logging
+import datetime
+from lib.logger import makelogdir, setup_multiprocess_logger
+
+scriptname = os.path.basename(__file__).replace('.py','')
+makelogdir('LOGS')
+if not os.path.isfile(os.path.abspath('LOGS/'+scriptname+'.log')):
+    open('LOGS/'+scriptname+'.log','a').close()
+else:
+    ts = str(datetime.datetime.fromtimestamp(os.path.getmtime(os.path.abspath('LOGS/'+scriptname+'.log'))).strftime("%Y%m%d_%H_%M_%S"))
+    shutil.copy2('LOGS/'+scriptname+'.log','LOGS/'+scriptname+'_'+ts+'.log')
+
+logfile = 'LOGS/'+scriptname+'.log'
+log = setup_multiprocess_logger(name=scriptname, log_file=logfile, filemode='a', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M')
+log = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M')
+
+##load own modules
+from lib.Collection import *
 
 def parseargs():
     parser = argparse.ArgumentParser(description='Calculate base pairing probs of given seqs or random seqs for given window size, span and region.')
@@ -181,22 +197,22 @@ def fold(sequence, window, span, region, printto, length, gc, number, alphabet, 
             kT = 0.61632077549999997
 # Create process pool with processes
             num_processes = procs or 1
-            pool = multiprocessing.Pool(processes=num_processes)
+            with get_context("spawn").Pool(processes=num_processes-1, maxtasksperchild=1) as pool:
 
-            try:
-                for reg in range(0,len(fa.seq)-window+1):
-#subseq
-                    seqtofold = str(fa.seq[reg:reg+window])
-                    pool.apply_async(fold_windows, args=(fa, seqtofold, reg, window, span, region, save, printto, outdir))
-            except Exception as err:
-                exc_type, exc_value, exc_tb = sys.exc_info()
-                tbe = tb.TracebackException(
-                    exc_type, exc_value, exc_tb,
-                    )
-                log.error(logid+''.join(tbe.format()))
+                try:
+                    for reg in range(0,len(fa.seq)-window+1):
+    #subseq
+                        seqtofold = str(fa.seq[reg:reg+window])
+                        pool.apply_async(fold_windows, args=(fa, seqtofold, reg, window, span, region, save, printto, outdir))
+                except Exception as err:
+                    exc_type, exc_value, exc_tb = sys.exc_info()
+                    tbe = tb.TracebackException(
+                        exc_type, exc_value, exc_tb,
+                        )
+                    log.error(logid+''.join(tbe.format()))
 
-            pool.close()
-            pool.join()
+                pool.close()
+                pool.join()
 
     printlog("DONE: output in: " + str(outdir))
 
@@ -408,8 +424,9 @@ if __name__ == '__main__':
         args=parseargs()
         logid = scriptname+'.main: '
 
-        log = setup_multiprocess_logger(name=scriptname, log_file='LOGS/'+scriptname+'.log', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
-        log = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
+        log.setLevel(args.loglevel)
+        log.info(logid+'Running '+scriptname+' on '+str(args.procs)+' cores.')
+        log.info(logid+'CLI: '+sys.argv[0]+'{}'.format(' '.join( [shlex.quote(s) for s in sys.argv[1:]] )))
 
         fold(args.sequence, args.window, args.span, args.region, args.printto, args.length, args.gc, args.number, args.alphabet, args.save, args.procs, args.vrna, args.outdir, args.verbosity, args.pattern)
             except Exception as err:

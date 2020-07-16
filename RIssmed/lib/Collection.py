@@ -7,9 +7,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Thu Jul  2 15:38:23 2020 (+0200)
+## Last-Updated: Thu Jul 16 08:36:47 2020 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 351
+##     Update #: 353
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -75,6 +75,7 @@ from io import StringIO
 import os
 import gzip
 import math
+import datetime
 from collections import defaultdict
 #Biopython stuff
 from Bio import SeqIO
@@ -101,7 +102,7 @@ try:
         handler = logging.StreamHandler(sys.stderr)
         handler.setFormatter(logging.Formatter(fmt='%(asctime)s %(levelname)-8s %(name)-12s %(message)s',datefmt='%m-%d %H:%M'))
         log.addHandler(handler)
-        lvl = log.level if log.level else 'DEBUG'
+        lvl = log.level if log.level else 'INFO'
         log.setLevel(lvl)
 
 except Exception as err:

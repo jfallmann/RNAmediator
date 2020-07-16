@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Thu Jul 16 08:26:07 2020 (+0200)
+## Last-Updated: Thu Jul 16 08:43:22 2020 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 406
+##     Update #: 408
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -72,10 +72,6 @@ import os, sys, inspect
 import argparse
 import multiprocessing
 from multiprocessing import get_context
-from lib.logger import makelogdir, setup_multiprocess_logger
-##load own modules
-from lib.Collection import *
-
 import pprint
 from io import StringIO
 import time
@@ -91,6 +87,25 @@ from Bio.Seq import Seq
 #numpy
 import numpy as np
 from random import choices, choice, shuffle # need this if tempprobing was choosen
+
+#Logging
+import datetime
+from lib.logger import makelogdir, setup_multiprocess_logger
+
+scriptname = os.path.basename(__file__).replace('.py','')
+makelogdir('LOGS')
+if not os.path.isfile(os.path.abspath('LOGS/'+scriptname+'.log')):
+    open('LOGS/'+scriptname+'.log','a').close()
+else:
+    ts = str(datetime.datetime.fromtimestamp(os.path.getmtime(os.path.abspath('LOGS/'+scriptname+'.log'))).strftime("%Y%m%d_%H_%M_%S"))
+    shutil.copy2('LOGS/'+scriptname+'.log','LOGS/'+scriptname+'_'+ts+'.log')
+
+logfile = 'LOGS/'+scriptname+'.log'
+log = setup_multiprocess_logger(name=scriptname, log_file=logfile, filemode='a', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M')
+log = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M')
+
+##load own modules
+from lib.Collection import *
 
 def parseargs():
     parser = argparse.ArgumentParser(description='Calculate base pairing probs of given seqs or random seqs for given window size, span and region.')
@@ -1153,11 +1168,6 @@ if __name__ == '__main__':
     logid = scriptname+'.main: '
     try:
         args=parseargs()
-        # Define loggers
-        scriptname = os.path.basename(__file__).replace('.py','')
-        logfile = 'LOGS/'+scriptname+'.log'
-        log = setup_multiprocess_logger(name=scriptname, log_file=logfile, filemode='a', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M')
-        log = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M')
 
         log.setLevel(args.loglevel)
         log.info(logid+'Running '+scriptname+' on '+str(args.procs)+' cores.')
