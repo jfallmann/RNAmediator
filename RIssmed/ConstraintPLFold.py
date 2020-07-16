@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Thu Jul 16 15:01:54 2020 (+0200)
+## Last-Updated: Thu Jul 16 15:02:39 2020 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 416
+##     Update #: 417
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -91,7 +91,7 @@ from random import choices, choice, shuffle # need this if tempprobing was choos
 
 #Logging
 import datetime
-from lib.logger import makelogdir, setup_multiprocess_logger
+from lib.logger import makelogdir, setup_multiprocess_logger, checklog
 
 scriptname = os.path.basename(__file__).replace('.py','')
 
