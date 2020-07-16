@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Thu Jul 16 14:56:08 2020 (+0200)
+## Last-Updated: Thu Jul 16 15:01:54 2020 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 414
+##     Update #: 416
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -94,7 +94,8 @@ import datetime
 from lib.logger import makelogdir, setup_multiprocess_logger
 
 scriptname = os.path.basename(__file__).replace('.py','')
-if not (log):
+
+if not (checklog()):
     makelogdir('LOGS')
     logfile = 'LOGS/'+scriptname+'.log'
     log = setup_multiprocess_logger(name=scriptname, log_file=logfile, filemode='a', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M')

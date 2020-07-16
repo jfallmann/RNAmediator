@@ -7,9 +7,9 @@
 # Created: Mon Aug 12 10:26:55 2019 (+0200)
 # Version:
 # Package-Requires: ()
-# Last-Updated: Thu Jul 16 14:48:01 2020 (+0200)
+# Last-Updated: Thu Jul 16 15:01:46 2020 (+0200)
 #           By: Joerg Fallmann
-#     Update #: 74
+#     Update #: 77
 # URL:
 # Doc URL:
 # Keywords:
@@ -91,6 +91,13 @@ def setup_multiprocess_logger(name, log_file, filemode='a', logformat=None, date
     logger.addHandler(handler)
 
     return logger
+
+def checklog():
+    test = logging.get_logger()
+    if not (test.hasHandlers()):
+        return False
+    else:
+        return True
 
 def backup(file):
     if os.path.exists(file):
