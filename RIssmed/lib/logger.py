@@ -7,9 +7,9 @@
 # Created: Mon Aug 12 10:26:55 2019 (+0200)
 # Version:
 # Package-Requires: ()
-# Last-Updated: Fri Jul 17 10:05:58 2020 (+0200)
+# Last-Updated: Fri Jul 17 10:06:49 2020 (+0200)
 #           By: Joerg Fallmann
-#     Update #: 93
+#     Update #: 94
 # URL:
 # Doc URL:
 # Keywords:
@@ -48,6 +48,7 @@ import logging
 import multiprocessing
 import os, sys, inspect
 import traceback as tb
+global log
 
 def makelogdir(logdir):
     if not os.path.isabs(logdir):
