@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Fri Jul 17 10:29:56 2020 (+0200)
+## Last-Updated: Fri Jul 17 10:32:43 2020 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 450
+##     Update #: 453
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -71,9 +71,8 @@
 import os, sys, inspect
 import argparse
 import multiprocessing
-#from multiprocessing import get_context
+from multiprocessing import get_context
 from multiprocessing import set_start_method
-set_start_method("spawn")
 import pprint
 from io import StringIO
 import time
@@ -1159,6 +1158,7 @@ if __name__ == '__main__':
 
     logid = scriptname+'.main: '
     try:
+        set_start_method("spawn")  # set multiprocessing start method to safe spawn
         args=parseargs()
         makelogdir('LOGS')
         logfile = 'LOGS/'+scriptname+'.log'
