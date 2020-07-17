@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Fri Jul 17 10:39:05 2020 (+0200)
+## Last-Updated: Fri Jul 17 10:39:54 2020 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 456
+##     Update #: 457
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -482,7 +482,7 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
     log.info(logid+"DONE: output in: " + str(outdir))
     return 1
 
-def parafold(RNA, sequence, window, span, region, multi, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, save, procs, vrna, temprange, outdir, pattern, cutoff, seqnr, genecoords):
+def parafold(sequence, window, span, region, multi, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, save, procs, vrna, temprange, outdir, pattern, cutoff, seqnr, genecoords):
 
     logid = scriptname+'.parafold: '
     seq = sequence
