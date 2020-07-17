@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Fri Jul 17 10:26:34 2020 (+0200)
+## Last-Updated: Fri Jul 17 10:27:42 2020 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 446
+##     Update #: 447
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -186,7 +186,7 @@ def preprocess(sequence, window, span, region, multi, unconstraint, unpaired, pa
 
             # Create process pool with processes
             num_processes = procs or 1
-            pool = Pool(processes=num_processes-1, maxtasksperchild=1)
+            pool = multiprocess.Pool(processes=num_processes-1, maxtasksperchild=1)
 
             for rec in records:
                 sseq = StringIO(records[seqnr].format("fasta"))
@@ -229,7 +229,7 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
         # Create process pool with processes
         num_processes = procs or 1
         #with get_context("spawn").Pool(processes=num_processes-1, maxtasksperchild=1) as pool:
-        pool = Pool(processes=num_processes-1, maxtasksperchild=1)
+        pool = multiprocess.Pool(processes=num_processes-1, maxtasksperchild=1)
         for fa in SeqIO.parse(seq,'fasta'):
             fa.seq = str(fa.seq).upper()
             goi, chrom, strand = idfromfa(fa.id)
