@@ -7,9 +7,9 @@
 # Created: Mon Aug 12 10:26:55 2019 (+0200)
 # Version:
 # Package-Requires: ()
-# Last-Updated: Fri Jul 17 10:01:50 2020 (+0200)
+# Last-Updated: Fri Jul 17 10:05:58 2020 (+0200)
 #           By: Joerg Fallmann
-#     Update #: 92
+#     Update #: 93
 # URL:
 # Doc URL:
 # Keywords:
@@ -60,9 +60,9 @@ def setup_logger(name, log_file, filemode='a', logformat=None, datefmt=None, lev
     """Function setup as many loggers as you want"""
 
     if proc > 1:
-        global log = multiprocessing.get_logger()  # does not take name argument
+        log = multiprocessing.get_logger()  # does not take name argument
     else:
-        global log = logging.getLogger(name)
+        log = logging.getLogger(name)
     if log_file is not 'stderr':
         handler = logging.FileHandler(log_file, mode=filemode)
     else:
@@ -78,7 +78,7 @@ def setup_logger(name, log_file, filemode='a', logformat=None, datefmt=None, lev
 def setup_multiprocess_logger(log_file, filemode='a', logformat=None, datefmt=None, level='WARNING'):
     """Function setup as many loggers as you want"""
 
-    global log = multiprocessing.get_logger() # does not take name argument
+    log = multiprocessing.get_logger() # does not take name argument
 
     if log_file is not 'stderr':
         handler = logging.FileHandler(log_file, mode=filemode)
@@ -113,7 +113,7 @@ def backup(file):
 if __name__ == '__main__':
     try:
         # set up logging to file
-        log=setup_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='WARNING')
+        log = setup_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='WARNING')
 
         # define a Handler which writes INFO messages or higher to the sys.stderr
         #console = logging.StreamHandler()
