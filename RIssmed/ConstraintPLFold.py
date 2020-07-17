@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Fri Jul 17 10:50:05 2020 (+0200)
+## Last-Updated: Fri Jul 17 10:52:47 2020 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 463
+##     Update #: 466
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -344,7 +344,7 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                     try:
                         for temp in range(ts,te+1):
                             # Create the process, and connect it to the worker function
-                            pool.apply_async(constrain_temp, args=(str(fa.id), str(fa.seq), temp, window, span, region, multi, an, save, outdir),error_callback=eprint)
+                            pool.apply_async(constrain_temp, args=(str(fa.id), str(fa.seq), temp, window, span, region, multi, an, save, outdir))
                     except Exception as err:
                         exc_type, exc_value, exc_tb = sys.exc_info()
                         tbe = tb.TracebackException(
@@ -1075,10 +1075,11 @@ def checkexisting(sid, paired, unpaired, cons, region, window, span, outdir):
         log.error(logid+''.join(tbe.format()))
     return 1
 
-def bpp_callback(v, v_size, i, maxsize, what, data):
+def bpp_callback(RNA, v, v_size, i, maxsize, what, data):
 
     logid = scriptname+'.bpp_callback: '
     try:
+        RNA = importlib.import_module('RNA')
         if what & RNA.PROBS_WINDOW_BPP:
             data['bpp'].extend([{'i': i, 'j': j, 'p': p} for j, p in enumerate(v) if (p is not None)])# and (p >= 0.01)])
     except Exception as err:
@@ -1089,10 +1090,11 @@ def bpp_callback(v, v_size, i, maxsize, what, data):
         log.error(logid+''.join(tbe.format()))
 
 
-def up_callback(v, v_size, i, maxsize, what, data):
+def up_callback(RNA, v, v_size, i, maxsize, what, data):
 
     logid = scriptname+'.up_callback: '
     try:
+        RNA = importlib.import_module('RNA')
         if what & RNA.PROBS_WINDOW_UP:
             data['up'].extend([v])
     except Exception as err:
@@ -1103,7 +1105,7 @@ def up_callback(v, v_size, i, maxsize, what, data):
         log.error(logid+''.join(tbe.format()))
 
 
-def fold_unconstraint(RNA, seq, id, region, window, span, unconstraint, save, outdir, rawentry=None):
+def fold_unconstraint(seq, id, region, window, span, unconstraint, save, outdir, rawentry=None):
 
     logid = scriptname+'.fold_unconstraint: '
     data = { 'up': [] }
@@ -1112,6 +1114,7 @@ def fold_unconstraint(RNA, seq, id, region, window, span, unconstraint, save, ou
             log.error(logid+'Sequence to small, skipping '+str(sid)+'\t'+str(cons))
             return
 
+        RNA = importlib.import_module('RNA')
         md = RNA.md()
         md.max_bp_span = span
         md.window_size = window
