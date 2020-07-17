@@ -7,9 +7,9 @@
 # Created: Mon Aug 12 10:26:55 2019 (+0200)
 # Version:
 # Package-Requires: ()
-# Last-Updated: Thu Jul 16 17:33:36 2020 (+0200)
+# Last-Updated: Fri Jul 17 10:01:50 2020 (+0200)
 #           By: Joerg Fallmann
-#     Update #: 91
+#     Update #: 92
 # URL:
 # Doc URL:
 # Keywords:
@@ -60,9 +60,9 @@ def setup_logger(name, log_file, filemode='a', logformat=None, datefmt=None, lev
     """Function setup as many loggers as you want"""
 
     if proc > 1:
-        logger = multiprocessing.get_logger()  # does not take name argument
+        global log = multiprocessing.get_logger()  # does not take name argument
     else:
-        logger = logging.getLogger(name)
+        global log = logging.getLogger(name)
     if log_file is not 'stderr':
         handler = logging.FileHandler(log_file, mode=filemode)
     else:
@@ -70,15 +70,15 @@ def setup_logger(name, log_file, filemode='a', logformat=None, datefmt=None, lev
 
     handler.setFormatter(logging.Formatter(fmt=logformat,datefmt=datefmt))
 
-    logger.setLevel(level)
-    logger.addHandler(handler)
+    log.setLevel(level)
+    log.addHandler(handler)
 
-    return logger
+    return log
 
 def setup_multiprocess_logger(log_file, filemode='a', logformat=None, datefmt=None, level='WARNING'):
     """Function setup as many loggers as you want"""
 
-    logger = multiprocessing.get_logger() # does not take name argument
+    global log = multiprocessing.get_logger() # does not take name argument
 
     if log_file is not 'stderr':
         handler = logging.FileHandler(log_file, mode=filemode)
@@ -87,10 +87,10 @@ def setup_multiprocess_logger(log_file, filemode='a', logformat=None, datefmt=No
 
     handler.setFormatter(logging.Formatter(fmt=logformat,datefmt=datefmt))
 
-    logger.setLevel(level)
-    logger.addHandler(handler)
+    log.setLevel(level)
+    log.addHandler(handler)
 
-    return logger
+    return log
 
 def checklog():
     test = logging.getLogger()
@@ -113,7 +113,7 @@ def backup(file):
 if __name__ == '__main__':
     try:
         # set up logging to file
-        logging=setup_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='WARNING')
+        log=setup_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='WARNING')
 
         # define a Handler which writes INFO messages or higher to the sys.stderr
         #console = logging.StreamHandler()

@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Thu Jul 16 17:33:48 2020 (+0200)
+## Last-Updated: Fri Jul 17 10:04:09 2020 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 435
+##     Update #: 436
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -94,28 +94,6 @@ import datetime
 from lib.logger import makelogdir, setup_multiprocess_logger, checklog
 
 scriptname = os.path.basename(__file__).replace('.py','')
-try:
-    if not (checklog()):
-        print('CREATING LOG FILES',file=sys.stderr)
-        makelogdir('LOGS')
-        logfile = 'LOGS/'+scriptname+'.log'
-        if not os.path.isfile(os.path.abspath(logfile)):
-                open(logfile,'a').close()
-        else:
-            ts = str(datetime.datetime.fromtimestamp(os.path.getmtime(os.path.abspath(logfile))).strftime("%Y%m%d_%H_%M_%S"))
-            shutil.copy2(logfile,'LOGS/'+scriptname+'_'+ts+'.log')
-
-        log = setup_multiprocess_logger(log_file='stderr', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M')
-        log = setup_multiprocess_logger(log_file=logfile, filemode='a', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M')
-
-except Exception as err:
-    exc_type, exc_value, exc_tb = sys.exc_info()
-    tbe = tb.TracebackException(
-        exc_type, exc_value, exc_tb,
-    )
-    print(''.join(tbe.format()),file=sys.stderr)
-
-
 ##load own modules
 from lib.Collection import *
 
@@ -1180,6 +1158,23 @@ if __name__ == '__main__':
     logid = scriptname+'.main: '
     try:
         args=parseargs()
+        makelogdir('LOGS')
+        logfile = 'LOGS/'+scriptname+'.log'
+        if not os.path.isfile(os.path.abspath(logfile)):
+                open(logfile,'a').close()
+        else:
+            ts = str(datetime.datetime.fromtimestamp(os.path.getmtime(os.path.abspath(logfile))).strftime("%Y%m%d_%H_%M_%S"))
+            shutil.copy2(logfile,'LOGS/'+scriptname+'_'+ts+'.log')
+
+        log = setup_multiprocess_logger(log_file='stderr', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M')
+        log = setup_multiprocess_logger(log_file=logfile, filemode='a', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M')
+
+except Exception as err:
+    exc_type, exc_value, exc_tb = sys.exc_info()
+    tbe = tb.TracebackException(
+        exc_type, exc_value, exc_tb,
+    )
+    print(''.join(tbe.format()),file=sys.stderr)
 
         log.setLevel(args.loglevel)
         log.info(logid+'Running '+scriptname+' on '+str(args.procs)+' cores.')
