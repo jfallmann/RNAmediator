@@ -7,9 +7,9 @@
 # Created: Mon Aug 12 10:26:55 2019 (+0200)
 # Version:
 # Package-Requires: ()
-# Last-Updated: Thu Jul 16 15:06:14 2020 (+0200)
+# Last-Updated: Thu Jul 16 17:33:36 2020 (+0200)
 #           By: Joerg Fallmann
-#     Update #: 79
+#     Update #: 91
 # URL:
 # Doc URL:
 # Keywords:
@@ -97,7 +97,10 @@ def checklog():
     if not (test.hasHandlers()):
         return False
     else:
-        return True
+        if not len(test.handlers) > 1:
+            return False
+        else:
+            return True
 
 def backup(file):
     if os.path.exists(file):
