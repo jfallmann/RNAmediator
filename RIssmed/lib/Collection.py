@@ -7,9 +7,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Fri Jul 17 10:02:17 2020 (+0200)
+## Last-Updated: Fri Jul 17 10:19:56 2020 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 372
+##     Update #: 373
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -61,7 +61,7 @@
 ### Code:
 ### IMPORTS
 import os, sys, inspect
-import logging
+import logger
 ##other modules
 import numpy as np
 import heapq

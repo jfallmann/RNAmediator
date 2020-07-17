@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Fri Jul 17 10:16:43 2020 (+0200)
+## Last-Updated: Fri Jul 17 10:18:39 2020 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 443
+##     Update #: 444
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -1172,8 +1172,6 @@ if __name__ == '__main__':
         log.setLevel(args.loglevel)
         log.info(logid+'Running '+scriptname+' on '+str(args.procs)+' cores.')
         log.info(logid+'CLI: '+sys.argv[0]+'{}'.format(' '.join( [shlex.quote(s) for s in sys.argv[1:]] )))
-
-        Collection.log = log
 
         preprocess(args.sequence, args.window, args.span, args.region, args.multi, args.unconstraint, args.unpaired, args.paired, args.length, args.gc, args.number, args.constrain, args.conslength, args.alphabet, args.save, args.procs, args.vrna, args.temprange, args.outdir, args.genes, args.verbosity, args.pattern, args.cutoff)
     except Exception as err:
