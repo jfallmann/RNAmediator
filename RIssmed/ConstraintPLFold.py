@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Fri Jul 17 10:52:47 2020 (+0200)
+## Last-Updated: Fri Jul 17 10:54:20 2020 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 466
+##     Update #: 468
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -1075,12 +1075,11 @@ def checkexisting(sid, paired, unpaired, cons, region, window, span, outdir):
         log.error(logid+''.join(tbe.format()))
     return 1
 
-def bpp_callback(RNA, v, v_size, i, maxsize, what, data):
+def bpp_callback(v, v_size, i, maxsize, what, data):
 
     logid = scriptname+'.bpp_callback: '
     try:
-        RNA = importlib.import_module('RNA')
-        if what & RNA.PROBS_WINDOW_BPP:
+        if what & what.PROBS_WINDOW_BPP:
             data['bpp'].extend([{'i': i, 'j': j, 'p': p} for j, p in enumerate(v) if (p is not None)])# and (p >= 0.01)])
     except Exception as err:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -1094,8 +1093,7 @@ def up_callback(RNA, v, v_size, i, maxsize, what, data):
 
     logid = scriptname+'.up_callback: '
     try:
-        RNA = importlib.import_module('RNA')
-        if what & RNA.PROBS_WINDOW_UP:
+        if what & what.PROBS_WINDOW_UP:
             data['up'].extend([v])
     except Exception as err:
         exc_type, exc_value, exc_tb = sys.exc_info()
