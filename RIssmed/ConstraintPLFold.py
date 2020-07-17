@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Fri Jul 17 10:39:54 2020 (+0200)
+## Last-Updated: Fri Jul 17 10:50:05 2020 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 457
+##     Update #: 463
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -191,7 +191,7 @@ def preprocess(sequence, window, span, region, multi, unconstraint, unpaired, pa
                 sseq = StringIO(records[seqnr].format("fasta"))
                 constraint = constraintlist['lw'][seqnr]
 
-                pool.apply_async(parafold, (RNA, sseq, window, span, region, multi, unconstraint, unpaired, paired, length, gc, number, constraint, conslength, alphabet, save, procs, vrna, temprange, outdir, pattern, cutoff, seqnr, genecoords))
+                pool.apply_async(parafold, (sseq, window, span, region, multi, unconstraint, unpaired, paired, length, gc, number, constraint, conslength, alphabet, save, procs, vrna, temprange, outdir, pattern, cutoff, seqnr, genecoords))
                 seqnr += 1
 
             pool.close()
@@ -215,13 +215,13 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
             sys.path = [vrna] + sys.path
         seq = parseseq(sequence)
 
-        global RNA
+        #global RNA
         RNA = importlib.import_module('RNA')
-        globals().update(
-            {n: getattr(RNA, n) for n in RNA.__all__}
-            if hasattr(RNA, '__all__')
-            else {k: v for (k, v) in RNA.__dict__.items() if not k.startswith('_')
-            })
+        #globals().update(
+        #    {n: getattr(RNA, n) for n in RNA.__all__}
+        #    if hasattr(RNA, '__all__')
+        #    else {k: v for (k, v) in RNA.__dict__.items() if not k.startswith('_')
+        #    })
         md = RNA.md()
         md = None
 
@@ -265,7 +265,7 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                     check = str(goi)+'_'+str(chrom)+'_'+str(strand)+'_'+unconstraint+'_'+str(window)+'_'+str(span)+'.gz'
                     if not ( os.path.isfile(check) ):
                         try:
-                            res = [pool.apply_async(fold_unconstraint, args=(RNA, str(fa.seq), str(fa.id), region, window, span, unconstraint, save, outdir))]
+                            res = [pool.apply_async(fold_unconstraint, args=(str(fa.seq), str(fa.id), region, window, span, unconstraint, save, outdir))]
                         except Exception as err:
                             exc_type, exc_value, exc_tb = sys.exc_info()
                             tbe = tb.TracebackException(
@@ -287,7 +287,7 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                     try:
                         for temp in range(ts,te+1):
                         # Create the process, and connect it to the worker function
-                            pool.apply_async(constrain_temp, args=(RNA, str(fa.id), str(fa.seq), temp, window, span, region, an, save, outdir))
+                            pool.apply_async(constrain_temp, args=(str(fa.id), str(fa.seq), temp, window, span, region, an, save, outdir))
                     except Exception as err:
                         exc_type, exc_value, exc_tb = sys.exc_info()
                         tbe = tb.TracebackException(
@@ -330,7 +330,7 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                     if an[0] is np.nan or len(an) > len(fa.seq): #This means that the prob info was loaded from file or the raw sequence has not been folded yet, but we need a subsequence for the cutoff calculation, so we fold the subsequence
                         log.info(logid+'Recalculating at default temp with subseq')
                         try:
-                            res = [pool.apply_async(fold_unconstraint, args=(RNA, str(fa.seq), str(fa.id), region, multi, window, span, unconstraint, save, outdir))]
+                            res = [pool.apply_async(fold_unconstraint, args=(str(fa.seq), str(fa.id), region, multi, window, span, unconstraint, save, outdir))]
                         except Exception as err:
                             exc_type, exc_value, exc_tb = sys.exc_info()
                             tbe = tb.TracebackException(
@@ -344,7 +344,7 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                     try:
                         for temp in range(ts,te+1):
                             # Create the process, and connect it to the worker function
-                            pool.apply_async(constrain_temp, args=(RNA, str(fa.id), str(fa.seq), temp, window, span, region, multi, an, save, outdir),error_callback=eprint)
+                            pool.apply_async(constrain_temp, args=(str(fa.id), str(fa.seq), temp, window, span, region, multi, an, save, outdir),error_callback=eprint)
                     except Exception as err:
                         exc_type, exc_value, exc_tb = sys.exc_info()
                         tbe = tb.TracebackException(
@@ -421,7 +421,7 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                     for entry in conslist:
                         log.debug(logid+'ENTRY: '+str(entry))
                         if entry == 'NOCONS': # in case we just want to fold the sequence without constraints at all
-                            res = [pool.apply_async(fold_unconstraint, args=(RNA, str(fa.seq), str(fa.id), region, window, span, multi, unconstraint, save, outdir))]
+                            res = [pool.apply_async(fold_unconstraint, args=(str(fa.seq), str(fa.id), region, window, span, multi, unconstraint, save, outdir))]
                             data['up'] = res.get()
 
                         else:
@@ -466,9 +466,9 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                                 log.info(logid+'Constraining to '+str(fstart) + ' and ' + str(fend))
                                 goi, chrom, strand = idfromfa(fa.id)
 
-                                pool.apply_async(constrain_seq_paired, args=(RNA, str(fa.id), str(fa.seq), fstart, fend, start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an, unconstraint))
+                                pool.apply_async(constrain_seq_paired, args=(str(fa.id), str(fa.seq), fstart, fend, start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an, unconstraint))
                             else:
-                                pool.apply_async(constrain_seq, args=(RNA, str(fa.id), str(fa.seq), start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an, unconstraint))
+                                pool.apply_async(constrain_seq, args=(str(fa.id), str(fa.seq), start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an, unconstraint))
 
         pool.close()
         pool.join()       #timeout
@@ -489,16 +489,14 @@ def parafold(sequence, window, span, region, multi, unconstraint, unpaired, pair
     #set path for VRNA lib
     if vrna:
         sys.path=[vrna] + sys.path
-    else:
-        sys.path=["/scratch/fall/VRNA/243_alpha2/lib/python3.6/site-packages"] + sys.path
     try:
-        global RNA
+        #global RNA
         RNA = importlib.import_module('RNA')
-        globals().update(
-            {n: getattr(RNA, n) for n in RNA.__all__}
-            if hasattr(RNA, '__all__')
-            else {k: v for (k, v) in RNA.__dict__.items() if not k.startswith('_')
-        })
+        #globals().update(
+        #    {n: getattr(RNA, n) for n in RNA.__all__}
+        #    if hasattr(RNA, '__all__')
+        #    else {k: v for (k, v) in RNA.__dict__.items() if not k.startswith('_')
+        #})
     except Exception as err:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
@@ -544,7 +542,7 @@ def parafold(sequence, window, span, region, multi, unconstraint, unpaired, pair
             for entry in conslist:
                 if entry == 'NOCONS': # in case we just want to fold the sequence without constraints at all
                     try:
-                        res = [pool.apply_async(fold_unconstraint, args=(RNA, str(fa.seq), str(fa.id), region, window, span, multi, unconstraint, save, outdir))]
+                        res = [pool.apply_async(fold_unconstraint, args=(str(fa.seq), str(fa.id), region, window, span, multi, unconstraint, save, outdir))]
                     except Exception as err:
                         exc_type, exc_value, exc_tb = sys.exc_info()
                         tbe = tb.TracebackException(
@@ -599,7 +597,7 @@ def parafold(sequence, window, span, region, multi, unconstraint, unpaired, pair
     return 1
 
 ##### Functions #####
-def constrain_seq(RNA, sid, seq, start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an=None, unconstraint=None):
+def constrain_seq(sid, seq, start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an=None, unconstraint=None):
     #   DEBUGGING
     #   pp = pprint.PrettyPrinter(indent=4)#use with pp.pprint(datastructure)
     logid = scriptname+'.constrain_seq: '
@@ -626,6 +624,7 @@ def constrain_seq(RNA, sid, seq, start, end, conslength, const, cons, window, sp
             log.warning(logid+str(cons)+' Existst for '+str(sid)+'! Skipping!')
             return
 
+        RNA = importlib.import_module('RNA')
         #refresh model details
         md = RNA.md()
         md.max_bp_span = span
@@ -685,7 +684,7 @@ def constrain_seq(RNA, sid, seq, start, end, conslength, const, cons, window, sp
 
     return 1
 
-def constrain_seq_paired(RNA, sid, seq, fstart, fend, start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an, unconstraint):
+def constrain_seq_paired(sid, seq, fstart, fend, start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an, unconstraint):
     #   DEBUGGING
     #   pp = pprint.PrettyPrinter(indent=4)#use with pp.pprint(datastructure)
     logid = scriptname+'.constrain_seq_paired: '
@@ -709,6 +708,7 @@ def constrain_seq_paired(RNA, sid, seq, fstart, fend, start, end, conslength, co
             return
 
         #refresh model details
+        RNA = importlib.import_module('RNA')
         md = RNA.md()
         md.max_bp_span = span
         md.window_size = window
@@ -773,7 +773,7 @@ def constrain_seq_paired(RNA, sid, seq, fstart, fend, start, end, conslength, co
 
     return 1
 
-def constrain_temp(RNA, sid, seq, temp, window, span, region, multi, an, save, outdir):
+def constrain_temp(sid, seq, temp, window, span, region, multi, an, save, outdir):
     try:
         if len(seq) < int(window):
             log.warning(logid+'Sequence to small, skipping '+str(sid)+'\t'+str(temp))
@@ -781,6 +781,7 @@ def constrain_temp(RNA, sid, seq, temp, window, span, region, multi, an, save, o
 
 
         #refresh model details
+        RNA = importlib.import_module('RNA')
         md = RNA.md()
         md.max_bp_span = span
         md.window_size = window
