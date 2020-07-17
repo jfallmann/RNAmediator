@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Fri Jul 17 10:04:09 2020 (+0200)
+## Last-Updated: Fri Jul 17 10:04:49 2020 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 436
+##     Update #: 437
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -1168,13 +1168,6 @@ if __name__ == '__main__':
 
         log = setup_multiprocess_logger(log_file='stderr', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M')
         log = setup_multiprocess_logger(log_file=logfile, filemode='a', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M')
-
-except Exception as err:
-    exc_type, exc_value, exc_tb = sys.exc_info()
-    tbe = tb.TracebackException(
-        exc_type, exc_value, exc_tb,
-    )
-    print(''.join(tbe.format()),file=sys.stderr)
 
         log.setLevel(args.loglevel)
         log.info(logid+'Running '+scriptname+' on '+str(args.procs)+' cores.')
