@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Fri Jul 17 10:54:20 2020 (+0200)
+## Last-Updated: Fri Jul 17 10:55:09 2020 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 468
+##     Update #: 469
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -1089,7 +1089,7 @@ def bpp_callback(v, v_size, i, maxsize, what, data):
         log.error(logid+''.join(tbe.format()))
 
 
-def up_callback(RNA, v, v_size, i, maxsize, what, data):
+def up_callback(v, v_size, i, maxsize, what, data):
 
     logid = scriptname+'.up_callback: '
     try:
