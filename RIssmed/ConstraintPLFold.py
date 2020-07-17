@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Fri Jul 17 10:55:09 2020 (+0200)
+## Last-Updated: Fri Jul 17 10:55:52 2020 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 469
+##     Update #: 471
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -1079,7 +1079,7 @@ def bpp_callback(v, v_size, i, maxsize, what, data):
 
     logid = scriptname+'.bpp_callback: '
     try:
-        if what & what.PROBS_WINDOW_BPP:
+        if what:
             data['bpp'].extend([{'i': i, 'j': j, 'p': p} for j, p in enumerate(v) if (p is not None)])# and (p >= 0.01)])
     except Exception as err:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -1093,7 +1093,7 @@ def up_callback(v, v_size, i, maxsize, what, data):
 
     logid = scriptname+'.up_callback: '
     try:
-        if what & what.PROBS_WINDOW_UP:
+        if what:
             data['up'].extend([v])
     except Exception as err:
         exc_type, exc_value, exc_tb = sys.exc_info()
