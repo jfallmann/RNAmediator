@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Fri Jul 17 10:32:43 2020 (+0200)
+## Last-Updated: Fri Jul 17 10:39:05 2020 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 453
+##     Update #: 456
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -191,7 +191,7 @@ def preprocess(sequence, window, span, region, multi, unconstraint, unpaired, pa
                 sseq = StringIO(records[seqnr].format("fasta"))
                 constraint = constraintlist['lw'][seqnr]
 
-                pool.apply_async(parafold, (sseq, window, span, region, multi, unconstraint, unpaired, paired, length, gc, number, constraint, conslength, alphabet, save, procs, vrna, temprange, outdir, pattern, cutoff, seqnr, genecoords))
+                pool.apply_async(parafold, (RNA, sseq, window, span, region, multi, unconstraint, unpaired, paired, length, gc, number, constraint, conslength, alphabet, save, procs, vrna, temprange, outdir, pattern, cutoff, seqnr, genecoords))
                 seqnr += 1
 
             pool.close()
@@ -265,7 +265,7 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                     check = str(goi)+'_'+str(chrom)+'_'+str(strand)+'_'+unconstraint+'_'+str(window)+'_'+str(span)+'.gz'
                     if not ( os.path.isfile(check) ):
                         try:
-                            res = [pool.apply_async(fold_unconstraint, args=(str(fa.seq), str(fa.id), region, window, span, unconstraint, save, outdir))]
+                            res = [pool.apply_async(fold_unconstraint, args=(RNA, str(fa.seq), str(fa.id), region, window, span, unconstraint, save, outdir))]
                         except Exception as err:
                             exc_type, exc_value, exc_tb = sys.exc_info()
                             tbe = tb.TracebackException(
@@ -287,7 +287,7 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                     try:
                         for temp in range(ts,te+1):
                         # Create the process, and connect it to the worker function
-                            pool.apply_async(constrain_temp, args=(str(fa.id), str(fa.seq), temp, window, span, region, an, save, outdir))
+                            pool.apply_async(constrain_temp, args=(RNA, str(fa.id), str(fa.seq), temp, window, span, region, an, save, outdir))
                     except Exception as err:
                         exc_type, exc_value, exc_tb = sys.exc_info()
                         tbe = tb.TracebackException(
@@ -330,7 +330,7 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                     if an[0] is np.nan or len(an) > len(fa.seq): #This means that the prob info was loaded from file or the raw sequence has not been folded yet, but we need a subsequence for the cutoff calculation, so we fold the subsequence
                         log.info(logid+'Recalculating at default temp with subseq')
                         try:
-                            res = [pool.apply_async(fold_unconstraint, args=(str(fa.seq), str(fa.id), region, multi, window, span, unconstraint, save, outdir))]
+                            res = [pool.apply_async(fold_unconstraint, args=(RNA, str(fa.seq), str(fa.id), region, multi, window, span, unconstraint, save, outdir))]
                         except Exception as err:
                             exc_type, exc_value, exc_tb = sys.exc_info()
                             tbe = tb.TracebackException(
@@ -344,7 +344,7 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                     try:
                         for temp in range(ts,te+1):
                             # Create the process, and connect it to the worker function
-                            pool.apply_async(constrain_temp, args=(str(fa.id), str(fa.seq), temp, window, span, region, multi, an, save, outdir),error_callback=eprint)
+                            pool.apply_async(constrain_temp, args=(RNA, str(fa.id), str(fa.seq), temp, window, span, region, multi, an, save, outdir),error_callback=eprint)
                     except Exception as err:
                         exc_type, exc_value, exc_tb = sys.exc_info()
                         tbe = tb.TracebackException(
@@ -421,7 +421,7 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                     for entry in conslist:
                         log.debug(logid+'ENTRY: '+str(entry))
                         if entry == 'NOCONS': # in case we just want to fold the sequence without constraints at all
-                            res = [pool.apply_async(fold_unconstraint, args=(str(fa.seq), str(fa.id), region, window, span, multi, unconstraint, save, outdir))]
+                            res = [pool.apply_async(fold_unconstraint, args=(RNA, str(fa.seq), str(fa.id), region, window, span, multi, unconstraint, save, outdir))]
                             data['up'] = res.get()
 
                         else:
@@ -466,9 +466,9 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                                 log.info(logid+'Constraining to '+str(fstart) + ' and ' + str(fend))
                                 goi, chrom, strand = idfromfa(fa.id)
 
-                                pool.apply_async(constrain_seq_paired, args=(str(fa.id), str(fa.seq), fstart, fend, start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an, unconstraint))
+                                pool.apply_async(constrain_seq_paired, args=(RNA, str(fa.id), str(fa.seq), fstart, fend, start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an, unconstraint))
                             else:
-                                pool.apply_async(constrain_seq, args=(str(fa.id), str(fa.seq), start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an, unconstraint))
+                                pool.apply_async(constrain_seq, args=(RNA, str(fa.id), str(fa.seq), start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an, unconstraint))
 
         pool.close()
         pool.join()       #timeout
@@ -482,7 +482,7 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
     log.info(logid+"DONE: output in: " + str(outdir))
     return 1
 
-def parafold(sequence, window, span, region, multi, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, save, procs, vrna, temprange, outdir, pattern, cutoff, seqnr, genecoords):
+def parafold(RNA, sequence, window, span, region, multi, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, save, procs, vrna, temprange, outdir, pattern, cutoff, seqnr, genecoords):
 
     logid = scriptname+'.parafold: '
     seq = sequence
@@ -544,7 +544,7 @@ def parafold(sequence, window, span, region, multi, unconstraint, unpaired, pair
             for entry in conslist:
                 if entry == 'NOCONS': # in case we just want to fold the sequence without constraints at all
                     try:
-                        res = [pool.apply_async(fold_unconstraint, args=(str(fa.seq), str(fa.id), region, window, span, multi, unconstraint, save, outdir))]
+                        res = [pool.apply_async(fold_unconstraint, args=(RNA, str(fa.seq), str(fa.id), region, window, span, multi, unconstraint, save, outdir))]
                     except Exception as err:
                         exc_type, exc_value, exc_tb = sys.exc_info()
                         tbe = tb.TracebackException(
@@ -599,7 +599,7 @@ def parafold(sequence, window, span, region, multi, unconstraint, unpaired, pair
     return 1
 
 ##### Functions #####
-def constrain_seq(sid, seq, start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an=None, unconstraint=None):
+def constrain_seq(RNA, sid, seq, start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an=None, unconstraint=None):
     #   DEBUGGING
     #   pp = pprint.PrettyPrinter(indent=4)#use with pp.pprint(datastructure)
     logid = scriptname+'.constrain_seq: '
@@ -685,7 +685,7 @@ def constrain_seq(sid, seq, start, end, conslength, const, cons, window, span, r
 
     return 1
 
-def constrain_seq_paired(sid, seq, fstart, fend, start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an, unconstraint):
+def constrain_seq_paired(RNA, sid, seq, fstart, fend, start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an, unconstraint):
     #   DEBUGGING
     #   pp = pprint.PrettyPrinter(indent=4)#use with pp.pprint(datastructure)
     logid = scriptname+'.constrain_seq_paired: '
@@ -773,7 +773,7 @@ def constrain_seq_paired(sid, seq, fstart, fend, start, end, conslength, const, 
 
     return 1
 
-def constrain_temp(sid, seq, temp, window, span, region, multi, an, save, outdir):
+def constrain_temp(RNA, sid, seq, temp, window, span, region, multi, an, save, outdir):
     try:
         if len(seq) < int(window):
             log.warning(logid+'Sequence to small, skipping '+str(sid)+'\t'+str(temp))
@@ -1102,7 +1102,7 @@ def up_callback(v, v_size, i, maxsize, what, data):
         log.error(logid+''.join(tbe.format()))
 
 
-def fold_unconstraint(seq, id, region, window, span, unconstraint, save, outdir, rawentry=None):
+def fold_unconstraint(RNA, seq, id, region, window, span, unconstraint, save, outdir, rawentry=None):
 
     logid = scriptname+'.fold_unconstraint: '
     data = { 'up': [] }
