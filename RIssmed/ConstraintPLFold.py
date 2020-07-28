@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Thu Jul 16 08:47:24 2020 (+0200)
+## Last-Updated: Mon Jul 20 15:53:47 2020 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 409
+##     Update #: 413
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -623,7 +623,7 @@ def constrain_seq(sid, seq, start, end, conslength, const, cons, window, span, r
         cons = str('-'.join([str(start),str(end)])+'_'+'-'.join([str(tostart),str(toend)]))
 
         if len(seqtofold) < (toend-tostart):
-            log.warning(logid+'Sequence to small, skipping '+str(sid)+'\t'+str(cons))
+            log.warning(logid+'Sequence to small, skipping '+str(sid)+'\t'+str(len(seqtofold))+'\t'+str(cons))
             return
 
         log.debug(logid+str.join(' ',[goi,cons,strand]))
@@ -685,6 +685,8 @@ def constrain_seq(sid, seq, start, end, conslength, const, cons, window, span, r
 
         if save:
             write_constraint(str(sid), seqtofold, paired, unpaired, data_u, data_p, cons, int(region), diff_nu, diff_np, str(window), str(span), outdir)
+        else:
+            return
 
     except Exception as err:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -692,8 +694,6 @@ def constrain_seq(sid, seq, start, end, conslength, const, cons, window, span, r
             exc_type, exc_value, exc_tb,
             )
         log.error(logid+''.join(tbe.format()))
-
-    return 1
 
 def constrain_seq_paired(sid, seq, fstart, fend, start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an, unconstraint):
     #   DEBUGGING
