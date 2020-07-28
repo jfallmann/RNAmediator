@@ -1,2 +1,2 @@
-# RBPssmed
-RNA secondary structure mediated cooperativity/antagonism
+# RIssmed
+RNA Interaction via secondary structure mediation
