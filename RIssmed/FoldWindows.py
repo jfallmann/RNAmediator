@@ -88,7 +88,6 @@ from Bio.Seq import Seq
 #numpy and matplolib and pyplot
 import numpy as np
 from random import choices, choice, shuffle # need this if tempprobing was choosen
-from Randseq import createrandseq
 
 #Logging
 import datetime
@@ -108,6 +107,7 @@ log = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime
 
 ##load own modules
 from lib.Collection import *
+from lib.Randseq import createrandseq
 
 def parseargs():
     parser = argparse.ArgumentParser(description='Calculate base pairing probs of given seqs or random seqs for given window size, span and region.')

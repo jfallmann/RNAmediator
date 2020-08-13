@@ -51,14 +51,10 @@ import argparse
 import os, sys, inspect
 import time
 import regex as re
-#load own modules
-cmd_subfolder = os.path.join(os.path.dirname(os.path.realpath(os.path.abspath( inspect.getfile( inspect.currentframe() )) )),"../lib")
-if cmd_subfolder not in sys.path:
-    sys.path.insert(0, cmd_subfolder)
-from Collection import *
 
-#sys.path.append("/usr/local/ViennaRNA-2.1.7")
-#import RNA
+import RNA
+#load own modules
+from Collection import *
 
 def parseargs():
 	parser = argparse.ArgumentParser(description='Fold Fasta, add random constraints, fold again, plot changes.')

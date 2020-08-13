@@ -50,7 +50,6 @@ from flask import Flask, flash, redirect, render_template, request,   session, a
 import pandas as pd
 import json
 import sys,os,gzip
-import lib.logger
 import inspect
 import traceback as tb
 import argparse

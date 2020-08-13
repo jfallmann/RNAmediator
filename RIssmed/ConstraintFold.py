@@ -82,7 +82,7 @@ from multiprocessing import get_context
 import traceback as tb
 import shutil
 import shlex
-from Randseq import createrandseq
+from lib.Randseq import createrandseq
 #Biopython stuff
 from Bio import SeqIO
 from Bio.Seq import Seq

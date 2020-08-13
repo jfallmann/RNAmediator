@@ -54,8 +54,8 @@ from io import StringIO
 import gzip
 import traceback as tb
 # own
-from lib.Collection import *
-from lib.logger import makelogdir, setup_logger
+from Collection import *
+from logger import makelogdir, setup_logger
 # Create log dir
 makelogdir('LOGS')
 # Define loggers

@@ -63,12 +63,7 @@ from natsort import natsorted, ns
 #Biopython stuff
 from Bio import SeqIO
 
-#load own modules
-cmd_subfolder = os.path.join(os.path.dirname(os.path.realpath(os.path.abspath( inspect.getfile( inspect.currentframe() )) )),"../lib")
-if cmd_subfolder not in sys.path:
-    sys.path.insert(0, cmd_subfolder)
-
-from Collection import *
+from lib.Collection import *
 #from ConstraintPLfold.py import
 
 #parse args

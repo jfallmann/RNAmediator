@@ -82,7 +82,6 @@ import importlib
 import traceback as tb
 import shlex
 import shutil
-from Randseq import createrandseq
 #Biopython stuff
 from Bio import SeqIO
 from Bio.Seq import Seq
@@ -97,6 +96,7 @@ from lib.logger import makelogdir, setup_multiprocess_logger, checklog
 scriptname = os.path.basename(__file__).replace('.py','')
 ##load own modules
 from lib.Collection import *
+from lib.Randseq import createrandseq
 
 def parseargs():
     parser = argparse.ArgumentParser(description='Calculate base pairing probs of given seqs or random seqs for given window size, span and region.')
