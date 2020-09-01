@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Tue Jul 28 10:44:27 2020 (+0200)
+## Last-Updated: Tue Sep  1 11:04:02 2020 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 415
+##     Update #: 429
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -97,6 +97,9 @@ from lib.logger import makelogdir, setup_multiprocess_logger, checklog
 scriptname = os.path.basename(__file__).replace('.py','')
 ##load own modules
 from lib.Collection import *
+from lib.FileProcessor import *
+from lib.RNAtweaks import *
+from lib.NPtweaks import *
 
 def parseargs():
     parser = argparse.ArgumentParser(description='Calculate base pairing probs of given seqs or random seqs for given window size, span and region.')
@@ -113,7 +116,7 @@ def parseargs():
     parser.add_argument("--gc", type=int, default=0, help='GC content, needs to be %%2==0 or will be rounded')
     parser.add_argument("-b", "--number", type=int, default=1, help='Number of random seqs to generate')
     parser.add_argument("-x", "--constrain", type=str, default='sliding', help='Region to constrain, either sliding window (default) or region to constrain (e.g. 1-10) or path to file containing regions following the naming pattern $fastaID_constraints e.g. Sequence1_constraints, if paired, the first entry of the file will become a fixed constraint and paired with all the others, choices = [off,sliding,temperature, tempprobe, the string file or a filename, paired, or simply 1-10,2-11 or 1-10;15-20,2-11;16-21 for paired or ono(oneonone),filename to use one line of constraint file for one sequence from fasta]')
-    parser.add_argument("-y", "--conslength", type=int, default=0, help='Length of region to constrain for slidingwindow')
+    parser.add_argument("-y", "--conslength", type=int, default=1, help='Length of region to constrain for slidingwindow')
     parser.add_argument("-t", "--temprange", type=str, default='', help='Temperature range for structure prediction (e.g. 37-60)')
     parser.add_argument("-a", "--alphabet", type=str, default='AUCG', help='alphabet for random seqs')
     #parser.add_argument("--plot", type=str, default='0', choices=['0','svg', 'png'], help='Create image of the (un-)constraint sequence, you can select the file format here (svg,png). These images can later on be animated with ImageMagick like `convert -delay 120 -loop 0 *.svg animated.gif`.')
@@ -260,12 +263,12 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                 data = { 'up': [] }
                 an = [np.nan]
                 # We check if we need to fold the whole seq or just a region around the constraints
-                if constrain == 'sliding' or constrain == 'temperature': # here we fold the whole seq
+                if constrain == 'sliding' or constrain == 'temperature': # here we fold the whole seq once, because we can reuse it for multiple contstraints
                     #if not already available, run raw fold for whole sequence as we have a sliding window constraint
                     check = str(goi)+'_'+str(chrom)+'_'+str(strand)+'_'+unconstraint+'_'+str(window)+'_'+str(span)+'.gz'
                     if not ( os.path.isfile(check) ):
                         try:
-                            res = [pool.apply_async(fold_unconstraint, args=(str(fa.seq), str(fa.id), region, window, span, unconstraint, save, outdir))]
+                            res = pool.apply_async(fold_unconstraint, args=(str(fa.seq), str(fa.id), region, window, span, unconstraint, save, outdir))
                         except Exception as err:
                             exc_type, exc_value, exc_tb = sys.exc_info()
                             tbe = tb.TracebackException(
@@ -330,7 +333,7 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                     if an[0] is np.nan or len(an) > len(fa.seq): #This means that the prob info was loaded from file or the raw sequence has not been folded yet, but we need a subsequence for the cutoff calculation, so we fold the subsequence
                         log.info(logid+'Recalculating at default temp with subseq')
                         try:
-                            res = [pool.apply_async(fold_unconstraint, args=(str(fa.seq), str(fa.id), region, multi, window, span, unconstraint, save, outdir))]
+                            res = pool.apply_async(fold_unconstraint, args=(str(fa.seq), str(fa.id), region, window, span, unconstraint, save, outdir))
                         except Exception as err:
                             exc_type, exc_value, exc_tb = sys.exc_info()
                             tbe = tb.TracebackException(
@@ -421,7 +424,7 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                     for entry in conslist:
                         log.debug(logid+'ENTRY: '+str(entry))
                         if entry == 'NOCONS': # in case we just want to fold the sequence without constraints at all
-                            res = [pool.apply_async(fold_unconstraint, args=(str(fa.seq), str(fa.id), region, window, span, multi, unconstraint, save, outdir))]
+                            res = pool.apply_async(fold_unconstraint, args=(str(fa.seq), str(fa.id), region, window, span, unconstraint, save, outdir))
                             data['up'] = res.get()
 
                         else:
@@ -542,7 +545,7 @@ def parafold(sequence, window, span, region, multi, unconstraint, unpaired, pair
             for entry in conslist:
                 if entry == 'NOCONS': # in case we just want to fold the sequence without constraints at all
                     try:
-                        res = [pool.apply_async(fold_unconstraint, args=(str(fa.seq), str(fa.id), region, window, span, multi, unconstraint, save, outdir))]
+                        res = pool.apply_async(fold_unconstraint, args=(str(fa.seq), str(fa.id), region, window, span, unconstraint, save, outdir))
                     except Exception as err:
                         exc_type, exc_value, exc_tb = sys.exc_info()
                         tbe = tb.TracebackException(
@@ -1168,7 +1171,7 @@ if __name__ == '__main__':
                 open(logfile,'a').close()
         else:
             ts = str(datetime.datetime.fromtimestamp(os.path.getmtime(os.path.abspath(logfile))).strftime("%Y%m%d_%H_%M_%S"))
-            shutil.copy2(logfile,'LOGS/'+scriptname+'_'+ts+'.log')
+            shutil.move(logfile,'LOGS/'+scriptname+'_'+ts+'.log')
 
         log = setup_multiprocess_logger(log_file='stderr', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M')
         log = setup_multiprocess_logger(log_file=logfile, filemode='a', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M')

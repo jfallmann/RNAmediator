@@ -7,9 +7,9 @@
 # Created: Fri Aug 21 10:21:43 2020 (+0200)
 # Version:
 # Package-Requires: ()
-# Last-Updated: Fri Aug 21 10:31:03 2020 (+0200)
+# Last-Updated: Tue Sep  1 10:30:58 2020 (+0200)
 #           By: Joerg Fallmann
-#     Update #: 2
+#     Update #: 8
 # URL:
 # Doc URL:
 # Keywords:
@@ -47,7 +47,6 @@
 
 ### IMPORTS
 import os, sys, inspect
-from lib.logger import *
 ##other modules
 import traceback as tb
 import numpy as np
@@ -64,10 +63,24 @@ from collections import defaultdict
 #Biopython stuff
 from Bio import SeqIO
 from Bio.Seq import Seq
+#own
+from lib.logger import *
+from lib.Collection import *
 
 ####################
 # FILE processing  #
 ####################
+
+try:
+    scriptn = os.path.basename(inspect.stack()[-1].filename).replace('.py','')
+    #scriptn = os.path.basename(__file__).replace('.py','')
+
+except Exception as err:
+    exc_type, exc_value, exc_tb = sys.exc_info()
+    tbe = tb.TracebackException(
+        exc_type, exc_value, exc_tb,
+    )
+    print(''.join(tbe.format()),file=sys.stderr)
 
 def backup(file):
     logid = scriptn+'.backup: '

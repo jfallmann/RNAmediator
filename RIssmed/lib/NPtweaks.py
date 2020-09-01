@@ -7,9 +7,9 @@
 # Created: Fri Aug 21 10:20:20 2020 (+0200)
 # Version:
 # Package-Requires: ()
-# Last-Updated: Fri Aug 21 10:21:13 2020 (+0200)
+# Last-Updated: Tue Sep  1 10:30:36 2020 (+0200)
 #           By: Joerg Fallmann
-#     Update #: 2
+#     Update #: 6
 # URL:
 # Doc URL:
 # Keywords:
@@ -46,14 +46,28 @@
 # Code:
 ### IMPORTS
 import os, sys, inspect
-from lib.logger import *
 ##other modules
 import traceback as tb
 import numpy as np
+#own
+from lib.logger import *
+from lib.Collection import *
 
 ####################
 # Numpy processing #
 ####################
+
+try:
+    scriptn = os.path.basename(inspect.stack()[-1].filename).replace('.py','')
+    #scriptn = os.path.basename(__file__).replace('.py','')
+
+except Exception as err:
+    exc_type, exc_value, exc_tb = sys.exc_info()
+    tbe = tb.TracebackException(
+        exc_type, exc_value, exc_tb,
+    )
+    print(''.join(tbe.format()),file=sys.stderr)
+
 
 def toarray(file, ulim=None):
     logid = scriptn+'.toarray: '

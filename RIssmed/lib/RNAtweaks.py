@@ -7,9 +7,9 @@
 # Created: Fri Aug 21 10:23:40 2020 (+0200)
 # Version:
 # Package-Requires: ()
-# Last-Updated: Fri Aug 21 10:36:36 2020 (+0200)
+# Last-Updated: Tue Sep  1 11:09:40 2020 (+0200)
 #           By: Joerg Fallmann
-#     Update #: 7
+#     Update #: 16
 # URL:
 # Doc URL:
 # Keywords:
@@ -47,7 +47,6 @@
 
 ### IMPORTS
 import os, sys, inspect
-from lib.logger import *
 ##other modules
 import traceback as tb
 import numpy as np
@@ -64,6 +63,24 @@ from collections import defaultdict
 #Biopython stuff
 from Bio import SeqIO
 from Bio.Seq import Seq
+#own
+from lib.logger import *
+from lib.Collection import *
+
+####################
+# ViennaRNA helper
+####################
+
+try:
+    scriptn = os.path.basename(inspect.stack()[-1].filename).replace('.py','')
+    #scriptn = os.path.basename(__file__).replace('.py','')
+
+except Exception as err:
+    exc_type, exc_value, exc_tb = sys.exc_info()
+    tbe = tb.TracebackException(
+        exc_type, exc_value, exc_tb,
+    )
+    print(''.join(tbe.format()),file=sys.stderr)
 
 ### Calculate nrg/prob/bppm/ddg
 
@@ -99,7 +116,7 @@ def get_bppm(tmp, start, end):
         log.error(logid+''.join(tbe.format()))
 
 def get_ddg(file):
-    logid = scriptn+'.parseseq: '
+    logid = scriptn+'.get_ddg: '
     try:
         ret = defaultdict()
         if (isinstance(file, str) and os.path.isfile(file)):
@@ -238,7 +255,7 @@ def up_to_array(data=None, region=None, seqlength=None):
                         data[i][e] = np.nan
                     else:
                         data[i][e] = round(data[i][e],8)
-                entries[i].extend(data[i][region])
+                entries[i].append(data[i][region])
             return np.array(entries)
         else:
             log.error(logid+'No up data to print')
@@ -248,7 +265,7 @@ def up_to_array(data=None, region=None, seqlength=None):
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
         )
-        log.error(logid+''.join(tbe.format()))
+        log.error(logid+''.join(tbe.format())+'\t'+str(entries)+'\t'+str(region)+'\t'+str(seqlength))
 
 def npprint(a, o=None):#, format_string ='{0:.2f}'):
     logid = scriptn+'.npprint: '

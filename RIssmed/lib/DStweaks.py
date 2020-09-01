@@ -7,9 +7,9 @@
 # Created: Fri Aug 21 10:18:26 2020 (+0200)
 # Version:
 # Package-Requires: ()
-# Last-Updated: Fri Aug 21 10:19:46 2020 (+0200)
+# Last-Updated: Tue Sep  1 10:30:50 2020 (+0200)
 #           By: Joerg Fallmann
-#     Update #: 1
+#     Update #: 6
 # URL:
 # Doc URL:
 # Keywords:
@@ -47,7 +47,6 @@
 
 ### IMPORTS
 import os, sys, inspect
-from lib.logger import *
 ##other modules
 import traceback as tb
 import numpy as np
@@ -55,11 +54,24 @@ import heapq
 from operator import itemgetter
 from natsort import natsorted, ns
 from collections import defaultdict
-
+#own
+from lib.logger import *
+from lib.Collection import *
 
 ################
 #  DS tweaker  #
 ################
+
+try:
+    scriptn = os.path.basename(inspect.stack()[-1].filename).replace('.py','')
+    #scriptn = os.path.basename(__file__).replace('.py','')
+
+except Exception as err:
+    exc_type, exc_value, exc_tb = sys.exc_info()
+    tbe = tb.TracebackException(
+        exc_type, exc_value, exc_tb,
+    )
+    print(''.join(tbe.format()),file=sys.stderr)
 
 def removekey(d, key):
     logid = scriptn+'.removekey: '
