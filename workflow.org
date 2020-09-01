@@ -239,4 +239,4 @@ ca rissmed
 
 for i in 20 40 60 80;do python ~/Projects/INPROGRESS/RIssmed/RIssmed/Randseq.py -l 1000 -g $i -n 10000 -o GC$i;done
 
- ~/Projects/INPROGRESS/RIssmed/RIssmed/ConstraintPLFold.py -s GC20.fa.gz -w 250 -l 150 -u 7 -r raw -n unpaired -p paired -x sliding -o Random_20 -z 6 --loglevel DEBUG -m 2
+for a in 20 40 60 80;do for i in 5 7 9 11;do ~/Projects/INPROGRESS/RIssmed/RIssmed/ConstraintPLFold.py -s GC$a\.fa.gz -w 250 -l 150 -u $i -r raw -n unpaired -p paired -x sliding -o Random_$a\_$i -z 12 --loglevel DEBUG -m 2;done
