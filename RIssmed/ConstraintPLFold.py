@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Fri Sep  4 13:45:00 2020 (+0200)
+## Last-Updated: Fri Sep  4 13:45:54 2020 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 438
+##     Update #: 439
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -1168,7 +1168,7 @@ if __name__ == '__main__':
         logtime = str(datetime.datetime.now().strftime("%Y%m%d_%H_%M_%S"))
         logdir = 'LOGS'+os.sep+logtime
         makelogdir(logdir)
-        logfile = os.path.abspath(logdir)+scriptname+'.log'
+        logfile = os.path.abspath(logdir)+os.sep+scriptname+'.log'
 
         if not os.path.isfile(os.path.abspath(logfile)):
             open(logfile,'a').close()
