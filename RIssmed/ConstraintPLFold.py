@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Tue Sep  1 11:04:02 2020 (+0200)
+## Last-Updated: Fri Sep  4 13:38:24 2020 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 429
+##     Update #: 430
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -1165,12 +1165,14 @@ if __name__ == '__main__':
     try:
         set_start_method("spawn")  # set multiprocessing start method to safe spawn
         args=parseargs()
-        makelogdir('LOGS')
-        logfile = 'LOGS/'+scriptname+'.log'
+        ts = str(datetime.datetime.fromtimestamp(os.path.getmtime(os.path.abspath(logfile))).strftime("%Y%m%d_%H_%M_%S"))
+        logdir = 'LOGS'+os.sep+ts
+        makelogdir(logdir)
+        logfile = os.path.abspath(logdir)+scriptname+'.log')
+
         if not os.path.isfile(os.path.abspath(logfile)):
                 open(logfile,'a').close()
         else:
-            ts = str(datetime.datetime.fromtimestamp(os.path.getmtime(os.path.abspath(logfile))).strftime("%Y%m%d_%H_%M_%S"))
             shutil.move(logfile,'LOGS/'+scriptname+'_'+ts+'.log')
 
         log = setup_multiprocess_logger(log_file='stderr', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M')
