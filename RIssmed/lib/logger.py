@@ -7,9 +7,9 @@
 # Created: Mon Aug 12 10:26:55 2019 (+0200)
 # Version:
 # Package-Requires: ()
-# Last-Updated: Fri Jul 17 10:19:23 2020 (+0200)
+# Last-Updated: Fri Sep  4 17:21:30 2020 (+0200)
 #           By: Joerg Fallmann
-#     Update #: 96
+#     Update #: 97
 # URL:
 # Doc URL:
 # Keywords:
@@ -55,7 +55,14 @@ def makelogdir(logdir):
     if not os.path.isabs(logdir):
         logdir =  os.path.abspath(logdir)
     if not os.path.exists(logdir):
-        os.makedirs(logdir)
+        try:
+            os.makedirs(logdir)
+        except OSError, e:
+            # If directory has already been created or is inaccessible
+            if not os.path.exists(logdir):
+                sys.exit('Problem creating directory '+logdir+' '+e)
+            else:
+                return logdir
     return logdir
 
 def setup_logger(name, log_file, filemode='a', logformat=None, datefmt=None, level='WARNING', proc=1):

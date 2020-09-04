@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Fri Sep  4 13:45:54 2020 (+0200)
+## Last-Updated: Fri Sep  4 13:48:30 2020 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 439
+##     Update #: 440
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -1165,7 +1165,7 @@ if __name__ == '__main__':
     try:
         set_start_method("spawn")  # set multiprocessing start method to safe spawn
         args=parseargs()
-        logtime = str(datetime.datetime.now().strftime("%Y%m%d_%H_%M_%S"))
+        logtime = str(datetime.datetime.now().strftime("%Y%m%d_%H_%M_%S_$f"))
         logdir = 'LOGS'+os.sep+logtime
         makelogdir(logdir)
         logfile = os.path.abspath(logdir)+os.sep+scriptname+'.log'
