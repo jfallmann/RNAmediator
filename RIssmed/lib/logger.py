@@ -7,9 +7,9 @@
 # Created: Mon Aug 12 10:26:55 2019 (+0200)
 # Version:
 # Package-Requires: ()
-# Last-Updated: Fri Sep  4 17:21:30 2020 (+0200)
+# Last-Updated: Fri Sep  4 17:28:58 2020 (+0200)
 #           By: Joerg Fallmann
-#     Update #: 97
+#     Update #: 98
 # URL:
 # Doc URL:
 # Keywords:
@@ -57,10 +57,10 @@ def makelogdir(logdir):
     if not os.path.exists(logdir):
         try:
             os.makedirs(logdir)
-        except OSError, e:
+        except OSError:
             # If directory has already been created or is inaccessible
             if not os.path.exists(logdir):
-                sys.exit('Problem creating directory '+logdir+' '+e)
+                sys.exit('Problem creating directory '+logdir)
             else:
                 return logdir
     return logdir
