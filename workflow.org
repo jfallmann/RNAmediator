@@ -237,8 +237,9 @@ intersectBed -s -a bla.gz -b targetsites.bed.gz -wa -wb |cut -d$'\t' -f 1-15|sor
 cd /scr/k70san2/fall/Constraints/Random
 ca rissmed
 
-for i in 20 40 60 80;do python ~/Projects/INPROGRESS/RIssmed/RIssmed/Randseq.py -l 1000 -g $i -n 10000 -o GC$i;done
+for i in 20 40 60 80;do python ~/Projects/INPROGRESS/RIssmed/RIssmed/Randseq.py -l 1000 -g $i -n 1000 -o GC$i;done
 
 for a in 20 40 60 80;do for i in 5 7 9 11;do ~/Projects/INPROGRESS/RIssmed/RIssmed/ConstraintPLFold.py -s GC$a\.fa.gz -w 250 -l 150 -u $i -r raw -n unpaired -p paired -x sliding -o Random_$a\_$i -z 12 --loglevel DEBUG -m 2;done
 #SLURM
+~/Projects/INPROGRESS/RIssmed/slurm/rissmed_random.sh
 for a in 20 40 60 80;do for i in 5 7 9 11;do sbatch --export ALL,gc=$a,u=$i rissmed_random.sh;done;done
