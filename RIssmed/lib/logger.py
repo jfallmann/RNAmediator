@@ -72,7 +72,7 @@ def setup_logger(name, log_file, filemode='a', logformat=None, datefmt=None, lev
         log = multiprocessing.get_logger()  # does not take name argument
     else:
         log = logging.getLogger(name)
-    if log_file is not 'stderr':
+    if log_file != 'stderr':
         handler = logging.FileHandler(log_file, mode=filemode)
     else:
         handler = logging.StreamHandler(sys.stderr)
@@ -89,7 +89,7 @@ def setup_multiprocess_logger(log_file, filemode='a', logformat=None, datefmt=No
 
     log = multiprocessing.get_logger() # does not take name argument
 
-    if log_file is not 'stderr':
+    if log_file != 'stderr':
         handler = logging.FileHandler(log_file, mode=filemode)
     else:
         handler = logging.StreamHandler(sys.stderr)

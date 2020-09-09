@@ -187,14 +187,14 @@ def preprocess(sequence, window, span, region, multi, unconstraint, unpaired, pa
             seqnr = 0
 
             # Create process pool with processes
-            num_processes = procs or 1
+            num_processes = procs or 2
             pool = multiprocessing.Pool(processes=num_processes-1, maxtasksperchild=1)
 
             for rec in records:
                 sseq = StringIO(records[seqnr].format("fasta"))
                 constraint = constraintlist['lw'][seqnr]
 
-                pool.apply_async(parafold, (sseq, window, span, region, multi, unconstraint, unpaired, paired, length, gc, number, constraint, conslength, alphabet, save, procs, vrna, temprange, outdir, pattern, cutoff, seqnr, genecoords))
+                pool.apply_async(parafold, args=(sseq, window, span, region, multi, unconstraint, unpaired, paired, length, gc, number, constraint, conslength, alphabet, save, procs, vrna, temprange, outdir, pattern, cutoff, seqnr, genecoords))
                 seqnr += 1
 
             pool.close()
@@ -229,7 +229,7 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
         md = None
 
         # Create process pool with processes
-        num_processes = procs or 1
+        num_processes = procs or 2
         #with get_context("spawn").Pool(processes=num_processes-1, maxtasksperchild=1) as pool:
         pool = multiprocessing.Pool(processes=num_processes-1, maxtasksperchild=1)
         for fa in SeqIO.parse(seq,'fasta'):
@@ -538,7 +538,9 @@ def parafold(sequence, window, span, region, multi, unconstraint, unpaired, pair
             #           data = { 'bpp': [], 'up': [] }
             data = { 'up': [] }
             an = [np.nan]
-            num_processes = procs or 1
+            num_processes = procs or 2
+            #with get_context("spawn").Pool(processes=num_processes-1, maxtasksperchild=1) as pool:
+            pool = multiprocessing.Pool(processes=num_processes-1, maxtasksperchild=1)
             conslist = []
             conslist.append(constrain)
 
