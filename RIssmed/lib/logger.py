@@ -50,6 +50,7 @@ import os, sys, inspect
 import traceback as tb
 
 log = multiprocessing.get_logger()  # does not take name argument
+log.addHandler(logging.StreamHandler(sys.stderr))
 
 def makelogdir(logdir):
     if not os.path.isabs(logdir):
@@ -82,12 +83,15 @@ def setup_logger(name, log_file, filemode='a', logformat=None, datefmt=None, lev
     log.setLevel(level)
     log.addHandler(handler)
 
+    for h in log.handlers:
+        h.flush()
+
     return log
 
-def setup_multiprocess_logger(log_file, filemode='a', logformat=None, datefmt=None, level='WARNING'):
+def setup_multiprocess_logger(log, log_file, filemode='a', logformat=None, datefmt=None, level='WARNING'):
     """Function setup as many loggers as you want"""
 
-    log = multiprocessing.get_logger() # does not take name argument
+    #log = multiprocessing.get_logger() # does not take name argument
 
     if log_file != 'stderr':
         handler = logging.FileHandler(log_file, mode=filemode)
@@ -98,6 +102,9 @@ def setup_multiprocess_logger(log_file, filemode='a', logformat=None, datefmt=No
 
     log.setLevel(level)
     log.addHandler(handler)
+
+    for h in log.handlers:
+        h.flush()
 
     return log
 

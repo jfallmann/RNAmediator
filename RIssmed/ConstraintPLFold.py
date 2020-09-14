@@ -92,7 +92,7 @@ from random import choices, choice, shuffle # need this if tempprobing was choos
 
 #Logging
 import datetime
-from lib.logger import makelogdir, setup_multiprocess_logger, checklog
+from lib.logger import *
 
 scriptname = os.path.basename(__file__).replace('.py','')
 ##load own modules

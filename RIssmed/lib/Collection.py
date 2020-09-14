@@ -84,7 +84,7 @@ from Bio.Seq import Seq
 ############################################################
 
 try:
-    scriptn = os.path.basename(inspect.stack()[-1].filename).replace('.py','')
+    scriptn = os.path.basename(inspect.stack()[-1].filename).replace('.py', '')
 
 except Exception as err:
     exc_type, exc_value, exc_tb = sys.exc_info()
