@@ -46,24 +46,23 @@
 # Code:
 
 ### IMPORTS
-import os, sys, inspect
-from lib.logger import *
-##other modules
+import os
+import sys
+import inspect
 import traceback as tb
-import numpy as np
-import heapq
-from operator import itemgetter
-from natsort import natsorted, ns
-import re
-import pprint
-from io import StringIO
-import gzip
-import math
-import datetime
-from collections import defaultdict
-#Biopython stuff
-from Bio import SeqIO
-from Bio.Seq import Seq
+import logging
+
+try:
+    log = logging.getLogger(__name__)  # use module name
+    scriptn = os.path.basename(inspect.stack()[-1].filename).replace('.py', '')
+    log.debug('LOGGING IN Plots'+str(scriptn)+str(log)+str(log.handlers))
+except Exception as err:
+    exc_type, exc_value, exc_tb = sys.exc_info()
+    tbe = tb.TracebackException(
+        exc_type, exc_value, exc_tb,
+    )
+    print(''.join(tbe.format()),file=sys.stderr)
+
 
 def plot_data(fa, raw, consu, consp, const, xs, cons, saveas, outdir):
     logid = scriptn+'.plot_data: '

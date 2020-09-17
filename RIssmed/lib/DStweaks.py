@@ -46,16 +46,16 @@
 # Code:
 
 ### IMPORTS
-import os, sys, inspect
+import os
+import sys
+import inspect
 ##other modules
 import traceback as tb
 import numpy as np
 import heapq
 from operator import itemgetter
-from natsort import natsorted, ns
-from collections import defaultdict
-#own
-from lib.logger import *
+# own
+import logging
 from lib.Collection import *
 
 ################
@@ -63,9 +63,9 @@ from lib.Collection import *
 ################
 
 try:
-    scriptn = os.path.basename(inspect.stack()[-1].filename).replace('.py','')
-    #scriptn = os.path.basename(__file__).replace('.py','')
-
+    log = logging.getLogger(__name__)  # use module name
+    scriptn = os.path.basename(inspect.stack()[-1].filename).replace('.py', '')
+    log.debug('LOGGING IN DStweaks'+str(scriptn)+str(log)+str(log.handlers))
 except Exception as err:
     exc_type, exc_value, exc_tb = sys.exc_info()
     tbe = tb.TracebackException(

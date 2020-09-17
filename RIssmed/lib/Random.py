@@ -46,18 +46,23 @@
 # Code:
 
 ### IMPORTS
-import os, sys, inspect
-from logger import *
-##other modules
-import numpy as np
-import heapq
-from operator import itemgetter
-from natsort import natsorted, ns
+import os
+import sys
+import inspect
+import logging
 import traceback as tb
-from io import StringIO
-#Biopython stuff
-from Bio import SeqIO
-from Bio.Seq import Seq
+
+
+try:
+    log = logging.getLogger(__name__)  # use module name
+    scriptn = os.path.basename(inspect.stack()[-1].filename).replace('.py', '')
+    log.debug('LOGGING IN Random'+str(scriptn)+str(log)+str(log.handlers))
+except Exception as err:
+    exc_type, exc_value, exc_tb = sys.exc_info()
+    tbe = tb.TracebackException(
+        exc_type, exc_value, exc_tb,
+    )
+    print(''.join(tbe.format()),file=sys.stderr)
 
 ################
 # Random Seqs  #

@@ -60,32 +60,23 @@
 ##
 ### Code:
 ### IMPORTS
-import os, sys, inspect
-from lib.logger import *
-##other modules
+import os
+import sys
+import inspect
+import logging
+## other modules
 import traceback as tb
+import argparse
 import numpy as np
-import heapq
-from operator import itemgetter
-from natsort import natsorted, ns
-import re
-import pprint
-from io import StringIO
-import gzip
-import math
-import datetime
-from collections import defaultdict
-#Biopython stuff
-from Bio import SeqIO
-from Bio.Seq import Seq
 
 ############################################################
-######################## Functions #########################
+######################## FUNCTIONS #########################
 ############################################################
 
 try:
+    log = logging.getLogger(__name__)  # use module name
     scriptn = os.path.basename(inspect.stack()[-1].filename).replace('.py', '')
-
+    log.debug('LOGGING IN COLLECTION'+str(scriptn)+str(log)+str(log.handlers))
 except Exception as err:
     exc_type, exc_value, exc_tb = sys.exc_info()
     tbe = tb.TracebackException(
@@ -93,8 +84,48 @@ except Exception as err:
     )
     print(''.join(tbe.format()),file=sys.stderr)
 
+
 ##############################
-####### Validity check #######
+########## ARGPARSE ##########
+##############################
+
+def parseargs():
+    parser = argparse.ArgumentParser(description='Calculate base pairing probs of given seqs or random seqs for given window size, span and region.')
+    parser.add_argument("-s", "--sequence", type=str, help='Sequence to fold')
+    parser.add_argument("-w", "--window", type=int, default=240, help='Size of window')
+    parser.add_argument("-l", "--span", type=int, default=60, help='Length of bp span')
+    parser.add_argument("-u", "--region", type=int, default=1, help='Length of region')
+    parser.add_argument("-m", "--multi", type=int, default=4, help='Multiplyer for window expansion')
+    parser.add_argument("-c", "--cutoff", type=float, default=-0.01, help='Only print prob greater cutoff')
+    parser.add_argument("-r", "--unconstraint", type=str, default='STDOUT', help='Print output of unconstraint folding to file with this name')
+    parser.add_argument("-n", "--unpaired", type=str, default='STDOUT', help='Print output of unpaired folding to file with this name')
+    parser.add_argument("-p", "--paired", type=str, default='STDOUT', help='Print output of paired folding to file with this name')
+    parser.add_argument("-e", "--length", type=int, default=100, help='Length of randseq')
+    parser.add_argument("--gc", type=int, default=0, help='GC content, needs to be %%2==0 or will be rounded')
+    parser.add_argument("-b", "--number", type=int, default=1, help='Number of random seqs to generate')
+    parser.add_argument("-x", "--constrain", type=str, default='sliding', help='Region to constrain, either sliding window (default) or region to constrain (e.g. 1-10) or path to file containing regions following the naming pattern $fastaID_constraints e.g. Sequence1_constraints, if paired, the first entry of the file will become a fixed constraint and paired with all the others, choices = [off,sliding,temperature, tempprobe, the string file or a filename, paired, or simply 1-10,2-11 or 1-10;15-20,2-11;16-21 for paired or ono(oneonone),filename to use one line of constraint file for one sequence from fasta]')
+    parser.add_argument("-y", "--conslength", type=int, default=1, help='Length of region to constrain for slidingwindow')
+    parser.add_argument("-t", "--temprange", type=str, default='', help='Temperature range for structure prediction (e.g. 37-60)')
+    parser.add_argument("-a", "--alphabet", type=str, default='AUCG', help='alphabet for random seqs')
+    #parser.add_argument("--plot", type=str, default='0', choices=['0','svg', 'png'], help='Create image of the (un-)constraint sequence, you can select the file format here (svg,png). These images can later on be animated with ImageMagick like `convert -delay 120 -loop 0 *.svg animated.gif`.')
+    parser.add_argument("--save", type=int, default=1, help='Save the output as gz files')
+    parser.add_argument("-o", "--outdir", type=str, default='', help='Directory to write to')
+    parser.add_argument("-z", "--procs", type=int, default=1, help='Number of parallel processes to run this job with')
+    parser.add_argument("--vrna", type=str, default='', help="Append path to vrna RNA module to sys.path")
+    parser.add_argument("--pattern", type=str, default='', help="Helper var, only used if called from other prog where a pattern for files is defined")
+    parser.add_argument("-g", "--genes", type=str, default='', help='Genomic coordinates bed for genes, either standard bed format or AnnotateBed.pl format')
+    parser.add_argument("-v", "--verbosity", type=int, default=0, choices=[0, 1], help="increase output verbosity")
+    parser.add_argument("--loglevel", type=str, default='WARNING', choices=['WARNING','ERROR','INFO','DEBUG'], help="Set log level")
+    parser.add_argument("--logdir", type=str, default='LOGS', help="Set log directory")
+
+    if len(sys.argv)==1:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
+
+    return parser.parse_args()
+
+##############################
+####### VALIDITY CHECK #######
 ##############################
 
 def isvalid(x=None):
