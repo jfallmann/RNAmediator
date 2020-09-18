@@ -68,7 +68,9 @@
 
 ### Code:
 ## IMPORTS
-import os, sys, inspect
+import os
+import sys
+import inspect
 import argparse
 import multiprocessing
 from multiprocessing import get_context
@@ -155,7 +157,7 @@ def preprocess(queue, configurer, level, sequence, window, span, region, multi, 
             seqnr = 0
 
             # Create process pool with processes
-            num_processes = procs or 2
+            num_processes = procs or 1
             pool = multiprocessing.Pool(processes=num_processes-1, maxtasksperchild=1)
 
             for rec in records:
