@@ -65,9 +65,9 @@
 ##
 ######################################################################
 ##
+
 ### Code:
-### IMPORTS
-##load own modules
+## IMPORTS
 import os, sys, inspect
 import argparse
 import multiprocessing
@@ -83,23 +83,22 @@ import traceback as tb
 import shlex
 import shutil
 from Randseq import createrandseq
-#Biopython stuff
+# Biopython stuff
 from Bio import SeqIO
 from Bio.Seq import Seq
-#numpy
+# numpy
 import numpy as np
 from random import choices, choice, shuffle # need this if tempprobing was choosen
-
+# RNA
+import RNA
 # Logging
 import logging
 from lib.logger import makelogdir, makelogfile, listener_process, listener_configurer, worker_configurer
-
-##load own modules
+# load own modules
 from lib.Collection import *
 from lib.FileProcessor import *
 from lib.RNAtweaks import *
 from lib.NPtweaks import *
-
 
 log = logging.getLogger(__name__)  # use module name
 scriptname = os.path.basename(__file__).replace('.py', '')
@@ -163,26 +162,28 @@ def preprocess(queue, configurer, level, sequence, window, span, region, multi, 
                 sseq = StringIO(records[seqnr].format("fasta"))
                 constraint = constraintlist['lw'][seqnr]
 
-                pool.apply_async(parafold, args=(queue, configurer, level, sseq, window, span, region, multi, unconstraint, unpaired, paired, length, gc, number, constraint, conslength, alphabet, save, procs, vrna, temprange, outdir, pattern, cutoff, seqnr, genecoords))
+                pool.apply_async(parafold, args=(sseq, window, span, region, multi, unconstraint, unpaired, paired, length, gc, number, constraint, conslength, alphabet, save, procs, vrna, temprange, outdir, pattern, cutoff, seqnr, genecoords, dict(queue=queue, configurer=configurer, level=level)))
                 seqnr += 1
 
             pool.close()
             pool.join()               #timeout
 
         else:
-            fold(queue, configurer, level, sequence, window, span, region, multi, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, save, procs, vrna, temprange, outdir, genecoords, verbosity=verbosity, pattern=pattern, cutoff=cutoff)
-    except Exception as err:
+            fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, save, procs, vrna, temprange, outdir, genecoords, verbosity=verbosity, pattern=pattern, cutoff=cutoff, queue=queue, configurer=configurer, level=level)
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
         )
         log.error(logid+''.join(tbe.format()))
 
-def fold(queue, configurer, level, sequence, window, span, region, multi, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, save, procs, vrna, temprange, outdir, genecoords, verbosity=False, pattern=None, cutoff=None, seqnr=None, mode=None, constraintlist=None):
+def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, save, procs, vrna, temprange, outdir, genecoords, verbosity=False, pattern=None, cutoff=None, seqnr=None, mode=None, constraintlist=None, queue=None, configurer=None, level=None):
 
-    logid = scriptname+'.fold: '
-    configurer(queue, level)
     try:
+        logid = scriptname+'.fold: '
+        if queue and level:
+            configurer(queue, level)
+
         #set path for VRNA lib if necessary
         if vrna:
             sys.path = [vrna] + sys.path
@@ -238,8 +239,8 @@ def fold(queue, configurer, level, sequence, window, span, region, multi, uncons
                     check = str(goi)+'_'+str(chrom)+'_'+str(strand)+'_'+unconstraint+'_'+str(window)+'_'+str(span)+'.gz'
                     if not ( os.path.isfile(check) ):
                         try:
-                            res = pool.apply_async(fold_unconstraint, args=(str(fa.seq), str(fa.id), region, window, span, unconstraint, save, outdir))
-                        except Exception as err:
+                            res = pool.apply_async(fold_unconstraint, args=(str(fa.seq), str(fa.id), region, window, span, unconstraint, save, outdir, dict(queue=queue, configurer=configurer, level=level)))
+                        except Exception:
                             exc_type, exc_value, exc_tb = sys.exc_info()
                             tbe = tb.TracebackException(
                                 exc_type, exc_value, exc_tb,
@@ -260,8 +261,8 @@ def fold(queue, configurer, level, sequence, window, span, region, multi, uncons
                     try:
                         for temp in range(ts,te+1):
                         # Create the process, and connect it to the worker function
-                            pool.apply_async(constrain_temp, args=(str(fa.id), str(fa.seq), temp, window, span, region, an, save, outdir))
-                    except Exception as err:
+                            pool.apply_async(constrain_temp, args=(str(fa.id), str(fa.seq), temp, window, span, region, an, save, outdir, dict(queue=queue, configurer=configurer, level=level)))
+                    except Exception:
                         exc_type, exc_value, exc_tb = sys.exc_info()
                         tbe = tb.TracebackException(
                             exc_type, exc_value, exc_tb,
@@ -303,8 +304,8 @@ def fold(queue, configurer, level, sequence, window, span, region, multi, uncons
                     if an[0] is np.nan or len(an) > len(fa.seq): #This means that the prob info was loaded from file or the raw sequence has not been folded yet, but we need a subsequence for the cutoff calculation, so we fold the subsequence
                         log.info(logid+'Recalculating at default temp with subseq')
                         try:
-                            res = pool.apply_async(fold_unconstraint, args=(str(fa.seq), str(fa.id), region, window, span, unconstraint, save, outdir))
-                        except Exception as err:
+                            res = pool.apply_async(fold_unconstraint, args=(str(fa.seq), str(fa.id), region, window, span, unconstraint, save, outdir, dict(queue=queue, configurer=configurer, level=level)))
+                        except Exception:
                             exc_type, exc_value, exc_tb = sys.exc_info()
                             tbe = tb.TracebackException(
                                 exc_type, exc_value, exc_tb,
@@ -317,8 +318,8 @@ def fold(queue, configurer, level, sequence, window, span, region, multi, uncons
                     try:
                         for temp in range(ts,te+1):
                             # Create the process, and connect it to the worker function
-                            pool.apply_async(constrain_temp, args=(str(fa.id), str(fa.seq), temp, window, span, region, multi, an, save, outdir))
-                    except Exception as err:
+                            pool.apply_async(constrain_temp, args=(str(fa.id), str(fa.seq), temp, window, span, region, multi, an, save, outdir, dict(queue=queue, configurer=configurer, level=level)))
+                    except Exception:
                         exc_type, exc_value, exc_tb = sys.exc_info()
                         tbe = tb.TracebackException(
                             exc_type, exc_value, exc_tb,
@@ -394,7 +395,7 @@ def fold(queue, configurer, level, sequence, window, span, region, multi, uncons
                     for entry in conslist:
                         log.debug(logid+'ENTRY: '+str(entry))
                         if entry == 'NOCONS': # in case we just want to fold the sequence without constraints at all
-                            res = pool.apply_async(fold_unconstraint, args=(str(fa.seq), str(fa.id), region, window, span, unconstraint, save, outdir))
+                            res = pool.apply_async(fold_unconstraint, args=(str(fa.seq), str(fa.id), region, window, span, unconstraint, save, outdir, dict(queue=queue, configurer=configurer, level=level)))
                             data['up'] = res.get()
 
                         else:
@@ -439,13 +440,13 @@ def fold(queue, configurer, level, sequence, window, span, region, multi, uncons
                                 log.info(logid+'Constraining to '+str(fstart) + ' and ' + str(fend))
                                 goi, chrom, strand = idfromfa(fa.id)
 
-                                pool.apply_async(constrain_seq_paired, args=(str(fa.id), str(fa.seq), fstart, fend, start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an, unconstraint))
+                                pool.apply_async(constrain_seq_paired, args=(str(fa.id), str(fa.seq), fstart, fend, start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an, unconstraint, dict(queue=queue, configurer=configurer, level=level)))
                             else:
-                                pool.apply_async(constrain_seq, args=(str(fa.id), str(fa.seq), start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an, unconstraint))
+                                pool.apply_async(constrain_seq, args=(str(fa.id), str(fa.seq), start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an, unconstraint, dict(queue=queue,configurer=configurer, level=level)))
 
         pool.close()
         pool.join()       #timeout
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -455,10 +456,11 @@ def fold(queue, configurer, level, sequence, window, span, region, multi, uncons
     log.info(logid+"DONE: output in: " + str(outdir))
     return 1
 
-def parafold(queue, configurer, level, sequence, window, span, region, multi, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, save, procs, vrna, temprange, outdir, pattern, cutoff, seqnr, genecoords):
+def parafold(sequence, window, span, region, multi, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, save, procs, vrna, temprange, outdir, pattern, cutoff, seqnr, genecoords, queue=None, configurer=None, level=None):
 
     logid = scriptname+'.parafold: '
-    configurer(queue, level)
+    if queue and level:
+        configurer(queue, level)
     seq = sequence
     #set path for VRNA lib
     if vrna:
@@ -471,7 +473,7 @@ def parafold(queue, configurer, level, sequence, window, span, region, multi, un
         #    if hasattr(RNA, '__all__')
         #    else {k: v for (k, v) in RNA.__dict__.items() if not k.startswith('_')
         #})
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -518,8 +520,8 @@ def parafold(queue, configurer, level, sequence, window, span, region, multi, un
             for entry in conslist:
                 if entry == 'NOCONS': # in case we just want to fold the sequence without constraints at all
                     try:
-                        res = pool.apply_async(fold_unconstraint, args=(str(fa.seq), str(fa.id), region, window, span, unconstraint, save, outdir))
-                    except Exception as err:
+                        res = pool.apply_async(fold_unconstraint, args=(str(fa.seq), str(fa.id), region, window, span, unconstraint, save, outdir, dir(queue=queue, configurer=configurer, level=level)))
+                    except Exception:
                         exc_type, exc_value, exc_tb = sys.exc_info()
                         tbe = tb.TracebackException(
                             exc_type, exc_value, exc_tb,
@@ -555,14 +557,14 @@ def parafold(queue, configurer, level, sequence, window, span, region, multi, un
 
                     try:
                         constrain_seq(str(fa.id), str(fa.seq), start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an)
-                    except Exception as err:
+                    except Exception:
                         exc_type, exc_value, exc_tb = sys.exc_info()
                         tbe = tb.TracebackException(
                             exc_type, exc_value, exc_tb,
                         )
                         log.error(logid+''.join(tbe.format()))
 
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -572,11 +574,44 @@ def parafold(queue, configurer, level, sequence, window, span, region, multi, un
     log.info(logid+"DONE: output in: " + str(outdir))
     return 1
 
+
 ##### Functions #####
-def constrain_seq(sid, seq, start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an=None, unconstraint=None):
+def fold_unconstraint(seq, id, region, window, span, unconstraint, save, outdir, rawentry=None, queue=None, configurer=None, level=None):
+    logid = scriptname+'.fold_unconstraint: '
+    data = {'up': []}
+    try:
+        if len(seq) < int(window):
+            log.error(logid+'Sequence to small, skipping '+str(id)+'\t'+str(len(seq)))
+            return
+
+        # RNA = importlib.import_module('RNA')
+        md = RNA.md()
+        md.max_bp_span = span
+        md.window_size = window
+        # create new fold_compound object
+        fc = RNA.fold_compound(str(seq), md, RNA.OPTION_WINDOW)
+        # call prop window calculation
+        fc.probs_window(region, RNA.PROBS_WINDOW_UP, up_callback, data)
+        #fc.probs_window(region, RNA.PROBS_WINDOW_BPP, bpp_callback, data)
+
+        write_unconstraint(save, str(id), str(seq), unconstraint, data, int(region), str(window), str(span), outdir, rawentry)
+
+    except Exception:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+            exc_type, exc_value, exc_tb,
+            )
+        log.error(logid+''.join(tbe.format()))
+
+
+    return data['up']
+
+
+def constrain_seq(sid, seq, start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an=None, unconstraint=None, queue=None, configurer=None, level=None):
     #   DEBUGGING
     #   pp = pprint.PrettyPrinter(indent=4)#use with pp.pprint(datastructure)
     logid = scriptname+'.constrain_seq: '
+
     try:
         goi, chrom, strand = idfromfa(sid)
 
@@ -648,19 +683,17 @@ def constrain_seq(sid, seq, start, end, conslength, const, cons, window, span, r
             log.info(logid+'No influence on Structure with paired constraint at ' + cons)
             diff_np = None
 
-        if save:
-            write_constraint(str(sid), seqtofold, paired, unpaired, data_u, data_p, cons, int(region), diff_nu, diff_np, str(window), str(span), outdir)
-        else:
-            return
+        write_constraint(save, str(sid), seqtofold, paired, unpaired, data_u, data_p, cons, int(region), diff_nu, diff_np, str(window), str(span), outdir)
 
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
             )
         log.error(logid+''.join(tbe.format()))
 
-def constrain_seq_paired(sid, seq, fstart, fend, start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an, unconstraint):
+
+def constrain_seq_paired(sid, seq, fstart, fend, start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an, unconstraint, queue=None, configurer=None, level=None):
     #   DEBUGGING
     #   pp = pprint.PrettyPrinter(indent=4)#use with pp.pprint(datastructure)
     logid = scriptname+'.constrain_seq_paired: '
@@ -737,10 +770,9 @@ def constrain_seq_paired(sid, seq, fstart, fend, start, end, conslength, const, 
             log.info(logid+'No influence on Structure with paired constraint at ' + cons)
             diff_np = None
 
-        if save:
-            write_constraint(sid, seqtofold, paired, unpaired, data_u, data_p, cons, int(region), diff_nu, diff_np, str(window), str(span), outdir)
+        write_constraint(save, sid, seqtofold, paired, unpaired, data_u, data_p, cons, int(region), diff_nu, diff_np, str(window), str(span), outdir)
 
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -749,7 +781,8 @@ def constrain_seq_paired(sid, seq, fstart, fend, start, end, conslength, const, 
 
     return 1
 
-def constrain_temp(sid, seq, temp, window, span, region, multi, an, save, outdir):
+
+def constrain_temp(sid, seq, temp, window, span, region, multi, an, save, outdir, queue=None, configurer=None, level=None):
     try:
         if len(seq) < int(window):
             log.warning(logid+'Sequence to small, skipping '+str(sid)+'\t'+str(temp))
@@ -775,24 +808,23 @@ def constrain_temp(sid, seq, temp, window, span, region, multi, an, save, outdir
         diff_nt = an - at
 
         #####Set temp, and rewrite save for temp
-        if save:
-            write_temp(sid, seq, str(temp), data_t, int(region), diff_nt, str(window), str(span), outdir)
+        write_temp(save, sid, seq, str(temp), data_t, int(region), diff_nt, str(window), str(span), outdir)
 
         return 1
 
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
         )
         log.error(logid+''.join(tbe.format()))
 
-def write_unconstraint(sid, seq, unconstraint, data, region, window, span, outdir, rawentry=None):
 
+def write_unconstraint(save, sid, seq, unconstraint, data, region, window, span, outdir, rawentry=None):
     try:
         goi, chrom, strand = idfromfa(sid)
         temp_outdir = os.path.join(outdir,goi)
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
         exc_type, exc_value, exc_tb,
@@ -813,7 +845,7 @@ def write_unconstraint(sid, seq, unconstraint, data, region, window, span, outdi
                     if e.errno != errno.EEXIST:
                         raise
             if rawentry:
-                if not os.path.exists(os.path.join(temp_outdir,str(goi+'_'+chrom+'_'+strand+'_'+rawentry+'_'+unconstraint+'_'+window+'_'+str(span)+'.gz'))):
+                if save > 0 and not os.path.exists(os.path.join(temp_outdir,str(goi+'_'+chrom+'_'+strand+'_'+rawentry+'_'+unconstraint+'_'+window+'_'+str(span)+'.gz'))):
                     with gzip.open(os.path.join(temp_outdir,goi+'_'+chrom+'_'+strand+'_'+rawentry+'_'+unconstraint+'_'+window+'_'+str(span)+'.gz'), 'wb') as o:
                         out = print_up(data['up'],len(seq),region)
                         if out and len(out)>1:
@@ -824,7 +856,7 @@ def write_unconstraint(sid, seq, unconstraint, data, region, window, span, outdi
                     printdiff(up_to_array(data['up']),os.path.join(temp_outdir,str(goi+'_'+chrom+'_'+strand+'_'+rawentry+'_'+unconstraint+'_'+window+'_'+str(span)+'.npy')))
 
             else:
-                if not os.path.exists(os.path.join(temp_outdir,str(goi+'_'+chrom+'_'+strand+'_'+str(gr)+'_'+unconstraint+'_'+window+'_'+str(span)+'.gz'))):
+                if save > 0 and not os.path.exists(os.path.join(temp_outdir,str(goi+'_'+chrom+'_'+strand+'_'+str(gr)+'_'+unconstraint+'_'+window+'_'+str(span)+'.gz'))):
                     with gzip.open(os.path.join(temp_outdir,goi+'_'+chrom+'_'+strand+'_'+str(gr)+'_'+unconstraint+'_'+window+'_'+str(span)+'.gz'), 'wb') as o:
                         out = print_up(data['up'],len(seq),region)
                         if out and len(out)>1:
@@ -834,7 +866,7 @@ def write_unconstraint(sid, seq, unconstraint, data, region, window, span, outdi
 
         else:
             print (print_up(data['up'],len(seq),region))
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
         exc_type, exc_value, exc_tb,
@@ -842,8 +874,8 @@ def write_unconstraint(sid, seq, unconstraint, data, region, window, span, outdi
         log.error(logid+''.join(tbe.format()))
     return 1
 
-def write_constraint(sid, seq, paired, unpaired, data_u, data_p, constrain, region, diff_nu, diff_np, window, span, outdir):
 
+def write_constraint(save, sid, seq, paired, unpaired, data_u, data_p, constrain, region, diff_nu, diff_np, window, span, outdir):
     try:
         goi, chrom, strand = idfromfa(sid)
         temp_outdir = os.path.join(outdir,goi)
@@ -851,7 +883,7 @@ def write_constraint(sid, seq, paired, unpaired, data_u, data_p, constrain, regi
         if paired != 'STDOUT':
             if not os.path.exists(temp_outdir):
                 os.makedirs(temp_outdir)
-            if not os.path.exists(os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_'+paired+'_'+window+'_'+str(span)+'.gz')):
+            if save > 0 and not os.path.exists(os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_'+paired+'_'+window+'_'+str(span)+'.gz')):
                 with gzip.open(os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_'+paired+'_'+window+'_'+str(span)+'.gz'), 'wb') as o:
                     out = print_up(data_p['up'],len(seq),region)
                     if out and len(out)>1:
@@ -864,7 +896,7 @@ def write_constraint(sid, seq, paired, unpaired, data_u, data_p, constrain, regi
         if unpaired != 'STDOUT':
             if not os.path.exists(temp_outdir):
                 os.makedirs(temp_outdir)
-            if not os.path.exists(os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_'+unpaired+'_'+window+'_'+str(span)+'.gz')):
+            if save > 0 and not os.path.exists(os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_'+unpaired+'_'+window+'_'+str(span)+'.gz')):
                 with gzip.open(os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_'+unpaired+'_'+window+'_'+str(span)+'.gz'), 'wb') as o:
                     out = print_up(data_u['up'],len(seq),region)
                     if out and len(out)>1:
@@ -891,116 +923,7 @@ def write_constraint(sid, seq, paired, unpaired, data_u, data_p, constrain, regi
                     printdiff(diff_np,os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_diffnp_'+window+'_'+str(span)+'.npy'))
             else:
                 npprint(diff_np)
-    except Exception as err:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-        exc_type, exc_value, exc_tb,
-        )
-        log.error(logid+''.join(tbe.format()))
-    return 1
-
-def prepare_write_ucons(sid, seq, unconstraint, data, region, window, span, outdir, rawentry=None):
-
-    try:
-        goi, chrom, strand = idfromfa(sid)
-        temp_outdir = os.path.join(outdir,goi)
-    except Exception as err:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-        exc_type, exc_value, exc_tb,
-        )
-        log.error(logid+''.join(tbe.format()))
-
-    try:
-        gr = str(sid.split(':')[3].split('(')[0])
-    except:
-        gr = 'na'
-
-    try:
-        if unconstraint != 'STDOUT':
-            if not os.path.exists(temp_outdir):
-                os.makedirs(temp_outdir)
-            if rawentry:
-                if not os.path.exists(os.path.join(temp_outdir,str(goi+'_'+chrom+'_'+strand+'_'+unconstraint+'_'+rawentry+'_'+window+'_'+str(span)+'.gz'))):
-                    with gzip.open(os.path.join(temp_outdir,goi+'_'+chrom+'_'+strand+'_'+unconstraint+'_'+rawentry+'_'+window+'_'+str(span)+'.gz'), 'wb') as o:
-                        out = print_up(data['up'],len(seq),region)
-                        if out and len(out)>1:
-                            o.write(bytes(out,encoding='UTF-8'))
-                        else:
-                            log.error(logid+"No output produced "+sid)
-            else:
-                if not os.path.exists(os.path.join(temp_outdir,str(goi+'_'+chrom+'_'+strand+'_'+unconstraint+'_'+str(gr)+'_'+window+'_'+str(span)+'.gz'))):
-                    with gzip.open(os.path.join(temp_outdir,goi+'_'+chrom+'_'+strand+'_'+unconstraint+'_'+str(gr)+'_'+window+'_'+str(span)+'.gz'), 'wb') as o:
-                        out = print_up(data['up'],len(seq),region)
-                        if out and len(out)>1:
-                            o.write(bytes(out,encoding='UTF-8'))
-        else:
-            print (print_up(data,len(seq),region))
-    except Exception as err:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-        exc_type, exc_value, exc_tb,
-        )
-        log.error(logid+''.join(tbe.format()))
-    return 1
-
-def prepare_write_cons(sid, seq, paired, unpaired, data_u, data_p, constrain, region, diff_nu, diff_np, window, span, outdir):
-
-    try:
-        goi, chrom, strand = idfromfa(sid)
-        temp_outdir = os.path.join(outdir,goi)
-    except Exception as err:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-        exc_type, exc_value, exc_tb,
-        )
-        log.error(logid+''.join(tbe.format()))
-#print outputs to file or STDERR
-    try:
-        if paired != 'STDOUT':
-            if not os.path.exists(temp_outdir):
-                os.makedirs(temp_outdir)
-            if not os.path.exists(os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_'+paired+'_'+window+'_'+str(span)+'.gz')):
-                with gzip.open(os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_'+paired+'_'+window+'_'+str(span)+'.gz'), 'wb') as o:
-                    out = print_up(data_p['up'],len(seq),region)
-                    if out and len(out)>1:
-                        o.write(bytes(out,encoding='UTF-8'))
-                    else:
-                        log.error(logid+"No output produced "+sid)
-        else:
-            print(print_up(data_p['up'],len(seq),region))
-
-        if unpaired != 'STDOUT':
-            if not os.path.exists(temp_outdir):
-                os.makedirs(temp_outdir)
-            if not os.path.exists(os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_'+unpaired+'_'+window+'_'+str(span)+'.gz')):
-                with gzip.open(os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_'+unpaired+'_'+window+'_'+str(span)+'.gz'), 'wb') as o:
-                    out = print_up(data_u['up'],len(seq),region)
-                    if out and len(out)>1:
-                        o.write(bytes(out,encoding='UTF-8'))
-                    else:
-                        log.warning("No output produced "+sid)
-        else:
-            print(print_up(data_u['up'],len(seq),region))
-
-        if diff_nu.any():
-            if unpaired != 'STDOUT':
-                if not os.path.exists(temp_outdir):
-                    os.makedirs(temp_outdir)
-                if not os.path.exists(os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_diffnu_'+window+'_'+str(span)+'.npy')):
-                    printdiff(diff_nu,os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_diffnu_'+window+'_'+str(span)+'.npy'))
-            else:
-                npprint(diff_nu)
-
-        if diff_np.any():
-            if unpaired != 'STDOUT':
-                if not os.path.exists(temp_outdir):
-                    os.makedirs(temp_outdir)
-                if not os.path.exists(os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_diffnp_'+window+'_'+str(span)+'.npy')):
-                    printdiff(diff_np,os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_diffnp_'+window+'_'+str(span)+'.npy'))
-            else:
-                npprint(diff_np)
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
         exc_type, exc_value, exc_tb,
@@ -1009,22 +932,24 @@ def prepare_write_cons(sid, seq, paired, unpaired, data_u, data_p, constrain, re
     return 1
 
 
-def write_temp(sid, seq, temp, data, region, diff, window, span, outdir):
-
-    logid = scriptname+'.write_temp: '
-    #print outputs to file or STDERR
+def write_temp(save, sid, seq, temp, data, region, diff, window, span, outdir):
     try:
+        logid = scriptname+'.write_temp: '
+        #print outputs to file or STDERR
         goi, chrom, strand = idfromfa(sid)
         temp_outdir = os.path.join(outdir,goi)
         if not os.path.exists(temp_outdir):
             os.makedirs(temp_outdir)
-        if not os.path.exists(os.path.join(temp_outdir,'TempCons_'+goi+'_'+chrom+'_'+strand+'_'+temp+'_temp_'+window+'_'+str(span)+'.gz')):
+        if save > 0  and not os.path.exists(os.path.join(temp_outdir,'TempCons_'+goi+'_'+chrom+'_'+strand+'_'+temp+'_temp_'+window+'_'+str(span)+'.gz')):
             with gzip.open(os.path.join(temp_outdir,'TempCons_'+goi+'_'+chrom+'_'+strand+'_'+temp+'_temp_'+window+'_'+str(span)+'.gz'), 'wb') as o:
                 o.write(bytes(print_up(data['up'],len(seq),region),encoding='UTF-8'))
             if not os.path.exists(os.path.join(temp_outdir,'TempCons_'+goi+'_'+chrom+'_'+strand+'_'+temp+'_difft_'+window+'_'+str(span)+'.gz')):
                 with gzip.open(os.path.join(temp_outdir,'TempCons_'+goi+'_'+chrom+'_'+strand+'_'+temp+'_difft_'+window+'_'+str(span)+'.gz'), 'wb') as o:
                     npprint(diff,o)
-    except Exception as err:
+        if not          os.path.exists(os.path.join(temp_outdir,'TempCons_'+goi+'_'+chrom+'_'+strand+'_'+temp+'_temp_'+window+'_'+str(span)+'.npy')):
+            printdiff(up_to_array(data['up']),os.path.join(temp_outdir,'TempCons_'+goi+'_'+chrom+'_'+strand+'_'+temp+'_temp_'+window+'_'+str(span)+'.npy'))
+
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
         exc_type, exc_value, exc_tb,
@@ -1032,8 +957,8 @@ def write_temp(sid, seq, temp, data, region, diff, window, span, outdir):
         log.error(logid+''.join(tbe.format()))
     return 1
 
-def checkexisting(sid, paired, unpaired, cons, region, window, span, outdir):
 
+def checkexisting(sid, paired, unpaired, cons, region, window, span, outdir):
     logid = scriptname+'.checkexisting: '
     try:
         goi, chrom, strand = idfromfa(sid)
@@ -1043,7 +968,7 @@ def checkexisting(sid, paired, unpaired, cons, region, window, span, outdir):
             return True
         else:
             return False
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
         exc_type, exc_value, exc_tb,
@@ -1051,13 +976,14 @@ def checkexisting(sid, paired, unpaired, cons, region, window, span, outdir):
         log.error(logid+''.join(tbe.format()))
     return 1
 
+
 def bpp_callback(v, v_size, i, maxsize, what, data):
 
     logid = scriptname+'.bpp_callback: '
     try:
         if what:
             data['bpp'].extend([{'i': i, 'j': j, 'p': p} for j, p in enumerate(v) if (p is not None)])# and (p >= 0.01)])
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
         exc_type, exc_value, exc_tb,
@@ -1066,49 +992,17 @@ def bpp_callback(v, v_size, i, maxsize, what, data):
 
 
 def up_callback(v, v_size, i, maxsize, what, data):
-
     logid = scriptname+'.up_callback: '
     try:
         if what:
             data['up'].extend([v])
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
         exc_type, exc_value, exc_tb,
         )
         log.error(logid+''.join(tbe.format()))
 
-
-def fold_unconstraint(seq, id, region, window, span, unconstraint, save, outdir, rawentry=None):
-
-    logid = scriptname+'.fold_unconstraint: '
-    data = { 'up': [] }
-    try:
-        if len(seq) < int(window):
-            log.error(logid+'Sequence to small, skipping '+str(sid)+'\t'+str(cons))
-            return
-
-        RNA = importlib.import_module('RNA')
-        md = RNA.md()
-        md.max_bp_span = span
-        md.window_size = window
-        # create new fold_compound object
-        fc = RNA.fold_compound(str(seq), md, RNA.OPTION_WINDOW)
-        # call prop window calculation
-        fc.probs_window(region, RNA.PROBS_WINDOW_UP, up_callback, data)
-        #fc.probs_window(region, RNA.PROBS_WINDOW_BPP, bpp_callback, data)
-        if save:
-            write_unconstraint(str(id), str(seq), unconstraint, data, int(region), str(window), str(span), outdir, rawentry)
-
-    except Exception as err:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
-            )
-        log.error(logid+''.join(tbe.format()))
-
-
-    return data['up']
 
 def expand_window(start, end, window, multiplyer, seqlen):
 
@@ -1121,7 +1015,7 @@ def expand_window(start, end, window, multiplyer, seqlen):
         if toend > seqlen:
             toend = seqlen+1
         return [tostart, toend]
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -1156,7 +1050,7 @@ def main(args):
         queue.put_nowait(None)
         listener.join()
 
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -1175,7 +1069,7 @@ if __name__ == '__main__':
         args=parseargs()
         main(args)
 
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,

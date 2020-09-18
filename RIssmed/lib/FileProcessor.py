@@ -67,7 +67,7 @@ try:
     log = logging.getLogger(__name__)  # use module name
     scriptn = os.path.basename(inspect.stack()[-1].filename).replace('.py', '')
     log.debug('LOGGING IN FileProcessor'+str(scriptn)+str(log)+str(log.handlers))
-except Exception as err:
+except Exception:
     exc_type, exc_value, exc_tb = sys.exc_info()
     tbe = tb.TracebackException(
         exc_type, exc_value, exc_tb,
@@ -79,7 +79,7 @@ def backup(file):
     try:
         if os.path.exists(file):
             os.rename(file,file+'.bak')
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -112,7 +112,7 @@ def parseseq(sequence):
 
         return seq
 
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -164,7 +164,7 @@ def parse_annotation_bed(bed, annotated=None):
                 end   = int(entries[2])
             anno[str(goi)].append('|'.join(['-'.join([str(start),str(end)]),strand]))  # Need strand info here!
         return anno
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -186,7 +186,7 @@ def readConstraintsFromBed(bed, linewise=None):
             else:
                 cons[str(goi)].append('|'.join(['-'.join([str(start),str(end)]),strand]))
         return cons
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -215,7 +215,7 @@ def readPairedConstraintsFromBed(bed, linewise=None):
                 else:
                     cons[str(goi)].append(':'.join(['|'.join(['-'.join([str(start_one), str(end_one)]),strand]), '|'.join(['-'.join([str(start_two), str(end_two)]),strand])]))
         return cons
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -241,7 +241,7 @@ def readConstraintsFromCSV(csv, linewise=None):
             else:
                 cons[entries[3]].append('|'.join(['-'.join([str(start),str(end)]),strand]))
         return cons
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -276,7 +276,7 @@ def readConstraintsFromGeneric(generic, linewise=None):
                 else:
                     cons['generic'].append('|'.join(['-'.join([str(start),str(end)]),strand]))
         return cons
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -284,6 +284,114 @@ def readConstraintsFromGeneric(generic, linewise=None):
         log.error(logid+''.join(tbe.format()))
 
 
+# Write results
+def prepare_write_ucons(save, sid, seq, unconstraint, data, region, window, span, outdir, rawentry=None):
+    try:
+        goi, chrom, strand = idfromfa(sid)
+        temp_outdir = os.path.join(outdir,goi)
+    except Exception:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+        exc_type, exc_value, exc_tb,
+        )
+        log.error(logid+''.join(tbe.format()))
+
+    try:
+        gr = str(sid.split(':')[3].split('(')[0])
+    except:
+        gr = 'na'
+
+    try:
+        if unconstraint != 'STDOUT':
+            if not os.path.exists(temp_outdir):
+                os.makedirs(temp_outdir)
+            if rawentry:
+                if save > 0 and not os.path.exists(os.path.join(temp_outdir,str(goi+'_'+chrom+'_'+strand+'_'+unconstraint+'_'+rawentry+'_'+window+'_'+str(span)+'.gz'))):
+                    with gzip.open(os.path.join(temp_outdir,goi+'_'+chrom+'_'+strand+'_'+unconstraint+'_'+rawentry+'_'+window+'_'+str(span)+'.gz'), 'wb') as o:
+                        out = print_up(data['up'],len(seq),region)
+                        if out and len(out)>1:
+                            o.write(bytes(out,encoding='UTF-8'))
+                        else:
+                            log.error(logid+"No output produced "+sid)
+            else:
+                if save > 0 and not os.path.exists(os.path.join(temp_outdir,str(goi+'_'+chrom+'_'+strand+'_'+unconstraint+'_'+str(gr)+'_'+window+'_'+str(span)+'.gz'))):
+                    with gzip.open(os.path.join(temp_outdir,goi+'_'+chrom+'_'+strand+'_'+unconstraint+'_'+str(gr)+'_'+window+'_'+str(span)+'.gz'), 'wb') as o:
+                        out = print_up(data['up'],len(seq),region)
+                        if out and len(out)>1:
+                            o.write(bytes(out,encoding='UTF-8'))
+        else:
+            print (print_up(data,len(seq),region))
+    except Exception:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+        exc_type, exc_value, exc_tb,
+        )
+        log.error(logid+''.join(tbe.format()))
+    return 1
+
+
+def prepare_write_cons(save, sid, seq, paired, unpaired, data_u, data_p, constrain, region, diff_nu, diff_np, window, span, outdir):
+    try:
+        goi, chrom, strand = idfromfa(sid)
+        temp_outdir = os.path.join(outdir,goi)
+    except Exception:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+        exc_type, exc_value, exc_tb,
+        )
+        log.error(logid+''.join(tbe.format()))
+    # print outputs to file or STDERR
+    try:
+        if paired != 'STDOUT':
+            if not os.path.exists(temp_outdir):
+                os.makedirs(temp_outdir)
+            if save > 0 and not os.path.exists(os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_'+paired+'_'+window+'_'+str(span)+'.gz')):
+                with gzip.open(os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_'+paired+'_'+window+'_'+str(span)+'.gz'), 'wb') as o:
+                    out = print_up(data_p['up'],len(seq),region)
+                    if out and len(out)>1:
+                        o.write(bytes(out,encoding='UTF-8'))
+                    else:
+                        log.error(logid+"No output produced "+sid)
+        else:
+            print(print_up(data_p['up'],len(seq),region))
+
+        if unpaired != 'STDOUT':
+            if not os.path.exists(temp_outdir):
+                os.makedirs(temp_outdir)
+            if save > 0  and not os.path.exists(os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_'+unpaired+'_'+window+'_'+str(span)+'.gz')):
+                with gzip.open(os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_'+unpaired+'_'+window+'_'+str(span)+'.gz'), 'wb') as o:
+                    out = print_up(data_u['up'],len(seq),region)
+                    if out and len(out)>1:
+                        o.write(bytes(out,encoding='UTF-8'))
+                    else:
+                        log.warning("No output produced "+sid)
+        else:
+            print(print_up(data_u['up'],len(seq),region))
+
+        if diff_nu.any():
+            if unpaired != 'STDOUT':
+                if not os.path.exists(temp_outdir):
+                    os.makedirs(temp_outdir)
+                if not os.path.exists(os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_diffnu_'+window+'_'+str(span)+'.npy')):
+                    printdiff(diff_nu,os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_diffnu_'+window+'_'+str(span)+'.npy'))
+            else:
+                npprint(diff_nu)
+
+        if diff_np.any():
+            if unpaired != 'STDOUT':
+                if not os.path.exists(temp_outdir):
+                    os.makedirs(temp_outdir)
+                if not os.path.exists(os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_diffnp_'+window+'_'+str(span)+'.npy')):
+                    printdiff(diff_np,os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_diffnp_'+window+'_'+str(span)+'.npy'))
+            else:
+                npprint(diff_np)
+    except Exception:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+        exc_type, exc_value, exc_tb,
+        )
+        log.error(logid+''.join(tbe.format()))
+    return 1
 
 #
 # FileProcessor.py ends here

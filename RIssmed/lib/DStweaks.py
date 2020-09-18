@@ -66,7 +66,7 @@ try:
     log = logging.getLogger(__name__)  # use module name
     scriptn = os.path.basename(inspect.stack()[-1].filename).replace('.py', '')
     log.debug('LOGGING IN DStweaks'+str(scriptn)+str(log)+str(log.handlers))
-except Exception as err:
+except Exception:
     exc_type, exc_value, exc_tb = sys.exc_info()
     tbe = tb.TracebackException(
         exc_type, exc_value, exc_tb,
@@ -79,7 +79,7 @@ def removekey(d, key):
         r = dict(d)
         del r[key]
         return r
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -97,7 +97,7 @@ def getlowest_list(a, n):
             return list(np.partition(a, b)[:n])
         else:
             return list(None for i in range(n))
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -115,7 +115,7 @@ def gethighest_list(a, n):
             return list(np.partition(a, b)[-n:])
         else:
             return list(None for i in range(n))
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -133,7 +133,7 @@ def getlowest_dict(a, n):
             return dict(heapq.nsmallest(b,a.items(), key=itemgetter(1)))
         else:
             return dict({i:None for i in range(n)})
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -151,7 +151,7 @@ def gethighest_dict(a, n):
             return dict(heapq.nlargest(b,a.items(), key=itemgetter(1)))
         else:
             return dict({i:None for i in range(n)})
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,

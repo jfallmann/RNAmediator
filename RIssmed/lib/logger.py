@@ -20,6 +20,8 @@ import shutil
 
 def listener_configurer(logfile, loglevel):
     root = logging.getLogger()
+    if (root.hasHandlers()):
+        root.handlers.clear()
     file_handler = logging.FileHandler(logfile, 'a')
     console_handler = logging.StreamHandler()
     formatter = logging.Formatter('%(asctime)s %(processName)-10s %(name)s %(levelname)-8s %(message)s')
@@ -56,6 +58,8 @@ def listener_process(queue, configurer, logfile, loglevel):
 def worker_configurer(queue, loglevel):
     h = logging.handlers.QueueHandler(queue)  # Just the one handler needed
     root = logging.getLogger()
+    if (root.hasHandlers()):
+        root.handlers.clear()
     root.addHandler(h)
     root.setLevel(loglevel)
 

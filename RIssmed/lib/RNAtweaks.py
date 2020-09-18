@@ -66,7 +66,7 @@ try:
     log = logging.getLogger(__name__)  # use module name
     scriptn = os.path.basename(inspect.stack()[-1].filename).replace('.py', '')
     log.debug('LOGGING IN RNAtweaks'+str(scriptn)+str(log)+str(log.handlers))
-except Exception as err:
+except Exception:
     exc_type, exc_value, exc_tb = sys.exc_info()
     tbe = tb.TracebackException(
         exc_type, exc_value, exc_tb,
@@ -79,7 +79,7 @@ def calc_gibbs(fc):
     logid = scriptn+'.calc_gibbs: '
     try:
         return fc.pf()[1]
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -99,7 +99,7 @@ def get_bppm(tmp, start, end):
                 if item[i] > 0.0:
                     bppm.append(str.join('\t',[str(tmp.index(item)), str(i), str(item[i])]))
         return bppm
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -127,7 +127,7 @@ def get_ddg(file):
                     ret[str(cons)][cond] = float(dg)
         return ret
 
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -144,7 +144,7 @@ def calc_ddg(ddgs):
 
         return ddg
 
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -158,7 +158,7 @@ def calc_bpp(bppm):
         for entry in bppm:
             base, mate, prob = map(float,entry.split('\t'))
             bpp += prob
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -176,7 +176,7 @@ def calc_nrg(bpp):
         if bpp > 0.0:
             nrg = -1 * kT * math.log(bpp)
         return nrg
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -200,7 +200,7 @@ def print_region_up(data, seqlength=None, region=None):
             log.error(logid+'No up data to print')
             return ups
 
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -223,7 +223,7 @@ def print_up(data=None, seqlength=None, region=None):
         else:
             log.error(logid+'No up data to print')
             return ups
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -251,7 +251,7 @@ def up_to_array(data=None, region=None, seqlength=None):
         else:
             log.error(logid+'No up data to print')
             return np.array()
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -270,7 +270,7 @@ def npprint(a, o=None):#, format_string ='{0:.2f}'):
             o.write(bytes(out,encoding='UTF-8'))
         else:
             print(out)
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
         exc_type, exc_value, exc_tb,
@@ -281,7 +281,7 @@ def printdiff(a, o=None):
     logid = scriptn+'.printdiff: '
     try:
         np.save(o, a)
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
         exc_type, exc_value, exc_tb,
@@ -303,7 +303,7 @@ def read_precalc_plfold(data, name, seq):
                     data[int(cells[0])-1].append([])
                     data[int(cells[0])-1][a] = float(cells[a])
         return data
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
         exc_type, exc_value, exc_tb,
@@ -318,7 +318,7 @@ def pl_to_array(name, ulim, fmt='npy'):
             return np.array(np.loadtxt(name, usecols=ulim, unpack=True, delimiter='\t', encoding='bytes'))
         elif fmt == 'npy':
             return np.array(np.load(name)[:,ulim-1])
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
         exc_type, exc_value, exc_tb,
@@ -333,7 +333,7 @@ def constrain_paired(fc, start, end):
         for x in range(start+1, end+1):
             fc.hc_add_bp_nonspecific(x,0) #0 means without direction  ( $ d < 0 $: pairs upstream, $ d > 0 $: pairs downstream, $ d == 0 $: no direction)
         return fc
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -346,7 +346,7 @@ def constrain_unpaired(fc, start, end):
         for x in range(start+1, end+1):
             fc.hc_add_up(x)
         return fc
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,

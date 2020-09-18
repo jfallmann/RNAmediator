@@ -56,7 +56,7 @@ try:
     log = logging.getLogger(__name__)  # use module name
     scriptn = os.path.basename(inspect.stack()[-1].filename).replace('.py', '')
     log.debug('LOGGING IN Plots'+str(scriptn)+str(log)+str(log.handlers))
-except Exception as err:
+except Exception:
     exc_type, exc_value, exc_tb = sys.exc_info()
     tbe = tb.TracebackException(
         exc_type, exc_value, exc_tb,
@@ -103,7 +103,7 @@ def plot_data(fa, raw, consu, consp, const, xs, cons, saveas, outdir):
         plt.close()
         #   anime.append(plt.plot(xs, raw, 'b-', xs, consu, 'g-', xs, consp, 'r-', const, consl, 'k-'))
         #   return anime
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -136,7 +136,7 @@ def plot_temp(fa, raw, temp, xs, saveas, outdir):
         plt.close()
         #   anime.append(plt.plot(xs, raw, 'b-', xs, consu, 'g-', xs, consp, 'r-', const, consl, 'k-'))
         #   return anime
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,

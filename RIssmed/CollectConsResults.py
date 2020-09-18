@@ -168,7 +168,7 @@ def screen_genes(pat, cutoff, border, ulim, procs, roi, outdir, genes, padding):
             try:
                 for i in range(len(r)):
                     pool.apply_async(judge_diff, args=(raw[i], u[i], p[i], gs, ge, gstrand, ulim, cutoff, border, outdir, padding))
-            except Exception as err:
+            except Exception:
                 exc_type, exc_value, exc_tb = sys.exc_info()
                 tbe = tb.TracebackException(
                     exc_type, exc_value, exc_tb,
@@ -178,7 +178,7 @@ def screen_genes(pat, cutoff, border, ulim, procs, roi, outdir, genes, padding):
         pool.close()
         pool.join()
 
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -326,7 +326,7 @@ def judge_diff(raw, u, p, gs, ge, gstrand, ulim, cutoff, border, outdir, padding
 
         savelists(out, outdir)
 
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -355,7 +355,7 @@ def savelists(out, outdir):
             with gzip.open(os.path.abspath(os.path.join(outdir, 'Collection_paired.bed.gz')), 'ab') as o:
                 o.write(bytes('\n'.join(out['p']),encoding='UTF-8'))
                 o.write(bytes('\n',encoding='UTF-8'))
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -384,7 +384,7 @@ if __name__ == '__main__':
         log.info(logid+'CLI: '+sys.argv[0]+'{}'.format(' '.join( [shlex.quote(s) for s in sys.argv[1:]] )))
 
         screen_genes(args.pattern, args.cutoff, args.border, args.ulimit, args.procs, args.roi, args.outdir, args.genes, args.padding)
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,

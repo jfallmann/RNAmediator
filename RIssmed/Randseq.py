@@ -96,7 +96,7 @@ def createrandseq(length, gc, number, alphabet, outfile='Random', verbosity=Fals
             final = (''.join(seq))
             seqs.append(str("{header}{final}".format(header=header, final=final)))
         return seqs
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -109,7 +109,7 @@ def randseq(items, length):
         for i in range(length):
             l += str(''.join(choice(items)))
         return str(l)
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -130,7 +130,7 @@ def weightedrandseq(items, probs , length):
 
         shuffle(seq)
         return seq
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -149,7 +149,7 @@ if __name__ == '__main__':
         o=gzip.open(args.outfile+'.fa.gz','wb')
         o.write(bytes(rand,encoding='UTF-8'))
         o.close()
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,

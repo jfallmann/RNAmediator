@@ -160,7 +160,7 @@ def screen_genes(pat, border, procs, outdir, genes):
                 for i in range(len(p)):
                     log.debug(logid+'Calculating file ' + str(p[i]))
                     pool.apply_async(calc, args=(p[i], gs, ge, border, outdir))
-            except Exception as err:
+            except Exception:
                 exc_type, exc_value, exc_tb = sys.exc_info()
                 tbe = tb.TracebackException(
                     exc_type, exc_value, exc_tb,
@@ -170,7 +170,7 @@ def screen_genes(pat, border, procs, outdir, genes):
         pool.close()
         pool.join()
 
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -207,7 +207,7 @@ def calc(p, gs, ge, border, outdir):
             log.warning(logid+'No ddg above cutoffs for gene '+str(goi))
         return
 
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -227,7 +227,7 @@ def write_out(out, outdir):
             else:
                 with gzip.open(os.path.abspath(os.path.join(outdir, 'Collection_window.bed.gz')), 'ab') as o:
                     o.write(bytes('\n'.join(out[cons]),encoding='UTF-8'))
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -248,7 +248,7 @@ if __name__ == '__main__':
         log.setLevel(args.loglevel)
         log.info(logid+'Running '+scriptname+' on '+str(args.procs)+' cores')
         screen_genes(args.pattern, args.border, args.procs, args.outdir, args.genes)
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,

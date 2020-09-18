@@ -155,7 +155,7 @@ def fold(sequence, window, span, region, printto, length, gc, number, alphabet, 
             if hasattr(RNA, '__all__')
             else {k: v for (k, v) in RNA.__dict__.items() if not k.startswith('_')
                   })
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -206,7 +206,7 @@ def fold(sequence, window, span, region, printto, length, gc, number, alphabet, 
     #subseq
                         seqtofold = str(fa.seq[reg:reg+window])
                         pool.apply_async(fold_windows, args=(fa, seqtofold, reg, window, span, region, save, printto, outdir))
-                except Exception as err:
+                except Exception:
                     exc_type, exc_value, exc_tb = sys.exc_info()
                     tbe = tb.TracebackException(
                         exc_type, exc_value, exc_tb,
@@ -244,7 +244,7 @@ def fold_windows(fa, seq, reg, window, span, region, save, printto, outdir):
         if save:
             write_out(fa, printto, str(reg), len(seq), data, int(region), str(window), str(span), outdir)
 
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -257,7 +257,7 @@ def up_callback(v, v_size, i, maxsize, what, data):
         if what & RNA.PROBS_WINDOW_UP:
 #        data['up'].extend([{ 'i': i, 'up': v}])
             data['up'].extend([v])
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -279,7 +279,7 @@ def print_region_up(data=None, seqlength=None, region=None, winnr=None):
                 data[i][x] = round(data[i][x],7)
             ups+=str(i+1+winnr)+"\t"+str(data[i][x])+"\n"
         return ups
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -300,7 +300,7 @@ def print_up(data=None, seqlength=None, region=None, winnr=None):
                     data[i][x] = round(data[i][x],7)
             ups+=str(i+1+int(winnr))+"\t"+"\t".join(map(str,data[i][1:region+1]))+"\n"
         return ups
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -324,7 +324,7 @@ def up_to_array(data=None, region=None, seqlength=None):
                 entries.append(round(data[i][region],8))
 
         return np.array(entries)
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -343,7 +343,7 @@ def npprint(a, o=None):#, format_string ='{0:.2f}'):
             o.write(bytes(out,encoding='UTF-8'))
         else:
             print(out)
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -370,7 +370,7 @@ def write_out(fa, printto, winnr, seqlen, data, region, window, span, outdir):
         else:
             print (print_up(data,seqlen,region))
         return 1
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -392,7 +392,7 @@ def read_precalc_fold(data, name, fa):
                     data[int(cells[0])-1].append([])
                     data[int(cells[0])-1][a] = float(cells[a])
         return data
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -412,7 +412,7 @@ def checkexisting(fa, region, winnr, window, span, outdir):
             return True
         else:
             return False
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -431,7 +431,7 @@ if __name__ == '__main__':
         log.info(logid+'CLI: '+sys.argv[0]+'{}'.format(' '.join( [shlex.quote(s) for s in sys.argv[1:]] )))
 
         fold(args.sequence, args.window, args.span, args.region, args.printto, args.length, args.gc, args.number, args.alphabet, args.save, args.procs, args.vrna, args.outdir, args.verbosity, args.pattern)
-            except Exception as err:
+            except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,

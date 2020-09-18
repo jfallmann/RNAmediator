@@ -76,8 +76,7 @@ import numpy as np
 try:
     log = logging.getLogger(__name__)  # use module name
     scriptn = os.path.basename(inspect.stack()[-1].filename).replace('.py', '')
-    log.debug('LOGGING IN COLLECTION'+str(scriptn)+str(log)+str(log.handlers))
-except Exception as err:
+except Exception:
     exc_type, exc_value, exc_tb = sys.exc_info()
     tbe = tb.TracebackException(
         exc_type, exc_value, exc_tb,
@@ -108,7 +107,7 @@ def parseargs():
     parser.add_argument("-t", "--temprange", type=str, default='', help='Temperature range for structure prediction (e.g. 37-60)')
     parser.add_argument("-a", "--alphabet", type=str, default='AUCG', help='alphabet for random seqs')
     #parser.add_argument("--plot", type=str, default='0', choices=['0','svg', 'png'], help='Create image of the (un-)constraint sequence, you can select the file format here (svg,png). These images can later on be animated with ImageMagick like `convert -delay 120 -loop 0 *.svg animated.gif`.')
-    parser.add_argument("--save", type=int, default=1, help='Save the output as gz files')
+    parser.add_argument("--save", type=int, default=0, choices=[0, 1], help='Save the output as numpy files only [0] or also as gzipped text files [1]')
     parser.add_argument("-o", "--outdir", type=str, default='', help='Directory to write to')
     parser.add_argument("-z", "--procs", type=int, default=1, help='Number of parallel processes to run this job with')
     parser.add_argument("--vrna", type=str, default='', help="Append path to vrna RNA module to sys.path")
@@ -138,7 +137,7 @@ def isvalid(x=None):
                 return True
         else:
             return False
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -155,7 +154,7 @@ def isinvalid(x=None):
                 return False
         else:
             return True
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -174,7 +173,7 @@ def makeoutdir(outdir):
         if not os.path.exists(outdir):
             os.makedirs(outdir)
         return outdir
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -196,7 +195,7 @@ def get_location(entry):
         log.debug(logid+str.join(' ',[str(entry),str(ret)]))
         return ret
 
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -210,7 +209,7 @@ def print_globaldicts():
     try:
         for name, value in globals().copy().items():
             print(name, value)
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -223,7 +222,7 @@ def print_globallists():
     try:
         for name, value in globals().deepcopy().items():
             print(name, value)
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,

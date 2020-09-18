@@ -163,7 +163,7 @@ def preprocess(sequence, window, span, unconstraint, unpaired, paired, length, g
 
         fold(sequence, window, span, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, save, procs, vrna, temprange, outdir, genecoords, verbosity=verbosity, pattern=pattern, cutoff=cutoff)
 
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -354,7 +354,7 @@ def fold(sequence, window, span, unconstraint, unpaired, paired, length, gc, num
 
         log.info(logid+"DONE: output in: " + str(outdir))
 
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -565,7 +565,7 @@ def constrain_seq(fa, start, end, conslength, const, cons, window, span, unconst
 
         write_out(outlist)
 
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -612,7 +612,7 @@ def constrain_temp(fa, temp, window, span, an, save, outdir):
 	        log.info(logid+'SAVINGTEMP')
 	        write_temp(fa, str(temp), data_t, diff_nt, str(window), outdir)
 
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -636,7 +636,7 @@ def foldaround(seq, fc, pos, clength, gibbs, nrg):
 
         return [gibbs_u, ddg, nrg_diff]
 
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -654,7 +654,7 @@ def fold_unconstraint(seq):
         gibbs_uc = fc.pf()[1]
 
         return(gibbs_uc)
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -685,7 +685,7 @@ def write_out(resultlist):
                 print(str.join('\t',['Condition','FreeNRG(gibbs)','deltaG','OpeningNRG','Constraint']))
                 print(str.join('\t',[condition, str(gibbs), str(ddg), str(nrg), str(const)]))
 
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -704,7 +704,7 @@ if __name__ == '__main__':
         log.setLevel(args.loglevel)
         log.info(logid+'Running ConstraintFold on '+str(args.procs)+' cores')
         preprocess(args.sequence, args.window, args.span, args.unconstraint, args.unpaired, args.paired, args.length, args.gc, args.number, args.constrain, args.conslength, args.alphabet, args.save, args.procs, args.vrna, args.temprange, args.outdir, args.genes, args.verbosity, args.pattern, args.cutoff)
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,

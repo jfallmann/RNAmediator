@@ -86,7 +86,7 @@ def readData(file):
         log.info('READING INPUT FILE')
         return pd.read_csv(file, delimiter='\t', names=['Chr','Start','End','Constraint','Accessibility_difference','Strand','Distance_to_constraint','Accessibility_no_constraint','Accessibility_constraint','Energy_Difference','Kd_change','Zscore'])#,'ChrBS','StartBS','EndBS','NameBS','ScoreBS','StrandBS'])
 
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -146,7 +146,7 @@ def serve(file, app):
             log.info('get: '+str(data.data))
             return jsonify(data.data)
 
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -174,7 +174,7 @@ if __name__ == '__main__':
         serve(args.file, app)
         app.run(debug=True)
 
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
