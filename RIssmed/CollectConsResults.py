@@ -90,27 +90,6 @@ log = logging.getLogger(__name__)  # use module name
 scriptname = os.path.basename(__file__).replace('.py', '')
 
 
-def parseargs():
-    parser = argparse.ArgumentParser(description='Calculate the regions with highest accessibility diff for given Sequence Pattern')
-    parser.add_argument("-p", "--pattern", type=str, default='250,150', help='Pattern for files and window, e.g. Seq1_30,250')
-    parser.add_argument("-c", "--cutoff", type=float, default=.2, help='Cutoff for the definition of pairedness, if set to e.g. 0.2 it will mark all regions with probability of being unpaired >= cutoff as unpaired')
-    parser.add_argument("-b", "--border", type=str, default='', help='Cutoff for the minimum change between unconstraint and constraint structure, regions below this cutoff will not be returned as list of regions with most impact on structure. If not defined, will be calculated from folding the sequence of interest at temperature range 30-44.')
-    parser.add_argument("-u", "--ulimit", type=int, default=1, help='Stretch of nucleotides used during plfold run (-u option)')
-    parser.add_argument("-r", "--roi", type=str, default=None, help='Define Region of Interest that will be compared')
-    parser.add_argument("-o", "--outdir", type=str, default='', help='Directory to write to')
-    parser.add_argument("-d", "--dir", type=str, default='', help='Directory to read from')
-    parser.add_argument("-g", "--genes", type=str, help='Genomic coordinates bed for genes, either standard bed format or AnnotateBed.pl format')
-    parser.add_argument("-z", "--procs", type=int, default=1, help='Number of parallel processes to run this job with, only important of no border is given and we need to fold')
-    parser.add_argument("--loglevel", type=str, default='WARNING', choices=['WARNING','ERROR','INFO','DEBUG'], help="Set log level")
-    parser.add_argument("--logdir", type=str, default='LOGS', help="Set log directory")
-    parser.add_argument("-w", "--padding", type=int, default=1, help='Padding around constraint that will be excluded from report, default is 1, so directly overlapping effects will be ignored')
-
-    if len(sys.argv)==1:
-        parser.print_help(sys.stderr)
-        sys.exit(1)
-
-    return parser.parse_args()
-
 def screen_genes(queue, configurer, level, pat, cutoff, border, ulim, procs, roi, outdir, dir, genes, padding):
 
     logid = scriptname+'.screen_genes: '
@@ -285,24 +264,24 @@ def judge_diff(raw, u, p, gs, ge, gstrand, ulim, cutoff, border, outdir, padding
 
             log.debug(logid+'WINDOWS: '+str.join(' ',map(str,[goi,conswindow[0],conswindow[1]+1,strand,ws,cs,ce,we,str(cs+ws-1)+'-'+str(ce+ws),str(we-ce-1)+'-'+str(we-cs)])))
 
-            for pos in range(conswindow[0],conswindow[1]+1):
-                if pos not in range(cs-padding+1-ulim ,ce+padding+1+2*ulim): # CHECK THIS
+            for pos in range(conswindow[0], conswindow[1]+1):
+                if pos not in range(cs-padding+1-ulim, ce+padding+1+ulim):
                     if strand != '-':
-                        gpos = pos + ws - ulim + 1 #already 0-based
-                        gend = gpos + ulim #0-based half-open
+                        gpos = pos + ws - ulim + 1  # already 0-based
+                        gend = gpos + ulim  # 0-based half-open
                         gcst = cs+ws+1
                         gcen = ce+ws+2
                         gcons = str(gcst)+'-'+str(gcen)
                     else:
-                        gpos = we - pos #already 0-based
-                        gend = gpos + ulim  #0-based half-open
+                        gpos = we - pos  # already 0-based
+                        gend = gpos + ulim  # 0-based half-open
                         gcst = we-ce-1
                         gcen = we-cs
                         gcons = str(gcst)+'-'+str(gcen)
 
                     if border1 < uc[pos] and uc[pos] < border2:
-                        if ce < pos:# get distance up or downstream
-                            dist = (pos - ce) * -1 # no -1 or we have 0 overlap
+                        if ce < pos:  # get distance up or downstream
+                            dist = (pos - ce) * -1  # no -1 or we have 0 overlap
                         else:
                             dist = cs - pos
 
@@ -398,7 +377,7 @@ if __name__ == '__main__':
 
     logid = scriptname+'.main: '
     try:
-        args=parseargs()
+        args=parseargs_collectpl()
         main(args)
 
     except Exception:

@@ -88,13 +88,13 @@ except Exception:
 ########## ARGPARSE ##########
 ##############################
 
-def parseargs():
+def parseargs_plcons():
     parser = argparse.ArgumentParser(description='Calculate base pairing probs of given seqs or random seqs for given window size, span and region.')
     parser.add_argument("-s", "--sequence", type=str, help='Sequence to fold')
     parser.add_argument("-w", "--window", type=int, default=240, help='Size of window')
     parser.add_argument("-l", "--span", type=int, default=60, help='Length of bp span')
     parser.add_argument("-u", "--region", type=int, default=1, help='Length of region')
-    parser.add_argument("-m", "--multi", type=int, default=4, help='Multiplyer for window expansion')
+    parser.add_argument("-m", "--multi", type=int, default=2, help='Multiplyer for window expansion')
     parser.add_argument("-c", "--cutoff", type=float, default=-0.01, help='Only print prob greater cutoff')
     parser.add_argument("-r", "--unconstraint", type=str, default='STDOUT', help='Print output of unconstraint folding to file with this name')
     parser.add_argument("-n", "--unpaired", type=str, default='STDOUT', help='Print output of unpaired folding to file with this name')
@@ -122,6 +122,29 @@ def parseargs():
         sys.exit(1)
 
     return parser.parse_args()
+
+
+def parseargs_collectpl():
+    parser = argparse.ArgumentParser(description='Calculate the regions with highest accessibility diff for given Sequence Pattern')
+    parser.add_argument("-p", "--pattern", type=str, default='250,150', help='Pattern for files and window, e.g. Seq1_30,250')
+    parser.add_argument("-c", "--cutoff", type=float, default=.2, help='Cutoff for the definition of pairedness, if set to e.g. 0.2 it will mark all regions with probability of being unpaired >= cutoff as unpaired')
+    parser.add_argument("-b", "--border", type=str, default='', help='Cutoff for the minimum change between unconstraint and constraint structure, regions below this cutoff will not be returned as list of regions with most impact on structure. If not defined, will be calculated from folding the sequence of interest at temperature range 30-44.')
+    parser.add_argument("-u", "--ulimit", type=int, default=1, help='Stretch of nucleotides used during plfold run (-u option)')
+    parser.add_argument("-r", "--roi", type=str, default=None, help='Define Region of Interest that will be compared')
+    parser.add_argument("-o", "--outdir", type=str, default='', help='Directory to write to')
+    parser.add_argument("-d", "--dir", type=str, default='', help='Directory to read from')
+    parser.add_argument("-g", "--genes", type=str, help='Genomic coordinates bed for genes, either standard bed format or AnnotateBed.pl format')
+    parser.add_argument("-z", "--procs", type=int, default=1, help='Number of parallel processes to run this job with, only important of no border is given and we need to fold')
+    parser.add_argument("--loglevel", type=str, default='WARNING', choices=['WARNING','ERROR','INFO','DEBUG'], help="Set log level")
+    parser.add_argument("--logdir", type=str, default='LOGS', help="Set log directory")
+    parser.add_argument("-w", "--padding", type=int, default=1, help='Padding around constraint that will be excluded from report, default is 1, so directly overlapping effects will be ignored')
+
+    if len(sys.argv)==1:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
+
+    return parser.parse_args()
+
 
 ##############################
 ####### VALIDITY CHECK #######
