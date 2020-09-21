@@ -262,6 +262,35 @@ def npprint(a, o=None):#, format_string ='{0:.2f}'):
     logid = scriptn+'.npprint: '
     try:
         out = ''
+        if data:
+            entries=[]
+            if not seqlength:
+                seqlength = len(data)
+            if not region:
+                region = slice(1,len(data[0]))
+            for i in range(seqlength):
+                entries.append([])
+                for e in range(len(data[i])):
+                    if isinvalid(data[i][e]):
+                        data[i][e] = np.nan
+                    else:
+                        data[i][e] = round(data[i][e],8)
+                entries[i].append(data[i][region])
+            return np.array(entries)
+        else:
+            log.error(logid+'No up data to print')
+            return np.array()
+    except Exception:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+            exc_type, exc_value, exc_tb,
+        )
+        log.error(logid+''.join(tbe.format())+'\t'+str(entries)+'\t'+str(region)+'\t'+str(seqlength))
+
+def npprint(a, o=None):#, format_string ='{0:.2f}'):
+    logid = scriptn+'.npprint: '
+    try:
+        out = ''
         it = np.nditer(a, flags=['f_index'])
         while not it.finished:
             out += "%d\t%0.7f" % (it.index+1,it[0])+"\n"
@@ -313,11 +342,12 @@ def read_precalc_plfold(data, name, seq):
 def pl_to_array(name, ulim, fmt='npy'):
     logid = scriptn+'.pl_to_array: '
     try:
-        log.debug('\t'.join([logid,name]))
+        log.debug('\t'.join([logid, name, str(ulim), fmt]))
         if fmt == 'txt':
             return np.array(np.loadtxt(name, usecols=ulim, unpack=True, delimiter='\t', encoding='bytes'))
         elif fmt == 'npy':
-            return np.array(np.load(name)[:,ulim-1])
+            #log.debug(np.load(name)[:,0][:,0])
+            return np.array(np.load(name)[:,0][:,ulim-1])
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(

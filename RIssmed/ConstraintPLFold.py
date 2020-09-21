@@ -46,7 +46,6 @@
 ######################################################################
 ##
 ### Change Log:
-##  Strand specificity is broken now, need to make sure genomic coordinates are where we expect them to be again, same is true for CollectConsResults!
 ##
 ######################################################################
 ##
@@ -637,7 +636,7 @@ def constrain_seq(sid, seq, start, end, conslength, const, cons, window, span, r
             log.warning(logid+str(cons)+' Existst for '+str(sid)+'! Skipping!')
             return
 
-        RNA = importlib.import_module('RNA')
+        #RNA = importlib.import_module('RNA')
         #refresh model details
         md = RNA.md()
         md.max_bp_span = span
@@ -651,13 +650,10 @@ def constrain_seq(sid, seq, start, end, conslength, const, cons, window, span, r
 
         #enforce paired
         fc_p = constrain_paired(fc_p, start-tostart, end-tostart+1)
-        #for x in range(start-tostart, end-tostart+1):
-        #    fc_p.hc_add_bp_nonspecific(x,0) #0 means without direction  ( $ d < 0 $: pairs upstream, $ d > 0 $: pairs downstream, $ d == 0 $: no direction)
+        #fc_p.hc_add_bp_nonspecific(x,0) #0 means without direction  ( $ d < 0 $: pairs upstream, $ d > 0 $: pairs downstream, $ d == 0 $: no direction)
 
         #enforce unpaired
         fc_u = constrain_unpaired(fc_u,start-tostart,end-tostart+1)
-        #for x in range(start-tostart, end-tostart+1):
-        #    fc_u.hc_add_up(x)
 
         #new data struct
         data_p = {'up': []}
@@ -677,12 +673,12 @@ def constrain_seq(sid, seq, start, end, conslength, const, cons, window, span, r
         if not np.array_equal(an, au):
             diff_nu = au - an
         else:
-            log.info(logid+'No influence on Structure with unpaired constraint at ' + cons)
+            log.info(logid+'No influence on structure with unpaired constraint at ' + cons)
             diff_nu = None
         if not np.array_equal(an, ap):
             diff_np = ap - an
         else:
-            log.info(logid+'No influence on Structure with paired constraint at ' + cons)
+            log.info(logid+'No influence on structure with paired constraint at ' + cons)
             diff_np = None
 
         write_constraint(save, str(sid), seqtofold, paired, unpaired, data_u, data_p, cons, int(region), diff_nu, diff_np, str(window), str(span), outdir)
@@ -719,7 +715,7 @@ def constrain_seq_paired(sid, seq, fstart, fend, start, end, conslength, const, 
             return
 
         #refresh model details
-        RNA = importlib.import_module('RNA')
+        #RNA = importlib.import_module('RNA')
         md = RNA.md()
         md.max_bp_span = span
         md.window_size = window
@@ -730,21 +726,16 @@ def constrain_seq_paired(sid, seq, fstart, fend, start, end, conslength, const, 
 
         #enforce paired
         fc_p = constrain_paired(fc_u,start-tostart,end-tostart+1)
-        #for x in range(start-tostart, end-tostart+1):
         #    fc_p.hc_add_bp_nonspecific(x,0) #0 means without direction  ( $ d < 0 $: pairs upstream, $ d > 0 $: pairs downstream, $ d == 0 $: no direction)
         #enforce paired
         fc_p = constrain_uaired(fc_u,fstart-tostart,fend-tostart+1)
-        #for x in range(fstart-tostart, fend-tostart+1):
         #    fc_p.hc_add_bp_nonspecific(x,0) #0 means without direction  ( $ d < 0 $: pairs upstream, $ d >
 
         #enforce unpaired
         fc_u = constrain_unpaired(fc_u,start-tostart,end-tostart+1)
-        #for x in range(start-tostart, end-tostart+1):
-        #    fc_u.hc_add_up(x)
+
         #enforce unpaired
         fc_u = constrain_unpaired(fc_u,fstart-tostart,fend-tostart+1)
-        #for x in range(fstart-tostart, fend-tostart+1):
-        #    fc_u.hc_add_up(x)
 
         #new data struct
         data_p = {'up': []}
@@ -792,7 +783,7 @@ def constrain_temp(sid, seq, temp, window, span, region, multi, an, save, outdir
 
 
         #refresh model details
-        RNA = importlib.import_module('RNA')
+        #RNA = importlib.import_module('RNA')
         md = RNA.md()
         md.max_bp_span = span
         md.window_size = window

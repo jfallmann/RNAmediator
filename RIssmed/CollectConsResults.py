@@ -286,7 +286,7 @@ def judge_diff(raw, u, p, gs, ge, gstrand, ulim, cutoff, border, outdir, padding
             log.debug(logid+'WINDOWS: '+str.join(' ',map(str,[goi,conswindow[0],conswindow[1]+1,strand,ws,cs,ce,we,str(cs+ws-1)+'-'+str(ce+ws),str(we-ce-1)+'-'+str(we-cs)])))
 
             for pos in range(conswindow[0],conswindow[1]+1):
-                if pos not in range(cs-padding+1-ulim ,ce+padding+1+2*ulim):
+                if pos not in range(cs-padding+1-ulim ,ce+padding+1+2*ulim): # CHECK THIS
                     if strand != '-':
                         gpos = pos + ws - ulim + 1 #already 0-based
                         gend = gpos + ulim #0-based half-open
