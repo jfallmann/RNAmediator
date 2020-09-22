@@ -148,7 +148,7 @@ def screen_genes(queue, configurer, level, pat, cutoff, border, ulim, procs, roi
 
             try:
                 for i in range(len(r)):
-                    pool.apply_async(judge_diff, args=(raw[i], u[i], p[i], gs, ge, gstrand, ulim, cutoff, border, outdir, padding, dict(queue=queue, configurer=configurer, level=level)))
+                    pool.apply_async(judge_diff, args=(raw[i], u[i], p[i], gs, ge, gstrand, ulim, cutoff, border, outdir, padding), kwds={'queue':queue, 'configurer':configurer, 'level':level})
             except Exception:
                 exc_type, exc_value, exc_tb = sys.exc_info()
                 tbe = tb.TracebackException(
@@ -208,19 +208,6 @@ def judge_diff(raw, u, p, gs, ge, gstrand, ulim, cutoff, border, outdir, padding
         noc = pl_to_array(raw, ulim)
         log.debug(logid+'RAW: '+str(raw)+'\t'+str(noc))
 
-        mult = int((len(noc)/int(window))/2)
-        log.debug(logid+'Multiplyer: '+str(mult))
-        if mult <=1:
-            log.warning(logid+'Window '+str([ws,we])+' expansion with multiplyer '+str(mult)+' is overlapping end of Gene '+str([goi, gs, ge, cons, reg, f, span])+' on at least one end, no guarantee that border effects of folding and centering on constraints can be resolved, this result will be skipped!')
-            return 1
-        cws = int(window)*(mult-1)
-
-        cwe = int(window)*(mult+1)+ulim-1
-        if cwe > len(noc):
-            cwe = len(noc)
-        conswindow = (cws,cwe) #0-based half open
-        log.debug(logid+'Constraint Window: '+str(conswindow))
-
         if abs(noc[ce]) > cutoff:
             uc = pl_to_array(u, ulim)  # This is the diffacc for unpaired constraint
             pc = pl_to_array(p, ulim)  # This is the diffacc for paired constraint
@@ -262,9 +249,9 @@ def judge_diff(raw, u, p, gs, ge, gstrand, ulim, cutoff, border, outdir, padding
             Constraints are influencing close by positions strongest so strong influence of binding there is expected
             '''
 
-            log.debug(logid+'WINDOWS: '+str.join(' ',map(str,[goi,conswindow[0],conswindow[1]+1,strand,ws,cs,ce,we,str(cs+ws-1)+'-'+str(ce+ws),str(we-ce-1)+'-'+str(we-cs)])))
+            log.debug(logid+'WINDOWS: '+str.join(' ',map(str, [goi, strand, ws, cs, ce, we, str(cs+ws-1)+'-'+str(ce+ws), str(we-ce-1)+'-'+str(we-cs)])))
 
-            for pos in range(conswindow[0], conswindow[1]+1):
+            for pos in range(len(noc)):
                 if pos not in range(cs-padding+1-ulim, ce+padding+1+ulim):
                     if strand != '-':
                         gpos = pos + ws - ulim + 1  # already 0-based

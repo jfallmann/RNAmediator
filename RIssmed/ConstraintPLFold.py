@@ -651,7 +651,7 @@ def constrain_seq(sid, seq, start, end, conslength, const, cons, window, span, r
         locstart = start - tostart
         locend = end - tostart
 
-        log.debug(' '.join(map(str,[logid, sid, region, str(len(seq)), str(len(seqtofold)), cons, tostart, locstart, locend, toend])))
+        log.debug(' '.join(map(str, [logid, sid, region, str(len(seq)), str(len(seqtofold)), cons, tostart, locstart, locend, toend])))
 
         # enforce paired
         fc_p = constrain_paired(fc_p, locstart, locend+1)
@@ -694,13 +694,16 @@ def constrain_seq(sid, seq, start, end, conslength, const, cons, window, span, r
         else:
             log.info(logid+'No influence on structure with unpaired constraint at ' + cons)
             diff_nu = None
+
         if not np.array_equal(an, ap):
             diff_np = ap - an
         else:
             log.info(logid+'No influence on structure with paired constraint at ' + cons)
             diff_np = None
 
-        write_constraint(save, str(sid), seqtofold, paired, unpaired, data_u, data_p, cons, int(region), diff_nu, diff_np, str(window), str(span), outdir)
+        seqtoprint = seqtofold[locws-1:locwe]
+
+        write_constraint(save, str(sid), seqtoprint, paired, unpaired, data_u, data_p, cons, int(region), diff_nu, diff_np, str(window), str(span), outdir)
 
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -711,29 +714,30 @@ def constrain_seq(sid, seq, start, end, conslength, const, cons, window, span, r
 
 
 def constrain_seq_paired(sid, seq, fstart, fend, start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an, unconstraint, queue=None, configurer=None, level=None):
-    #   DEBUGGING
-    #   pp = pprint.PrettyPrinter(indent=4)#use with pp.pprint(datastructure)
+
     logid = scriptname+'.constrain_seq_paired: '
     try:
         if queue and level:
             configurer(queue, level)
 
         #we no longer fold the whole sequence but only the constraint region +- window size
-        tostart, toend = expand_window(start, end, window, multi, len(seq))
+        tostart, toend = expand_window(start, fend, window, multi, len(seq))
         seqtofold = str(seq[tostart-1:toend])
 
-        if start < 0 or end > len(seq) or fstart < 0 or fend > len(seq):
+        # get local window of interest 0 based closed, we do not need to store the whole seqtofold
+        locws, locwe = localize_window(start, fend, window, len(seq))
+        cons = str('-'.join([str(start), str(end)+':'+str(fstart), str(fend)])+'_'+'-'.join([str(locws), str(locwe)]))
+
+        if len(seqtofold) < (toend-tostart):
+            log.warning(logid+'Sequence to small, skipping '+str(sid)+'\t'+str(len(seqtofold))+'\t'+str(cons))
+            return
+
+        if start < 1 or end > len(seq) or fstart < 1 or fend > len(seq):
             log.warning(logid+'Constraint out of sequence bounds! skipping! '+','.join([len(seq), str(start)+'-'+str(end), str(fstart)+'-'+str(fend)]) )
             return
 
         if checkexisting(sid, paired, unpaired, cons, region, window, span, outdir):
             log.warning(logid+str(cons)+' Existst for '+str(sid)+'! Skipping!')
-            return
-
-        cons = str('-'.join([str(start), str(end)])+'_'+'-'.join([str(tostart), str(toend)]))
-
-        if len(seqtofold) < (toend-tostart):
-            log.warning(logid+'Sequence to small, skipping '+str(sid)+'\t'+str(cons))
             return
 
         # refresh model details
@@ -746,16 +750,24 @@ def constrain_seq_paired(sid, seq, fstart, fend, start, end, conslength, const, 
         fc_p = RNA.fold_compound(seqtofold, md, RNA.OPTION_WINDOW)
         fc_u = RNA.fold_compound(seqtofold, md, RNA.OPTION_WINDOW)
 
+        # get local start,ends 0 based closed
+        locstart = start - tostart
+        locend = end - tostart
+        flocstart = fstart - tostart
+        flocend = fend - tostart
+
+        log.debug(' '.join(map(str, [logid, sid, region, str(len(seq)), str(len(seqtofold)), cons, tostart, locstart, locend, toend])))
+
         # enforce paired constraint 1
-        fc_p = constrain_paired(fc_p, start-tostart, end-tostart+1)
+        fc_p = constrain_paired(fc_p, locstart, locend+1)
         #   fc_p.hc_add_bp_nonspecific(x,0) #0 means without direction  ( $ d < 0 $: pairs upstream, $ d > 0 $: pairs downstream, $ d == 0 $: no direction)
         # enforce paired constraint 2
-        fc_p = constrain_unpaired(fc_p, fstart-tostart, fend-tostart+1)
+        fc_p = constrain_paired(fc_p, flocstart, flocend+1)
 
         #enforce unpaired constraint 1
-        fc_u = constrain_unpaired(fc_u, start-tostart, end-tostart+1)
+        fc_u = constrain_unpaired(fc_u, locstart, locend+1)
         #enforce unpaired constraint 2
-        fc_u = constrain_unpaired(fc_u, fstart-tostart, fend-tostart+1)
+        fc_u = constrain_unpaired(fc_u, flocstart, flocend+1)
 
         #new data struct
         data_p = {'up': []}
@@ -764,13 +776,25 @@ def constrain_seq_paired(sid, seq, fstart, fend, start, end, conslength, const, 
         fc_p.probs_window(region, RNA.PROBS_WINDOW_UP, up_callback, data_p)
         fc_u.probs_window(region, RNA.PROBS_WINDOW_UP, up_callback, data_u)
 
+        # Cut sequence of interest from data, we no longer need the window extension as no effect outside of window is visible with plfold anyways
+        # get local start,ends 0 based closed
+        locws = locws - tostart
+        locwe = locwe - tostart
+
+        data_u['up'] = [data_u['up'][x] for x in range(locws, locwe+1)]
+        data_p['up'] = [data_p['up'][x] for x in range(locws, locwe+1)]
+
         au = up_to_array(data_u['up'],region,len(seqtofold))
         ap = up_to_array(data_p['up'],region,len(seqtofold))
 
         # Calculating accessibility difference between unconstraint and constraint fold, <0 means less accessible with constraint, >0 means more accessible upon constraint
         if not an or len(an) < 1 or len(data['up']) < 1:
-            data['up'] = fold_unconstraint(str(seqtofold), sid, region, window, span, unconstraint, save, outdir, cons)
-            an = up_to_array(data['up'],int(region),len(seqtofold))
+            data['up'] = fold_unconstraint(str(seqtofold), sid, region, window, span, unconstraint, save, outdir, cons, locws, locwe)
+            an = up_to_array(data['up'])  # create numpy array from output
+
+        else:
+            if len(an) > len(au):
+                an = an[locws:locwe, :]
 
         if not np.array_equal(an, au):
             diff_nu = au - an
@@ -783,7 +807,7 @@ def constrain_seq_paired(sid, seq, fstart, fend, start, end, conslength, const, 
             log.info(logid+'No influence on Structure with paired constraint at ' + cons)
             diff_np = None
 
-        write_constraint(save, sid, seqtofold, paired, unpaired, data_u, data_p, cons, int(region), diff_nu, diff_np, str(window), str(span), outdir)
+        write_constraint(save, str(sid), seqtofold, paired, unpaired, data_u, data_p, cons, int(region), diff_nu, diff_np, str(window), str(span), outdir)
 
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -898,7 +922,6 @@ def write_unconstraint(save, sid, seq, unconstraint, data, region, window, span,
 def write_constraint(save, sid, seq, paired, unpaired, data_u, data_p, constrain, region, diff_nu, diff_np, window, span, outdir):
 
     logid = scriptname+'write_constraint: '
-    print('LOG_WRITECON '+str(log))
     try:
         goi, chrom, strand = idfromfa(sid)
         temp_outdir = os.path.join(outdir,goi)

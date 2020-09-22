@@ -213,11 +213,14 @@ def print_up(data=None, seqlength=None, region=None):
     try:
         if data:
             ups = ''
-            for i in range(int(seqlength)):
-                if i > len(data):
+            if seqlength and seqlength != len(data):
+                log.error(logid+'Lengths of sequence and array do not match: '+str(seqlength)+' and '+str(len(data)))
+            for i in range(len(data)):
+                if i >= len(data):
                     log.error(logid+'i larger than size of array')
                 for x in range(1,region+1):
-                    #log.debug(logid+str(i)+' '+str(x))
+                    if x >= len(data[i]):
+                        log.error(logid+'x larger than size of subarray')
                     if isinvalid(data[i][x]):
                         data[i][x] = np.nan
                     else:
@@ -262,34 +265,6 @@ def up_to_array(data=None, region=None, seqlength=None):
         )
         log.error(logid+''.join(tbe.format())+'\t'+str(entries)+'\t'+str(region)+'\t'+str(seqlength))
 
-def npprint(a, o=None):#, format_string ='{0:.2f}'):
-    logid = scriptn+'.npprint: '
-    try:
-        out = ''
-        if data:
-            entries=[]
-            if not seqlength:
-                seqlength = len(data)
-            if not region:
-                region = slice(1,len(data[0]))
-            for i in range(seqlength):
-                entries.append([])
-                for e in range(len(data[i])):
-                    if isinvalid(data[i][e]):
-                        data[i][e] = np.nan
-                    else:
-                        data[i][e] = round(data[i][e],8)
-                entries[i].append(data[i][region])
-            return np.array(entries)
-        else:
-            log.error(logid+'No up data to print')
-            return np.array()
-    except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
-        )
-        log.error(logid+''.join(tbe.format())+'\t'+str(entries)+'\t'+str(region)+'\t'+str(seqlength))
 
 def npprint(a, o=None):#, format_string ='{0:.2f}'):
     logid = scriptn+'.npprint: '
