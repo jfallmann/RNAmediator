@@ -102,6 +102,9 @@ def preprocess(queue, configurer, level, sequence, window, span, region, multi, 
 
     logid = scriptname+'.preprocess: '
     try:
+        if queue and level:
+            configurer(queue, level)
+
         #set path for output
         if outdir:
             if not os.path.isabs(outdir):
@@ -154,7 +157,7 @@ def preprocess(queue, configurer, level, sequence, window, span, region, multi, 
                 sseq = StringIO(records[seqnr].format("fasta"))
                 constraint = constraintlist['lw'][seqnr]
 
-                pool.apply_async(parafold, args=(sseq, window, span, region, multi, unconstraint, unpaired, paired, length, gc, number, constraint, conslength, alphabet, save, procs, vrna, temprange, outdir, pattern, cutoff, seqnr, genecoords, dict(queue=queue, configurer=configurer, level=level)))
+                pool.apply_async(parafold, args=(sseq, window, span, region, multi, unconstraint, unpaired, paired, length, gc, number, constraint, conslength, alphabet, save, procs, vrna, temprange, outdir, pattern, cutoff, seqnr, genecoords), kwds={'queue':queue, 'configurer':configurer, 'level':level})
                 seqnr += 1
 
             pool.close()
@@ -189,7 +192,6 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                 )
 
         seq = parseseq(sequence)
-
 
         # Create process pool with processes
         num_processes = procs or 1
@@ -229,7 +231,7 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                     check = str(goi)+'_'+str(chrom)+'_'+str(strand)+'_'+unconstraint+'_'+str(window)+'_'+str(span)+'.gz'
                     if not (os.path.isfile(check)):
                         try:
-                            res = pool.apply_async(fold_unconstraint, args=(str(fa.seq), str(fa.id), region, window, span, unconstraint, save, outdir, dict(queue=queue, configurer=configurer, level=level)))
+                            res = pool.apply_async(fold_unconstraint, args=(str(fa.seq), str(fa.id), region, window, span, unconstraint, save, outdir), kwds={'queue':queue, 'configurer':configurer, 'level':level})
                         except Exception:
                             exc_type, exc_value, exc_tb = sys.exc_info()
                             tbe = tb.TracebackException(
@@ -250,7 +252,7 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                     try:
                         for temp in range(ts, te+1):
                             # Create the process, and connect it to the worker function
-                            pool.apply_async(constrain_temp, args=(str(fa.id), str(fa.seq), temp, window, span, region, an, save, outdir, dict(queue=queue, configurer=configurer, level=level)))
+                            pool.apply_async(constrain_temp, args=(str(fa.id), str(fa.seq), temp, window, span, region, an, save, outdir), kwds={'queue':queue, 'configurer':configurer, 'level':level})
                     except Exception:
                         exc_type, exc_value, exc_tb = sys.exc_info()
                         tbe = tb.TracebackException(
@@ -293,7 +295,7 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                     if an[0] is np.nan or len(an) > len(fa.seq):  # This means that the prob info was loaded from file or the raw sequence has not been folded yet, but we need a subsequence for the cutoff calculation, so we fold the subsequence
                         log.info(logid+'Recalculating at default temp with subseq')
                         try:
-                            res = pool.apply_async(fold_unconstraint, args=(str(fa.seq), str(fa.id), region, window, span, unconstraint, save, outdir, dict(queue=queue, configurer=configurer, level=level)))
+                            res = pool.apply_async(fold_unconstraint, args=(str(fa.seq), str(fa.id), region, window, span, unconstraint, save, outdir), kwds={'queue':queue, 'configurer':configurer, 'level':level})
                         except Exception:
                             exc_type, exc_value, exc_tb = sys.exc_info()
                             tbe = tb.TracebackException(
@@ -307,7 +309,7 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                     try:
                         for temp in range(ts, te+1):
                             # Create the process, and connect it to the worker function
-                            pool.apply_async(constrain_temp, args=(str(fa.id), str(fa.seq), temp, window, span, region, multi, an, save, outdir, dict(queue=queue, configurer=configurer, level=level)))
+                            pool.apply_async(constrain_temp, args=(str(fa.id), str(fa.seq), temp, window, span, region, multi, an, save, outdir), kwds={'queue':queue, 'configurer':configurer, 'level':level})
                     except Exception:
                         exc_type, exc_value, exc_tb = sys.exc_info()
                         tbe = tb.TracebackException(
@@ -379,12 +381,12 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                         log.info(logid+'Calculating probs for constraint ' + constrain)
                         conslist = constrain.split(',')
 
-                    log.debug(conslist)
+                    log.debug(logid+str(conslist))
 
                     for entry in conslist:
                         log.debug(logid+'ENTRY: '+str(entry))
                         if entry == 'NOCONS':  # in case we just want to fold the sequence without constraints at all
-                            res = pool.apply_async(fold_unconstraint, args=(str(fa.seq), str(fa.id), region, window, span, unconstraint, save, outdir, dict(queue=queue, configurer=configurer, level=level)))
+                            res = pool.apply_async(fold_unconstraint, args=(str(fa.seq), str(fa.id), region, window, span, unconstraint, save, outdir), kwds={'queue':queue, 'configurer':configurer, 'level':level})
                             data['up'] = res.get()
 
                         else:
@@ -429,9 +431,9 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                                 log.info(logid+'Constraining to '+str(fstart) + ' and ' + str(fend))
                                 goi, chrom, strand = idfromfa(fa.id)
 
-                                pool.apply_async(constrain_seq_paired, args=(str(fa.id), str(fa.seq), fstart, fend, start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an, unconstraint, dict(queue=queue, configurer=configurer, level=level)))
+                                pool.apply_async(constrain_seq_paired, args=(str(fa.id), str(fa.seq), fstart, fend, start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an, unconstraint), kwds={'queue':queue, 'configurer':configurer, 'level':level})
                             else:
-                                pool.apply_async(constrain_seq, args=(str(fa.id), str(fa.seq), start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an, unconstraint, dict(queue=queue, configurer=configurer, level=level)))
+                                pool.apply_async(constrain_seq, args=(str(fa.id), str(fa.seq), start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an, unconstraint), kwds={'queue':queue, 'configurer':configurer, 'level':level})
 
         pool.close()
         pool.join()       # timeout
@@ -448,13 +450,13 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
 def parafold(sequence, window, span, region, multi, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, save, procs, vrna, temprange, outdir, pattern, cutoff, seqnr, genecoords, queue=None, configurer=None, level=None):
 
     logid = scriptname+'.parafold: '
-    if queue and level:
-        configurer(queue, level)
-    seq = sequence
-    # set path for VRNA lib
-    if vrna:
-        sys.path = [vrna] + sys.path
-        try:
+    try:
+        if queue and level:
+            configurer(queue, level)
+        seq = sequence
+        # set path for VRNA lib
+        if vrna:
+            sys.path = [vrna] + sys.path
             global RNA
             RNA = importlib.import_module('RNA')
             globals().update(
@@ -462,13 +464,13 @@ def parafold(sequence, window, span, region, multi, unconstraint, unpaired, pair
                 if hasattr(RNA, '__all__')
                 else {
                     k: v for (k, v) in RNA.__dict__.items() if not k.startswith('_')
-                }
+                    }
                 )
-        except Exception:
-            exc_type, exc_value, exc_tb = sys.exc_info()
-            tbe = tb.TracebackException(
-                exc_type, exc_value, exc_tb,
-                )
+    except Exception:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+            exc_type, exc_value, exc_tb,
+            )
         log.error(logid+''.join(tbe.format()))
 
     try:
@@ -508,7 +510,7 @@ def parafold(sequence, window, span, region, multi, unconstraint, unpaired, pair
             for entry in conslist:
                 if entry == 'NOCONS':  # in case we just want to fold the sequence without constraints at all
                     try:
-                        res = pool.apply_async(fold_unconstraint, args=(str(fa.seq), str(fa.id), region, window, span, unconstraint, save, outdir, dir(queue=queue, configurer=configurer, level=level)))
+                        res = pool.apply_async(fold_unconstraint, args=(str(fa.seq), str(fa.id), region, window, span, unconstraint, save, outdir), kwds={'queue':queue, 'configurer':configurer, 'level':level})
                     except Exception:
                         exc_type, exc_value, exc_tb = sys.exc_info()
                         tbe = tb.TracebackException(
@@ -544,7 +546,7 @@ def parafold(sequence, window, span, region, multi, unconstraint, unpaired, pair
                     an = None
 
                     try:
-                        constrain_seq(str(fa.id), str(fa.seq), start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an)
+                        constrain_seq(str(fa.id), str(fa.seq), start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an, queue=queue, configurer=configurer, level=level)
                     except Exception:
                         exc_type, exc_value, exc_tb = sys.exc_info()
                         tbe = tb.TracebackException(
@@ -564,11 +566,14 @@ def parafold(sequence, window, span, region, multi, unconstraint, unpaired, pair
 
 
 ##### Functions #####
-def fold_unconstraint(seq, id, region, window, span, unconstraint, save, outdir, rawentry=None, queue=None, configurer=None, level=None):
+def fold_unconstraint(seq, id, region, window, span, unconstraint, save, outdir, rawentry=None, locws=None, locwe=None, queue=None, configurer=None, level=None):
 
     logid = scriptname+'.fold_unconstraint: '
     data = {'up': []}
     try:
+        if queue and level:
+            configurer(queue, level)
+
         if len(seq) < int(window):
             log.error(logid+'Sequence to small, skipping '+str(id)+'\t'+str(len(seq)))
             return
@@ -582,6 +587,10 @@ def fold_unconstraint(seq, id, region, window, span, unconstraint, save, outdir,
         # call prop window calculation
         fc.probs_window(region, RNA.PROBS_WINDOW_UP, up_callback, data)
         # fc.probs_window(region, RNA.PROBS_WINDOW_BPP, bpp_callback, data)
+
+        if locws and locwe:  # If we only need a subset of the folded sequence
+            data['up'] = [data['up'][x] for x in range(locws, locwe+1)]
+            seq = seq[locws-1:locwe]
 
         write_unconstraint(save, str(id), str(seq), unconstraint, data, int(region), str(window), str(span), outdir, rawentry)
 
@@ -598,24 +607,27 @@ def fold_unconstraint(seq, id, region, window, span, unconstraint, save, outdir,
 def constrain_seq(sid, seq, start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an=None, unconstraint=None, queue=None, configurer=None, level=None):
 
     logid = scriptname+'.constrain_seq: '
+
     try:
+        if queue and level:
+            configurer(queue, level)
         goi, chrom, strand = idfromfa(sid)
-        log.debug(logid+'CONSTRAINING AWAY')
-        print('LOGGING NOT WORKING? '+str(log))
+        log.debug(logid+'CONSTRAINING AWAY with '+str(start)+' '+str(end))
+
         # for all constraints we now extract subsequences to compare against
         # we no longer fold the whole raw sequence but only the constraint region +- window size
         tostart, toend = expand_window(start, end, window, multi, len(seq))  # Yes this is a duplicate but not if used in other context as standalone function
         seqtofold = str(seq[tostart-1:toend])
 
         # get local window of interest 0 based closed, we do not need to store the whole seqtofold
-        locws, locwe = localize_window(start, end, window, len(seqtofold))
+        locws, locwe = localize_window(start, end, window, len(seq))
         cons = str('-'.join([str(start), str(end)])+'_'+'-'.join([str(locws), str(locwe)]))
 
         if len(seqtofold) < (toend-tostart):
             log.warning(logid+'Sequence to small, skipping '+str(sid)+'\t'+str(len(seqtofold))+'\t'+str(cons))
             return
 
-        log.debug(logid+str.join(' ',[goi,cons,strand]))
+        log.debug(logid+str.join(' ', [goi,cons,strand]))
 
         if start < 1 or end > len(seq):
             log.warning(logid+'Constraint out of sequence bounds! skipping! '+','.join([len(seq), str(start)+'-'+str(end)]))
@@ -635,11 +647,11 @@ def constrain_seq(sid, seq, start, end, conslength, const, cons, window, span, r
         fc_p = RNA.fold_compound(seqtofold, md, RNA.OPTION_WINDOW)
         fc_u = RNA.fold_compound(seqtofold, md, RNA.OPTION_WINDOW)
 
-        log.debug(' '.join(map(str,[logid, sid, region, seqtofold, cons, start, end, tostart, start-tostart, end-tostart+1])))
-
         # get local start,ends 0 based closed
         locstart = start - tostart
         locend = end - tostart
+
+        log.debug(' '.join(map(str,[logid, sid, region, str(len(seq)), str(len(seqtofold)), cons, tostart, locstart, locend, toend])))
 
         # enforce paired
         fc_p = constrain_paired(fc_p, locstart, locend+1)
@@ -656,23 +668,26 @@ def constrain_seq(sid, seq, start, end, conslength, const, cons, window, span, r
         fc_u.probs_window(region, RNA.PROBS_WINDOW_UP, up_callback, data_u)
 
         # Cut sequence of interest from data, we no longer need the window extension as no effect outside of window is visible with plfold anyways
+        # get local start,ends 0 based closed
+        locws = locws - tostart
+        locwe = locwe - tostart
 
-        log.debug('UP_BEFORE: '+str(data_u['up']))  ##### HIER WEITER
-        data_u['up'] = data_u['up'][locws:locwe]
-        log.debug('UP_AFTER: '+str(data_u['up']))
-        data_p['up'] = data_p['up'][locws:locwe]
+        #log.debug('UP_BEFORE: '+str(len(data_u['up']))+' '+str(locws)+' '+str(locwe))  ##### HIER WEITER
+
+        data_u['up'] = [data_u['up'][x] for x in range(locws, locwe+1)]
+        data_p['up'] = [data_p['up'][x] for x in range(locws, locwe+1)]
 
         au = up_to_array(data_u['up'])  # create numpy array from output
         ap = up_to_array(data_p['up'])  # create numpy array from output
 
         # Calculating accessibility difference between unconstraint and constraint fold, <0 means less accessible with constraint, >0 means more accessible upon constraint
         if not an or len(an) < 1 or len(data['up']) < 1:
-            data['up'] = fold_unconstraint(str(seqtofold), sid, region, window, span, unconstraint, save, outdir, cons)
-            data['up'] = data['up'][locws:locwe]
+            data['up'] = fold_unconstraint(str(seqtofold), sid, region, window, span, unconstraint, save, outdir, cons, locws, locwe)
             an = up_to_array(data['up'])  # create numpy array from output
+
         else:
             if len(an) > len(au):
-                an = an[locws:locwe]
+                an = an[locws:locwe, :]
 
         if not np.array_equal(an, au):
             diff_nu = au - an
@@ -700,6 +715,9 @@ def constrain_seq_paired(sid, seq, fstart, fend, start, end, conslength, const, 
     #   pp = pprint.PrettyPrinter(indent=4)#use with pp.pprint(datastructure)
     logid = scriptname+'.constrain_seq_paired: '
     try:
+        if queue and level:
+            configurer(queue, level)
+
         #we no longer fold the whole sequence but only the constraint region +- window size
         tostart, toend = expand_window(start, end, window, multi, len(seq))
         seqtofold = str(seq[tostart-1:toend])
@@ -781,6 +799,9 @@ def constrain_temp(sid, seq, temp, window, span, region, multi, an, save, outdir
 
     logid = scriptname+'.constrain_temp: '
     try:
+        if queue and level:
+            configurer(queue, level)
+
         if len(seq) < int(window):
             log.warning(logid+'Sequence to small, skipping '+str(sid)+'\t'+str(temp))
             return
@@ -818,7 +839,8 @@ def constrain_temp(sid, seq, temp, window, span, region, multi, an, save, outdir
 
 def write_unconstraint(save, sid, seq, unconstraint, data, region, window, span, outdir, rawentry=None):
 
-    logid = scriptname+'write_unconstraint: '
+    logid = scriptname+'.write_unconstraint: '
+    log.debug(logid+' '.join([str(save),str(len(seq)),str(len(data['up'])),str(rawentry)]))
     try:
         goi, chrom, strand = idfromfa(sid)
         temp_outdir = os.path.join(outdir,goi)
@@ -876,6 +898,7 @@ def write_unconstraint(save, sid, seq, unconstraint, data, region, window, span,
 def write_constraint(save, sid, seq, paired, unpaired, data_u, data_p, constrain, region, diff_nu, diff_np, window, span, outdir):
 
     logid = scriptname+'write_constraint: '
+    print('LOG_WRITECON '+str(log))
     try:
         goi, chrom, strand = idfromfa(sid)
         temp_outdir = os.path.join(outdir,goi)
@@ -1029,7 +1052,6 @@ def main(args):
 
         log.info(logid+'Running '+scriptname+' on '+str(args.procs)+' cores.')
         log.info(logid+'CLI: '+sys.argv[0]+' '+'{}'.format(' '.join( [shlex.quote(s) for s in sys.argv[1:]] )))
-
 
         preprocess(queue, worker_configurer, loglevel, args.sequence, args.window, args.span, args.region, args.multi, args.unconstraint, args.unpaired, args.paired, args.length, args.gc, args.number, args.constrain, args.conslength, args.alphabet, args.save, args.procs, args.vrna, args.temprange, args.outdir, args.genes, args.verbosity, args.pattern, args.cutoff)
 

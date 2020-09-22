@@ -234,7 +234,7 @@ def expand_window(start, end, window, multiplyer, seqlen):
             tostart = 1
         toend = end + multiplyer*window
         if toend > seqlen:
-            toend = seqlen+1
+            toend = seqlen
         return [tostart, toend]
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -247,10 +247,14 @@ def expand_window(start, end, window, multiplyer, seqlen):
 def localize_window(start, end, window, seqlen):
     logid = scriptn+'.localize_window: '
     try:
-        locws = start - window
-        if locws < 0:
-            locws = 0
-        locwe = end + window
+        diff = start - window
+        if diff < 1:
+            locws = 1
+        else:
+            locws = diff
+
+        locwe = diff + 2 * window + (end - start) # this makes sure that if the start was trimmed, we do not just extend too much
+
         if locwe > seqlen:
             locwe = seqlen
         return [locws, locwe]

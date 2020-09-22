@@ -209,11 +209,15 @@ def print_region_up(data, seqlength=None, region=None):
 
 def print_up(data=None, seqlength=None, region=None):
     logid = scriptn+'.print_up: '
+    log.debug(logid+str(len(data))+' '+str(seqlength)+' '+str(region))
     try:
         if data:
-            ups=''
+            ups = ''
             for i in range(int(seqlength)):
+                if i > len(data):
+                    log.error(logid+'i larger than size of array')
                 for x in range(1,region+1):
+                    #log.debug(logid+str(i)+' '+str(x))
                     if isinvalid(data[i][x]):
                         data[i][x] = np.nan
                     else:
