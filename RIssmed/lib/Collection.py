@@ -75,7 +75,7 @@ import numpy as np
 
 try:
     log = logging.getLogger(__name__)  # use module name
-    scriptn = os.path.basename(inspect.stack()[-1].filename).replace('.py', '')
+    scriptn = __name__  # os.path.basename(inspect.stack()[-1].filename).replace('.py', '')
 except Exception:
     exc_type, exc_value, exc_tb = sys.exc_info()
     tbe = tb.TracebackException(
@@ -224,6 +224,43 @@ def get_location(entry):
             exc_type, exc_value, exc_tb,
         )
         log.error(logid+''.join(tbe.format()))
+
+
+def expand_window(start, end, window, multiplyer, seqlen):
+    logid = scriptn+'.expand_window: '
+    try:
+        tostart = start - multiplyer*window
+        if tostart < 1:
+            tostart = 1
+        toend = end + multiplyer*window
+        if toend > seqlen:
+            toend = seqlen+1
+        return [tostart, toend]
+    except Exception:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+            exc_type, exc_value, exc_tb,
+            )
+        log.error(logid+''.join(tbe.format()))
+
+
+def localize_window(start, end, window, seqlen):
+    logid = scriptn+'.localize_window: '
+    try:
+        locws = start - window
+        if locws < 0:
+            locws = 0
+        locwe = end + window
+        if locwe > seqlen:
+            locwe = seqlen
+        return [locws, locwe]
+    except Exception:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+            exc_type, exc_value, exc_tb,
+            )
+        log.error(logid+''.join(tbe.format()))
+
 
 ### Code utils
 

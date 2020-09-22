@@ -56,7 +56,7 @@ import math
 from collections import defaultdict
 import logging
 # own
-from lib.Collection import *
+from lib.Collection import isinvalid
 
 ####################
 # ViennaRNA helper
@@ -64,7 +64,7 @@ from lib.Collection import *
 
 try:
     log = logging.getLogger(__name__)  # use module name
-    scriptn = os.path.basename(inspect.stack()[-1].filename).replace('.py', '')
+    scriptn = __name__  # os.path.basename(inspect.stack()[-1].filename).replace('.py', '')
     log.debug('LOGGING IN RNAtweaks'+str(scriptn)+str(log)+str(log.handlers))
 except Exception:
     exc_type, exc_value, exc_tb = sys.exc_info()
@@ -250,7 +250,7 @@ def up_to_array(data=None, region=None, seqlength=None):
             return np.array(entries)
         else:
             log.error(logid+'No up data to print')
-            return np.array()
+            return np.empty(region)
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(

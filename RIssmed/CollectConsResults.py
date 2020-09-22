@@ -294,8 +294,8 @@ def judge_diff(raw, u, p, gs, ge, gstrand, ulim, cutoff, border, outdir, padding
                             out['u'].append('\t'.join([str(chrom), str(gpos), str(gend), str(goi) + '|' + str(cons) + '|' + str(gcons), str(uc[pos]), str(strand), str(dist), str(noc[pos]), str(preacc), str(nrgdiff), str(kd), str(zscore)]))
 
                     if border1 < pc[pos] and pc[pos] < border2:
-                        if ce < pos:# get distance up or downstream
-                            dist = (pos - ce) * -1 # no -1 or we have 0 overlap
+                        if ce < pos:  # get distance up or downstream
+                            dist = (pos - ce) * -1  # no -1 or we have 0 overlap
                         else:
                             dist = cs - pos
 
