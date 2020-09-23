@@ -87,7 +87,7 @@ def createrandseq(length, gc, number, alphabet, outfile='Random', verbosity=Fals
                         occ.append(rest*length/100)
                 probs = iter(occ)
                 seq = weightedrandseq(nucs, probs, length)
-                header = ">Seq{i}{gc}:random:nochrom:(.)\n".format(i=i+1,gc=gc)
+                header = ">Seq{i}_{gc}:random:nochrom:(.)\n".format(i=i+1,gc=gc)
 
             else:
                 seq = randseq(alphabet, length)
