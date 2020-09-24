@@ -21,4 +21,4 @@ echo "Number of Tasks Allocated      = $SLURM_NTASKS"
 echo "Number of Cores/Task Allocated = $SLURM_CPUS_PER_TASK"
 
 ca rissmed
-~/Projects/INPROGRESS/RIssmed/RIssmed/ConstraintPLFold.py -s GC$gc\.fa.gz -w 250 -l 150 -u $u -r raw -n unpaired -p paired -x sliding -o Random_$gc\_$u -z 10 --loglevel INFO -m 2
+~/Projects/INPROGRESS/RIssmed/RIssmed/ConstraintPLFold.py -s GC$gc\.fa.gz -w 250 -l 150 -u $u -r raw -n unpaired -p paired -x sliding -o Random_$gc\_$u -z 10 -y $u --loglevel INFO -m 2
