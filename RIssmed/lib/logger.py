@@ -124,7 +124,7 @@ def makelogfile(logfile):
     if not os.path.isfile(os.path.abspath(logfile)) or os.stat(logfile).st_size == 0:
         open(logfile, 'a').close()
     else:
-        ts = str(datetime.datetime.fromtimestamp(os.path.getmtime(os.path.abspath(logfile))).strftime("%Y%m%d_%H_%M_%S"))
+        ts = str(datetime.datetime.fromtimestamp(os.path.getmtime(os.path.abspath(logfile))).strftime("%Y%m%d_%H_%M_%S_%f"))
         shutil.move(logfile,logfile.replace('.log', '')+'_'+ts+'.log')
 
 
