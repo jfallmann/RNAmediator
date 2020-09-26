@@ -1061,7 +1061,7 @@ def main(args):
     try:
         #  Logging configuration
         logdir = args.logdir
-        ts = str(datetime.datetime.strftime("%Y%m%d_%H_%M_%S_%f"))
+        ts = str(datetime.datetime.now().strftime("%Y%m%d_%H_%M_%S_%f"))
         logfile = str.join(os.sep,[os.path.abspath(logdir),scriptname+'_'+ts+'.log'])
         loglevel = args.loglevel
 
