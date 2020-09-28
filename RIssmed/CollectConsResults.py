@@ -148,8 +148,14 @@ def screen_genes(queue, configurer, level, pat, cutoff, border, ulim, procs, roi
                 continue
 
             try:
-                for i in range(len(r)):
-                    pool.apply_async(judge_diff, args=(raw[i], unpaired[i], paired[i], gs, ge, gstrand, ulim, cutoff, border, outdir, padding), kwds={'queue':queue, 'configurer':configurer, 'level':level})
+                for uncons in raw:
+                    unpa = 'StruCons_'+uncons.replace('raw','diffnu')
+                    pair = 'StruCons_'+uncons.replace('raw','diffnp')
+                    if unpa in unpaired and pair in paired:
+                        pool.apply_async(judge_diff, args=(uncons, unpa, pair, gs, ge, gstrand, ulim, cutoff, border, outdir, padding), kwds={'queue':queue, 'configurer':configurer, 'level':level})
+                    else:
+                        log.warning(logid+'Files for raw and constraint do not match, skipping!')
+                        continue
             except Exception:
                 exc_type, exc_value, exc_tb = sys.exc_info()
                 tbe = tb.TracebackException(
