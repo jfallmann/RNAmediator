@@ -141,7 +141,7 @@ def screen_genes(queue, configurer, level, pat, cutoff, border, ulim, procs, roi
             paired = [os.path.abspath(i) for i in p]
             unpaired = [os.path.abspath(i) for i in u]
 
-            log.debug(logid+'PATHS: '+str(raw)+'\t'+str(paired)+'\t'+str(unpaired))
+            log.debug(logid+'PATHS: '+str(len(r))+'\t'+str(len(p))+'\t'+str(len(u)))
 
             if not raw or not paired or not unpaired:
                 log.warning(logid+'Could not find files for Gene '+str(goi)+' and window '+str(window)+' and span '+str(span)+' Will skip')
@@ -149,7 +149,7 @@ def screen_genes(queue, configurer, level, pat, cutoff, border, ulim, procs, roi
 
             try:
                 for i in range(len(r)):
-                    pool.apply_async(judge_diff, args=(raw[i], u[i], p[i], gs, ge, gstrand, ulim, cutoff, border, outdir, padding), kwds={'queue':queue, 'configurer':configurer, 'level':level})
+                    pool.apply_async(judge_diff, args=(raw[i], unpaired[i], paired[i], gs, ge, gstrand, ulim, cutoff, border, outdir, padding), kwds={'queue':queue, 'configurer':configurer, 'level':level})
             except Exception:
                 exc_type, exc_value, exc_tb = sys.exc_info()
                 tbe = tb.TracebackException(

@@ -238,8 +238,10 @@ cd /scr/k70san2/fall/Constraints/Random
 ca rissmed
 
 for i in 20 40 60 80;do python ~/Projects/INPROGRESS/RIssmed/RIssmed/Randseq.py -l 1000 -g $i -n 1000 -o GC$i;done
-
-for a in 20 40 60 80;do for i in 5 7 9 11;do ~/Projects/INPROGRESS/RIssmed/RIssmed/ConstraintPLFold.py -s GC$a\.fa.gz -w 250 -l 150 -u $i -r raw -n unpaired -p paired -x sliding -o Random_$a\_$i -z 12 --loglevel DEBUG -m 2;done
-#SLURM
-~/Projects/INPROGRESS/RIssmed/slurm/rissmed_random.sh
-for a in 20 40 60 80;do for i in 5 7 9 11;do sbatch --export ALL,gc=$a,u=$i rissmed_random.sh;done;done
+for i in GC*.fa.gz;do zcat $i |perl -wane 'if ($F[0]=~/^>/){($id=(split(":",$F[0]))[0])=~s/>//;$id=~s/_/-/}else{print join("\t","chr1",0,length($F[0]),$id,100,"+")."\n"}' |gzip > $i\.bed.gz;done
+for a in 20 40 60 80;do for i in 5 7 9 11;do ~/Projects/INPROGRESS/RIssmed/RIssmed/ConstraintPLFold.py -s GC$a\.fa.gz -w 120 -l 80 -u $i -r raw -n unpaired -p paired -x sliding -o Random_$a\_$i -z 12 --loglevel DEBUG -m 2;done
+for a in 20 40 60 80;do for i in 5 7 9 11;do ~/Projects/INPROGRESS/RIssmed/RIssmed/CollectConsResults.py -u $i -z 4 -b-1,1 -c 0 -g GC$a\.fa.gz.bed.gz -p 120,80 -o Collection_$a\_$i -d Random_$a\_$i;done;done
+**** SLURM
+ ~/Projects/INPROGRESS/RIssmed/slurm/rissmed_random.sh
+ for a in 20 40 60 80;do for i in 5 7 9 11;do sbatch --export ALL,gc=$a,u=$i rissmed_random.sh;done;done
+*** 

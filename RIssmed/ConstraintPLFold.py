@@ -589,7 +589,8 @@ def fold_unconstraint(seq, id, region, window, span, unconstraint, save, outdir,
         fc.probs_window(region, RNA.PROBS_WINDOW_UP, up_callback, data)
         # fc.probs_window(region, RNA.PROBS_WINDOW_BPP, bpp_callback, data)
 
-        if locws and locwe:  # If we only need a subset of the folded sequence
+        if locws is not None and locwe is not None:  # If we only need a subset of the folded sequence
+            log.debug(logid+'Cutting RIO from fold with boundaries '+str(locws)+' and '+str(locwe))
             data['up'] = [data['up'][x] for x in range(locws, locwe+1)]
             seq = seq[locws-1:locwe]
 
@@ -682,7 +683,8 @@ def constrain_seq(sid, seq, start, end, conslength, const, cons, window, span, r
         ap = up_to_array(data_p['up'])  # create numpy array from output
 
         # Calculating accessibility difference between unconstraint and constraint fold, <0 means less accessible with constraint, >0 means more accessible upon constraint
-        if not an or len(an) < 1 or len(data['up']) < 1:
+        if not an or len(an) < 1 or len(data['up']) != len(data_u['up']):
+            log.debug(logid+'Need to refold unconstraint sequence')
             data['up'] = fold_unconstraint(str(seqtofold), sid, region, window, span, unconstraint, save, outdir, cons, locws, locwe)
             an = up_to_array(data['up'])  # create numpy array from output
 
