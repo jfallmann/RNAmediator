@@ -244,4 +244,9 @@ for a in 20 40 60 80;do for i in 5 7 9 11;do ~/Projects/INPROGRESS/RIssmed/RIssm
 **** SLURM
  ~/Projects/INPROGRESS/RIssmed/slurm/rissmed_random.sh
  for a in 20 40 60 80;do for i in 5 7 9 11;do sbatch --export ALL,gc=$a,u=$i rissmed_random.sh;done;done
-*** 
+**** DenbiCloud
+for i in 20 40 60 80;do python RIssmed/Randseq.py -l 1000 -g $i -n 1000 -o GC$i;done
+for i in GC*.fa.gz;do zcat $i|sed 's/_/-/' |gzip > Fixed_$i;done
+rm -f genes.bed; for i in Fixed_GC*.fa.gz;do zcat $i|perl -wlane 'if ($_ =~ /^>/){($name = (split(":",$_))[0])=~s/>//;}else{print join("\t","nochrom",0,(length($_)-1),$name,100,".")}' >> genes.bed;done
+for a in 20 40 60 80;do for i in 5 7 9 11;do if [ ! -d "Random_$a_$i" ];then sbatch --export ALL,gc=$a,u=$i rissmed_random.sh;fi;done;done
+for a in 20 40 60 80;do for i in 5 7 9 11;do sbatch --export ALL,gc=$a,u=$i rissmed_collect.sh ;done;done
