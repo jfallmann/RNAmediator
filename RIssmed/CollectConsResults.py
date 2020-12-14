@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Mon May 11 15:27:01 2020 (+0200)
+## Last-Updated: Mon Dec 14 15:16:17 2020 (+0100)
 ##           By: Joerg Fallmann
-##     Update #: 450
+##     Update #: 454
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -155,7 +155,7 @@ def screen_genes(queue, configurer, level, pat, cutoff, border, ulim, procs, roi
                         pool.apply_async(judge_diff, args=(uncons, unpa, pair, gs, ge, gstrand, ulim, cutoff, border, outdir, padding), kwds={'queue':queue, 'configurer':configurer, 'level':level})
                     else:
                         log.debug(logid+'MISMATCH: '+uncons+'\t'+unpa+'\t'+pair)
-                        log.warning(logid+'Files for raw and constraint do not match, skipping!')
+                        log.warning(logid+'Files for raw and constraint do not match or no difference has been found in pairing probabilities, skipping '+str(unpa)+' and '+str(pair)+'!')
                         continue
             except Exception:
                 exc_type, exc_value, exc_tb = sys.exc_info()
@@ -349,7 +349,6 @@ def main(args):
         worker_configurer(queue, loglevel)
 
         log.info(logid+'Running '+scriptname+' on '+str(args.procs)+' cores.')
-        print('HERE')
         log.info(logid+'CLI: '+sys.argv[0]+' '+'{}'.format(' '.join( [shlex.quote(s) for s in sys.argv[1:]] )))
 
         screen_genes(queue, worker_configurer, loglevel, args.pattern, args.cutoff, args.border, args.ulimit, args.procs, args.roi, args.outdir, args.dir, args.genes, args.padding)
