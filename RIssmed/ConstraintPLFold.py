@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Fri Sep  4 17:30:29 2020 (+0200)
+## Last-Updated: Mon Dec 14 14:28:17 2020 (+0100)
 ##           By: Joerg Fallmann
-##     Update #: 441
+##     Update #: 448
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -955,7 +955,7 @@ def write_constraint(save, sid, seq, paired, unpaired, data_u, data_p, constrain
         else:
             print(print_up(data_u['up'],len(seq),region))
 
-        if diff_nu.any():
+        if not (diff_nu is None) and diff_nu.any():
             if unpaired != 'STDOUT':
                 if not os.path.exists(temp_outdir):
                     os.makedirs(temp_outdir)
@@ -964,7 +964,7 @@ def write_constraint(save, sid, seq, paired, unpaired, data_u, data_p, constrain
             else:
                 npprint(diff_nu)
 
-        if diff_np.any():
+        if not (diff_np is None) and diff_np.any():
             if unpaired != 'STDOUT':
                 if not os.path.exists(temp_outdir):
                     os.makedirs(temp_outdir)
