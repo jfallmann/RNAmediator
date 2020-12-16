@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Mon Dec 14 15:16:17 2020 (+0100)
+## Last-Updated: Wed Dec 16 13:17:58 2020 (+0100)
 ##           By: Joerg Fallmann
-##     Update #: 454
+##     Update #: 459
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -202,9 +202,10 @@ def judge_diff(raw, u, p, gs, ge, gstrand, ulim, cutoff, border, outdir, padding
 
         log.debug(logid+'DiffCoords: '+' '.join(map(str,[goi, chrom, strand, cons, reg, f, window, span, gs, ge, cs, ce, ws, we])))
 
-        border1, border2 = map(float,border.split(',')) #defines how big a diff has to be to be of importance
+        #border1, border2 = map(float,border.split(',')) #defines how big a diff has to be to be of importance
+        border = abs(border) #defines how big a diff has to be to be of importance
 
-        log.info(logid+'Continuing '+str(goi)+' calculation with cutoff: ' + str(cutoff) + ' and borders ' + str(border1) + ' and ' + str(border2))
+        log.info(logid+'Continuing '+str(goi)+' calculation with cutoff: ' + str(cutoff) + ' and border ' + str(border))# + ' and ' + str(border2))
 
         out = {}
         out['p'] = []
@@ -274,7 +275,7 @@ def judge_diff(raw, u, p, gs, ge, gstrand, ulim, cutoff, border, outdir, padding
                         gcen = we-cs
                         gcons = str(gcst)+'-'+str(gcen)
 
-                    if border1 < uc[pos] and uc[pos] < border2:
+                    if border < abs(uc[pos]):
                         if ce < pos:  # get distance up or downstream
                             dist = (pos - ce) * -1  # no -1 or we have 0 overlap
                         else:
@@ -288,7 +289,7 @@ def judge_diff(raw, u, p, gs, ge, gstrand, ulim, cutoff, border, outdir, padding
                         if not any([x is np.nan for x in [preacc,nrgdiff,kd,zscore]]):
                             out['u'].append('\t'.join([str(chrom), str(gpos), str(gend), str(goi) + '|' + str(cons) + '|' + str(gcons), str(uc[pos]), str(strand), str(dist), str(noc[pos]), str(preacc), str(nrgdiff), str(kd), str(zscore)]))
 
-                    if border1 < pc[pos] and pc[pos] < border2:
+                    if border < abs(pc[pos]):
                         if ce < pos:  # get distance up or downstream
                             dist = (pos - ce) * -1  # no -1 or we have 0 overlap
                         else:

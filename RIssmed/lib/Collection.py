@@ -7,9 +7,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Fri Aug 21 10:33:00 2020 (+0200)
+## Last-Updated: Wed Dec 16 13:19:45 2020 (+0100)
 ##           By: Joerg Fallmann
-##     Update #: 381
+##     Update #: 384
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -128,7 +128,7 @@ def parseargs_collectpl():
     parser = argparse.ArgumentParser(description='Calculate the regions with highest accessibility diff for given Sequence Pattern')
     parser.add_argument("-p", "--pattern", type=str, default='250,150', help='Pattern for files and window, e.g. Seq1_30,250')
     parser.add_argument("-c", "--cutoff", type=float, default=.2, help='Cutoff for the definition of pairedness, if set to e.g. 0.2 it will mark all regions with probability of being unpaired >= cutoff as unpaired')
-    parser.add_argument("-b", "--border", type=str, default='', help='Cutoff for the minimum change between unconstraint and constraint structure, regions below this cutoff will not be returned as list of regions with most impact on structure. If not defined, will be calculated from folding the sequence of interest at temperature range 30-44.')
+    parser.add_argument("-b", "--border", type=float, default=0.0, help='Cutoff for the minimum change between unconstraint and constraint structure, regions below this cutoff will not be returned as list of regions with most impact on structure.')
     parser.add_argument("-u", "--ulimit", type=int, default=1, help='Stretch of nucleotides used during plfold run (-u option)')
     parser.add_argument("-r", "--roi", type=str, default=None, help='Define Region of Interest that will be compared')
     parser.add_argument("-o", "--outdir", type=str, default='', help='Directory to write to')
