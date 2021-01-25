@@ -180,6 +180,7 @@ def judge_diff(raw, u, p, gs, ge, gstrand, ulim, cutoff, border, outdir, padding
     try:
         if queue and level:
             configurer(queue, level)
+            
         goi, chrom, strand, cons, reg, f, window, span = map(str,os.path.basename(raw).split(sep='_'))
         span = span.split(sep='.')[0]
         cs, ce = map(int, cons.split(sep='-'))

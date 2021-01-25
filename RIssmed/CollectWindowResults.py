@@ -62,56 +62,33 @@
 ##
 ### Code:
 ### IMPORTS
-import os, sys, inspect
-
-##load own modules
-from lib.logger import makelogdir, setup_multiprocess_logger
-scriptname=os.path.basename(__file__).replace('.py','')
-logfile = 'LOGS/'+scriptname+'.log'
-from lib.Collection import *
-##other modules
+import os
+import sys
 import glob
 import argparse
-from io import StringIO
-import subprocess
 import gzip
-import importlib
-import pprint
 import traceback as tb
-#numpy and matplolib and pyplot
-from matplotlib import pyplot as plt
-from matplotlib.patches import Rectangle # need that for histogram legend, don't ask
-import numpy as np
-#collections
-from collections import Counter
+# collections
 from collections import defaultdict
-import heapq
-from operator import itemgetter
-from natsort import natsorted, ns
-#multiprocessing
+# multiprocessing
 import multiprocessing
-from multiprocessing import Manager, Pool
-#Biopython stuff
-from Bio import SeqIO
-from Bio.Seq import Seq
+from multiprocessing import get_context
+from multiprocessing import set_start_method
+# Logging
+import datetime
+import logging
+from lib.logger import makelogdir, makelogfile, listener_process, listener_configurer, worker_configurer
+# load own modules
+from lib.Collection import *
+from lib.FileProcessor import *
+from lib.RNAtweaks import *
+from lib.NPtweaks import *
 
-#parse args
-def parseargs():
-    parser = argparse.ArgumentParser(description='Calculate the regions with highest accessibility diff for given Sequence Pattern')
-    parser.add_argument("-p", "--pattern", type=str, default='250,150', help='Pattern for files and window, e.g. Seq1_30,250')
-    parser.add_argument("-b", "--border", type=str, default='', help='Cutoff for the minimum change between unconstraint and constraint structure, regions below this cutoff will not be returned as list of regions with most impact on structure. If not defined, will be calculated from folding the sequence of interest at temperature range 30-44.')
-    parser.add_argument("-o", "--outdir", type=str, default='', help='Directory to write to')
-    parser.add_argument("-g", "--genes", type=str, help='Genomic coordinates bed for genes, either standard bed format or AnnotateBed.pl format')
-    parser.add_argument("-z", "--procs", type=int, default=1, help='Number of parallel processed to run this job with, only important of no border is given and we need to fold')
-    parser.add_argument("--loglevel", type=str, default='WARNING', choices=['WARNING','ERROR','INFO','DEBUG'], help="Set log level")
+log = logging.getLogger(__name__)  # use module name
+scriptname = os.path.basename(__file__).replace('.py', '')
 
-    if len(sys.argv)==1:
-        parser.print_help(sys.stderr)
-        sys.exit(1)
 
-    return parser.parse_args()
-
-def screen_genes(pat, border, procs, outdir, genes):
+def screen_genes(queue, configurer, level, pat, border, procs, outdir, genes):
 
     logid = scriptname+'.screen_genes: '
     try:
@@ -159,7 +136,7 @@ def screen_genes(pat, border, procs, outdir, genes):
             try:
                 for i in range(len(p)):
                     log.debug(logid+'Calculating file ' + str(p[i]))
-                    pool.apply_async(calc, args=(p[i], gs, ge, border, outdir))
+                    pool.apply_async(calc, args=(p[i], gs, ge, border, outdir), kwds={'queue':queue, 'configurer':configurer, 'level':level})
             except Exception:
                 exc_type, exc_value, exc_tb = sys.exc_info()
                 tbe = tb.TracebackException(
@@ -177,10 +154,13 @@ def screen_genes(pat, border, procs, outdir, genes):
             )
         log.error(logid+''.join(tbe.format()))
 
-def calc(p, gs, ge, border, outdir):
+def calc(p, gs, ge, border, outdir, queue=None, configurer=None, level=None):
 
     logid = scriptname+'.calc_ddg: '
     try:
+        if queue and level:
+            configurer(queue, level)
+
         goi, chrom, strand, cons, reg, window, span = map(str,os.path.basename(p).split(sep='_'))
         border1, border2 = map(float,border.split(',')) #defines how big a diff has to be to be of importance
 
@@ -234,6 +214,30 @@ def write_out(out, outdir):
             )
         log.error(logid+''.join(tbe.format()))
 
+
+def main(args):
+
+        #  Logging configuration
+        logdir = args.logdir
+        ts = str(datetime.datetime.now().strftime("%Y%m%d_%H_%M_%S_%f"))
+        logfile = str.join(os.sep,[os.path.abspath(logdir),scriptname+'_'+ts+'.log'])
+        loglevel = args.loglevel
+
+        makelogdir(logdir)
+        makelogfile(logfile)
+
+        queue = multiprocessing.Manager().Queue(-1)
+        listener = multiprocessing.Process(target=listener_process, args=(queue, listener_configurer, logfile, loglevel))
+        listener.start()
+
+        worker_configurer(queue, loglevel)
+
+        log.info(logid+'Running '+scriptname+' on '+str(args.procs)+' cores.')
+        log.info(logid+'CLI: '+sys.argv[0]+' '+'{}'.format(' '.join( [shlex.quote(s) for s in sys.argv[1:]] )))
+
+        screen_genes(queue, worker_configurer, loglevel, args.pattern, args.border, args.procs, args.outdir, args.genes)
+
+
 ####################
 ####    MAIN    ####
 ####################
@@ -242,12 +246,9 @@ if __name__ == '__main__':
 
     logid = scriptname+'.main: '
     try:
-        args=parseargs()
-        log = setup_multiprocess_logger(name=scriptname, log_file=logfile, filemode='a', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M')
-        log = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M')
-        log.setLevel(args.loglevel)
-        log.info(logid+'Running '+scriptname+' on '+str(args.procs)+' cores')
-        screen_genes(args.pattern, args.border, args.procs, args.outdir, args.genes)
+        args=parseargs_collectWindow()
+        main(args)
+
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(

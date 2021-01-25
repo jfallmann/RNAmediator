@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Thu Jul 16 08:47:48 2020 (+0200)
+## Last-Updated: Mon Jan 25 10:23:45 2021 (+0100)
 ##           By: Joerg Fallmann
-##     Update #: 458
+##     Update #: 460
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -67,8 +67,10 @@
 ##
 ### Code:
 ### IMPORTS
-import os, sys, inspect
-#other modules
+import os
+import sys
+import inspect
+# other modules
 import argparse
 import pprint
 from io import StringIO
@@ -83,74 +85,41 @@ import traceback as tb
 import shutil
 import shlex
 from Randseq import createrandseq
-#Biopython stuff
+# Biopython stuff
 from Bio import SeqIO
 from Bio.Seq import Seq
-#numpy
+# numpy
 import numpy as np
-from random import choices, choice, shuffle # need this if tempprobing was choosen
-import collections
-
-#Logging
+from random import choices, choice, shuffle  # need this if tempprobing was choosen
+# RNA
+import RNA
+# Logging
 import datetime
-from lib.logger import makelogdir, setup_multiprocess_logger
-
-scriptname = os.path.basename(__file__).replace('.py','')
-makelogdir('LOGS')
-if not os.path.isfile(os.path.abspath('LOGS/'+scriptname+'.log')):
-    open('LOGS/'+scriptname+'.log','a').close()
-else:
-    ts = str(datetime.datetime.fromtimestamp(os.path.getmtime(os.path.abspath('LOGS/'+scriptname+'.log'))).strftime("%Y%m%d_%H_%M_%S"))
-    shutil.copy2('LOGS/'+scriptname+'.log','LOGS/'+scriptname+'_'+ts+'.log')
-
-logfile = 'LOGS/'+scriptname+'.log'
-log = setup_multiprocess_logger(name=scriptname, log_file=logfile, filemode='a', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M')
-log = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M')
-
-##load own modules
+import logging
+from lib.logger import makelogdir, makelogfile, listener_process, listener_configurer, worker_configurer
+# load own modules
 from lib.Collection import *
+from lib.FileProcessor import *
+from lib.RNAtweaks import *
+from lib.NPtweaks import *
 
-def parseargs():
-    parser = argparse.ArgumentParser(description='Calculate base pairing probs of given seqs or random seqs for given window size, span and region.')
-    parser.add_argument("-s", "--sequence", type=str, help='Sequence to fold')
-    parser.add_argument("-w", "--window", type=int, default=None, help='Size of window')
-    parser.add_argument("-l", "--span", type=int, default=None, help='Maximum bp span')
-    parser.add_argument("-c", "--cutoff", type=float, default=-0.01, help='Only print prob greater cutoff')
-    parser.add_argument("-r", "--unconstraint", type=str, default='STDOUT', help='Print output of unconstraint folding to file with this name, use "STDOUT" to print to STDOUT (default)')# or "add" to append to paired/unpaired output')
-    parser.add_argument("-n", "--unpaired", type=str, default='STDOUT', help='Print output of unpaired folding to file with this name')
-    parser.add_argument("-p", "--paired", type=str, default='STDOUT', help='Print output of paired folding to file with this name')
-    parser.add_argument("-e", "--length", type=int, default=100, help='Length of randseq')
-    parser.add_argument("--gc", type=int, default=0, help='GC content, needs to be %%2==0 or will be rounded')
-    parser.add_argument("-b", "--number", type=int, default=1, help='Number of random seqs to generate')
-    parser.add_argument("-x", "--constrain", type=str, default='sliding', help='Region to constrain, either sliding window (default) or region to constrain (e.g. 1-10) or path to file containing regions following the naming pattern $fastaID_constraints, if paired, the first entry of the file will become a fixed constraint and paired with all the others, e.g. Sequence1_constraints, choices = [off,sliding,temperature, tempprobe, file, paired, or simply 1-10,2-11 or 1-10;15-20,2-11:16-21 for paired]')
-    parser.add_argument("-y", "--conslength", type=int, default=0, help='Length of region to constrain for slidingwindow')
-    parser.add_argument("-t", "--temprange", type=str, default='', help='Temperature range for structure prediction (e.g. 37-60)')
-    parser.add_argument("-a", "--alphabet", type=str, default='AUCG', help='alphabet for random seqs')
-    #parser.add_argument("--plot", type=str, default='0', choices=['0','svg', 'png'], help='Create image of the (un-)constraint sequence, you can select the file format here (svg,png). These images can later on be animated with ImageMagick like `convert -delay 120 -loop 0 *.svg animated.gif`.')
-    parser.add_argument("--save", type=int, default=1, help='Save the output as gz files')
-    parser.add_argument("-o", "--outdir", type=str, default='', help='Directory to write to')
-    parser.add_argument("-z", "--procs", type=int, default=1, help='Number of parallel processed to run this job with')
-    parser.add_argument("--vrna", type=str, default='', help="Append path to vrna RNA module to sys.path")
-    parser.add_argument("--pattern", type=str, default='', help="Helper var, only used if called from other prog where a pattern for files is defined")
-    parser.add_argument("-g", "--genes", type=str, default='', help='Genomic coordinates bed for genes, either standard bed format or AnnotateBed.pl format')
-    parser.add_argument("-v", "--verbosity", type=int, default=0, choices=[0, 1], help="increase output verbosity")
-    parser.add_argument("--loglevel", type=str, default='WARNING', choices=['WARNING','ERROR','INFO','DEBUG'], help="Set log level")
 
-    if len(sys.argv)==1:
-        parser.print_help(sys.stderr)
-        sys.exit(1)
+log = logging.getLogger(__name__)  # use module name
+scriptname = os.path.basename(__file__).replace('.py', '')
 
-    return parser.parse_args()
 
-def preprocess(sequence, window, span, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, save, procs, vrna, temprange, outdir, genes, verbosity=False, pattern=None, cutoff=None):
+def preprocess(queue, configurer, level, sequence, window, span, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, save, procs, vrna, temprange, outdir, genes, verbosity=False, pattern=None, cutoff=None):
 
     logid = scriptname+'.preprocess: '
 
     try:
+        if queue and level:
+            configurer(queue, level)
+
         #set path for output
         if outdir:
             if not os.path.isabs(outdir):
-                outdir =  os.path.abspath(outdir)
+                outdir = os.path.abspath(outdir)
             if not os.path.exists(outdir):
                 os.makedirs(outdir)
         else:
@@ -161,7 +130,7 @@ def preprocess(sequence, window, span, unconstraint, unpaired, paired, length, g
         else:
             genecoords = None
 
-        fold(sequence, window, span, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, save, procs, vrna, temprange, outdir, genecoords, verbosity=verbosity, pattern=pattern, cutoff=cutoff)
+        fold(sequence, window, span, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, save, procs, vrna, temprange, outdir, genecoords, verbosity=verbosity, pattern=pattern, cutoff=cutoff, queue=queue, configurer=configurer, level=level)
 
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -170,10 +139,13 @@ def preprocess(sequence, window, span, unconstraint, unpaired, paired, length, g
         )
         log.error(logid+''.join(tbe.format()))
 
-def fold(sequence, window, span, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, save, procs, vrna, temprange, outdir, genecoords, verbosity=False, pattern=None, cutoff=None):
+
+def fold(sequence, window, span, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, save, procs, vrna, temprange, outdir, genecoords, verbosity=False, pattern=None, cutoff=None, queue=None, configurer=None, level=None):
 
     logid = scriptname+'.fold: '
     try:
+        if queue and level:
+            configurer(queue, level)
         seq = parseseq(sequence)
 
         #set path for VRNA lib if necessary
@@ -192,13 +164,14 @@ def fold(sequence, window, span, unconstraint, unpaired, paired, length, gc, num
 
         # Create process pool with processes
         num_processes = procs or 1
-        with get_context("spawn").Pool(processes=num_processes-1, maxtasksperchild=1) as pool:
+        #with get_context("spawn").Pool(processes=num_processes-1, maxtasksperchild=1) as pool:
+        pool = multiprocessing.Pool(processes=num_processes, maxtasksperchild=1)
 
-            # constraints
-            if constrain == 'temperature':
-                log.info(logid+'Calculating probs for temperature constraint '+temprange)
+        # constraints
+        if constrain == 'temperature':
+            log.info(logid+'Calculating probs for temperature constraint'+temprange)
 
-                ts, te = map(int,temprange.split('-'))
+            ts, te = map(int,temprange.split('-'))
 
                 for fa in SeqIO.parse(seq,'fasta'):
                     fa.seq = str(fa.seq).upper()
@@ -217,7 +190,7 @@ def fold(sequence, window, span, unconstraint, unpaired, paired, length, gc, num
                     for temp in range(ts,te+1):
                         an = [np.nan]
                         # Create the process, and connect it to the worker function
-                        pool.apply_async(constrain_temp, args=(fa, temp, window, span, an, save, outdir))
+                        pool.apply_async(constrain_temp, args=(fa, temp, window, span, an, save, outdir), kwds={'queue':queue, 'configurer':configurer, 'level':level})
                 pool.close()
                 pool.join()
 
@@ -320,7 +293,7 @@ def fold(sequence, window, span, unconstraint, unpaired, paired, length, gc, num
                     log.debug(logid+'ENTRY: '+str(entry))
 
                     if entry == 'NOCONS': # in case we just want to fold the sequence without constraints at all
-                        gibbs_uc = [pool.apply_async(fold_unconstraint, args=(fa.seq))]
+                        gibbs_uc = [pool.apply_async(fold_unconstraint, args=(fa.seq), kwds={'queue':queue, 'configurer':configurer, 'level':level})]
                         return (gibbs_uc)
 
                     else:
@@ -347,7 +320,7 @@ def fold(sequence, window, span, unconstraint, unpaired, paired, length, gc, num
                             log.debug(logid+str.join(' ',[goi,cons,gstrand]))
                             const = np.array([start, end])
 
-                        pool.apply_async(constrain_seq, args=(fa, start, end, conslength, const, cons, window, span, unconstraint, paired, unpaired, save, outdir, genecoords))
+                        pool.apply_async(constrain_seq, args=(fa, start, end, conslength, const, cons, window, span, unconstraint, paired, unpaired, save, outdir, genecoords), kwds={'queue':queue, 'configurer':configurer, 'level':level})
 
             pool.close()
             pool.join()
@@ -361,14 +334,19 @@ def fold(sequence, window, span, unconstraint, unpaired, paired, length, gc, num
         )
         log.error(logid+''.join(tbe.format()))
 
+
 ##### Functions #####
 
-def constrain_seq(fa, start, end, conslength, const, cons, window, span, unconstraint, paired, unpaired, save, outdir, genecoords):
+
+def constrain_seq(fa, start, end, conslength, const, cons, window, span, unconstraint, paired, unpaired, save, outdir, genecoords, queue=None, configurer=None, level=None):
     #   DEBUGGING
     #   pp = pprint.PrettyPrinter(indent=4)#use with pp.pprint(datastructure)
 
     logid = scriptname+'.constrain_seq: '
     try:
+        if queue and level:
+            configurer(queue, level)
+
         outlist = list()
         goi, chrom, strand = idfromfa(fa.id)
 
@@ -572,11 +550,15 @@ def constrain_seq(fa, start, end, conslength, const, cons, window, span, unconst
             )
         log.error(logid+''.join(tbe.format()))
 
-def constrain_temp(fa, temp, window, span, an, save, outdir):
-#refresh model details
+
+def constrain_temp(fa, temp, window, span, an, save, outdir, queue=None, configurer=None, level=None):
+    # refresh model details
     logid = scriptname+'.constrain_temp: '
     log.info(logid+'Constraining Temp to ' + temp)
     try:
+        if queue and level:
+            configurer(queue, level)
+
 	    md = RNA.md()
 	    md.max_bp_span = span
 	    md.window_size = window
@@ -619,11 +601,15 @@ def constrain_temp(fa, temp, window, span, an, save, outdir):
         )
         log.error(logid+''.join(tbe.format()))
 
-def foldaround(seq, fc, pos, clength, gibbs, nrg):
-#here we take the already constraint fc and constrain regions of length clength around it to see what happens at the original binding site
+
+def foldaround(seq, fc, pos, clength, gibbs, nrg, queue=None, configurer=None, level=None):
+    # here we take the already constraint fc and constrain regions of length clength around it to see what happens at the original binding site
 
     logid = scriptname+'.foldaround: '
     try:
+        if queue and level:
+            configurer(queue, level)
+
         cstart = pos
         cend = pos+clength-1
         fc = constrain_unpaired(fc, cstart, cend)
@@ -643,10 +629,15 @@ def foldaround(seq, fc, pos, clength, gibbs, nrg):
             )
         log.error(logid+''.join(tbe.format()))
 
-def fold_unconstraint(seq):
+
+def fold_unconstraint(seq, queue=None, configurer=None, level=None):
+
     logid = scriptname+'.fold_unconstraint: '
     try:
-        #set model details
+        if queue and level:
+            configurer(queue, level)
+
+        # set model details
         md = RNA.md()
         # create new fold_compound object
         fc = RNA.fold_compound(seq, md, RNA.OPTION_PF)
@@ -660,6 +651,7 @@ def fold_unconstraint(seq):
             exc_type, exc_value, exc_tb,
             )
         log.error(logid+''.join(tbe.format()))
+
 
 def write_out(resultlist):
 
@@ -692,22 +684,59 @@ def write_out(resultlist):
             )
         log.error(logid+''.join(tbe.format()))
 
+
+def main(args):
+
+    logid = scriptname+'.main: '
+    try:
+        #  Logging configuration
+        logdir = args.logdir
+        ts = str(datetime.datetime.now().strftime("%Y%m%d_%H_%M_%S_%f"))
+        logfile = str.join(os.sep, [os.path.abspath(logdir), scriptname+'_'+ts+'.log'])
+        loglevel = args.loglevel
+
+        makelogdir(logdir)
+        makelogfile(logfile)
+
+        set_start_method('spawn')  # multiprocessing spawn set
+        queue = multiprocessing.Manager().Queue(-1)
+        listener = multiprocessing.Process(target=listener_process, args=(queue, listener_configurer, logfile, loglevel))
+        listener.start()
+
+        worker_configurer(queue, loglevel)
+
+        log.info(logid+'Running '+scriptname+' on '+str(args.procs)+' cores.')
+        log.info(logid+'CLI: '+sys.argv[0]+' '+'{}'.format(' '.join( [shlex.quote(s) for s in sys.argv[1:]] )))
+
+        preprocess(queue, worker_configurer, loglevel, args.sequence, args.window, args.span, args.unconstraint, args.unpaired, args.paired, args.length, args.gc, args.number, args.constrain, args.conslength, args.alphabet, args.save, args.procs, args.vrna, args.temprange, args.outdir, args.genes, args.verbosity, args.pattern, args.cutoff)
+
+        queue.put_nowait(None)
+        listener.join()
+
+    except Exception:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+            exc_type, exc_value, exc_tb,
+        )
+        log.error(logid+''.join(tbe.format()))
+
+
 ####################
 ####    MAIN    ####
 ####################
 
 if __name__ == '__main__':
-    scriptname=os.path.basename(__file__).replace('.py','')
+    scriptname = os.path.basename(__file__).replace('.py', '')
     logid = scriptname+'.main: '
     try:
-        args=parseargs()
-        log.setLevel(args.loglevel)
-        log.info(logid+'Running ConstraintFold on '+str(args.procs)+' cores')
-        preprocess(args.sequence, args.window, args.span, args.unconstraint, args.unpaired, args.paired, args.length, args.gc, args.number, args.constrain, args.conslength, args.alphabet, args.save, args.procs, args.vrna, args.temprange, args.outdir, args.genes, args.verbosity, args.pattern, args.cutoff)
+        args = parseargs_foldcons()
+        main(args)
+
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
         )
         print(logid+''.join(tbe.format()),file=sys.stderr)
+
 # ConstraintFold.py ends here
