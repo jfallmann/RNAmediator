@@ -250,3 +250,10 @@ for i in GC*.fa.gz;do zcat $i|sed 's/_/-/' |gzip > Fixed_$i;done
 rm -f genes.bed; for i in Fixed_GC*.fa.gz;do zcat $i|perl -wlane 'if ($_ =~ /^>/){($name = (split(":",$_))[0])=~s/>//;}else{print join("\t","nochrom",0,(length($_)-1),$name,100,".")}' >> genes.bed;done
 for a in 20 40 60 80;do for i in 5 7 9 11;do if [ ! -d "Random_$a_$i" ];then sbatch --export ALL,gc=$a,u=$i rissmed_random.sh;fi;done;done
 for a in 20 40 60 80;do for i in 5 7 9 11;do sbatch --export ALL,gc=$a,u=$i rissmed_collect.sh ;done;done
+*** Statistics
+**** Collect subsets
+for a in 20 40 60 80;do for i in 5 7 9 11;do sbatch --export ALL,gc=$a,u=$i rissmed_stats.sh;done;done
+**** Correlation distance to delta-acc
+
+**** 
+
