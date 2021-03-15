@@ -2,6 +2,7 @@ library(ggplot2)
 library(vroom)
 library(plyr)
 library(dplyr)
+library(tidyverse)
 library(scales)
 
 
@@ -11,16 +12,18 @@ print(args)
 file <- args[1]
 name <- args[2]
 
-#setwd('/home/fall/Offlinework/denbicloud/RIssMed')
-#file <- 'InfoSubset_20_7.tsv.gz'
-#name <- 'GC20_Cons7'
+setwd('~/Work/TempAnalysis/denbicloud/RIssMed')
+file <- 'InfoSubset_20_7.tsv.gz'
+name <- 'GC20_Cons7'
 
-data <- vroom(file, delim="\t", col_names=c("Delta_acc", "Distance", "Acc_raw", "Zscore","Type"), col_types=c("Delta_acc"="n","Distance"="i","Acc_raw"="n","Zscore"="n","Type"="c"), col_select=c("Delta_acc","Distance"), num_threads=6)
+data <- vroom(file, delim="\t", col_names=c("Delta_acc", "Distance", "Acc_raw", "Zscore","Type"), col_types=c("Delta_acc"="n","Distance"="i","Acc_raw"="n","Zscore"="n","Type"="c"), num_threads=6)
 
-data$Distbin <- findInterval(data$Distance, c(seq(min(data$Distance),max(data$Distance))), all.inside=T)
-p <- ggplot(data, aes(x = factor(round_any(Distbin,10)), y = Delta_acc, fill = "firebrick")) + geom_boxplot()
-p <- p + stat_summary(fun=mean, colour="black", geom="point", shape=18, size=3, show.legend = FALSE)
-p <- p + scale_fill_manual(values = c("firebrick")) + guides(fill=FALSE)
+data <- data %>% mutate(bin = cut_width(Distance, width = 10, center = 0, closed="left")) %>% group_by(bin)
+
+#data$Distbin <- findInterval(data$Distance, c(seq(min(data$Distance),max(data$Distance))), all.inside=T)
+#p <- ggplot(data, aes(x = factor(round_any(Distbin,10)), y = Delta_acc)) + geom_violin() + stat_summary(fun=mean, colour="black", geom="point", shape=18, size=3, show.legend = FALSE) + scale_fill_manual(values = c("firebrick"), alpha(.7)) + guides(fill=FALSE)
+
+p <- ggplot(data, aes(x=Distance, y=Delta_acc)) + geom_jitter(aes(color='blue'),alpha=0.2) + geom_violin(fill="bisque",color="black",alpha=0.3) + stat_summary(fun=mean, colour="black", geom="point", shape=18, size=3, show.legend = FALSE)# + scale_fill_manual(values = c("firebrick"), alpha(.4)) + guides(fill=FALSE) + theme_minimal()
 p <- p + theme(aspect.ratio=0.4)
 p <- p + theme(axis.text.x=element_text(angle=90, hjust=1, vjust=0.5, size=6))
 p <- p + theme(axis.title.y = element_text(angle=90))
@@ -37,7 +40,7 @@ field1 <- "Delta_acc"
 field2 <- "Distance"
 x <- pull(data,field1)
 y <- pull(data,field2)
-type
+
 a <- as.character(round(cor(x=x,y=y, use="everything", method="pearson"), digits = 4))
 b <- cor.test(x,y, use="everything", method="pearson")
 d <- format.pval(round(b$p.value,digits=4))
