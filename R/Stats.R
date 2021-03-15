@@ -8,13 +8,12 @@ library(scales)
 
 options(echo=TRUE)
 args <- commandArgs(trailingOnly = TRUE)
-print(args)
 file <- args[1]
 name <- args[2]
 
-setwd('~/Work/TempAnalysis/denbicloud/RIssMed')
-file <- 'InfoSubset_20_7.tsv.gz'
-name <- 'GC20_Cons7'
+#setwd('~/Work/TempAnalysis/denbicloud/RIssMed')
+#file <- 'InfoSubset_20_7.tsv.gz'
+#name <- 'GC20_Cons7'
 
 data <- vroom(file, delim="\t", col_names=c("Delta_acc", "Distance", "Acc_raw", "Zscore","Type"), col_types=c("Delta_acc"="n","Distance"="i","Acc_raw"="n","Zscore"="n","Type"="c"), num_threads=6)
 
@@ -41,7 +40,7 @@ field2 <- "Distance"
 x <- pull(data,field1)
 y <- pull(data,field2)
 
-a <- as.character(round(cor(x=x,y=y, use="everything", method="pearson"), digits = 4))
+a <- as.character(round(cor(x=x, y=y, use="everything", method="pearson"), digits = 4))
 b <- cor.test(x,y, use="everything", method="pearson")
 d <- format.pval(round(b$p.value,digits=4))
 c <- as.character(round(cor(x=x,y=y, use="everything", method="spearman"), digits = 4))
@@ -49,7 +48,7 @@ t <- cor.test(x=x,y=y, use="everything", method="spearman")
 p <- format.pval(round(t$p.value,digits=4))
 l <- bquote(paste("Spearman-R = ", .(c),"\n p-value = ",.(p),"\n Pearson-R = ",.(a),"\n p-value = ",.(d)))
 
-p <- ggplot(data, aes(x=x,y=y, guides=FALSE)) + geom_point() + scale_colour_discrete(drop=TRUE,guide=FALSE) + theme_classic()
+p <- ggplot(data, aes(x=x, y=y, guides=FALSE)) + geom_point() + scale_colour_discrete(drop=TRUE,guide=FALSE) + theme_classic()
 p <- p + theme(axis.text.x=element_text(angle=0, hjust=0.5, vjust=0, size = 18))
 p <- p + theme(axis.text.y=element_text(angle=0, hjust=0, vjust=0.5, size = 18))
 p <- p + theme(axis.title.y = element_text(angle=90,size=10))
