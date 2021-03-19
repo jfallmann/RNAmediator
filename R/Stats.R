@@ -35,8 +35,8 @@ ggsave(filename=out, path="./", width=7.2, height=7.2)
 
 
 #PLot Correlation
-field1 <- "Delta_acc"
-field2 <- "Distance"
+field2 <- "Delta_acc"
+field1 <- "Distance"
 x <- pull(data,field1)
 y <- pull(data,field2)
 
@@ -48,7 +48,7 @@ t <- cor.test(x=x,y=y, use="everything", method="spearman")
 p <- format.pval(round(t$p.value,digits=4))
 l <- bquote(paste("Spearman-R = ", .(c),"\n p-value = ",.(p),"\n Pearson-R = ",.(a),"\n p-value = ",.(d)))
 
-p <- ggplot(data, aes(x=x, y=y, guides=FALSE)) + geom_point() + scale_colour_discrete(drop=TRUE,guide=FALSE) + theme_classic()
+p <- ggplot(data, aes(x=field1, y=field2)) + geom_point(color='blue', alpha=0.2) + theme_classic()
 p <- p + theme(axis.text.x=element_text(angle=0, hjust=0.5, vjust=0, size = 18))
 p <- p + theme(axis.text.y=element_text(angle=0, hjust=0, vjust=0.5, size = 18))
 p <- p + theme(axis.title.y = element_text(angle=90,size=10))
