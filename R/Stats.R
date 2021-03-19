@@ -35,8 +35,8 @@ ggsave(filename=out, path="./", width=7.2, height=7.2)
 
 
 #PLot Correlation
-field2 <- "Delta_acc"
 field1 <- "Distance"
+field2 <- "Delta_acc"
 x <- pull(data,field1)
 y <- pull(data,field2)
 
