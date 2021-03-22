@@ -4,7 +4,7 @@ library(plyr)
 library(dplyr)
 library(tidyverse)
 library(scales)
-
+library(hexbin)
 
 options(echo=TRUE)
 args <- commandArgs(trailingOnly = TRUE)
@@ -22,7 +22,7 @@ data <- data %>% mutate(bin = cut_width(Distance, width = 10, center = 0, closed
 #data$Distbin <- findInterval(data$Distance, c(seq(min(data$Distance),max(data$Distance))), all.inside=T)
 #p <- ggplot(data, aes(x = factor(round_any(Distbin,10)), y = Delta_acc)) + geom_violin() + stat_summary(fun=mean, colour="black", geom="point", shape=18, size=3, show.legend = FALSE) + scale_fill_manual(values = c("firebrick"), alpha(.7)) + guides(fill=FALSE)
 
-p <- ggplot(data, aes(x=Distance, y=Delta_acc)) + geom_jitter(aes(color='blue'),alpha=0.2) + geom_violin(fill="bisque",color="black",alpha=0.3) + stat_summary(fun=mean, colour="black", geom="point", shape=18, size=3, show.legend = FALSE)# + scale_fill_manual(values = c("firebrick"), alpha(.4)) + guides(fill=FALSE) + theme_minimal()
+p <- ggplot(data, aes(x=bin, y=Delta_acc)) + geom_violin(fill="bisque",color="black",alpha=0.3) + stat_summary(fun=mean, colour="black", geom="point", shape=18, size=3, show.legend = FALSE) + guides(fill=FALSE) + theme_minimal()# + scale_fill_manual(values = c("firebrick"), alpha(.4)) + geom_jitter(aes(color='blue'),alpha=0.2)
 p <- p + theme(aspect.ratio=0.4)
 p <- p + theme(axis.text.x=element_text(angle=90, hjust=1, vjust=0.5, size=6))
 p <- p + theme(axis.title.y = element_text(angle=90))
@@ -48,7 +48,7 @@ t <- cor.test(x=x,y=y, use="everything", method="spearman")
 p <- format.pval(round(t$p.value,digits=4))
 l <- bquote(paste("Spearman-R = ", .(c),"\n p-value = ",.(p),"\n Pearson-R = ",.(a),"\n p-value = ",.(d)))
 
-p <- ggplot(data, aes(x=field1, y=field2)) + geom_point(color='blue', alpha=.1) geom_rugs(color='blue', alpha=.1) + theme_classic()
+p <- ggplot(data, aes(x=field1, y=field2)) + geom_hex(color='blue', alpha=.1) + theme_classic()# geom_rugs(color='blue', alpha=.1) + theme_classic()
 p <- p + theme(axis.text.x=element_text(angle=0, hjust=0.5, vjust=0, size = 18))
 p <- p + theme(axis.text.y=element_text(angle=0, hjust=0, vjust=0.5, size = 18))
 p <- p + theme(axis.title.y = element_text(angle=90,size=10))
@@ -59,5 +59,5 @@ p <- p + theme(title = element_text(angle=0,size=10))
 p <- p + labs(title=paste("Correlation",file,field1,field2,sep='_'))
 p <- p + geom_text(data = data.frame(), aes(x=max(data[,field1])-(max(data[,field1])/5),y=min(data[,field2])+(max(data[,field2])/1.5), label=paste("Spearman-R = ",(c),"\n p-value = ",(p),"\n Pearson-R = ",(a),"\n p-value = ",(d)), colour = "black"))
 p
-out <- paste("Correlation",file,field1,field2,".png",sep="_")
+out <- paste(paste("Correlation", file, field1, field2, sep="_"), ".png",sep="")
 ggsave(filename=out, path=".")
