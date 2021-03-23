@@ -48,7 +48,7 @@ t <- cor.test(x=x,y=y, use="everything", method="spearman")
 p <- format.pval(round(t$p.value,digits=4))
 l <- bquote(paste("Spearman-R = ", .(c),"\n p-value = ",.(p),"\n Pearson-R = ",.(a),"\n p-value = ",.(d)))
 
-p <- ggplot(data, aes(x=field1, y=field2)) + stat_hexbin(color='blue', alpha=.1) + theme_classic()# geom_rugs(color='blue', alpha=.1) + theme_classic()
+p <- ggplot(data, aes(x=bin, y=Delta_acc)) + geom_hex(stat="identity", alpha=.1) + theme_classic()# geom_rugs(color='blue', alpha=.1) + theme_classic()
 p <- p + theme(axis.text.x=element_text(angle=0, hjust=0.5, vjust=0, size = 18))
 p <- p + theme(axis.text.y=element_text(angle=0, hjust=0, vjust=0.5, size = 18))
 p <- p + theme(axis.title.y = element_text(angle=90,size=10))
