@@ -57,5 +57,5 @@ p <- p + theme(title = element_text(angle=0,size=10))
 p <- p + labs(title=paste("Correlation",file,field1,field2,sep='_'))
 p <- p + geom_text(data = data.frame(), aes(x=max(x)-(max(x)/5),y=min(y)+(max(y)/1.5), label=paste("Spearman-R = ",(c),"\n p-value = ",(v),"\n Pearson-R = ",(a),"\n p-value = ",(d))), colour = "black")
 p
-out <- paste(paste("Correlation", file, field1, field2, sep="_"), ".svg",sep="")
+out <- paste(paste("Correlation", file, field1, field2, sep="_"), ".png",sep="")
 ggsave(filename=out, path=".")
