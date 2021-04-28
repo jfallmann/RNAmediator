@@ -1,0 +1,161 @@
+# logger.py ---
+#
+# Filename: logger.py
+# Description:
+# Author: Joerg Fallmann
+# Maintainer:
+# Created: Mon Aug 12 10:26:55 2019 (+0200)
+# Version:
+# Package-Requires: ()
+# Last-Updated: Fri Sep  4 17:28:58 2020 (+0200)
+#           By: Joerg Fallmann
+#     Update #: 98
+# URL:
+# Doc URL:
+# Keywords:
+# Compatibility:
+#
+#
+
+# Commentary:
+#
+#
+#
+#
+
+# Change Log:
+#
+#
+#
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or (at
+# your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+#
+#
+
+# Code:
+import logging
+import multiprocessing
+import os, sys, inspect
+import traceback as tb
+
+log = multiprocessing.get_logger()  # does not take name argument
+log.addHandler(logging.StreamHandler(sys.stderr))
+
+def makelogdir(logdir):
+    if not os.path.isabs(logdir):
+        logdir =  os.path.abspath(logdir)
+    if not os.path.exists(logdir):
+        try:
+            os.makedirs(logdir)
+        except OSError:
+            # If directory has already been created or is inaccessible
+            if not os.path.exists(logdir):
+                sys.exit('Problem creating directory '+logdir)
+            else:
+                return logdir
+    return logdir
+
+def setup_logger(name, log_file, filemode='a', logformat=None, datefmt=None, level='WARNING', proc=1):
+    """Function setup as many loggers as you want"""
+
+    if proc > 1:
+        log = multiprocessing.get_logger()  # does not take name argument
+    else:
+        log = logging.getLogger(name)
+    if log_file != 'stderr':
+        handler = logging.FileHandler(log_file, mode=filemode)
+    else:
+        handler = logging.StreamHandler(sys.stderr)
+
+    handler.setFormatter(logging.Formatter(fmt=logformat,datefmt=datefmt))
+
+    log.setLevel(level)
+    log.addHandler(handler)
+
+    for h in log.handlers:
+        h.flush()
+
+    return log
+
+def setup_multiprocess_logger(log, log_file, filemode='a', logformat=None, datefmt=None, level='WARNING'):
+    """Function setup as many loggers as you want"""
+
+    #log = multiprocessing.get_logger() # does not take name argument
+
+    if log_file != 'stderr':
+        handler = logging.FileHandler(log_file, mode=filemode)
+    else:
+        handler = logging.StreamHandler(sys.stderr)
+
+    handler.setFormatter(logging.Formatter(fmt=logformat,datefmt=datefmt))
+
+    log.setLevel(level)
+    log.addHandler(handler)
+
+    for h in log.handlers:
+        h.flush()
+
+    return log
+
+def checklog():
+    test = logging.getLogger()
+    if not (test.hasHandlers()):
+        return False
+    else:
+        if not len(test.handlers) > 1:
+            return False
+        else:
+            return True
+
+def backup(file):
+    if os.path.exists(file):
+        os.rename(file,file+'.bak')
+    logdir =  os.path.abspath('LOGS')
+    if not os.path.exists(logdir):
+        os.makedirs(logdir)
+        open(os.path.abspath(file),'a').close()
+
+if __name__ == '__main__':
+    try:
+        # set up logging to file
+        log = setup_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='WARNING')
+
+        # define a Handler which writes INFO messages or higher to the sys.stderr
+        #console = logging.StreamHandler()
+        #console.setLevel(logging.INFO)
+        # set a format which is simpler for console use
+        #formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
+        # tell the handler to use this format
+        #console.setFormatter(formatter)
+        # add the handler to the root logger
+        #logging.getLogger('').addHandler(console)
+
+        # Now, we can log to the root logger, or any other logger. First the root...
+        #logging.info('Imported logger.py')
+        # Now, use this in code defining a couple of other loggers which might represent areas in your
+        # application, e.g.:
+        #log = logging.getLogger('logger.main')
+
+    except Exception:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+            exc_type, exc_value, exc_tb,
+        )
+        logging.error(''.join(tbe.format()))
+
+
+#def eprint(log, *args, **kwargs):
+#    log.error(*args, **kwargs)
+#
+# log.py ends here

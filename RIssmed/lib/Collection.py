@@ -7,9 +7,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Fri Jul 17 10:29:16 2020 (+0200)
+## Last-Updated: Wed Dec 16 13:19:45 2020 (+0100)
 ##           By: Joerg Fallmann
-##     Update #: 376
+##     Update #: 384
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -60,36 +60,22 @@
 ##
 ### Code:
 ### IMPORTS
-import os, sys, inspect
-from lib.logger import *
-##other modules
-import numpy as np
-import heapq
-from operator import itemgetter
-from natsort import natsorted, ns
-import traceback as tb
-import sys
-import re
-import pprint
-from io import StringIO
 import os
-import gzip
-import math
-import datetime
-from collections import defaultdict
-#Biopython stuff
-from Bio import SeqIO
-from Bio.Seq import Seq
+import sys
+import logging
+## other modules
+import traceback as tb
+import argparse
+import numpy as np
 
 ############################################################
-######################## Functions #########################
+######################## FUNCTIONS #########################
 ############################################################
 
 try:
-    scriptn = os.path.basename(inspect.stack()[-1].filename).replace('.py','')
-    #scriptn = os.path.basename(__file__).replace('.py','')
-
-except Exception as err:
+    log = logging.getLogger(__name__)  # use module name
+    scriptn = __name__  # os.path.basename(inspect.stack()[-1].filename).replace('.py', '')
+except Exception:
     exc_type, exc_value, exc_tb = sys.exc_info()
     tbe = tb.TracebackException(
         exc_type, exc_value, exc_tb,
@@ -97,351 +83,119 @@ except Exception as err:
     print(''.join(tbe.format()),file=sys.stderr)
 
 
-################
-# Random Seqs  #
-################
+##############################
+########## ARGPARSE ##########
+##############################
 
-def create_kmers(choices, length):
-    logid = scriptn+'.create_kmers: '
-    try:
-        #     choices=['A','T','G','C']
-        bases = list(choices)
-        k = length
+def parseargs_plcons():
+    parser = argparse.ArgumentParser(description='Calculate base pairing probs of given seqs or random seqs for given window size, span and region.')
+    parser.add_argument("-s", "--sequence", type=str, help='Sequence to fold')
+    parser.add_argument("-w", "--window", type=int, default=240, help='Size of window')
+    parser.add_argument("-l", "--span", type=int, default=60, help='Length of bp span')
+    parser.add_argument("-u", "--region", type=int, default=1, help='Length of region')
+    parser.add_argument("-m", "--multi", type=int, default=2, help='Multiplyer for window expansion')
+    parser.add_argument("-c", "--cutoff", type=float, default=-0.01, help='Only print prob greater cutoff')
+    parser.add_argument("-r", "--unconstraint", type=str, default='STDOUT', help='Print output of unconstraint folding to file with this name')
+    parser.add_argument("-n", "--unpaired", type=str, default='STDOUT', help='Print output of unpaired folding to file with this name')
+    parser.add_argument("-p", "--paired", type=str, default='STDOUT', help='Print output of paired folding to file with this name')
+    parser.add_argument("-e", "--length", type=int, default=100, help='Length of randseq')
+    parser.add_argument("--gc", type=int, default=0, help='GC content, needs to be %%2==0 or will be rounded')
+    parser.add_argument("-b", "--number", type=int, default=1, help='Number of random seqs to generate')
+    parser.add_argument("-x", "--constrain", type=str, default='sliding', help='Region to constrain, either sliding window (default) or region to constrain (e.g. 1-10) or path to file containing regions following the naming pattern $fastaID_constraints e.g. Sequence1_constraints, if paired, the first entry of the file will become a fixed constraint and paired with all the others, choices = [off,sliding,temperature, tempprobe, the string file or a filename, paired, or simply 1-10,2-11 or 1-10;15-20,2-11;16-21 for paired or ono(oneonone),filename to use one line of constraint file for one sequence from fasta]')
+    parser.add_argument("-y", "--conslength", type=int, default=1, help='Length of region to constrain for slidingwindow')
+    parser.add_argument("-t", "--temprange", type=str, default='', help='Temperature range for structure prediction (e.g. 37-60)')
+    parser.add_argument("-a", "--alphabet", type=str, default='AUCG', help='alphabet for random seqs')
+    #parser.add_argument("--plot", type=str, default='0', choices=['0','svg', 'png'], help='Create image of the (un-)constraint sequence, you can select the file format here (svg,png). These images can later on be animated with ImageMagick like `convert -delay 120 -loop 0 *.svg animated.gif`.')
+    parser.add_argument("--save", type=int, default=0, choices=[0, 1], help='Save the output as numpy files only [0] or also as gzipped text files [1]')
+    parser.add_argument("-o", "--outdir", type=str, default='', help='Directory to write to')
+    parser.add_argument("-z", "--procs", type=int, default=1, help='Number of parallel processes to run this job with')
+    parser.add_argument("--vrna", type=str, default='', help="Append path to vrna RNA module to sys.path")
+    parser.add_argument("--pattern", type=str, default='', help="Helper var, only used if called from other prog where a pattern for files is defined")
+    parser.add_argument("-g", "--genes", type=str, default='', help='Genomic coordinates bed for genes, either standard bed format or AnnotateBed.pl format')
+    parser.add_argument("-v", "--verbosity", type=int, default=0, choices=[0, 1], help="increase output verbosity")
+    parser.add_argument("--loglevel", type=str, default='WARNING', choices=['WARNING','ERROR','INFO','DEBUG'], help="Set log level")
+    parser.add_argument("--logdir", type=str, default='LOGS', help="Set log directory")
 
-        return [''.join(p) for p in itertools.product(bases, repeat=k)]
+    if len(sys.argv)==1:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
 
-    except Exception as err:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
-        )
-        log.error(logid+''.join(tbe.format()))
+    return parser.parse_args()
 
-def randseq(alphabet, length):
-    logid = scriptn+'.randseq: '
-    try:
-        l=''
-        for i in range(length):
-            l += str(''.join(choice(alphabet)))
-            return str(l)
-    except Exception as err:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
-        )
-        log.error(logid+''.join(tbe.format()))
 
-def weightedrandseq(alphabet, probs , length):
-    logid = scriptn+'.weightedrandseq: '
-    try:
-        seq=[]
-        for i in alphabet:
-            weight=int(next(probs))
-            for a in range(weight):
-                seq+=i
+def parseargs_collectpl():
+    parser = argparse.ArgumentParser(description='Calculate the regions with highest accessibility diff for given Sequence Pattern')
+    parser.add_argument("-p", "--pattern", type=str, default='250,150', help='Pattern for files and window, e.g. Seq1_30,250')
+    parser.add_argument("-c", "--cutoff", type=float, default=.2, help='Cutoff for the definition of pairedness, if set to e.g. 0.2 it will mark all regions with probability of being unpaired >= cutoff as unpaired')
+    parser.add_argument("-b", "--border", type=float, default=0.0, help='Cutoff for the minimum change between unconstraint and constraint structure, regions below this cutoff will not be returned as list of regions with most impact on structure.')
+    parser.add_argument("-u", "--ulimit", type=int, default=1, help='Stretch of nucleotides used during plfold run (-u option)')
+    parser.add_argument("-r", "--roi", type=str, default=None, help='Define Region of Interest that will be compared')
+    parser.add_argument("-o", "--outdir", type=str, default='', help='Directory to write to')
+    parser.add_argument("-d", "--dir", type=str, default='', help='Directory to read from')
+    parser.add_argument("-g", "--genes", type=str, help='Genomic coordinates bed for genes, either standard bed format or AnnotateBed.pl format')
+    parser.add_argument("-z", "--procs", type=int, default=1, help='Number of parallel processes to run this job with, only important of no border is given and we need to fold')
+    parser.add_argument("--loglevel", type=str, default='WARNING', choices=['WARNING','ERROR','INFO','DEBUG'], help="Set log level")
+    parser.add_argument("--logdir", type=str, default='LOGS', help="Set log directory")
+    parser.add_argument("-w", "--padding", type=int, default=1, help='Padding around constraint that will be excluded from report, default is 1, so directly overlapping effects will be ignored')
 
-        if len(seq) < length:
-            for i in range(length-len(seq)):
-                seq += str(''.join(choice(alphabet)))
+    if len(sys.argv)==1:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
 
-        shuffle(seq)
-        return seq
-    except Exception as err:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
-        )
-        log.error(logid+''.join(tbe.format()))
+    return parser.parse_args()
 
-################
-#  DS tweaker  #
-################
 
-def removekey(d, key):
-    logid = scriptn+'.removekey: '
-    try:
-        r = dict(d)
-        del r[key]
-        return r
-    except Exception as err:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
-        )
-        log.error(logid+''.join(tbe.format()))
+def parseargs_foldcons():
+    parser = argparse.ArgumentParser(description='Calculate base pairing probs of given seqs or random seqs for given window size, span and region.')
+    parser.add_argument("-s", "--sequence", type=str, help='Sequence to fold')
+    parser.add_argument("-w", "--window", type=int, default=None, help='Size of window')
+    parser.add_argument("-l", "--span", type=int, default=None, help='Maximum bp span')
+    parser.add_argument("-c", "--cutoff", type=float, default=-0.01, help='Only print prob greater cutoff')
+    parser.add_argument("-r", "--unconstraint", type=str, default='STDOUT', help='Print output of unconstraint folding to file with this name, use "STDOUT" to print to STDOUT (default)')# or "add" to append to paired/unpaired output')
+    parser.add_argument("-n", "--unpaired", type=str, default='STDOUT', help='Print output of unpaired folding to file with this name')
+    parser.add_argument("-p", "--paired", type=str, default='STDOUT', help='Print output of paired folding to file with this name')
+    parser.add_argument("-e", "--length", type=int, default=100, help='Length of randseq')
+    parser.add_argument("--gc", type=int, default=0, help='GC content, needs to be %%2==0 or will be rounded')
+    parser.add_argument("-b", "--number", type=int, default=1, help='Number of random seqs to generate')
+    parser.add_argument("-x", "--constrain", type=str, default='sliding', help='Region to constrain, either sliding window (default) or region to constrain (e.g. 1-10) or path to file containing regions following the naming pattern $fastaID_constraints, if paired, the first entry of the file will become a fixed constraint and paired with all the others, e.g. Sequence1_constraints, choices = [off,sliding,temperature, tempprobe, file, paired, or simply 1-10,2-11 or 1-10;15-20,2-11:16-21 for paired]')
+    parser.add_argument("-y", "--conslength", type=int, default=0, help='Length of region to constrain for slidingwindow')
+    parser.add_argument("-t", "--temprange", type=str, default='', help='Temperature range for structure prediction (e.g. 37-60)')
+    parser.add_argument("-a", "--alphabet", type=str, default='AUCG', help='alphabet for random seqs')
+    #parser.add_argument("--plot", type=str, default='0', choices=['0','svg', 'png'], help='Create image of the (un-)constraint sequence, you can select the file format here (svg,png). These images can later on be animated with ImageMagick like `convert -delay 120 -loop 0 *.svg animated.gif`.')
+    parser.add_argument("--save", type=int, default=1, help='Save the output as gz files')
+    parser.add_argument("-o", "--outdir", type=str, default='', help='Directory to write to')
+    parser.add_argument("-z", "--procs", type=int, default=1, help='Number of parallel processed to run this job with')
+    parser.add_argument("--vrna", type=str, default='', help="Append path to vrna RNA module to sys.path")
+    parser.add_argument("--pattern", type=str, default='', help="Helper var, only used if called from other prog where a pattern for files is defined")
+    parser.add_argument("-g", "--genes", type=str, default='', help='Genomic coordinates bed for genes, either standard bed format or AnnotateBed.pl format')
+    parser.add_argument("-v", "--verbosity", type=int, default=0, choices=[0, 1], help="increase output verbosity")
+    parser.add_argument("--loglevel", type=str, default='WARNING', choices=['WARNING','ERROR','INFO','DEBUG'], help="Set log level")
 
-def getlowest_list(a, n):
-    logid = scriptn+'.getlowest_list: '
-    try:
-        if n > len(a) - 1:
-            b = len(a) - 1
-        else:
-            b = n
-        if len(a) > 0 and n > 0:
-            return list(np.partition(a, b)[:n])
-        else:
-            return list(None for i in range(n))
-    except Exception as err:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
-        )
-        log.error(logid+''.join(tbe.format()))
+    if len(sys.argv)==1:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
 
-def gethighest_list(a, n):
-    logid = scriptn+'.gethighest_list: '
-    try:
-        if len(a)-n < 0:
-            b = len(a)-1
-        else:
-            b = len(a)-n
-        if len(a) > 0 and n > 0:
-            return list(np.partition(a, b)[-n:])
-        else:
-            return list(None for i in range(n))
-    except Exception as err:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
-        )
-        log.error(logid+''.join(tbe.format()))
+    return parser.parse_args()
 
-def getlowest_dict(a, n):
-    logid = scriptn+'.getlowest_dict: '
-    try:
-        if n > len(a):
-            b = len(a)
-        else:
-            b = n
-        if len(a) > 0:
-            return dict(heapq.nsmallest(b,a.items(), key=itemgetter(1)))
-        else:
-            return dict({i:None for i in range(n)})
-    except Exception as err:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
-        )
-        log.error(logid+''.join(tbe.format()))
 
-def gethighest_dict(a, n):
-    logid = scriptn+'.gethighest_dict: '
-    try:
-        if n > len(a):
-            b = len(a)
-        else:
-            b = n
-        if len(a) > 0:
-            return dict(heapq.nlargest(b,a.items(), key=itemgetter(1)))
-        else:
-            return dict({i:None for i in range(n)})
-    except Exception as err:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
-        )
-        log.error(logid+''.join(tbe.format()))
+def parseargs_collectWindow():
+    parser = argparse.ArgumentParser(description='Calculate the regions with highest accessibility diff for given Sequence Pattern')
+    parser.add_argument("-p", "--pattern", type=str, default='250,150', help='Pattern for files and window, e.g. Seq1_30,250')
+    parser.add_argument("-b", "--border", type=str, default='', help='Cutoff for the minimum change between unconstraint and constraint structure, regions below this cutoff will not be returned as list of regions with most impact on structure. If not defined, will be calculated from folding the sequence of interest at temperature range 30-44.')
+    parser.add_argument("-o", "--outdir", type=str, default='', help='Directory to write to')
+    parser.add_argument("-g", "--genes", type=str, help='Genomic coordinates bed for genes, either standard bed format or AnnotateBed.pl format')
+    parser.add_argument("-z", "--procs", type=int, default=1, help='Number of parallel processed to run this job with, only important of no border is given and we need to fold')
+    parser.add_argument("--loglevel", type=str, default='WARNING', choices=['WARNING','ERROR','INFO','DEBUG'], help="Set log level")
 
-####################
-# Numpy processing #
-####################
+    if len(sys.argv)==1:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
 
-def toarray(file, ulim=None):
-    logid = scriptn+'.toarray: '
-    try:
-        if not ulim:
-            ulim = 1
-        x = np.loadtxt(str(file), usecols = (ulim), delimiter = '\t', unpack = True, converters = {ulim: lambda s: convertcol(s.decode("utf-8"))})
-        return x
-    except Exception as err:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
-        )
-        log.error(logid+''.join(tbe.format()))
+    return parser.parse_args()
 
-def convertcol(entry):
-    logid = scriptn+'.convertcol: '
-    try:
-        if isinvalid(entry):
-#       if entry is None or entry == 'NA' or entry == 'nan' or entry is np.nan:
-            return np.nan
-        else:
-            return float(entry)
-    except Exception as err:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
-        )
-        log.error(logid+''.join(tbe.format()))
-
-####################
-# FILE processing  #
-####################
-
-def get_location(entry):
-    logid = scriptn+'.get_location: '
-    try:
-        ret = list()
-        start = end = strand = None
-        start, end = map(int, entry.split(sep='|')[0].split(sep='-'))
-        strand = str(entry.split(sep='|')[1])
-        ret.extend([start, end, strand])
-
-        if any([x == None for x in ret]):
-            log.warning(logid+'Undefined variable: '+str(ret))
-
-        log.debug(logid+str.join(' ',[str(entry),str(ret)]))
-        return ret
-
-    except Exception as err:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
-        )
-        log.error(logid+''.join(tbe.format()))
-
-def parse_annotation_bed(bed, annotated=None):
-    logid = scriptn+'.parse_annotation_bed: '
-    anno = defaultdict(list)
-    if os.path.isfile(os.path.abspath(bed)):
-        if '.gz' in bed:
-            f = gzip.open(os.path.abspath(bed),'rt')
-        else:
-            f = open(os.path.abspath(bed),'rt')
-    else:
-        f = bed
-    try:
-        for line in f:
-            entries = line.rstrip().split('\t')
-            goi = entries[3]
-            strand = entries[5]
-            if annotated:
-                start = int(entries[10])+1
-                end   = int(entries[11])
-                strand = entries[14]
-            else:
-                start = int(entries[1])+1
-                end   = int(entries[2])
-            anno[str(goi)].append('|'.join(['-'.join([str(start),str(end)]),strand]))  # Need strand info here!
-        return anno
-    except Exception as err:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
-        )
-        log.error(logid+''.join(tbe.format()))
-
-def readConstraintsFromBed(bed, linewise=None):
-    logid = scriptn+'.readConstraintsFromBed: '
-    cons = defaultdict(list)
-    try:
-        for line in bed:
-            entries = line.rstrip().split('\t')
-            start = int(entries[1])+1
-            end = entries[2]
-            goi = entries[3]
-            strand = entries[5]
-            if linewise:
-                cons['lw'].append('|'.join(['-'.join([str(start),str(end)]),strand]))
-            else:
-                cons[str(goi)].append('|'.join(['-'.join([str(start),str(end)]),strand]))
-        return cons
-    except Exception as err:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
-        )
-        log.error(logid+''.join(tbe.format()))
-
-def readPairedConstraintsFromBed(bed, linewise=None):
-    logid = scriptn+'.readPairedConstraintsFromBed: '
-    cons = defaultdict(list)
-    try:
-        for line in bed:
-            entries = line.rstrip().split('\t')
-            if len(entries) % 2:
-                raise Exception('Unbalanced paired bed, please make sure the paired bed consists of equal number of fields for both constraint entries')
-            else:
-                second = int((len(entries)/2)+1)
-            if int(entries[1]) > -1 and int(entries[second]) > -1:
-                start_one = int(entries[1])+1
-                end_one = entries[2]
-                goi = entries[3]
-                strand = entries[5]
-                start_two = int(entries[second])+1
-                end_two = int(entries[second+1])
-                if linewise:
-                    cons['lw'].append(':'.join(['|'.join(['-'.join([str(start_one), str(end_one)]),strand]), '|'.join(['-'.join([str(start_two), str(end_two)]),strand])]))
-                else:
-                    cons[str(goi)].append(':'.join(['|'.join(['-'.join([str(start_one), str(end_one)]),strand]), '|'.join(['-'.join([str(start_two), str(end_two)]),strand])]))
-        return cons
-    except Exception as err:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
-        )
-        log.error(logid+''.join(tbe.format()))
-
-def readConstraintsFromCSV(csv, linewise=None):
-    logid = scriptn+'.readConstraintsCSV: '
-    cons = defaultdict(
-        lambda: defaultdict(list)
-    )
-
-    try:
-        for line in csv:
-            entries = split(',',line.rstrip())
-            start = entries[1]
-            end   = entries[2]
-            strand = entries[5]
-            if linewise:
-                cons['def'].append('|'.join(['-'.join([str(start),str(end)]),strand]))
-            else:
-                cons[entries[3]].append('|'.join(['-'.join([str(start),str(end)]),strand]))
-        return cons
-    except Exception as err:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
-        )
-        log.error(logid+''.join(tbe.format()))
-
-def readConstraintsFromGeneric(generic, linewise=None):
-    logid = scriptn+'.readConstraintsFromGeneric: '
-    cons = defaultdict(
-        lambda: defaultdict(list)
-    )
-
-    try:
-        for line in csv:
-            entries = re.split(r'[ ,|;"]+', line.rstrip())
-            if len(entries > 3):
-                start = entries[2]
-                end = entries[3]
-                strand = entries[5]
-                if linewise:
-                    cons['lw'].append('|'.join(['-'.join([str(start),str(end)]),strand]))
-                else:
-                    cons[entries[0]].append('|'.join(['-'.join([str(start),str(end)]),strand]))
-            else:
-                start = entries[2]
-                end = entries[3]
-                strand = '.'
-                if linewise:
-                    cons['lw'].append('|'.join(['-'.join([str(start),str(end)]),strand]))
-                else:
-                    cons['generic'].append('|'.join(['-'.join([str(start),str(end)]),strand]))
-        return cons
-    except Exception as err:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
-        )
-        log.error(logid+''.join(tbe.format()))
 
 ##############################
-####### Validity check #######
+####### VALIDITY CHECK #######
 ##############################
 
 def isvalid(x=None):
@@ -454,7 +208,7 @@ def isvalid(x=None):
                 return True
         else:
             return False
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -471,12 +225,16 @@ def isinvalid(x=None):
                 return False
         else:
             return True
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
         )
         log.error(logid+''.join(tbe.format()))
+
+##############################
+####### Helper #######
+##############################
 
 def makeoutdir(outdir):
     logid = scriptn+'.makeoutdir: '
@@ -486,432 +244,84 @@ def makeoutdir(outdir):
         if not os.path.exists(outdir):
             os.makedirs(outdir)
         return outdir
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
         )
         log.error(logid+''.join(tbe.format()))
 
-def parseseq(sequence):
-    logid = scriptn+'.parseseq: '
+def get_location(entry):
+    logid = scriptn+'.get_location: '
     try:
-        if (isinstance(sequence, StringIO)):
-            seq = sequence
+        ret = list()
+        start = end = strand = None
+        start, end = map(int, entry.split(sep='|')[0].split(sep='-'))
+        strand = str(entry.split(sep='|')[1])
+        ret.extend([start, end, strand])
 
-        elif ( isinstance(sequence, str) and sequence == 'random' ):
-            rand = "\n".join(createrandseq(length, gc, number, alphabet))
-            seq = StringIO(rand)
-            o = gzip.open('Random.fa.gz','wb')
-            o.write(bytes(rand,encoding='UTF-8'))
-            o.close()
+        if any([x == None for x in ret]):
+            log.warning(logid+'Undefined variable: '+str(ret))
 
-        elif (isinstance(sequence, str) and os.path.isfile(sequence)):
-            if '.gz' in sequence :
-                seq = gzip.open(sequence,'rt')
-            else:
-                seq = open(sequence,'rt')
-        else:
-            header = ">Seq1:default:nochrom:(.)"
-            s = sequence
-            seq = StringIO("{header}\n{s}".format(header=header, s=s))
-
-        return seq
-
-    except Exception as err:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
-        )
-        log.error(logid+''.join(tbe.format()))
-
-def plot_data(fa, raw, consu, consp, const, xs, cons, saveas, outdir):
-    logid = scriptn+'.plot_data: '
-    anime = []
-    #define xs for constraint line
-    consl = []
-    try:
-        for x in const:
-            consl.append(1.25)
-        width = 16/100*len(fa.seq)
-        height = 9
-        fig = plt.figure(figsize=(width,height),dpi=80)
-        ax1 = fig.add_subplot(111)
-
-        ax2 = ax1.twiny()
-        #   line, = ax.plot([], [], lw=2)
-        plt.title("Blue-- = Unconstraint, Green-. = Unpaired, Red = Paired, Gray = Constraint",y=1.075)
-        ax1.set_ylabel('Prob unpaired')
-        ax1.set_xlabel('Nucleotides')
-        #   plt.xticks(range(0,len(fa.seq)+1),(' '+fa.seq),size='small')
-        #add lines to plot
-        ax1.plot(xs, raw, 'b-', xs, consu, 'g-', xs, consp, 'r-', const, consl, 'k-')
-        ax1.set_xlim(0,len(fa.seq)+1)
-        ax2.set_xlim(ax1.get_xlim())
-        ax1.set_xticks(range(0,len(fa.seq)+1))
-        ax1.set_xticklabels((' '+fa.seq), ha="right")
-        #   ax2.set_xlabel(r"Modified x-axis: $1/(1+X)$")
-        ax2.set_xticks(range(1,len(fa.seq)+1))
-        ax2.set_xticklabels(range(1,len(fa.seq)+1), rotation=45, ha="right")
-        # We change the fontsize of minor ticks label
-        ax1.tick_params(axis='both', which='major', labelsize=8)
-        ax1.tick_params(axis='both', which='minor', labelsize=4)
-        ax2.tick_params(axis='both', which='major', labelsize=5)
-        ax2.tick_params(axis='both', which='minor', labelsize=3)
-        goi, chrom = fa.id.split(':')[::2]
-        strand = str(fa.id.split(':')[3].split('(')[1][0])
-        fig.savefig('StruCons_'+goi+'_'+cons+'.'+saveas)
-        plt.close()
-        #   anime.append(plt.plot(xs, raw, 'b-', xs, consu, 'g-', xs, consp, 'r-', const, consl, 'k-'))
-        #   return anime
-    except Exception as err:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
-        )
-        log.error(logid+''.join(tbe.format()))
-
-def plot_temp(fa, raw, temp, xs, saveas, outdir):
-    logid = scriptn+'.plot_temp: '
-    try:
-        anime = []
-        #define xs for constraint line
-        width = 16/100*len(fa.seq)
-        height = 9
-        fig = plt.figure(figsize=(width,height),dpi=80)
-        ax1 = fig.add_subplot(111)
-        plt.title("Blue-- = "+temp+" degree",y=1.075)
-        ax1.set_ylabel('Prob unpaired')
-        ax1.set_xlabel('Nucleotides')
-        #add lines to plot
-        ax1.plot(xs, raw, 'b-')
-        ax1.set_xlim(0,len(fa.seq)+1)
-        ax1.set_xticks(range(0,len(fa.seq)+1))
-        ax1.set_xticklabels((' '+fa.seq))
-        # We change the fontsize of minor ticks label
-        ax1.tick_params(axis='both', which='major', labelsize=8)
-        ax1.tick_params(axis='both', which='minor', labelsize=4)
-        goi, chrom = fa.id.split(':')[::2]
-        strand = str(fa.id.split(':')[3].split('(')[1][0])
-        fig.savefig('TempCons_'+goi+'_'+temp+'.'+saveas)
-        plt.close()
-        #   anime.append(plt.plot(xs, raw, 'b-', xs, consu, 'g-', xs, consp, 'r-', const, consl, 'k-'))
-        #   return anime
-    except Exception as err:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
-        )
-        log.error(logid+''.join(tbe.format()))
-
-def calc_gibbs(fc):
-    logid = scriptn+'.calc_gibbs: '
-    try:
-        return fc.pf()[1]
-    except Exception as err:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
-            )
-        log.error(logid+''.join(tbe.format()))
-
-def get_bppm(tmp, start, end):
-    logid = scriptn+'.get_bppm: '
-    bppm = []
-    try:
-#        log.debug('\t'.join(map(str,[tmp,start,end])))
-        if start < 0 or end > len(tmp):
-            log.warning(logid+'start of constraint '+str(start)+' end of constraint '+str(end)+' while length of bpp matrix '+str(len(tmp))+'! Skipping!')
-            return None
-
-        for item in tmp:
-            for i in range(int(start),int(end)+1):
-                if item[i] > 0.0:
-                    bppm.append(str.join('\t',[str(tmp.index(item)), str(i), str(item[i])]))
-        return bppm
-    except Exception as err:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
-        )
-        log.error(logid+''.join(tbe.format()))
-
-def get_ddg(file):
-    logid = scriptn+'.parseseq: '
-    try:
-        ret = defaultdict()
-        if (isinstance(file, str) and os.path.isfile(file)):
-            if '.gz' in file :
-                res = gzip.open(file,'rt')
-            else:
-                res = open(file,'rt')
-
-            for line in res:
-                log.debug(logid+line)
-                if 'Condition' in line[0:15]:
-                    continue
-                else:
-                    cond, gibbs, dg, nrg, cons = line.rstrip().split('\t')
-                    if not str(cons) in ret:
-                        ret[str(cons)] = defaultdict()
-                    ret[str(cons)][cond] = float(dg)
+        log.debug(logid+str.join(' ',[str(entry),str(ret)]))
         return ret
 
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
         )
         log.error(logid+''.join(tbe.format()))
 
-def calc_ddg(ddgs):
-    logid = scriptn+'.calc_ddg: '
 
+def expand_window(start, end, window, multiplyer, seqlen):
+    logid = scriptn+'.expand_window: '
     try:
-        log.debug(logid+str(ddgs))
-        ddg = ddgs['constraint_unpaired']+ddgs['secondconstraint_unpaired']-ddgs['bothconstraint_unpaired']-ddgs['unconstraint']
-        """Yi-Hsuan Lin, Ralf Bundschuh, RNA structure generates natural cooperativity between single-stranded RNA binding proteins targeting 5' and 3'UTRs, Nucleic Acids Research, Volume 43, Issue 2, 30 January 2015, Pages 1160-1169, https://doi.org/10.1093/nar/gku1320"""
-
-        return ddg
-
-    except Exception as err:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
-            )
-        log.error(logid+''.join(tbe.format()))
-
-def calc_bpp(bppm):
-    logid = scriptn+'.calc_bpp: '
-    bpp = 0.0;
-    try:
-        for entry in bppm:
-            base, mate, prob = map(float,entry.split('\t'))
-            bpp += prob
-    except Exception as err:
+        tostart = start - multiplyer*window
+        if tostart < 1:
+            tostart = 1
+        toend = end + multiplyer*window
+        if toend > seqlen:
+            toend = seqlen
+        return [tostart, toend]
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
             )
         log.error(logid+''.join(tbe.format()))
 
-    return bpp
 
-def calc_nrg(bpp):
-    logid = scriptn+'.calc_nrg: '
-    #set kT for nrg2prob and vice versa calcs
-    kT = 0.61632077549999997
-    nrg = 0.0;
+def localize_window(start, end, window, seqlen):
+    logid = scriptn+'.localize_window: '
     try:
-        if bpp > 0.0:
-            nrg = -1 * kT * math.log(bpp)
-        return nrg
-    except Exception as err:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
-        )
-        log.error(logid+''.join(tbe.format()))
-
-def print_region_up(data, seqlength=None, region=None):
-    #   pp = pprint.PrettyPrinter(indent=4)#use with pp.pprint(datastructure)
-    #   pp.pprint(data)
-    logid = scriptn+'.print_region_up: '
-    try:
-        if data:
-            ups=''
-            x = int(region)
-            for i in range(int(seqlength)):
-                if isinvalid(data[i][x]):
-                    data[i][x] = np.nan
-                else:
-                    data[i][x] = round(data[i][x],7)
-                ups+=str(i+1)+"\t"+str(data[i][x])+"\n"
-            return ups
+        diff = start - window
+        if diff < 1:
+            locws = 1
         else:
-            log.error(logid+'No up data to print')
-            return ups
+            locws = diff
 
-    except Exception as err:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
-        )
-        log.error(logid+''.join(tbe.format()))
+        locwe = diff + 2 * window + (end - start) # this makes sure that if the start was trimmed, we do not just extend too much
 
-def print_up(data=None, seqlength=None, region=None):
-    #   pp = pprint.PrettyPrinter(indent=4)#use with pp.pprint(datastructure)
-    #   pp.pprint(data)
-    logid = scriptn+'.print_up: '
-    try:
-        if data:
-            ups=''
-            for i in range(int(seqlength)):
-                for x in range(1,region+1):
-                    if isinvalid(data[i][x]):
-                        data[i][x] = np.nan
-                    else:
-                        data[i][x] = round(data[i][x],7)
-                ups+=str(i+1)+"\t"+"\t".join(map(str,data[i][1:region+1]))+"\n"
-            return ups
-        else:
-            log.error(logid+'No up data to print')
-            return ups
-    except Exception as err:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
-        )
-        log.error(logid+''.join(tbe.format()))
-
-def up_to_array(data=None, region=None, seqlength=None):
-    #   pp = pprint.PrettyPrinter(indent=4)#use with pp.pprint(datastructure)
-    #   pp.pprint(data[165553:165588])
-    logid = scriptn+'.up_to_array: '
-    try:
-        if data:
-            entries=[]
-            if not seqlength:
-                seqlength = len(data)
-            if not region:
-                region = slice(1,len(data[0]))
-            for i in range(seqlength):
-                entries.append([])
-                for e in range(len(data[i])):
-                    if isinvalid(data[i][e]):
-                        data[i][e] = np.nan
-                    else:
-                        data[i][e] = round(data[i][e],8)
-                entries[i].extend(data[i][region])
-            return np.array(entries)
-        else:
-            log.error(logid+'No up data to print')
-            return np.array()
-    except Exception as err:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
-        )
-        log.error(logid+''.join(tbe.format()))
-
-def npprint(a, o=None):#, format_string ='{0:.2f}'):
-    logid = scriptn+'.npprint: '
-    try:
-        out = ''
-        it = np.nditer(a, flags=['f_index'])
-        while not it.finished:
-            out += "%d\t%0.7f" % (it.index+1,it[0])+"\n"
-            it.iternext()
-        if o:
-            o.write(bytes(out,encoding='UTF-8'))
-        else:
-            print(out)
-    except Exception as err:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-        exc_type, exc_value, exc_tb,
-        )
-        log.error(logid+''.join(tbe.format()))
-
-def printdiff(a, o=None):
-    logid = scriptn+'.printdiff: '
-    try:
-        np.save(o, a)
-        #np.savetxt(o, a, delimiter='\t', encoding='bytes')
-    except Exception as err:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-        exc_type, exc_value, exc_tb,
-        )
-        log.error(logid+''.join(tbe.format()))
-
-def read_precalc_plfold(data, name, seq):
-    logid = scriptn+'.read_precalc_plfold: '
-    try:
-        for i in range(len(seq)):
-            data.append([])
-            data[i] = []
-        with gzip.open(name,'rt') as o:
-            for line in o:
-                cells = line.rstrip().split('\t')
-                data[int(cells[0])-1].append([])
-                data[int(cells[0])-1][0] = None
-                for a in range(1,len(cells)):
-                    data[int(cells[0])-1].append([])
-                    data[int(cells[0])-1][a] = float(cells[a])
-        return data
-    except Exception as err:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-        exc_type, exc_value, exc_tb,
-        )
-        log.error(logid+''.join(tbe.format()))
-
-def pl_to_array(name, ulim, fmt='npy'):
-    logid = scriptn+'.pl_to_array: '
-    try:
-        log.debug('\t'.join([logid,name]))
-        if fmt == 'txt':
-            return np.array(np.loadtxt(name, usecols=ulim, unpack=True, delimiter='\t', encoding='bytes'))
-        elif fmt == 'npy':
-            return np.array(np.load(name)[:,ulim-1])
-    except Exception as err:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-        exc_type, exc_value, exc_tb,
-        )
-        log.error(logid+' '+name+': '.join(tbe.format()))
-
-def idfromfa(id):
-    logid = scriptn+'.idfromfa: '
-    goi, chrom, strand = [None, None, None]
-    id = id.replace('_','-')
-    try:
-        goi, chrom = id.split(':')[::2]
-        strand = str(id.split(':')[3].split('(')[1][0])
-    except:
-        log.error(logid+'Fasta header is not in expected format, you will loose information on strand and chromosome')
-        goi = id
-        chrom, strand = ['na','na']
-
-    if goi and chrom and strand:
-        return [str(goi), str(chrom), str(strand)]
-    else:
-        log.error(logid+'Could not assign any value from fasta header, please check your fasta files')
-        sys.exit('Could not assign any value from fasta header, please check your fasta files')
-
-def constrain_paired(fc, start, end):
-    logid = scriptn+'.constrain_paired: '
-    try:
-        for x in range(start+1, end+1):
-            fc.hc_add_bp_nonspecific(x,0) #0 means without direction  ( $ d < 0 $: pairs upstream, $ d > 0 $: pairs downstream, $ d == 0 $: no direction)
-        return fc
-    except Exception as err:
+        if locwe > seqlen:
+            locwe = seqlen
+        return [locws, locwe]
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
             )
         log.error(logid+''.join(tbe.format()))
 
-def constrain_unpaired(fc, start, end):
-    logid = scriptn+'.constrain_unpaired: '
-    try:
-        for x in range(start+1, end+1):
-            fc.hc_add_up(x)
-        return fc
-    except Exception as err:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
-            )
-        log.error(logid+''.join(tbe.format()))
+
+### Code utils
 
 def print_globaldicts():
     logid = scriptn+'.print_globaldicts: '
     try:
         for name, value in globals().copy().items():
             print(name, value)
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -924,33 +334,12 @@ def print_globallists():
     try:
         for name, value in globals().deepcopy().items():
             print(name, value)
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
             )
         log.error(logid+''.join(tbe.format()))
-
-def backup(file):
-    logid = scriptn+'.backup: '
-    try:
-        if os.path.exists(file):
-            os.rename(file,file+'.bak')
-    except Exception as err:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
-            )
-        log.error(logid+''.join(tbe.format()))
-
-#def bpp_callback(v, v_size, i, maxsize, what, data):
-#   if what & RNA.PROBS_WINDOW_BPP:
-#       data['bpp'].extend([{'i': i, 'j': j, 'p': p} for j, p in enumerate(v) if (p is not None)])# and (p >= 0.01)])
-#
-#def up_callback(v, v_size, i, maxsize, what, data):
-#   if what & RNA.PROBS_WINDOW_UP:
-#       #    data['up'].extend([{ 'i': i, 'up': v}])
-#       data['up'].extend([v])
 
 #
 # Collection.py ends here

@@ -113,9 +113,9 @@ cd /scr/k61san/fall/RIssmed/miRNAs
 http://www.targetscan.org/cgi-bin/targetscan/data_download.vert72.cgi
 http://mirwalk.umm.uni-heidelberg.de/resources/
 
-wget http://mirwalk.umm.uni-heidelberg.de/download/hsa_miRWalk_3UTR.zip .  
+wget http://mirwalk.umm.uni-heidelberg.de/download/hsa_miRWalk_3UTR.zip .
 wget ftp://ftp.ncbi.nlm.nih.gov/genomes/archive/old_refseq/H_sapiens/ARCHIVE/ANNOTATION_RELEASE.109/RNA/rna.fa.gz .
-wget ftp://ftp.ncbi.nlm.nih.gov/genomes/archive/old_refseq/H_sapiens/ARCHIVE/ANNOTATION_RELEASE.109/GFF/ref_GRCh38.p12_top_level.gff3.gz 
+wget ftp://ftp.ncbi.nlm.nih.gov/genomes/archive/old_refseq/H_sapiens/ARCHIVE/ANNOTATION_RELEASE.109/GFF/ref_GRCh38.p12_top_level.gff3.gz
 wget ftp://ftp.ncbi.nlm.nih.gov/genomes/refseq/vertebrate_mammalian/Homo_sapiens/latest_assembly_versions/GCF_000001405.39_GRCh38.p13/GCF_000001405.39_GRCh38.p13_genomic.fna.gz
 wget ftp://ftp.ncbi.nlm.nih.gov/genomes/refseq/vertebrate_mammalian/Homo_sapiens/all_assembly_versions/GCF_000001405.38_GRCh38.p12/GCF_000001405.38_GRCh38.p12_genomic.fna.gz
 wget http://www.targetscan.org/vert_72/vert_72_data_download/Predicted_Target_Locations.default_predictions.hg19.bed.zip
@@ -160,7 +160,7 @@ wget http://www.targetscan.org/vert_72/vert_72_data_download/TSHuman_7_hg19_3UTR
  ca bedtools
  #zcat GCF_000001405.38_GRCh38.p12_genomic.fna.gz |perl -wlane 'if ($_ =~ /^>/){@l=split(" ",$_);($h=$l[0])=~s/\>/\>chr/;print $h}else{print}'> hg38_refseq109.fa
  fastaFromBed -fi hg19.fa -bed <(zcat targetgenes_tscan.bed.gz|grep -v Gnomon) -s -name+ -fullHeader |gzip > tscan_targetgenes.fa.gz
-  
+
  ~/Projects/INPROGRESS/RIssmed/RIssmed/ConstraintPLFold.py -s tscan_targetgenes.fa.gz -g targetgenes_tscan.bed.gz -w 250 -l 150 -u 7 -r raw -n unpaired -p paired -x ToFold_targetsites_targetscan_hg19.bed.gz -o targetscan_coop -z 20 -m 2
 
 ** run on slurm
@@ -224,10 +224,38 @@ zcat Collection_unpaired.bed.gz|sed 's/-/_/'|sed 's/chr//'|sed 's/inf/5000/'|gzi
 zcat Collection_unpaired.bed.gz|perl -wlane 'if ($F[-1]<-2 || $F[-1] > 2){print}'|sed 's/-/_/'|sed 's/chr//'|gzip > SigmiR_Collection_unpaired.bed.gz
 cd /scr/k70san2/fall/Constraints/miRNAs/
 ln -s ~/Projects/INPROGRESS/RIssmed/intersect_header .
-ln -s mirwalk_coop/Collection_mirnas/SigmiR_Collection_unpaired.bed.gz . 
-ln -s mirwalk_coop/Collection_mirnas/AllmiR_Collection_unpaired.bed.gz . 
+ln -s mirwalk_coop/Collection_mirnas/SigmiR_Collection_unpaired.bed.gz .
+ln -s mirwalk_coop/Collection_mirnas/AllmiR_Collection_unpaired.bed.gz .
 intersectBed -s -a SigmiR_Collection_unpaired.bed.gz -b targetsites.bed.gz -wa -wb |cut -d$'\t' -f 1-15|sort -k1,1 -k2,2n|uniq|cat intersect_header -|cut -d$'\t' -f 1-15|gzip > Intersect_sigmiRs.bed.gz
 intersectBed -s -a AllmiR_Collection_unpaired.bed.gz -b targetsites.bed.gz -wa -wb |cut -d$'\t' -f 1-15|sort -k1,1 -k2,2n|uniq|cat intersect_header -|cut -d$'\t' -f 1-15|gzip > Intersect_allmiRs.bed.gz
 
 
 intersectBed -s -a bla.gz -b targetsites.bed.gz -wa -wb |cut -d$'\t' -f 1-15|sort -k1,1 -k2,2n|uniq|cat intersect_header -|cut -d$'\t' -f 1-15|gzip > Intersect_allmiRs.bed.gz
+* GOALS
+** Collect information on influence of constraints on pairing probabilities
+*** Create Random Sequences
+cd /scr/k70san2/fall/Constraints/Random
+ca rissmed
+
+for i in 20 40 60 80;do python ~/Projects/INPROGRESS/RIssmed/RIssmed/Randseq.py -l 1000 -g $i -n 1000 -o GC$i;done
+for i in GC*.fa.gz;do zcat $i |perl -wane 'if ($F[0]=~/^>/){($id=(split(":",$F[0]))[0])=~s/>//;$id=~s/_/-/}else{print join("\t","chr1",0,length($F[0]),$id,100,"+")."\n"}' |gzip > $i\.bed.gz;done
+for a in 20 40 60 80;do for i in 5 7 9 11;do ~/Projects/INPROGRESS/RIssmed/RIssmed/ConstraintPLFold.py -s GC$a\.fa.gz -w 120 -l 80 -u $i -r raw -n unpaired -p paired -x sliding -o Random_$a\_$i -z 12 --loglevel DEBUG -m 2;done
+for a in 20 40 60 80;do for i in 5 7 9 11;do ~/Projects/INPROGRESS/RIssmed/RIssmed/CollectConsResults.py -u $i -z 4 -b-1,1 -c 0 -g GC$a\.fa.gz.bed.gz -p 120,80 -o Collection_$a\_$i -d Random_$a\_$i;done;done
+**** SLURM
+ ~/Projects/INPROGRESS/RIssmed/slurm/rissmed_random.sh
+ for a in 20 40 60 80;do for i in 5 7 9 11;do sbatch --export ALL,gc=$a,u=$i rissmed_random.sh;done;done
+**** DenbiCloud
+for i in 20 40 60 80;do python RIssmed/Randseq.py -l 1000 -g $i -n 1000 -o GC$i;done
+for i in GC*.fa.gz;do zcat $i|sed 's/_/-/' |gzip > Fixed_$i;done
+rm -f genes.bed; for i in Fixed_GC*.fa.gz;do zcat $i|perl -wlane 'if ($_ =~ /^>/){($name = (split(":",$_))[0])=~s/>//;}else{print join("\t","nochrom",0,(length($_)-1),$name,100,".")}' >> genes.bed;done
+for a in 20 40 60 80;do for i in 5 7 9 11;do if [ ! -d "Random_$a_$i" ];then sbatch --export ALL,gc=$a,u=$i rissmed_random.sh;fi;done;done
+for a in 20 40 60 80;do for i in 5 7 9 11;do sbatch --export ALL,gc=$a,u=$i rissmed_collect.sh ;done;done
+*** Statistics
+**** Collect subsets
+for a in 20 40 60 80;do for i in 5 7 9 11;do sbatch --export ALL,gc=$a,u=$i rissmed_stats.sh;done;done
+**** Correlation distance to delta-acc
+rm -f Dist_acc.tsv.gz; for a in 20 40 60 80;do for i in 5 7 9 11;do zcat $a\_$i\/Collection_unpaired.bed.gz|cut -f5,7,8,12|sort|perl -wslne 'chomp($line=$_);print $line."\t".$a."_".$i' -- -a=$a -i=$i |gzip >> InfoSubset.tsv.gz;done;done
+Accessibility_difference, Distance_to_constraint, Accessibility_no_constraint, Zscore
+**** Plot
+Stats.R
+

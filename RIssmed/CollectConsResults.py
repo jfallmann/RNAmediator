@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Mon May 11 15:27:01 2020 (+0200)
+## Last-Updated: Wed Dec 16 13:17:58 2020 (+0100)
 ##           By: Joerg Fallmann
-##     Update #: 450
+##     Update #: 459
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -61,57 +61,37 @@
 ##
 ### Code:
 ### IMPORTS
-import os, sys, inspect
-##load own modules
-from lib.logger import makelogdir, setup_multiprocess_logger
-from lib.Collection import *
-##other modules
+import os
+import sys
+import inspect
 import glob
-import argparse
-from io import StringIO
-#import subprocess
 import gzip
-import importlib
-import pprint
 import traceback as tb
-#numpy
-import numpy as np
-#collections
-from collections import Counter
-from collections import defaultdict
-import heapq
-from operator import itemgetter
-from natsort import natsorted, ns
-#multiprocessing
+import argparse
+# multiprocessing
 import multiprocessing
-#Biopython stuff
-from Bio import SeqIO
-from Bio.Seq import Seq
-import math
-from scipy.stats import zscore as zsc
+from multiprocessing import get_context
+from multiprocessing import set_start_method
+# numpy
+import numpy as np
 import shlex
+# others
+from natsort import natsorted
+# Logging
+import datetime
+import logging
+from lib.logger import makelogdir, makelogfile, listener_process, listener_configurer, worker_configurer
+# load own modules
+from lib.Collection import *
+from lib.FileProcessor import *
+from lib.RNAtweaks import *
+from lib.NPtweaks import *
 
-def parseargs():
-    parser = argparse.ArgumentParser(description='Calculate the regions with highest accessibility diff for given Sequence Pattern')
-    parser.add_argument("-p", "--pattern", type=str, default='250,150', help='Pattern for files and window, e.g. Seq1_30,250')
-    parser.add_argument("-c", "--cutoff", type=float, default=.2, help='Cutoff for the definition of pairedness, if set to e.g. 0.2 it will mark all regions with probability of being unpaired >= cutoff as unpaired')
-    parser.add_argument("-b", "--border", type=str, default='', help='Cutoff for the minimum change between unconstraint and constraint structure, regions below this cutoff will not be returned as list of regions with most impact on structure. If not defined, will be calculated from folding the sequence of interest at temperature range 30-44.')
-    parser.add_argument("-u", "--ulimit", type=int, default=1, help='Stretch of nucleotides used during plfold run (-u option)')
-    parser.add_argument("-r", "--roi", type=str, default=None, help='Define Region of Interest that will be compared')
-    parser.add_argument("-o", "--outdir", type=str, default='', help='Directory to write to')
-    parser.add_argument("-d", "--dir", type=str, default='', help='Directory to read from')
-    parser.add_argument("-g", "--genes", type=str, help='Genomic coordinates bed for genes, either standard bed format or AnnotateBed.pl format')
-    parser.add_argument("-z", "--procs", type=int, default=1, help='Number of parallel processes to run this job with, only important of no border is given and we need to fold')
-    parser.add_argument("--loglevel", type=str, default='WARNING', choices=['WARNING','ERROR','INFO','DEBUG'], help="Set log level")
-    parser.add_argument("-w", "--padding", type=int, default=1, help='Padding around constraint that will be excluded from report, default is 1, so directly overlapping effects will be ignored')
+log = logging.getLogger(__name__)  # use module name
+scriptname = os.path.basename(__file__).replace('.py', '')
 
-    if len(sys.argv)==1:
-        parser.print_help(sys.stderr)
-        sys.exit(1)
 
-    return parser.parse_args()
-
-def screen_genes(pat, cutoff, border, ulim, procs, roi, outdir, genes, padding):
+def screen_genes(queue, configurer, level, pat, cutoff, border, ulim, procs, roi, outdir, dir, genes, padding):
 
     logid = scriptname+'.screen_genes: '
     try:
@@ -142,9 +122,11 @@ def screen_genes(pat, cutoff, border, ulim, procs, roi, outdir, genes, padding):
             gs, ge, gstrand = get_location(genecoords[goi][0])
 
             #get files with specified pattern
-            raw = os.path.abspath(os.path.join(goi, goi + '*_raw_*' + str(window) + '_' + str(span) + '.npy'))
-            unpaired = os.path.abspath(os.path.join(goi, 'StruCons_' + goi + '*_diffnu_*' + str(window) + '_' + str(span) + '.npy'))
-            paired = os.path.abspath(os.path.join(goi, 'StruCons_' + goi + '*_diffnp_*' + str(window) + '_' + str(span) + '.npy'))
+            raw = os.path.abspath(os.path.join(dir, goi, goi + '*_raw_*' + str(window) + '_' + str(span) + '.npy'))
+            unpaired = os.path.abspath(os.path.join(dir, goi, 'StruCons_' + goi + '*_diffnu_*' + str(window) + '_' + str(span) + '.npy'))
+            paired = os.path.abspath(os.path.join(dir, goi, 'StruCons_' + goi + '*_diffnp_*' + str(window) + '_' + str(span) + '.npy'))
+
+            log.debug(logid+'PATHS: '+str(raw)+'\t'+str(paired)+'\t'+str(unpaired))
 
             #search for files
             r = natsorted(glob.glob(raw), key=lambda y: y.lower())
@@ -159,16 +141,23 @@ def screen_genes(pat, cutoff, border, ulim, procs, roi, outdir, genes, padding):
             paired = [os.path.abspath(i) for i in p]
             unpaired = [os.path.abspath(i) for i in u]
 
-            log.debug(logid+'PATHS: '+str(raw)+'\t'+str(paired)+'\t'+str(unpaired))
+            log.debug(logid+'PATHS: '+str(len(r))+'\t'+str(len(p))+'\t'+str(len(u)))
 
             if not raw or not paired or not unpaired:
                 log.warning(logid+'Could not find files for Gene '+str(goi)+' and window '+str(window)+' and span '+str(span)+' Will skip')
                 continue
 
             try:
-                for i in range(len(r)):
-                    pool.apply_async(judge_diff, args=(raw[i], u[i], p[i], gs, ge, gstrand, ulim, cutoff, border, outdir, padding))
-            except Exception as err:
+                for uncons in raw:
+                    unpa = uncons.replace('raw','diffnu').replace(goi+'_','StruCons_'+goi+'_')
+                    pair = uncons.replace('raw','diffnp').replace(goi+'_','StruCons_'+goi+'_')
+                    if unpa in unpaired and pair in paired:
+                        pool.apply_async(judge_diff, args=(uncons, unpa, pair, gs, ge, gstrand, ulim, cutoff, border, outdir, padding), kwds={'queue':queue, 'configurer':configurer, 'level':level})
+                    else:
+                        log.debug(logid+'MISMATCH: '+uncons+'\t'+unpa+'\t'+pair)
+                        log.warning(logid+'Files for raw and constraint do not match or no difference has been found in pairing probabilities, skipping '+str(unpa)+' and '+str(pair)+'!')
+                        continue
+            except Exception:
                 exc_type, exc_value, exc_tb = sys.exc_info()
                 tbe = tb.TracebackException(
                     exc_type, exc_value, exc_tb,
@@ -178,17 +167,20 @@ def screen_genes(pat, cutoff, border, ulim, procs, roi, outdir, genes, padding):
         pool.close()
         pool.join()
 
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
             )
         log.error(logid+''.join(tbe.format()))
 
-def judge_diff(raw, u, p, gs, ge, gstrand, ulim, cutoff, border, outdir, padding):
+def judge_diff(raw, u, p, gs, ge, gstrand, ulim, cutoff, border, outdir, padding, queue=None, configurer=None, level=None):
 
     logid = scriptname+'.judge_diff: '
     try:
+        if queue and level:
+            configurer(queue, level)
+            
         goi, chrom, strand, cons, reg, f, window, span = map(str,os.path.basename(raw).split(sep='_'))
         span = span.split(sep='.')[0]
         cs, ce = map(int, cons.split(sep='-'))
@@ -200,7 +192,7 @@ def judge_diff(raw, u, p, gs, ge, gstrand, ulim, cutoff, border, outdir, padding
         if 0 > any([cs,ce,ws,we]):
             raise Exception('One of '+str([cs,ce,ws,we])+ ' lower than 0! this should not happen for '+','.join([goi, chrom, strand, cons, reg, f, window, span]))
 
-        if gstrand is not '-':
+        if gstrand != '-':
             ws = ws + gs - 2 #get genomic coords 0 based closed, ws and gs are 1 based
             we = we + gs - 2
 
@@ -211,9 +203,10 @@ def judge_diff(raw, u, p, gs, ge, gstrand, ulim, cutoff, border, outdir, padding
 
         log.debug(logid+'DiffCoords: '+' '.join(map(str,[goi, chrom, strand, cons, reg, f, window, span, gs, ge, cs, ce, ws, we])))
 
-        border1, border2 = map(float,border.split(',')) #defines how big a diff has to be to be of importance
+        #border1, border2 = map(float,border.split(',')) #defines how big a diff has to be to be of importance
+        border = abs(border) #defines how big a diff has to be to be of importance
 
-        log.info(logid+'Continuing '+str(goi)+' calculation with cutoff: ' + str(cutoff) + ' and borders ' + str(border1) + ' and ' + str(border2))
+        log.info(logid+'Continuing '+str(goi)+' calculation with cutoff: ' + str(cutoff) + ' and border ' + str(border))# + ' and ' + str(border2))
 
         out = {}
         out['p'] = []
@@ -224,19 +217,6 @@ def judge_diff(raw, u, p, gs, ge, gstrand, ulim, cutoff, border, outdir, padding
 
         noc = pl_to_array(raw, ulim)
         log.debug(logid+'RAW: '+str(raw)+'\t'+str(noc))
-
-        mult = int((len(noc)/int(window))/2)
-        log.debug(logid+'Multiplyer: '+str(mult))
-        if mult <=1:
-            log.warning(logid+'Window '+str([ws,we])+' expansion with multiplyer '+str(mult)+' is overlapping end of Gene '+str([goi, gs, ge, cons, reg, f, span])+' on at least one end, no guarantee that border effects of folding and centering on constraints can be resolved, this result will be skipped!')
-            return 1
-        cws = int(window)*(mult-1)
-
-        cwe = int(window)*(mult+1)+ulim-1
-        if cwe > len(noc):
-            cwe = len(noc)
-        conswindow = (cws,cwe) #0-based half open
-        log.debug(logid+'Constraint Window: '+str(conswindow))
 
         if abs(noc[ce]) > cutoff:
             uc = pl_to_array(u, ulim)  # This is the diffacc for unpaired constraint
@@ -279,26 +259,26 @@ def judge_diff(raw, u, p, gs, ge, gstrand, ulim, cutoff, border, outdir, padding
             Constraints are influencing close by positions strongest so strong influence of binding there is expected
             '''
 
-            log.debug(logid+'WINDOWS: '+str.join(' ',map(str,[goi,conswindow[0],conswindow[1]+1,strand,ws,cs,ce,we,str(cs+ws-1)+'-'+str(ce+ws),str(we-ce-1)+'-'+str(we-cs)])))
+            log.debug(logid+'WINDOWS: '+str.join(' ',map(str, [goi, strand, ws, cs, ce, we, str(cs+ws-1)+'-'+str(ce+ws), str(we-ce-1)+'-'+str(we-cs)])))
 
-            for pos in range(conswindow[0],conswindow[1]+1):
-                if pos not in range(cs-padding+1-ulim ,ce+padding+1+2*ulim):
-                    if strand is not '-':
-                        gpos = pos + ws - ulim + 1 #already 0-based
-                        gend = gpos + ulim #0-based half-open
+            for pos in range(len(noc)):
+                if pos not in range(cs-padding+1-ulim, ce+padding+1+ulim):
+                    if strand != '-':
+                        gpos = pos + ws - ulim + 1  # already 0-based
+                        gend = gpos + ulim  # 0-based half-open
                         gcst = cs+ws+1
                         gcen = ce+ws+2
                         gcons = str(gcst)+'-'+str(gcen)
                     else:
-                        gpos = we - pos #already 0-based
-                        gend = gpos + ulim  #0-based half-open
+                        gpos = we - pos  # already 0-based
+                        gend = gpos + ulim  # 0-based half-open
                         gcst = we-ce-1
                         gcen = we-cs
                         gcons = str(gcst)+'-'+str(gcen)
 
-                    if border1 < uc[pos] and uc[pos] < border2:
-                        if ce < pos:# get distance up or downstream
-                            dist = (pos - ce) * -1 # no -1 or we have 0 overlap
+                    if border < abs(uc[pos]):
+                        if ce < pos:  # get distance up or downstream
+                            dist = (pos - ce) * -1  # no -1 or we have 0 overlap
                         else:
                             dist = cs - pos
 
@@ -310,9 +290,9 @@ def judge_diff(raw, u, p, gs, ge, gstrand, ulim, cutoff, border, outdir, padding
                         if not any([x is np.nan for x in [preacc,nrgdiff,kd,zscore]]):
                             out['u'].append('\t'.join([str(chrom), str(gpos), str(gend), str(goi) + '|' + str(cons) + '|' + str(gcons), str(uc[pos]), str(strand), str(dist), str(noc[pos]), str(preacc), str(nrgdiff), str(kd), str(zscore)]))
 
-                    if border1 < pc[pos] and pc[pos] < border2:
-                        if ce < pos:# get distance up or downstream
-                            dist = (pos - ce) * -1 # no -1 or we have 0 overlap
+                    if border < abs(pc[pos]):
+                        if ce < pos:  # get distance up or downstream
+                            dist = (pos - ce) * -1  # no -1 or we have 0 overlap
                         else:
                             dist = cs - pos
 
@@ -326,7 +306,7 @@ def judge_diff(raw, u, p, gs, ge, gstrand, ulim, cutoff, border, outdir, padding
 
         savelists(out, outdir)
 
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -337,16 +317,6 @@ def savelists(out, outdir):
 
     logid = scriptname+'.savelist: '
     try:
-        #if not os.path.isfile(os.path.abspath(os.path.join(outdir, 'Collection_unpaired.bed.gz'))):
-        #    with gzip.open(os.path.abspath(os.path.join(outdir, 'Collection_unpaired.bed.gz')), 'ab') as o:
-        #        o.write(bytes('\n'.join(out['u']),encoding='UTF-8'))
-        #        o.write(bytes('\n',encoding='UTF-8'))
-        #
-        #if not os.path.isfile(os.path.abspath(os.path.join(outdir, 'Collection_paired.bed.gz'))):
-        #    with gzip.open(os.path.abspath(os.path.join(outdir, 'Collection_paired.bed.gz')), 'ab') as o:
-        #        o.write(bytes('\n'.join(out['p']),encoding='UTF-8'))
-        #        o.write(bytes('\n',encoding='UTF-8'))
-        #[str(chrom), str(gpos), str(gend), str(goi) + '|' + str(cons) + '|' + str(gcons), str(uc[pos]), str(strand), str(dist), str(noc[pos]), str(accdiff), str(nrgdiff), str(kd), str(zscore)]
         if len(out['u']) > 0:
             with gzip.open(os.path.abspath(os.path.join(outdir, 'Collection_unpaired.bed.gz')), 'ab') as o:
                 o.write(bytes('\n'.join(out['u']),encoding='UTF-8'))
@@ -355,36 +325,59 @@ def savelists(out, outdir):
             with gzip.open(os.path.abspath(os.path.join(outdir, 'Collection_paired.bed.gz')), 'ab') as o:
                 o.write(bytes('\n'.join(out['p']),encoding='UTF-8'))
                 o.write(bytes('\n',encoding='UTF-8'))
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
             )
         log.error(logid+''.join(tbe.format()))
 
+
+def main(args):
+    try:
+        #  Logging configuration
+        logdir = args.logdir
+        ts = str(datetime.datetime.now().strftime("%Y%m%d_%H_%M_%S_%f"))
+        logfile = str.join(os.sep,[os.path.abspath(logdir),scriptname+'_'+ts+'.log'])
+        loglevel = args.loglevel
+
+        makelogdir(logdir)
+        makelogfile(logfile)
+
+        queue = multiprocessing.Manager().Queue(-1)
+        listener = multiprocessing.Process(target=listener_process, args=(queue, listener_configurer, logfile, loglevel))
+        listener.start()
+
+        worker_configurer(queue, loglevel)
+
+        log.info(logid+'Running '+scriptname+' on '+str(args.procs)+' cores.')
+        log.info(logid+'CLI: '+sys.argv[0]+' '+'{}'.format(' '.join( [shlex.quote(s) for s in sys.argv[1:]] )))
+
+        screen_genes(queue, worker_configurer, loglevel, args.pattern, args.cutoff, args.border, args.ulimit, args.procs, args.roi, args.outdir, args.dir, args.genes, args.padding)
+
+        queue.put_nowait(None)
+        listener.join()
+
+
+    except Exception:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+            exc_type, exc_value, exc_tb,
+        )
+        log.error(logid+''.join(tbe.format()))
+
+
 ####################
 ####    MAIN    ####
 ####################
-
 if __name__ == '__main__':
 
     logid = scriptname+'.main: '
     try:
-        args=parseargs()
-        logfile = 'LOGS/'+scriptname+'.log'
-        log = setup_multiprocess_logger(name=scriptname, log_file=logfile, filemode='a', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M')
-        log = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M')
-        log.setLevel(args.loglevel)
+        args=parseargs_collectpl()
+        main(args)
 
-        if args.dir != '':
-            args.genes = os.path.abspath(args.genes)
-            os.chdir(os.path.abspath(args.dir))
-
-        log.info(logid+'Running '+scriptname+' on '+str(args.procs)+' cores')
-        log.info(logid+'CLI: '+sys.argv[0]+'{}'.format(' '.join( [shlex.quote(s) for s in sys.argv[1:]] )))
-
-        screen_genes(args.pattern, args.cutoff, args.border, args.ulimit, args.procs, args.roi, args.outdir, args.genes, args.padding)
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,

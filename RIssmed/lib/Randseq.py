@@ -8,9 +8,9 @@
 # Created: Tue Jul 11 13:29:38 2017 (+0200)
 # Version:
 # Package-Requires: ()
-# Last-Updated: Wed Oct  2 11:47:03 2019 (+0200)
+# Last-Updated: Tue Sep  1 10:14:44 2020 (+0200)
 #           By: Joerg Fallmann
-#     Update #: 167
+#     Update #: 174
 # URL:
 # Doc URL:
 # Keywords:
@@ -60,18 +60,18 @@ from logger import makelogdir, setup_logger
 makelogdir('LOGS')
 # Define loggers
 scriptname=os.path.basename(__file__)
-log = setup_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='WARNING')
 
 def parseargs():
     parser = argparse.ArgumentParser(description='Generate random sequences of length l, if needed with gc content of g.')
     parser.add_argument("-l", "--length", type=int, default=100, help='Length of randseq')
     parser.add_argument("-g", "--gc", type=int, help='GC content, needs to be %2==0 or will be rounded')
     parser.add_argument("-n", "--number", type=int, default=1, help='Number of random seqs to generate')
+    parser.add_argument("-o", "--outfile", type=str, default='Random', help='Name of output file for random sequences')
     parser.add_argument("-a", "--alphabet", type=str, default='AUCG', help='alphabet for random seqs')
     parser.add_argument("-v", "--verbosity", type=int, default=0, choices=[0, 1, 2], help="increase output verbosity")
     return parser.parse_args()
 
-def createrandseq(length, gc, number, alphabet, verbosity=False):
+def createrandseq(length, gc, number, alphabet, outfile='Random', verbosity=False):
     try:
         nucs = list(alphabet)
         seqs=[]
@@ -87,7 +87,7 @@ def createrandseq(length, gc, number, alphabet, verbosity=False):
                         occ.append(rest*length/100)
                 probs = iter(occ)
                 seq = weightedrandseq(nucs, probs, length)
-                header = ">Seq{i}{gc}:random:nochrom:(.)\n".format(i=i+1,gc=gc)
+                header = ">Seq{i}_{gc}:random:nochrom:(.)\n".format(i=i+1,gc=gc)
 
             else:
                 seq = randseq(alphabet, length)
@@ -96,7 +96,7 @@ def createrandseq(length, gc, number, alphabet, verbosity=False):
             final = (''.join(seq))
             seqs.append(str("{header}{final}".format(header=header, final=final)))
         return seqs
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -109,7 +109,7 @@ def randseq(items, length):
         for i in range(length):
             l += str(''.join(choice(items)))
         return str(l)
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -130,7 +130,7 @@ def weightedrandseq(items, probs , length):
 
         shuffle(seq)
         return seq
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
@@ -143,12 +143,13 @@ def weightedrandseq(items, probs , length):
 if __name__ == '__main__':
     try:
         args=parseargs()
-        rand = "\n".join(createrandseq(args.length, args.gc, args.number, args.alphabet, args.verbosity))
+        log = setup_logger(name='', log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level='WARNING')
+        rand = "\n".join(createrandseq(args.length, args.gc, args.number, args.alphabet, args.outfile, args.verbosity))
         seq = StringIO(rand)
-        o=gzip.open('Random.fa.gz','wb')
+        o=gzip.open(args.outfile+'.fa.gz','wb')
         o.write(bytes(rand,encoding='UTF-8'))
         o.close()
-    except Exception as err:
+    except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,

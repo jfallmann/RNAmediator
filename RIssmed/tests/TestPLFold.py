@@ -128,7 +128,7 @@ def fold(sequence, window, span, region, unconstraint, unpaired, paired, length,
 			if hasattr(RNA, '__all__')
 			else {k: v for (k, v) in RNA.__dict__.items() if not k.startswith('_')
 				  })
-	except ImportError as err:
+	except ImportError:
 		print('Error:', err)
 
 	if ( plot == '0' and not save):
@@ -220,7 +220,7 @@ def fold(sequence, window, span, region, unconstraint, unpaired, paired, length,
 					# Create the process, and connect it to the worker function
 					try:
 						constrain_temp(fa, temp, window, span, region, an, animations, xs, save, outdir, plot)
-					except Exception as err:
+					except Exception:
 						exc_type, exc_value, exc_tb = sys.exc_info()
 						tbe = tb.TracebackException(
 							exc_type, exc_value, exc_tb,
@@ -281,7 +281,7 @@ def fold(sequence, window, span, region, unconstraint, unpaired, paired, length,
 					# Create the process, and connect it to the worker function
 					try:
 						constrain_temp(fa, temp, window, span, region, an, animations, xs, save, outdir, plot)
-					except Exception as err:
+					except Exception:
 						exc_type, exc_value, exc_tb = sys.exc_info()
 						tbe = tb.TracebackException(
 							exc_type, exc_value, exc_tb,
@@ -396,7 +396,7 @@ def fold(sequence, window, span, region, unconstraint, unpaired, paired, length,
 							if not os.path.exists('StruCons_'+goi+'_'+chrom+'_'+strand+'_'+cons+'_'+paired+'_'+str(window)+'.gz') and not os.path.exists('StruCons_'+goi+'_'+chrom+'_'+strand+'_'+cons+'_'+unpaired+'_'+str(window)+'.gz'):
 								try:
 									constrain_seq(fa, fstart, fend, conslength, const, str(fstart)+'-'+str(fend), window, span, region, an, animations, xs, paired, unpaired, save, outdir, plot, data)
-								except Exception as err:
+								except Exception:
 									exc_type, exc_value, exc_tb = sys.exc_info()
 									tbe = tb.TracebackException(
 										exc_type, exc_value, exc_tb,
@@ -405,7 +405,7 @@ def fold(sequence, window, span, region, unconstraint, unpaired, paired, length,
 										print(''.join(tbe.format()), file=h)
 							try:
 								constrain_seq_paired(fa, fstart, fend, start, end, conslength, const, cons, window, span, region, an, animations, xs, paired, unpaired, save, outdir, plot, data)
-							except Exception as err:
+							except Exception:
 								exc_type, exc_value, exc_tb = sys.exc_info()
 								tbe = tb.TracebackException(
 									exc_type, exc_value, exc_tb,
@@ -415,7 +415,7 @@ def fold(sequence, window, span, region, unconstraint, unpaired, paired, length,
 						else:
 							try:
 								constrain_seq(fa, start, end, conslength, const, cons, window, span, region, an, animations, xs, paired, unpaired, save, outdir, plot, data)
-							except Exception as err:
+							except Exception:
 								exc_type, exc_value, exc_tb = sys.exc_info()
 								tbe = tb.TracebackException(
 									exc_type, exc_value, exc_tb,
@@ -717,7 +717,7 @@ def print_up(data=None, seqlength=None, region=None):
 				data[i][x] = round(data[i][x],7)
 			ups+=str(i+1)+"\t"+str(data[i][x])+"\n"
 		return ups
-	except Exception as err:
+	except Exception:
 		exc_type, exc_value, exc_tb = sys.exc_info()
 		tbe = tb.TracebackException(
 			exc_type, exc_value, exc_tb,
@@ -739,7 +739,7 @@ def print_region_up(data=None, seqlength=None, region=None):
 
 			ups+=str(i+1)+"\t"+"\t".join(map(str,data[i][1:region+1]))+"\n"
 		return ups
-	except Exception as err:
+	except Exception:
 		exc_type, exc_value, exc_tb = sys.exc_info()
 		tbe = tb.TracebackException(
 			exc_type, exc_value, exc_tb,
@@ -764,7 +764,7 @@ def up_to_array(data=None, region=None, seqlength=None):
 				entries.append(round(data[i][region],7))
 
 		return np.array(entries)
-	except Exception as err:
+	except Exception:
 		exc_type, exc_value, exc_tb = sys.exc_info()
 		tbe = tb.TracebackException(
 			exc_type, exc_value, exc_tb,
@@ -783,7 +783,7 @@ def npprint(a, o=None):#, format_string ='{0:.2f}'):
 			o.write(bytes(out,encoding='UTF-8'))
 		else:
 			print(out)
-	except Exception as err:
+	except Exception:
 		exc_type, exc_value, exc_tb = sys.exc_info()
 		tbe = tb.TracebackException(
 			exc_type, exc_value, exc_tb,
@@ -812,7 +812,7 @@ def write_unconstraint(fa, unconstraint, data, region, window, outdir):
 		else:
 			print (print_up(data,len(fa.seq),region))
 		return 1
-	except Exception as err:
+	except Exception:
 		exc_type, exc_value, exc_tb = sys.exc_info()
 		tbe = tb.TracebackException(
 			exc_type, exc_value, exc_tb,
@@ -875,7 +875,7 @@ def write_constraint(fa, paired, unpaired, data_u, data_p, constrain, region, di
 			else:
 				npprint(diff_np)
 		return 1
-	except Exception as err:
+	except Exception:
 		exc_type, exc_value, exc_tb = sys.exc_info()
 		tbe = tb.TracebackException(
 			exc_type, exc_value, exc_tb,
@@ -906,7 +906,7 @@ def write_temp(fa, temp, data, region, diff, window, outdir):
 				o.close()
 		os.chdir(bakdir)
 		return 1
-	except Exception as err:
+	except Exception:
 		exc_type, exc_value, exc_tb = sys.exc_info()
 		tbe = tb.TracebackException(
 			exc_type, exc_value, exc_tb,
@@ -928,7 +928,7 @@ def read_precalc_fold(data, name, fa):
 					data[int(cells[0])-1].append([])
 					data[int(cells[0])-1][a] = float(cells[a])
 		return data
-	except Exception as err:
+	except Exception:
 		exc_type, exc_value, exc_tb = sys.exc_info()
 		tbe = tb.TracebackException(
 			exc_type, exc_value, exc_tb,
@@ -948,7 +948,7 @@ def checkexisting(fa, paired, unpaired, cons, region, window, outdir):
 			return True
 		else:
 			return False
-	except Exception as err:
+	except Exception:
 		exc_type, exc_value, exc_tb = sys.exc_info()
 		tbe = tb.TracebackException(
 			exc_type, exc_value, exc_tb,
