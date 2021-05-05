@@ -1,0 +1,114 @@
+
+#wrapper .Select-value {
+  color: black;
+  border-radius: 5px;
+  margin: auto;
+  width: 100%;
+}
+
+#wrapper .Select-multi-value-wrapper{
+}
+
+#wrapper .Select-input {
+  width: 100%;
+}
+#wrapper .Select-value-label {
+}
+
+#wrapper .Select-control {
+    width: 100% !important;
+}
+#wrapper .VirtualizedSelectFocusedOption {
+  background-color: #ffeedd;
+  color: black;
+}
+
+.VirtualizedSelectOption {
+    background-color: primary;
+    color: black;
+}
+
+#test {
+    color: red;
+    font-size: 50px;
+}
+
+#wrapper #filter-table {
+    text-align: middle;
+    border-radius: 5px;
+}
+
+#wrapper #filter-table .table-header {
+    background-color: #98a2ac;
+    color: black;
+    border-radius: 5px;
+    text-align: center;
+    font-weight: 1000;
+    margin: auto;
+}
+
+#wrapper .plotly-graph {
+	background-color:  #323232;
+	width: 99%;
+	border-radius: 10px;
+	border-color: black;
+	padding: 20px;
+	border-width: 2px;
+	border-style: solid;
+	margin: auto;
+	margin-top: 5px;
+	margin-bottom: 5px;
+
+}
+#wrapper .databox {
+	background-color:  #323232;
+	width: 99%;
+	border-radius: 10px;
+	border-color: black;
+	padding: 20px;
+	border-width: 2px;
+	border-style: solid;
+	margin: auto;
+	margin-top: 5px;
+	margin-bottom: 5px;
+
+
+}
+
+#wrapper .page-header {
+	background-color:  #323232;
+	width: 99%;
+	border-radius: 10px;
+	border-color: black;
+	padding: 20px;
+	border-width: 2px;
+	border-style: solid;
+	margin: auto;
+	margin-top: 5px;
+	margin-bottom: 5px;
+
+}
+#wrapper .filter_table_interactive {
+    background-color: white;
+    color: black;
+    border-radius: 5px;
+    margin: auto;
+    text-align: center;
+}
+
+
+
+@media screen and (max-width:1080px) {
+    table tr > *{
+        display: block;
+        padding: 5px;
+        height: 45px;
+    }
+    table tr {
+        display: table-cell;
+        vertical-align: top;
+        padding: 5px;
+        height: 45px;
+
+    }
+}
