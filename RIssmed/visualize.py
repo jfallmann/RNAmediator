@@ -1,7 +1,7 @@
-import gzip
-from typing import Dict, List
 import csv
+import gzip
 import sqlite3
+from typing import Dict, List
 
 import dash  # (version 1.12.0) pip install dash
 import dash_bootstrap_components as dbc
@@ -14,6 +14,18 @@ import plotly.io as pio
 from dash.dependencies import Input, Output
 
 PLOTLY_COLORS = px.colors.qualitative.Light24
+COLUMN_NAMES = {'Chr': "VARCHAR(20)",
+                'Start': "INT",
+                'End': "INT",
+                'Fold_Constraint': "VARCHAR(20)",
+                'Accessibility_difference': "REAL",
+                'Strand': "VARCHAR(2)",
+                'Distance_to_constraint': "INT",
+                'Accessibility_no_constraint': "REAL",
+                'Accessibility_constraint': "REAL",
+                'Energy_Difference': "REAL",
+                'Kd_change': "REAL",
+                'Zscore': "REAL"}
 pio.templates["plotly_white"].update({"layout": {
     # e.g. you want to change the background to transparent
     'paper_bgcolor': 'rgba(0,0,0,0)',
@@ -22,12 +34,24 @@ pio.templates["plotly_white"].update({"layout": {
 }})
 
 
-def read_data(file):
+def read_data(file: str):
     return pd.read_csv(file, delimiter='\t',
-                       names=['Chr', 'Start', 'End', 'Constraint', 'Accessibility_difference', 'Strand',
-                              'Distance_to_constraint', 'Accessibility_no_constraint', 'Accessibility_constraint',
-                              'Energy_Difference', 'Kd_change',
-                              'Zscore'])  # ,'ChrBS','StartBS','EndBS','NameBS','ScoreBS','StrandBS'])
+                       names=list(COLUMN_NAMES))  # ,'ChrBS','StartBS','EndBS','NameBS','ScoreBS','StrandBS'])
+
+
+def csv_to_sqlite(file: str, db_path: str):
+    con = sqlite3.connect(db_path)
+    cur = con.cursor()
+    names = [f"{key} {COLUMN_NAMES[key]}" for key in COLUMN_NAMES]
+    columns = ", ".join(names)
+    call = f'CREATE TABLE IF NOT EXISTS test ( {columns} ) '
+    cur.execute(call)
+    with open(file) as handle:
+        csv_reader = csv.reader(handle, delimiter="\t", )
+        for row in csv_reader:
+            cur.execute("INSERT INTO test VALUES (?,?,?,?,?,?,?,?,?,?,?,?);", row)
+    con.commit()
+    con.close()
 
 
 def main():
@@ -86,11 +110,19 @@ def get_app_layout(app: dash.Dash, df: pd.DataFrame):
 
 def selectors(df: pd.DataFrame):
     gene_id_opts = [{"label": entry, "value": entry} for entry in sorted(df["Chr"].unique())]
-    constraint_opts = [{"label": entry, "value": entry} for entry in sorted(df["Constraint"].unique())]
+    constraint_opts = [{"label": entry, "value": entry} for entry in sorted(df["Fold_Constraint"].unique())]
     return gene_id_opts, constraint_opts
+
+def update_graph_via_sql(slct_chrom, slct_constraint):
+    conn = sqlite3.connect("testfile.db")
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM tasks WHERE Fold_Contraint=?", (slct_constraint))
+    rows = cur.fetchall()
 
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.DARKLY])
+csv_to_sqlite("testfile.bed", "testfile.db")
+update_graph_via_sql()
 df = read_data("testfile.bed")
 get_app_layout(app, df)
 
@@ -110,13 +142,17 @@ def update_graph(slct_chrom, slct_constraint):
     if type(slct_constraint) == str:
         slct_constraint = [slct_constraint]
     for col_idx, element in enumerate(slct_constraint):
-        pdf = dff[dff["Constraint"] == element]
+        pdf = dff[dff["Fold_Constraint"] == element]
         x = pdf["Distance_to_constraint"]
         y = pdf["Accessibility_difference"]
         fig.add_trace(go.Scatter(x=x, y=y, line={"width": 4, "color": PLOTLY_COLORS[col_idx]}))
     fig.layout.template = "plotly_white"
     fig.update_yaxes(range=[-1, 1])
     return [header, fig]
+
+
+
+
 
 
 if __name__ == '__main__':
