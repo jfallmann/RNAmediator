@@ -336,7 +336,7 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                                     f = gzip.open(constrain, 'rt')
                                 else:
                                     f = open(constrain, 'rt')
-                                constraintlist = readConstraintsCSV(f)
+                                constraintlist = readConstraintsFromCSV(f)
                             else:
                                 if '.gz' in constrain:
                                     f = gzip.open(constrain, 'rt')
