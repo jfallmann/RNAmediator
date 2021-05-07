@@ -1070,8 +1070,13 @@ def main(args):
 
         makelogdir(logdir)
         makelogfile(logfile)
-
-        set_start_method('spawn')  # multiprocessing spawn set
+        try:
+            set_start_method('spawn')  # multiprocessing spawn set
+        except RuntimeError as e:
+            if str(e) == "context has already been set":
+                pass
+            else:
+                sys.exit()
         queue = multiprocessing.Manager().Queue(-1)
         listener = multiprocessing.Process(target=listener_process, args=(queue, listener_configurer, logfile, loglevel))
         listener.start()
