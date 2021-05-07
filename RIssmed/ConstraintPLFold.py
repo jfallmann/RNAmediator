@@ -70,7 +70,7 @@
 import os
 import sys
 import multiprocessing
-from multiprocessing import set_start_method, get_context
+from multiprocessing import set_start_method, get_context, get_start_method
 from io import StringIO
 import gzip
 import importlib
@@ -1070,13 +1070,8 @@ def main(args):
 
         makelogdir(logdir)
         makelogfile(logfile)
-        try:
-            set_start_method('spawn')  # multiprocessing spawn set
-        except RuntimeError as e:
-            if str(e) == "context has already been set":
-                pass
-            else:
-                sys.exit()
+        if get_start_method(allow_none=True) != "spawn":
+            set_start_method("spawn")
         queue = multiprocessing.Manager().Queue(-1)
         listener = multiprocessing.Process(target=listener_process, args=(queue, listener_configurer, logfile, loglevel))
         listener.start()
