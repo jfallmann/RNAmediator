@@ -41,8 +41,8 @@ def default_args():
 def compare_output_folders(test_path: str, expected_path: str):
     assert os.path.exists(expected_path), "expected result does not exist"
     assert os.path.exists(test_path), "test result was not produced"
-    tests = os.listdir(test_path)
-    for element in tests:
+    results = os.listdir(test_path)
+    for element in results:
         test_el = os.path.join(test_path, element)
         expected_el = os.path.join(expected_path, element)
         assert os.path.exists(test_el), f"test: {test_el} does not exist"
