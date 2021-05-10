@@ -3,12 +3,18 @@ from argparse import Namespace
 import numpy as np
 import pytest
 import gzip
-from RIssmed.ConstraintPLFold import main as pl_main
-
 import sys
 
-
 TESTPATH = os.path.dirname(os.path.abspath(__file__))
+PARPATH = os.path.dirname(TESTPATH)
+sys.path.append(PARPATH)
+
+from RIssmed.ConstraintPLFold import main as pl_main
+
+
+
+
+
 
 
 @pytest.fixture()
