@@ -87,12 +87,12 @@ import RNA
 # Logging
 import datetime
 import logging
-from RIssmed.lib.logger import makelogdir, makelogfile, listener_process, listener_configurer, worker_configurer
+from lib.logger import makelogdir, makelogfile, listener_process, listener_configurer, worker_configurer
 # load own modules
-from RIssmed.lib.Collection import *
-from RIssmed.lib.FileProcessor import *
-from RIssmed.lib.RNAtweaks import *
-from RIssmed.lib.NPtweaks import *
+from lib.Collection import *
+from lib.FileProcessor import *
+from lib.RNAtweaks import *
+from lib.NPtweaks import *
 
 
 log = logging.getLogger(__name__)  # use module name
