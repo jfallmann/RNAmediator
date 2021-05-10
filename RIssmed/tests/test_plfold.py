@@ -4,17 +4,10 @@ import numpy as np
 import pytest
 import gzip
 import sys
-
 TESTPATH = os.path.dirname(os.path.abspath(__file__))
 PARPATH = os.path.dirname(TESTPATH)
 sys.path.append(PARPATH)
-
 from RIssmed.ConstraintPLFold import main as pl_main
-
-
-
-
-
 
 
 @pytest.fixture()
@@ -111,7 +104,7 @@ def multi_constraint_args(default_args):
 @pytest.fixture()
 def sliding_args(default_args):
     default_args.window = 100
-    default_args.procs = 4  # TODO: change number  of procs upon deployment
+    default_args.procs = os.cpu_count() - 1  # TODO: change number  of procs upon deployment
     default_args.conslength = 7
     default_args.region = 7
     default_args.unpaired = "unpaired"
