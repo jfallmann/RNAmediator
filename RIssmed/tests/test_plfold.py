@@ -5,10 +5,15 @@ import pytest
 import gzip
 from RIssmed.ConstraintPLFold import main as pl_main
 
+import sys
+
+
+TESTPATH = os.path.dirname(os.path.abspath(__file__))
+
 
 @pytest.fixture()
 def default_args():
-    args = Namespace(sequence="test_single.fa",
+    args = Namespace(sequence=os.path.join(TESTPATH, "test_single.fa"),
                      window=240,
                      span=60,
                      region=1,
@@ -66,7 +71,7 @@ def compare_output_folders(test_path: str, expected_path: str):
 
 @pytest.fixture()
 def single_constraint_args(default_args):
-    default_args.constrain = "test_single_constraint.bed"
+    default_args.constrain = os.path.join(TESTPATH, "test_single_constraint.bed")
     default_args.window = 100
     default_args.procs = 1  # TODO: change number  of procs upon deployment
     default_args.conslength = 7
@@ -74,7 +79,7 @@ def single_constraint_args(default_args):
     default_args.unpaired = "unpaired"
     default_args.paired = "paired"
     default_args.unconstrained = "raw"
-    default_args.outdir = "single_constraint_test"
+    default_args.outdir = os.path.join(TESTPATH, "single_constraint_test")
     default_args.save = 1
     default_args.logdir = "LOG_SINGLE"
     return default_args
@@ -82,8 +87,8 @@ def single_constraint_args(default_args):
 
 @pytest.fixture()
 def multi_constraint_args(default_args):
-    default_args.sequence = "test.fa.gz"
-    default_args.constrain = "test_constraints.bed"
+    default_args.sequence = os.path.join(TESTPATH, "test.fa.gz")
+    default_args.constrain = os.path.join(TESTPATH,  "test_constraints.bed")
     default_args.window = 100
     default_args.procs = 1  # TODO: change number  of procs upon deployment
     default_args.conslength = 7
@@ -91,9 +96,9 @@ def multi_constraint_args(default_args):
     default_args.unpaired = "unpaired"
     default_args.paired = "paired"
     default_args.unconstrained = "raw"
-    default_args.outdir = "multi_constraint_test"
+    default_args.outdir = os.path.join(TESTPATH, "multi_constraint_test")
     default_args.save = 10
-    default_args.logdir = "LOG_MULTI"
+    default_args.logdir = os.path.join(TESTPATH, "LOG_MULTI")
     return default_args
 
 
@@ -106,34 +111,34 @@ def sliding_args(default_args):
     default_args.unpaired = "unpaired"
     default_args.paired = "paired"
     default_args.unconstrained = "raw"
-    default_args.outdir = "sliding_test"
+    default_args.outdir = os.path.join(TESTPATH, "sliding_test")
     return default_args
 
 
 def test_data_available():
-    assert os.path.exists("test.fa.gz"), "Test data not available"
-    assert os.path.exists("test_single.fa"), "Test data not available"
-    assert os.path.isfile("test_single_constraint.bed")
-    assert os.path.isfile("test_constraints.bed")
+    assert os.path.exists(os.path.join(TESTPATH, "test.fa.gz")), "Test data not available"
+    assert os.path.exists(os.path.join(TESTPATH, "test_single.fa")), "Test data not available"
+    assert os.path.isfile(os.path.join(TESTPATH, "test_single_constraint.bed"))
+    assert os.path.isfile(os.path.join(TESTPATH, "test_constraints.bed"))
 
 
 def test_single_constraint(single_constraint_args):
     pl_main(single_constraint_args)
-    expected_path = "single_constraint_result"
+    expected_path = os.path.join(TESTPATH, "single_constraint_result")
     test_path = single_constraint_args.outdir
     compare_output_folders(test_path=test_path, expected_path=expected_path)
 
 
 def test_sliding_window(sliding_args):
     pl_main(sliding_args)  # TODO: maybe change output directory to tmpdir
-    expected_path = "sliding_result"
+    expected_path = os.path.join(TESTPATH, "sliding_result")
     test_path = sliding_args.outdir
     compare_output_folders(test_path=test_path, expected_path=expected_path)
 
 
 def test_multi_constraint(multi_constraint_args):
     pl_main(multi_constraint_args)
-    expected_path = "multi_constraint_result"
+    expected_path = os.path.join(TESTPATH, "multi_constraint_result")
     test_path = multi_constraint_args.outdir
     compare_output_folders(test_path=test_path, expected_path=expected_path)
 
