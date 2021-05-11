@@ -126,6 +126,7 @@ def test_single_constraint(single_constraint_args):
     expected_path = os.path.join(TESTPATH, "single_constraint_result")
     test_path = single_constraint_args.outdir
     compare_output_folders(test_path=test_path, expected_path=expected_path)
+    os.system(f"rm {test_path} -r")
 
 
 def test_sliding_window(sliding_args):
@@ -133,6 +134,8 @@ def test_sliding_window(sliding_args):
     expected_path = os.path.join(TESTPATH, "sliding_result")
     test_path = sliding_args.outdir
     compare_output_folders(test_path=test_path, expected_path=expected_path)
+    os.system(f"rm {test_path} -r")
+
 
 
 def test_multi_constraint(multi_constraint_args):
@@ -140,6 +143,8 @@ def test_multi_constraint(multi_constraint_args):
     expected_path = os.path.join(TESTPATH, "multi_constraint_result")
     test_path = multi_constraint_args.outdir
     compare_output_folders(test_path=test_path, expected_path=expected_path)
+    os.system(f"rm {test_path} -r")
+
 
 
 
