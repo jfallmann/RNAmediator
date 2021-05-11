@@ -111,13 +111,13 @@ def checklog():
 def makelogdir(logdir):
     if not os.path.isabs(logdir):
         logdir = os.path.abspath(logdir)
-        if not os.path.exists(logdir):
-            try:
-                os.makedirs(logdir)
-            except OSError:
-                # If directory has already been created or is inaccessible
-                if not os.path.exists(logdir):
-                    sys.exit('Problem creating directory '+logdir)
+    if not os.path.exists(logdir):
+        try:
+            os.makedirs(logdir)
+        except OSError:
+            # If directory has already been created or is inaccessible
+            if not os.path.exists(logdir):
+                sys.exit('Problem creating directory '+logdir)
 
 
 def makelogfile(logfile):
