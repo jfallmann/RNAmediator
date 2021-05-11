@@ -40,7 +40,7 @@ def default_args():
                      pattern="",
                      genes="",
                      verbosity=0,
-                     loglevel="INFO",
+                     loglevel="DEBUG",
                      logdir="LOGS"
                      )
 
@@ -75,12 +75,16 @@ def compare_output_folders(test_path: str, expected_path: str):
 
 
 def compare_logs(test_log: str, expected_log: str):
-    with open(expected_log) as expected_file, open(test_log) as test_file:
+    expected_lines = set()
+    with open(expected_log) as expected_file:
         for line in expected_file:
             expected_line = " ". join(line.split(" ")[4:])
-            test_line = " ".join(test_file.readline().split(" ")[4:])
-            if "CLI:" and "JetBrains" not in expected_line and "Running ConstraintPLFold on" not in expected_line:
-                assert expected_line == test_line
+            expected_lines.add(expected_line)
+    with open(test_log) as test_file:
+        for line in test_file:
+            test_line = " ". join(line.split(" ")[4:])
+        if "CLI:" and "JetBrains" not in test_line and "Running ConstraintPLFold on" not in test_line:
+            assert test_line in expected_lines
 
 
 
