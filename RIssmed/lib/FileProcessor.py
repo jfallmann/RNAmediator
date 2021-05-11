@@ -57,7 +57,7 @@ import gzip
 from collections import defaultdict
 # own
 import logging
-from RIssmed.lib.Collection import *
+from lib.Collection import *
 
 ####################
 # FILE processing  #

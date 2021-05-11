@@ -56,7 +56,7 @@ import math
 from collections import defaultdict
 import logging
 # own
-from RIssmed.lib.Collection import isinvalid
+from lib.Collection import isinvalid
 
 ####################
 # ViennaRNA helper

@@ -53,7 +53,7 @@ import traceback as tb
 import numpy as np
 # own
 import logging
-from RIssmed.lib.Collection import *
+from lib.Collection import *
 
 ####################
 # Numpy processing #
