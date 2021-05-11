@@ -1,4 +1,4 @@
-# RIssmed  [![GitHub](https://img.shields.io/github/tag/jfallmann/RIssmed.svg)](https://github.com/jfallmann/RIssmed) [![Build Status](https://github.com/jfallmann/RIssmed/.github/workflows/python-app.yml/badge.svg?branch=master)]() [![Bioconda](https://anaconda.org/bioconda/RIssmed/badges/version.svg)](https://anaconda.org/bioconda/RIssmed)
+# RIssmed  [![GitHub](https://img.shields.io/github/tag/jfallmann/RIssmed.svg)](https://github.com/jfallmann/RIssmed) [![Build Status](https://github.com/jfallmann/RIssmed/.github/workflows/python-app.yml/badge.svg?branch=main)](https://github.com/jfallmann/RIssmed/actions) [![Bioconda](https://anaconda.org/bioconda/RIssmed/badges/version.svg)](https://anaconda.org/bioconda/RIssmed)
 
 The RNA Interaction via secondary structure mediation (RIssmed) tool suite
 analyses the change of RNA secondary structure upon binding other molecules.
@@ -16,3 +16,23 @@ Activate the environment in which RIssmed was installed to use it:
     conda activate RIssmed
 
 
+### <u>Usage</u>
+    
+RIssmed provides different tools to answer different research questions.
+After installation with bioconda, activating the environment
+
+CalcTempDiffs.py
+
+CollectConsResults.py
+
+ConstraintFold.py
+
+CollectWindowResults.py 
+
+ConstraintPLFold.py
+
+FoldWindows.py 
+
+risvis.py
+
+    
