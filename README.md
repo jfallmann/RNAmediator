@@ -18,21 +18,71 @@ Activate the environment in which RIssmed was installed to use it:
 
 ### <u>Usage</u>
     
-RIssmed provides different tools to answer different research questions.
-After installation with bioconda, activating the environment
+RIssmed provides different tools to answer different research questions. We will discuss the target application of the tools
+and the required input in the following points. 
 
-CalcTempDiffs.py
+* CalcTempDiffs.py
 
-CollectConsResults.py
+    Analyses how the positions-wise probability of base-pairing changes for an RNA sequence upon temperature change. 
+    
+    * Input: Sequence string
+    
+    * Output: Plot of relative position-wise probability change
+    
 
-ConstraintFold.py
+* CollectConsResults.py
+ 
+    Computes statistics for change of position-wise probability of being base-paired, with binding constraint for a set of provided genes.
+    
+    * Input:
+    
+    * Output:
 
-CollectWindowResults.py 
 
-ConstraintPLFold.py
+* CollectWindowResults.py 
 
-FoldWindows.py 
+    Computes statistics for change of position-wise probability of being base-paired, using windows, with binding constraint for a set of provided genes.
+    
+    * Input:
+    
+    * Output:
 
-risvis.py
+
+
+* ConstraintFold.py
+    
+    Computes RNA secondary structure prediction with defined hard binding constraint for a set of sequences.
+    
+    * Input:
+    
+    * Output:
+
+
+* ConstraintPLFold.py
+
+    Computes position-wise probability of being base-paired, using windows, with hard binding constraint for a set of sequences.
+
+    * Input:
+    
+    * Output:
+
+
+* FoldWindows.py 
+
+    Calculate base pairing probs of given seqs or random seqs for given window size, span and region
+    
+    * Input:
+    
+    * Output:
+
+
+* risvis.py
+
+    Visualize base pairing probabilties before and after constraining.
+    
+    * Input:
+    
+    * Output:
+
 
     
