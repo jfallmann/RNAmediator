@@ -14,6 +14,7 @@ from RIssmed.ConstraintPLFold import main as pl_main
 EXPECTED_LOGS = os.path.join(TESTPATH, "Expected_Logs")
 EXPECTED_RESULTS = os.path.join(TESTPATH, "Expected_Results")
 
+
 @pytest.fixture()
 def default_args():
     args = Namespace(sequence=os.path.join(TESTPATH, "test_single.fa"),
@@ -78,7 +79,8 @@ def compare_logs(test_log: str, expected_log: str):
         for line in expected_file:
             expected_line = " ". join(line.split(" ")[4:])
             test_line = " ".join(test_file.readline().split(" ")[4:])
-            assert expected_line == test_line
+            if "CLI:" and "JetBrains" not in expected_line and "Running ConstraintPLFold on" not in expected_line:
+                assert expected_line == test_line
 
 
 
@@ -103,7 +105,7 @@ def multi_constraint_args(default_args):
     default_args.sequence = os.path.join(TESTPATH, "test.fa.gz")
     default_args.constrain = os.path.join(TESTPATH, "test_constraints.bed")
     default_args.window = 100
-    default_args.procs = 1  # TODO: change number  of procs upon deployment
+    default_args.procs = os.cpu_count() - 1 or 1 # TODO: change number  of procs upon deployment
     default_args.conslength = 7
     default_args.region = 7
     default_args.unpaired = "unpaired"
@@ -118,7 +120,7 @@ def multi_constraint_args(default_args):
 @pytest.fixture()
 def sliding_args(default_args):
     default_args.window = 100
-    default_args.procs = os.cpu_count() - 1  # TODO: change number  of procs upon deployment
+    default_args.procs = os.cpu_count() - 1 or 1  # TODO: change number  of procs upon deployment
     default_args.conslength = 7
     default_args.region = 7
     default_args.unpaired = "unpaired"
