@@ -27,6 +27,7 @@ jobs:
         conda env create --file envs/rissmed.yaml
         export PATH="/usr/share/miniconda/bin:$PATH"
         conda init bash
+        source ~/.bashrc
         conda activate rissmed
 
     - name: Lint with flake8
@@ -39,5 +40,6 @@ jobs:
       run: |
         export PATH="/usr/share/miniconda/bin:$PATH"
         conda init bash
+        source ~/.bashrc
         conda activate rissmed
         pytest
