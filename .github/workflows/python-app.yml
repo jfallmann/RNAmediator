@@ -36,4 +36,5 @@ jobs:
         flake8 ./RIssmed/ConstraintPLFold.py --count --select=E9,F63,F7,F82 --show-source --statistics
     - name: Test with pytest
       run: |
+        source activate rissmed
         pytest
