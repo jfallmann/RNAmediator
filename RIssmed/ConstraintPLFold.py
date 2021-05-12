@@ -93,6 +93,7 @@ from lib.Collection import *
 from lib.FileProcessor import *
 from lib.RNAtweaks import *
 from lib.NPtweaks import *
+import errno
 
 
 log = logging.getLogger(__name__)  # use module name
