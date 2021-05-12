@@ -75,16 +75,16 @@ def compare_output_folders(test_path: str, expected_path: str):
 
 
 def compare_logs(test_log: str, expected_log: str):
-    expected_lines = set()
-    with open(expected_log) as expected_file:
-        for line in expected_file:
-            expected_line = " ". join(line.split(" ")[4:])
-            expected_lines.add(expected_line)
+    test_lines = set()
     with open(test_log) as test_file:
         for line in test_file:
             test_line = " ". join(line.split(" ")[4:])
+            test_lines.add(test_line)
+    with open(expected_log) as expected_file:
+        for line in expected_file:
+            expected_line = " ". join(line.split(" ")[4:])
         if "CLI:" and "JetBrains" not in test_line and "Running ConstraintPLFold on" not in test_line:
-            assert test_line in expected_lines
+            assert expected_line in test_lines
 
 
 
