@@ -26,7 +26,9 @@ jobs:
         pip install pytest
         conda env create --file envs/rissmed.yaml
         export PATH="/usr/share/miniconda/bin:$PATH"
-        $CONDA/bin/conda env update --file envs/rissmed.yaml --name base
+        conda init bash
+        conda activate rissmed
+
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
@@ -36,4 +38,6 @@ jobs:
     - name: Test with pytest
       run: |
         export PATH="/usr/share/miniconda/bin:$PATH"
+        conda init bash
+        conda activate rissmed
         pytest
