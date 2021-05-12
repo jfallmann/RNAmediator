@@ -26,7 +26,7 @@ jobs:
         pip install pytest
         conda env create --file envs/rissmed.yaml
         export PATH="/usr/share/miniconda/bin:$PATH"
-        conda activate rissmed
+        source activate rissmed
         
     - name: Lint with flake8
       run: |
