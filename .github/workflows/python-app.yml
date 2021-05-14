@@ -23,6 +23,8 @@ jobs:
         conda env update --file ./envs/rissmed.yaml
         pip install flake8
         pip install pytest
+        echo $CONDA_PREFIX
+        echo $CONDA_DEFAULT_ENV
 
     - name: Lint with flake8
       shell: bash -l {0}
@@ -35,3 +37,5 @@ jobs:
       shell: bash -l {0}
       run: |
         pytest
+        echo $CONDA_PREFIX
+        echo $CONDA_DEFAULT_ENV
