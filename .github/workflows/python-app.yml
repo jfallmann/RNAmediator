@@ -21,6 +21,7 @@ jobs:
       shell: bash -l {0}
       run: |
         conda env create --file ./envs/rissmed.yaml
+        export PATH="/usr/share/miniconda/bin:$PATH"
         source activate rissmed
         pip install flake8
         pip install pytest
@@ -39,6 +40,7 @@ jobs:
         echo $CONDA_DEFAULT_ENV
         which conda
         echo "_________________________________________________________________________________"
+        export PATH="/usr/share/miniconda/bin:$PATH"
         source activate rissmed
         echo "_________________________________________________________________________________"
         echo $CONDA_PREFIX
