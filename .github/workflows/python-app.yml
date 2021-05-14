@@ -22,7 +22,6 @@ jobs:
       run: |
         conda env create --file ./envs/rissmed.yaml
         export PATH="/usr/share/miniconda/bin:$PATH"
-        ls ~/
         conda activate rissmed
         pip install flake8
         pip install pytest
@@ -32,6 +31,8 @@ jobs:
     - name: Lint with flake8
       shell: bash -l {0}
       run: |
+        export PATH="/usr/share/miniconda/bin:$PATH"
+        conda activate rissmed
         # stop the build if there are Python syntax errors or undefined names
         flake8 ./RIssmed/ConstraintPLFold.py --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
@@ -39,8 +40,7 @@ jobs:
     - name: Test with pytest
       shell: bash -l {0}
       run: |
-        echo $CONDA_PREFIX
-        echo $CONDA_DEFAULT_ENV
+        export PATH="/usr/share/miniconda/bin:$PATH"
+        conda activate rissmed
         pytest
-        echo $CONDA_PREFIX
-        echo $CONDA_DEFAULT_ENV
+
