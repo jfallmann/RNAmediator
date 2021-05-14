@@ -2,14 +2,18 @@ import gzip
 import os
 import sys
 from argparse import Namespace
+from tempfile import TemporaryDirectory, NamedTemporaryFile
 
 import numpy as np
 import pytest
+import subprocess
 
 TESTPATH = os.path.dirname(os.path.abspath(__file__))
 PARPATH = os.path.dirname(TESTPATH)
 sys.path.append(PARPATH)
 from RIssmed.ConstraintPLFold import main as pl_main
+from RIssmed.ConstraintPLFold import fold_unconstraint
+from RIssmed.lib.RNAtweaks import up_to_array
 
 EXPECTED_LOGS = os.path.join(TESTPATH, "Expected_Logs")
 EXPECTED_RESULTS = os.path.join(TESTPATH, "Expected_Results")
@@ -176,3 +180,82 @@ def test_multi_constraint(multi_constraint_args):
     compare_logs(test_log=test_log, expected_log=expected_log)
     os.system(f"rm {test_path} -r")
     os.system(f"rm {multi_constraint_args.logdir} -r")
+
+
+@pytest.mark.parametrize(
+    "seq_id,region,window,span,unconstraint,save,outdir,seq",
+    [("onlyA", 7, 100, 60, "raw", 1, "onlyA", "A" * 500)]
+)
+def test_fold_unconstraint(seq_id, region, window, span, unconstraint, save, outdir, seq):
+    outdir = os.path.join(TESTPATH, outdir)
+    pl_fold_result = run_pl_fold(seq, 100, 60, u=region)
+    np_array = pl_fold_result.get_numpy_array()
+    fold_unconstraint(seq, seq_id, region, window, span, unconstraint, save, outdir)
+    test_file_path = os.path.join(outdir, os.listdir(outdir)[0])
+    files = os.listdir(test_file_path)
+    for file in files:
+        if ".gz" in file:
+            file = os.path.join(test_file_path, file)
+            test_result = PLFoldOutput.from_file(file)
+            test_array = test_result.get_numpy_array()
+            assert np.array_equal(test_array, np_array, equal_nan=True)
+
+
+def run_pl_fold(sequence, window, span, start=None, end=None, mode="unpaired", u=30):
+    with TemporaryDirectory() as tmp_dir, NamedTemporaryFile(mode="r+") as constraint_file:
+        if mode == "paired":
+            const = "F"
+        elif mode == "unpaired":
+            const = "P"
+        else:
+            raise ValueError("mode must be either paired or unpaired")
+        if start is not None and end is not None:
+            constraint_string = f"{const} {start} {0} {end - start}"
+        else:
+            constraint_string = ""
+        constraint_file.write(constraint_string)
+        constraint_file.seek(0)
+        rnaplfold = subprocess.Popen(["RNAplfold", "-W", str(window), "-L", str(span), "-o",  # TODO: -o necessary?
+                                      "--commands", constraint_file.name, "--auto-id", "-u", str(u)],
+                                     stderr=subprocess.PIPE, stdout=subprocess.PIPE, stdin=subprocess.PIPE,
+                                     cwd=tmp_dir)
+        stdout, stderr = rnaplfold.communicate(sequence.encode("utf-8"))
+        assert stderr == b"", f"call to RNApfold went wrong: \n {stderr.decode()}"
+        file = os.path.join(tmp_dir, "sequence_0001_lunp")
+        rnaplfold_output = PLFoldOutput.from_file(file)
+        return rnaplfold_output
+
+
+class PLFoldOutput:
+    def __init__(self, text: str):
+        self.text = text
+
+        self._array = None
+
+    def __str__(self):
+        return self.text
+
+    def get_numpy_array(self):
+        if self._array is None:
+            array = []
+            for line in self.text.split("\n")[:-1]:
+                if not line.startswith("#") and not line.startswith(" #"):
+                    data = line.split("\t")[1:]
+                    data = [float(x) if x != "NA" else np.nan for x in data]
+                    array.append(data)
+            array = np.array(array)
+            self._array = array
+        return self._array
+
+    @classmethod
+    def from_file(cls, file_path: str):
+        assert os.path.isfile(file_path), f"{file_path} is not a valid file path"
+        if ".gz" in file_path:
+            with gzip.open(file_path, "rt") as handle:
+                file_data = handle.read()
+        else:
+            with open(file_path, "r") as handle:
+                file_data = handle.read()
+        return PLFoldOutput(file_data)
+
+
