@@ -18,6 +18,8 @@ from RIssmed.lib.RNAtweaks import up_to_array
 EXPECTED_LOGS = os.path.join(TESTPATH, "Expected_Logs")
 EXPECTED_RESULTS = os.path.join(TESTPATH, "Expected_Results")
 
+tmp_dir = TemporaryDirectory()
+TMP_TEST_DIR = tmp_dir.name
 
 @pytest.fixture()
 def default_args():
@@ -101,9 +103,9 @@ def single_constraint_args(default_args):
     default_args.unpaired = "unpaired"
     default_args.paired = "paired"
     default_args.unconstrained = "raw"
-    default_args.outdir = os.path.join(TESTPATH, "single_constraint_test")
+    default_args.outdir = os.path.join(TMP_TEST_DIR, "single_constraint_test")
     default_args.save = 1
-    default_args.logdir = os.path.join(TESTPATH, "LOG_SINGLE")
+    default_args.logdir = os.path.join(TMP_TEST_DIR, "LOG_SINGLE")
     return default_args
 
 
@@ -118,9 +120,9 @@ def multi_constraint_args(default_args):
     default_args.unpaired = "unpaired"
     default_args.paired = "paired"
     default_args.unconstrained = "raw"
-    default_args.outdir = os.path.join(TESTPATH, "multi_constraint_test")
+    default_args.outdir = os.path.join(TMP_TEST_DIR, "multi_constraint_test")
     default_args.save = 1
-    default_args.logdir = os.path.join(TESTPATH, "LOG_MULTI")
+    default_args.logdir = os.path.join(TMP_TEST_DIR, "LOG_MULTI")
     return default_args
 
 
@@ -133,8 +135,8 @@ def sliding_args(default_args):
     default_args.unpaired = "unpaired"
     default_args.paired = "paired"
     default_args.unconstrained = "raw"
-    default_args.outdir = os.path.join(TESTPATH, "sliding_test")
-    default_args.logdir = os.path.join(TESTPATH, "LOG_SLIDING")
+    default_args.outdir = os.path.join(TMP_TEST_DIR, "sliding_test")
+    default_args.logdir = os.path.join(TMP_TEST_DIR, "LOG_SLIDING")
 
     return default_args
 
@@ -187,7 +189,7 @@ def test_multi_constraint(multi_constraint_args):
     [("onlyA", 7, 100, 60, "raw", 1, "onlyA", "A" * 500)]
 )
 def test_fold_unconstraint(seq_id, region, window, span, unconstraint, save, outdir, seq):
-    outdir = os.path.join(TESTPATH, outdir)
+    outdir = os.path.join(TMP_TEST_DIR, outdir)
     pl_fold_result = run_pl_fold(seq, 100, 60, u=region)
     np_array = pl_fold_result.get_numpy_array()
     fold_unconstraint(seq, seq_id, region, window, span, unconstraint, save, outdir)
