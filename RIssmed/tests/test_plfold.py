@@ -115,7 +115,7 @@ def multi_constraint_args(default_args):
     default_args.paired = "paired"
     default_args.unconstrained = "raw"
     default_args.outdir = os.path.join(TESTPATH, "multi_constraint_test")
-    default_args.save = 10
+    default_args.save = 1
     default_args.logdir = os.path.join(TESTPATH, "LOG_MULTI")
     return default_args
 
