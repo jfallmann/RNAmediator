@@ -78,14 +78,13 @@ def compare_logs(test_log: str, expected_log: str):
     test_lines = set()
     with open(test_log) as test_file:
         for line in test_file:
-            test_line = " ". join(line.split(" ")[4:])
+            test_line = " ".join(line.split(" ")[4:])
             test_lines.add(test_line)
     with open(expected_log) as expected_file:
         for line in expected_file:
-            expected_line = " ". join(line.split(" ")[4:])
-        if "CLI:" and "JetBrains" not in test_line and "Running ConstraintPLFold on" not in test_line:
+            expected_line = " ".join(line.split(" ")[4:])
+        if "CLI:" and "JetBrains" and "Running ConstraintPLFold on" and "DONE: output in" not in expected_line:
             assert expected_line in test_lines
-
 
 
 @pytest.fixture()
@@ -109,7 +108,7 @@ def multi_constraint_args(default_args):
     default_args.sequence = os.path.join(TESTPATH, "test.fa.gz")
     default_args.constrain = os.path.join(TESTPATH, "test_constraints.bed")
     default_args.window = 100
-    default_args.procs = os.cpu_count() - 1 or 1 # TODO: change number  of procs upon deployment
+    default_args.procs = os.cpu_count() - 1 or 1  # TODO: change number  of procs upon deployment
     default_args.conslength = 7
     default_args.region = 7
     default_args.unpaired = "unpaired"
@@ -177,4 +176,3 @@ def test_multi_constraint(multi_constraint_args):
     compare_logs(test_log=test_log, expected_log=expected_log)
     os.system(f"rm {test_path} -r")
     os.system(f"rm {multi_constraint_args.logdir} -r")
-
