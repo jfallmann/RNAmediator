@@ -435,7 +435,7 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
 
                                 pool.apply_async(constrain_seq_paired, args=(str(fa.id), str(fa.seq), fstart, fend, start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an, unconstraint), kwds={'queue':queue, 'configurer':configurer, 'level':level})
                             else:
-                                pool.apply_async(constrain_seq, args=(str(fa.id), str(fa.seq), start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an, unconstraint), kwds={'queue':queue, 'configurer':configurer, 'level':level})
+                                pool.apply_async(constrain_seq, args=(str(fa.id), str(fa.seq), start, end, window, span, region, multi, paired, unpaired, save, outdir, data, an, unconstraint), kwds={'queue':queue, 'configurer':configurer, 'level':level})
 
         pool.close()
         pool.join()       # timeout
@@ -549,7 +549,7 @@ def parafold(sequence, window, span, region, multi, unconstraint, unpaired, pair
                     an = None
 
                     try:
-                        constrain_seq(str(fa.id), str(fa.seq), start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an, queue=queue, configurer=configurer, level=level)
+                        constrain_seq(str(fa.id), str(fa.seq), start, end, window, span, region, multi, paired, unpaired, save, outdir, data, an, queue=queue, configurer=configurer, level=level)
                     except Exception:
                         exc_type, exc_value, exc_tb = sys.exc_info()
                         tbe = tb.TracebackException(
@@ -608,7 +608,7 @@ def fold_unconstraint(seq, id, region, window, span, unconstraint, save, outdir,
     return data['up']
 
 
-def constrain_seq(sid, seq, start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an=None, unconstraint=None, queue=None, configurer=None, level=None):
+def constrain_seq(sid, seq, start, end, window, span, region, multi, paired, unpaired, save, outdir, data, an=None, unconstraint=None, queue=None, configurer=None, level=None):
 
     logid = scriptname+'.constrain_seq: '
 
