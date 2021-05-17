@@ -6,6 +6,7 @@ import subprocess
 import sys
 from argparse import Namespace
 from tempfile import TemporaryDirectory, NamedTemporaryFile
+
 import numpy as np
 import pytest
 
@@ -13,13 +14,13 @@ TESTFOLDER = os.path.dirname(os.path.abspath(__file__))
 PARPATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(PARPATH)
 from RIssmed.ConstraintPLFold import main as pl_main
-from RIssmed.ConstraintPLFold import fold_unconstraint
+from RIssmed.ConstraintPLFold import fold_unconstraint, constrain_seq
 from Bio import SeqIO
+from RIssmed.lib.Collection import expand_window, localize_window
 
 EXPECTED_LOGS = os.path.join(TESTFOLDER, "Expected_Logs")
 EXPECTED_RESULTS = os.path.join(TESTFOLDER, "Expected_Results")
 TESTDATAPATH = os.path.join(TESTFOLDER, "testdata")
-
 
 tmp_dir = TemporaryDirectory()
 TMP_TEST_DIR = tmp_dir.name
@@ -227,6 +228,46 @@ def test_fold_unconstraint(seq_id, region, window, span, unconstraint, save, out
             assert np.array_equal(test_array, cmd_array, equal_nan=True), \
                 f"detected high difference between RIssmed and command line result " \
                 f"with a max of {max_difference} at index: {max_diff_idx}"
+
+
+@pytest.mark.parametrize(
+    "seq_id,start,end,window,span,region,multi,paired,unpaired,save,outdir,pl_data,unconstraint,seq",
+    [#("onlyA", 200, 207, 100, 60, 7, 1, "paired", "unpaired", 1, "onlyA", {'up': []}, "raw", "A" * 500),
+     ("testseq2", 200, 207, 100, 60, 7, 2, "paired", "unpaired", 1, "testseq2", {'up': []}, "raw",
+      os.path.join(TESTDATAPATH, "test_single.fa"))
+     ]
+)
+def test_fold_constraint(seq_id, start, end, window, span, region, multi, paired, unpaired, save, outdir, pl_data,
+                         unconstraint, seq):
+    if os.path.isfile(seq):
+        seq = str(SeqIO.read(seq, format="fasta").seq)
+    outdir = os.path.join(TMP_TEST_DIR, outdir)
+    # TODO: Maybe rewrite this part in the ConstraintPLfold and just import the function
+    tostart, toend = expand_window(start, end, window, multi, len(seq))
+    seqtofold = str(seq[tostart - 1:toend])
+    locws, locwe = localize_window(start, end, window, len(seq))
+    locstart = start - tostart
+    locend = end - tostart
+    cmd_unpaired = run_pl_fold(seqtofold, window, span, locstart+1, locend+2, u=region)
+    cmd_paired = run_pl_fold(seqtofold, window, span, locstart+1, locend+2, mode="paired", u=region)
+
+    constrain_seq(seq_id, seq, start, end, window, span, region, multi, paired, unpaired, save, outdir, pl_data,
+                  unconstraint=unconstraint)
+    test_file_path = os.path.join(outdir, seq_id)
+    test_files = os.listdir(test_file_path)
+    for test_file in test_files:
+        test_file = os.path.join(test_file_path, test_file)
+        if ".gz" in test_file:
+            if unpaired in test_file:
+                test_result = PLFoldOutput.from_file(test_file)
+                test_array = test_result.get_numpy_array()
+                cmd_unpaired_array = cmd_unpaired.get_numpy_array()
+                assert np.array_equal(test_array, cmd_unpaired_array, equal_nan=True)
+            if paired in test_file:
+                test_result = PLFoldOutput.from_file(test_file)
+                test_array = test_result.get_numpy_array()
+                cmd_paired_array = cmd_paired.get_numpy_array()
+                assert np.array_equal(test_array, cmd_paired_array, equal_nan=True)
 
 
 def run_pl_fold(sequence, window, span, start=None, end=None, mode="unpaired", u=30):
