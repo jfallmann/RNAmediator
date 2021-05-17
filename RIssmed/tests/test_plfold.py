@@ -1,25 +1,26 @@
 import gzip
 import os
+import subprocess
 import sys
 from argparse import Namespace
 from tempfile import TemporaryDirectory, NamedTemporaryFile
 
 import numpy as np
 import pytest
-import subprocess
 
 TESTPATH = os.path.dirname(os.path.abspath(__file__))
 PARPATH = os.path.dirname(TESTPATH)
 sys.path.append(PARPATH)
 from RIssmed.ConstraintPLFold import main as pl_main
 from RIssmed.ConstraintPLFold import fold_unconstraint
-from RIssmed.lib.RNAtweaks import up_to_array
+from Bio import SeqIO
 
 EXPECTED_LOGS = os.path.join(TESTPATH, "Expected_Logs")
 EXPECTED_RESULTS = os.path.join(TESTPATH, "Expected_Results")
 
 tmp_dir = TemporaryDirectory()
 TMP_TEST_DIR = tmp_dir.name
+
 
 @pytest.fixture()
 def default_args():
@@ -97,7 +98,7 @@ def compare_logs(test_log: str, expected_log: str):
 def single_constraint_args(default_args):
     default_args.constrain = os.path.join(TESTPATH, "test_single_constraint.bed")
     default_args.window = 100
-    default_args.procs = 1  # TODO: change number  of procs upon deployment
+    default_args.procs = 1
     default_args.conslength = 7
     default_args.region = 7
     default_args.unpaired = "unpaired"
@@ -114,7 +115,7 @@ def multi_constraint_args(default_args):
     default_args.sequence = os.path.join(TESTPATH, "test.fa.gz")
     default_args.constrain = os.path.join(TESTPATH, "test_constraints.bed")
     default_args.window = 100
-    default_args.procs = os.cpu_count() - 1 or 1  # TODO: change number  of procs upon deployment
+    default_args.procs = os.cpu_count() - 1 or 1
     default_args.conslength = 7
     default_args.region = 7
     default_args.unpaired = "unpaired"
@@ -129,7 +130,7 @@ def multi_constraint_args(default_args):
 @pytest.fixture()
 def sliding_args(default_args):
     default_args.window = 100
-    default_args.procs = os.cpu_count() - 1 or 1  # TODO: change number  of procs upon deployment
+    default_args.procs = os.cpu_count() - 1 or 1
     default_args.conslength = 7
     default_args.region = 7
     default_args.unpaired = "unpaired"
@@ -161,7 +162,7 @@ def test_single_constraint(single_constraint_args):
 
 
 def test_sliding_window(sliding_args):
-    pl_main(sliding_args)  # TODO: maybe change output directory to tmpdir
+    pl_main(sliding_args)
     expected_path = os.path.join(EXPECTED_RESULTS, "sliding_result")
     test_path = sliding_args.outdir
     compare_output_folders(test_path=test_path, expected_path=expected_path)
@@ -186,21 +187,39 @@ def test_multi_constraint(multi_constraint_args):
 
 @pytest.mark.parametrize(
     "seq_id,region,window,span,unconstraint,save,outdir,seq",
-    [("onlyA", 7, 100, 60, "raw", 1, "onlyA", "A" * 500)]
+    [("onlyA", 7, 100, 60, "raw", 1, "onlyA", "A" * 500),
+     ("testseq2", 7, 100, 60, "raw", 1, "testseq2", os.path.join(TESTPATH, "test_single.fa"))]
 )
 def test_fold_unconstraint(seq_id, region, window, span, unconstraint, save, outdir, seq):
+    if os.path.isfile(seq):
+        seq = str(SeqIO.read(seq, format="fasta").seq)
+        p = 0
     outdir = os.path.join(TMP_TEST_DIR, outdir)
-    pl_fold_result = run_pl_fold(seq, 100, 60, u=region)
-    np_array = pl_fold_result.get_numpy_array()
+    # get the resulting np. array via the command line of RNAplfold
+    cmd_result = run_pl_fold(seq, 100, 60, u=region)
+    cmd_array = cmd_result.get_numpy_array()
+
+    # runs RIssmed to produce output files using the same input as the command line
     fold_unconstraint(seq, seq_id, region, window, span, unconstraint, save, outdir)
-    test_file_path = os.path.join(outdir, os.listdir(outdir)[0])
-    files = os.listdir(test_file_path)
-    for file in files:
-        if ".gz" in file:
-            file = os.path.join(test_file_path, file)
-            test_result = PLFoldOutput.from_file(file)
+    test_file_path = os.path.join(outdir, seq_id)
+    test_files = os.listdir(test_file_path)
+    for test_file in test_files:
+        test_file = os.path.join(test_file_path, test_file)
+        if ".gz" in test_file:
+            test_result = PLFoldOutput.from_file(test_file)
             test_array = test_result.get_numpy_array()
-            assert np.array_equal(test_array, np_array, equal_nan=True)
+            # assert np.allclose(test_array, cmd_array, equal_nan=True)
+        else:
+            test_result = PLFoldOutput.from_rissmed_numpy_output(test_file)
+            test_array = test_result.get_numpy_array()
+            array_difference = test_array - cmd_array
+            max_difference = np.max(np.abs(array_difference), where=~np.isnan(array_difference), initial=-1)
+            max_diff_idx = np.unravel_index(np.nanargmax(array_difference), array_difference.shape)
+            # TODO: The numpy version of RIssmed looks very strange. Need to talk to Jörg
+            # TODO: differences of 0.012628 ... for index 299,0 of second test array seems to be very high
+            assert np.array_equal(test_array, cmd_array, equal_nan=True), \
+                f"detected high difference between RIssmed and command line result " \
+                f"with a max of {max_difference} at index: {max_diff_idx}"
 
 
 def run_pl_fold(sequence, window, span, start=None, end=None, mode="unpaired", u=30):
@@ -217,7 +236,7 @@ def run_pl_fold(sequence, window, span, start=None, end=None, mode="unpaired", u
             constraint_string = ""
         constraint_file.write(constraint_string)
         constraint_file.seek(0)
-        rnaplfold = subprocess.Popen(["RNAplfold", "-W", str(window), "-L", str(span), "-o",  # TODO: -o necessary?
+        rnaplfold = subprocess.Popen(["RNAplfold", "-W", str(window), "-L", str(span),
                                       "--commands", constraint_file.name, "--auto-id", "-u", str(u)],
                                      stderr=subprocess.PIPE, stdout=subprocess.PIPE, stdin=subprocess.PIPE,
                                      cwd=tmp_dir)
@@ -230,12 +249,27 @@ def run_pl_fold(sequence, window, span, start=None, end=None, mode="unpaired", u
 
 class PLFoldOutput:
     def __init__(self, text: str):
-        self.text = text
+        self.text = self._sanitize(text)
 
         self._array = None
 
     def __str__(self):
         return self.text
+
+    @staticmethod
+    def _sanitize(text: str):
+        list_text = text.split("\n")
+        if list_text[0].startswith("1\t"):
+            length = len(list_text[0].split("\t")) - 1
+            part = [str(x + 1) for x in range(length)]
+            list_text = ["#unpaired probabilities", " #$i\tl=" + "\t".join(part)] + list_text
+            text = "\n".join(list_text)
+        elif list_text[0].startswith("#") and list_text[1].startswith(" #"):
+            pass
+        else:
+            raise ValueError("text seems not to be a valid plfold string")
+        text = text.replace("nan", "NA")
+        return text
 
     def get_numpy_array(self):
         if self._array is None:
@@ -249,6 +283,9 @@ class PLFoldOutput:
             self._array = array
         return self._array
 
+    def set_array(self, array: np.ndarray):
+        self._array = array
+
     @classmethod
     def from_file(cls, file_path: str):
         assert os.path.isfile(file_path), f"{file_path} is not a valid file path"
@@ -260,4 +297,13 @@ class PLFoldOutput:
                 file_data = handle.read()
         return PLFoldOutput(file_data)
 
-
+    @classmethod
+    def from_rissmed_numpy_output(cls, file_path: str):
+        assert os.path.isfile(file_path), f"{file_path} is not a valid file path"
+        ris_array = np.load(file_path)
+        array = np.squeeze(ris_array)
+        array_string = "\n".join(
+            ['\t'.join([str(x + 1)] + ['%.5f' % num for num in array[x]]) for x in range(len(array))])
+        output = PLFoldOutput(array_string)
+        output.set_array(array)
+        return output
