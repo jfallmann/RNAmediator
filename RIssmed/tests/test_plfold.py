@@ -9,15 +9,17 @@ from tempfile import TemporaryDirectory, NamedTemporaryFile
 import numpy as np
 import pytest
 
-TESTPATH = os.path.dirname(os.path.abspath(__file__))
-PARPATH = os.path.dirname(TESTPATH)
+TESTFOLDER = os.path.dirname(os.path.abspath(__file__))
+PARPATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(PARPATH)
 from RIssmed.ConstraintPLFold import main as pl_main
 from RIssmed.ConstraintPLFold import fold_unconstraint
 from Bio import SeqIO
 
-EXPECTED_LOGS = os.path.join(TESTPATH, "Expected_Logs")
-EXPECTED_RESULTS = os.path.join(TESTPATH, "Expected_Results")
+EXPECTED_LOGS = os.path.join(TESTFOLDER, "Expected_Logs")
+EXPECTED_RESULTS = os.path.join(TESTFOLDER, "Expected_Results")
+TESTDATAPATH = os.path.join(TESTFOLDER, "testdata")
+
 
 tmp_dir = TemporaryDirectory()
 TMP_TEST_DIR = tmp_dir.name
@@ -25,7 +27,7 @@ TMP_TEST_DIR = tmp_dir.name
 
 @pytest.fixture()
 def default_args():
-    args = Namespace(sequence=os.path.join(TESTPATH, "test_single.fa"),
+    args = Namespace(sequence=os.path.join(TESTDATAPATH, "test_single.fa"),
                      window=240,
                      span=60,
                      region=1,
@@ -97,7 +99,7 @@ def compare_logs(test_log: str, expected_log: str):
 
 @pytest.fixture()
 def single_constraint_args(default_args):
-    default_args.constrain = os.path.join(TESTPATH, "test_single_constraint.bed")
+    default_args.constrain = os.path.join(TESTDATAPATH, "test_single_constraint.bed")
     default_args.window = 100
     default_args.procs = 1
     default_args.conslength = 7
@@ -113,8 +115,8 @@ def single_constraint_args(default_args):
 
 @pytest.fixture()
 def multi_constraint_args(default_args):
-    default_args.sequence = os.path.join(TESTPATH, "test.fa.gz")
-    default_args.constrain = os.path.join(TESTPATH, "test_constraints.bed")
+    default_args.sequence = os.path.join(TESTDATAPATH, "test.fa.gz")
+    default_args.constrain = os.path.join(TESTDATAPATH, "test_constraints.bed")
     default_args.window = 100
     default_args.procs = os.cpu_count() - 1 or 1
     default_args.conslength = 7
@@ -144,10 +146,10 @@ def sliding_args(default_args):
 
 
 def test_data_available():
-    assert os.path.exists(os.path.join(TESTPATH, "test.fa.gz")), "Test data not available"
-    assert os.path.exists(os.path.join(TESTPATH, "test_single.fa")), "Test data not available"
-    assert os.path.isfile(os.path.join(TESTPATH, "test_single_constraint.bed"))
-    assert os.path.isfile(os.path.join(TESTPATH, "test_constraints.bed"))
+    assert os.path.exists(os.path.join(TESTDATAPATH, "test.fa.gz")), "Test data not available"
+    assert os.path.exists(os.path.join(TESTDATAPATH, "test_single.fa")), "Test data not available"
+    assert os.path.isfile(os.path.join(TESTDATAPATH, "test_single_constraint.bed"))
+    assert os.path.isfile(os.path.join(TESTDATAPATH, "test_constraints.bed"))
 
 
 def test_single_constraint(single_constraint_args):
@@ -189,12 +191,11 @@ def test_multi_constraint(multi_constraint_args):
 @pytest.mark.parametrize(
     "seq_id,region,window,span,unconstraint,save,outdir,seq",
     [("onlyA", 7, 100, 60, "raw", 1, "onlyA", "A" * 500),
-     ("testseq2", 7, 100, 60, "raw", 1, "testseq2", os.path.join(TESTPATH, "test_single.fa"))]
+     ("testseq2", 7, 100, 60, "raw", 1, "testseq2", os.path.join(TESTDATAPATH, "test_single.fa"))]
 )
 def test_fold_unconstraint(seq_id, region, window, span, unconstraint, save, outdir, seq):
     if os.path.isfile(seq):
         seq = str(SeqIO.read(seq, format="fasta").seq)
-        p = 0
     outdir = os.path.join(TMP_TEST_DIR, outdir)
     # get the resulting np. array via the command line of RNAplfold
     cmd_result = run_pl_fold(seq, 100, 60, u=region)
@@ -266,7 +267,6 @@ class PLFoldOutput:
         if type(other) != PLFoldOutput:
             return False
         return np.array_equal(self.get_numpy_array(), other.get_numpy_array(), equal_nan=True)
-
 
     @staticmethod
     def _sanitize(text: str):
