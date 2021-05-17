@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import gzip
 import os
 import subprocess
 import sys
 from argparse import Namespace
 from tempfile import TemporaryDirectory, NamedTemporaryFile
-
 import numpy as np
 import pytest
 
@@ -207,8 +208,13 @@ def test_fold_unconstraint(seq_id, region, window, span, unconstraint, save, out
         test_file = os.path.join(test_file_path, test_file)
         if ".gz" in test_file:
             test_result = PLFoldOutput.from_file(test_file)
-            test_array = test_result.get_numpy_array()
-            # assert np.allclose(test_array, cmd_array, equal_nan=True)
+            test_array = test_result.get_numpy_array()  # TODO: Duplication can get replaced via comparison of outputs
+            array_difference = test_array - cmd_array
+            max_difference = np.max(np.abs(array_difference), where=~np.isnan(array_difference), initial=-1)
+            max_diff_idx = np.unravel_index(np.nanargmax(array_difference), array_difference.shape)
+            assert np.array_equal(test_array, cmd_array, equal_nan=True), \
+                f"detected high difference between RIssmed and command line result " \
+                f"with a max of {max_difference} at index: {max_diff_idx}"
         else:
             test_result = PLFoldOutput.from_rissmed_numpy_output(test_file)
             test_array = test_result.get_numpy_array()
@@ -255,6 +261,12 @@ class PLFoldOutput:
 
     def __str__(self):
         return self.text
+
+    def __eq__(self, other: PLFoldOutput):
+        if type(other) != PLFoldOutput:
+            return False
+        return np.array_equal(self.get_numpy_array(), other.get_numpy_array(), equal_nan=True)
+
 
     @staticmethod
     def _sanitize(text: str):
