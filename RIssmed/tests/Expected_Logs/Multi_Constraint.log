@@ -1,607 +1,607 @@
-2021-05-11 12:11:27,398 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.main: Running ConstraintPLFold on 7 cores.
-2021-05-11 12:11:27,399 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.main: CLI: /home/rabsch/.local/share/JetBrains/Toolbox/apps/PyCharm-P/ch-0/203.7717.81/plugins/python/helpers/pycharm/_jb_pytest_runner.py test_plfold.py::test_multi_constraint
-2021-05-11 12:11:27,460 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000252947! Assuming coordinates are already local!
-2021-05-11 12:11:27,460 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000252947 too short, seqlenght 166 with window size 100 and multiplyer 2
-2021-05-11 12:11:27,461 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000180198! Assuming coordinates are already local!
-2021-05-11 12:11:27,461 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Working on ENSG00000180198	ENSG00000180198::chr1:28505942-28539300(+)
-2021-05-11 12:11:27,462 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Parsing constraints for fold from Bed /home/rabsch/Documents/RIssmed/RIssmed/tests/test_constraints.bed
-2021-05-11 12:11:27,462 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating probs for ENSG00000180198 with constraint from file /home/rabsch/Documents/RIssmed/RIssmed/tests/test_constraints.bed
-2021-05-11 12:11:27,463 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ['211-219|+']
-2021-05-11 12:11:27,463 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 211-219|+
-2021-05-11 12:11:27,463 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 211-219|+ [211, 219, '+']
-2021-05-11 12:11:27,463 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000180198 211-219_11-419 .
-2021-05-11 12:11:27,464 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	211-219|+
-2021-05-11 12:11:27,464 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000242125! Assuming coordinates are already local!
-2021-05-11 12:11:27,478 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Working on ENSG00000242125	ENSG00000242125::chr1:28505979-28510892(+)
-2021-05-11 12:11:27,478 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating probs for ENSG00000242125 with constraint from file /home/rabsch/Documents/RIssmed/RIssmed/tests/test_constraints.bed
-2021-05-11 12:11:27,478 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ['174-182|+', '216-224|+', '221-229|+']
-2021-05-11 12:11:27,478 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 174-182|+
-2021-05-11 12:11:27,479 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 174-182|+ [174, 182, '+']
-2021-05-11 12:11:27,479 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000242125 174-182_1-382 .
-2021-05-11 12:11:27,479 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	174-182|+
-2021-05-11 12:11:27,479 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 216-224|+
-2021-05-11 12:11:27,480 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 216-224|+ [216, 224, '+']
-2021-05-11 12:11:27,480 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000242125 216-224_16-424 .
-2021-05-11 12:11:27,480 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	216-224|+
-2021-05-11 12:11:27,481 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 221-229|+
-2021-05-11 12:11:27,481 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 221-229|+ [221, 229, '+']
-2021-05-11 12:11:27,481 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000242125 221-229_21-429 .
-2021-05-11 12:11:27,482 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	221-229|+
-2021-05-11 12:11:27,482 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000274266! Assuming coordinates are already local!
-2021-05-11 12:11:27,482 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Working on ENSG00000274266	ENSG00000274266::chr1:28507365-28507571(+)
-2021-05-11 12:11:27,483 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating probs for ENSG00000274266 with constraint from file /home/rabsch/Documents/RIssmed/RIssmed/tests/test_constraints.bed
-2021-05-11 12:11:27,483 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ['85-93|+', '92-100|+', '109-117|+', '144-152|+']
-2021-05-11 12:11:27,483 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 85-93|+
-2021-05-11 12:11:27,483 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 85-93|+ [85, 93, '+']
-2021-05-11 12:11:27,483 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000274266 85-93_1-206 .
-2021-05-11 12:11:27,484 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	85-93|+
-2021-05-11 12:11:27,484 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 92-100|+
-2021-05-11 12:11:27,484 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 92-100|+ [92, 100, '+']
-2021-05-11 12:11:27,485 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000274266 92-100_1-206 .
-2021-05-11 12:11:27,485 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	92-100|+
-2021-05-11 12:11:27,485 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 109-117|+
-2021-05-11 12:11:27,486 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 109-117|+ [109, 117, '+']
-2021-05-11 12:11:27,486 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000274266 109-117_1-206 .
-2021-05-11 12:11:27,486 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	109-117|+
-2021-05-11 12:11:27,486 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 144-152|+
-2021-05-11 12:11:27,487 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 144-152|+ [144, 152, '+']
-2021-05-11 12:11:27,487 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000274266 144-152_1-206 .
-2021-05-11 12:11:27,487 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	144-152|+
-2021-05-11 12:11:27,488 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000200087! Assuming coordinates are already local!
-2021-05-11 12:11:27,488 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Working on ENSG00000200087	ENSG00000200087::chr1:28508558-28508762(+)
-2021-05-11 12:11:27,488 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating probs for ENSG00000200087 with constraint from file /home/rabsch/Documents/RIssmed/RIssmed/tests/test_constraints.bed
-2021-05-11 12:11:27,489 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ['84-92|+', '122-130|+', '142-150|+']
-2021-05-11 12:11:27,490 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 84-92|+
-2021-05-11 12:11:27,490 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 84-92|+ [84, 92, '+']
-2021-05-11 12:11:27,490 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000200087 84-92_1-204 .
-2021-05-11 12:11:27,490 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	84-92|+
-2021-05-11 12:11:27,491 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 122-130|+
-2021-05-11 12:11:27,491 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 122-130|+ [122, 130, '+']
-2021-05-11 12:11:27,491 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000200087 122-130_1-204 .
-2021-05-11 12:11:27,491 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	122-130|+
-2021-05-11 12:11:27,492 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 142-150|+
-2021-05-11 12:11:27,492 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 142-150|+ [142, 150, '+']
-2021-05-11 12:11:27,492 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000200087 142-150_1-204 .
-2021-05-11 12:11:27,492 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	142-150|+
-2021-05-11 12:11:27,493 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000221539! Assuming coordinates are already local!
-2021-05-11 12:11:27,493 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000221539 too short, seqlenght 74 with window size 100 and multiplyer 2
-2021-05-11 12:11:27,493 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000278274! Assuming coordinates are already local!
-2021-05-11 12:11:27,493 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000278274 too short, seqlenght 130 with window size 100 and multiplyer 2
-2021-05-11 12:11:27,494 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000273544! Assuming coordinates are already local!
-2021-05-11 12:11:27,494 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000273544 too short, seqlenght 132 with window size 100 and multiplyer 2
-2021-05-11 12:11:27,494 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000280498! Assuming coordinates are already local!
-2021-05-11 12:11:27,494 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000280498 too short, seqlenght 135 with window size 100 and multiplyer 2
-2021-05-11 12:11:27,494 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000274582! Assuming coordinates are already local!
-2021-05-11 12:11:27,495 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000274582 too short, seqlenght 137 with window size 100 and multiplyer 2
-2021-05-11 12:11:27,495 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000277916! Assuming coordinates are already local!
-2021-05-11 12:11:27,495 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000277916 too short, seqlenght 169 with window size 100 and multiplyer 2
-2021-05-11 12:11:27,495 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000201457! Assuming coordinates are already local!
-2021-05-11 12:11:27,496 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000201457 too short, seqlenght 135 with window size 100 and multiplyer 2
-2021-05-11 12:11:27,496 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000200913! Assuming coordinates are already local!
-2021-05-11 12:11:27,496 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000200913 too short, seqlenght 104 with window size 100 and multiplyer 2
-2021-05-11 12:11:27,496 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000202031! Assuming coordinates are already local!
-2021-05-11 12:11:27,497 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000202031 too short, seqlenght 70 with window size 100 and multiplyer 2
-2021-05-11 12:11:27,497 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000207421! Assuming coordinates are already local!
-2021-05-11 12:11:27,497 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000207421 too short, seqlenght 67 with window size 100 and multiplyer 2
-2021-05-11 12:11:27,497 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000281859! Assuming coordinates are already local!
-2021-05-11 12:11:27,498 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000281859 too short, seqlenght 69 with window size 100 and multiplyer 2
-2021-05-11 12:11:27,499 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000270742! Assuming coordinates are already local!
-2021-05-11 12:11:27,499 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Working on ENSG00000270742	ENSG00000270742::chr1:61124732-61125202(+)
-2021-05-11 12:11:27,500 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating probs for ENSG00000270742 with constraint from file /home/rabsch/Documents/RIssmed/RIssmed/tests/test_constraints.bed
-2021-05-11 12:11:27,500 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ['27-35|+']
-2021-05-11 12:11:27,501 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 27-35|+
-2021-05-11 12:11:27,501 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 27-35|+ [27, 35, '+']
-2021-05-11 12:11:27,501 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000270742 27-35_1-235 .
-2021-05-11 12:11:27,502 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	27-35|+
-2021-05-11 12:11:27,503 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000207721! Assuming coordinates are already local!
-2021-05-11 12:11:27,503 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000207721 too short, seqlenght 86 with window size 100 and multiplyer 2
-2021-05-11 12:11:27,504 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000137955! Assuming coordinates are already local!
-2021-05-11 12:11:27,510 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Working on ENSG00000137955	ENSG00000137955::chr1:75786196-75795079(+)
-2021-05-11 12:11:27,511 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating probs for ENSG00000137955 with constraint from file /home/rabsch/Documents/RIssmed/RIssmed/tests/test_constraints.bed
-2021-05-11 12:11:27,511 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ['161-169|+', '184-192|+', '201-209|+', '210-218|+', '220-228|+']
-2021-05-11 12:11:27,512 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 161-169|+
-2021-05-11 12:11:27,512 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 161-169|+ [161, 169, '+']
-2021-05-11 12:11:27,513 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000137955 161-169_1-369 .
-2021-05-11 12:11:27,513 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	161-169|+
-2021-05-11 12:11:27,514 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 184-192|+
-2021-05-11 12:11:27,515 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 184-192|+ [184, 192, '+']
-2021-05-11 12:11:27,515 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000137955 184-192_1-392 .
-2021-05-11 12:11:27,516 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	184-192|+
-2021-05-11 12:11:27,516 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 201-209|+
-2021-05-11 12:11:27,516 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 201-209|+ [201, 209, '+']
-2021-05-11 12:11:27,516 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000137955 201-209_1-409 .
-2021-05-11 12:11:27,516 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	201-209|+
-2021-05-11 12:11:27,517 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 210-218|+
-2021-05-11 12:11:27,517 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 210-218|+ [210, 218, '+']
-2021-05-11 12:11:27,517 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000137955 210-218_10-418 .
-2021-05-11 12:11:27,517 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	210-218|+
-2021-05-11 12:11:27,517 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 220-228|+
-2021-05-11 12:11:27,518 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 220-228|+ [220, 228, '+']
-2021-05-11 12:11:27,518 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000137955 220-228_20-428 .
-2021-05-11 12:11:27,518 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	220-228|+
-2021-05-11 12:11:27,518 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000206620! Assuming coordinates are already local!
-2021-05-11 12:11:27,518 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000206620 too short, seqlenght 79 with window size 100 and multiplyer 2
-2021-05-11 12:11:27,519 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000207241! Assuming coordinates are already local!
-2021-05-11 12:11:27,519 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000207241 too short, seqlenght 84 with window size 100 and multiplyer 2
-2021-05-11 12:11:27,519 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000122406! Assuming coordinates are already local!
-2021-05-11 12:11:27,519 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Working on ENSG00000122406	ENSG00000122406::chr1:92832024-92841924(+)
-2021-05-11 12:11:27,520 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating probs for ENSG00000122406 with constraint from file /home/rabsch/Documents/RIssmed/RIssmed/tests/test_constraints.bed
-2021-05-11 12:11:27,520 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ['120-128|+', '127-135|+', '205-213|+', '218-226|+']
-2021-05-11 12:11:27,520 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 120-128|+
-2021-05-11 12:11:27,520 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 120-128|+ [120, 128, '+']
-2021-05-11 12:11:27,520 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000122406 120-128_1-328 .
-2021-05-11 12:11:27,520 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	120-128|+
-2021-05-11 12:11:27,521 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 127-135|+
-2021-05-11 12:11:27,521 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 127-135|+ [127, 135, '+']
-2021-05-11 12:11:27,521 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000122406 127-135_1-335 .
-2021-05-11 12:11:27,521 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	127-135|+
-2021-05-11 12:11:27,521 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 205-213|+
-2021-05-11 12:11:27,522 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 205-213|+ [205, 213, '+']
-2021-05-11 12:11:27,522 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000122406 205-213_5-413 .
-2021-05-11 12:11:27,523 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	205-213|+
-2021-05-11 12:11:27,523 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 218-226|+
-2021-05-11 12:11:27,524 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 218-226|+ [218, 226, '+']
-2021-05-11 12:11:27,525 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000122406 218-226_18-426 .
-2021-05-11 12:11:27,525 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	218-226|+
-2021-05-11 12:11:27,526 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000206680! Assuming coordinates are already local!
-2021-05-11 12:11:27,527 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000206680 too short, seqlenght 95 with window size 100 and multiplyer 2
-2021-05-11 12:11:27,528 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000207523! Assuming coordinates are already local!
-2021-05-11 12:11:27,529 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000207523 too short, seqlenght 133 with window size 100 and multiplyer 2
-2021-05-11 12:11:27,530 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000156875! Assuming coordinates are already local!
-2021-05-11 12:11:27,532 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Working on ENSG00000156875	ENSG00000156875::chr1:100038096-100083377(+)
-2021-05-11 12:11:27,533 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating probs for ENSG00000156875 with constraint from file /home/rabsch/Documents/RIssmed/RIssmed/tests/test_constraints.bed
-2021-05-11 12:11:27,533 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ['133-141|+']
-2021-05-11 12:11:27,534 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 133-141|+
-2021-05-11 12:11:27,535 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 133-141|+ [133, 141, '+']
-2021-05-11 12:11:27,536 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000156875 133-141_1-341 .
-2021-05-11 12:11:27,537 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	133-141|+
-2021-05-11 12:11:27,538 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000240038! Assuming coordinates are already local!
-2021-05-11 12:11:27,541 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Working on ENSG00000240038	ENSG00000240038::chr1:103553814-103579534(+)
-2021-05-11 12:11:27,542 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating probs for ENSG00000240038 with constraint from file /home/rabsch/Documents/RIssmed/RIssmed/tests/test_constraints.bed
-2021-05-11 12:11:27,547 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ['11-19|+']
-2021-05-11 12:11:27,549 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 11-19|+
-2021-05-11 12:11:27,550 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 11-19|+ [11, 19, '+']
-2021-05-11 12:11:27,551 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000240038 11-19_1-219 .
-2021-05-11 12:11:27,553 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	11-19|+
-2021-05-11 12:11:27,554 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000277610! Assuming coordinates are already local!
-2021-05-11 12:11:27,557 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000277610 too short, seqlenght 164 with window size 100 and multiplyer 2
-2021-05-11 12:11:27,559 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000207340! Assuming coordinates are already local!
-2021-05-11 12:11:27,560 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000207340 too short, seqlenght 164 with window size 100 and multiplyer 2
-2021-05-11 12:11:27,562 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000238825! Assuming coordinates are already local!
-2021-05-11 12:11:27,563 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000238825 too short, seqlenght 162 with window size 100 and multiplyer 2
-2021-05-11 12:11:27,601 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000206828! Assuming coordinates are already local!
-2021-05-11 12:11:27,601 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000206828 too short, seqlenght 164 with window size 100 and multiplyer 2
-2021-05-11 12:11:27,601 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000143543! Assuming coordinates are already local!
-2021-05-11 12:11:27,601 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Working on ENSG00000143543	ENSG00000143543::chr1:153974268-153977688(-)
-2021-05-11 12:11:27,602 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating probs for ENSG00000143543 with constraint from file /home/rabsch/Documents/RIssmed/RIssmed/tests/test_constraints.bed
-2021-05-11 12:11:27,602 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ['186-194|-']
-2021-05-11 12:11:27,602 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 186-194|-
-2021-05-11 12:11:27,602 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 186-194|- [186, 194, '-']
-2021-05-11 12:11:27,602 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000143543 186-194_1-394 .
-2021-05-11 12:11:27,602 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	186-194|-
-2021-05-11 12:11:27,603 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000177954! Assuming coordinates are already local!
-2021-05-11 12:11:27,603 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Working on ENSG00000177954	ENSG00000177954::chr1:153990758-153992150(+)
-2021-05-11 12:11:27,603 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating probs for ENSG00000177954 with constraint from file /home/rabsch/Documents/RIssmed/RIssmed/tests/test_constraints.bed
-2021-05-11 12:11:27,603 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ['84-92|+', '133-141|+', '221-229|+']
-2021-05-11 12:11:27,603 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 84-92|+
-2021-05-11 12:11:27,604 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 84-92|+ [84, 92, '+']
-2021-05-11 12:11:27,604 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000177954 84-92_1-292 .
-2021-05-11 12:11:27,604 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	84-92|+
-2021-05-11 12:11:27,604 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 133-141|+
-2021-05-11 12:11:27,604 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 133-141|+ [133, 141, '+']
-2021-05-11 12:11:27,605 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000177954 133-141_1-341 .
-2021-05-11 12:11:27,605 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	133-141|+
-2021-05-11 12:11:27,605 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 221-229|+
-2021-05-11 12:11:27,605 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 221-229|+ [221, 229, '+']
-2021-05-11 12:11:27,606 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000177954 221-229_21-429 .
-2021-05-11 12:11:27,606 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	221-229|+
-2021-05-11 12:11:27,606 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000207475! Assuming coordinates are already local!
-2021-05-11 12:11:27,606 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000207475 too short, seqlenght 137 with window size 100 and multiplyer 2
-2021-05-11 12:11:27,607 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000280466! Assuming coordinates are already local!
-2021-05-11 12:11:27,607 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000280466 too short, seqlenght 128 with window size 100 and multiplyer 2
-2021-05-11 12:11:27,608 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000281394! Assuming coordinates are already local!
-2021-05-11 12:11:27,609 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000281394 too short, seqlenght 129 with window size 100 and multiplyer 2
-2021-05-11 12:11:27,611 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000283575! Assuming coordinates are already local!
-2021-05-11 12:11:27,613 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000283575 too short, seqlenght 96 with window size 100 and multiplyer 2
-2021-05-11 12:11:27,615 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000277681! Assuming coordinates are already local!
-2021-05-11 12:11:27,617 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000277681 too short, seqlenght 75 with window size 100 and multiplyer 2
-2021-05-11 12:11:27,619 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000058673! Assuming coordinates are already local!
-2021-05-11 12:11:27,631 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Working on ENSG00000058673	ENSG00000058673::chr1:203795653-203854999(+)
-2021-05-11 12:11:27,632 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating probs for ENSG00000058673 with constraint from file /home/rabsch/Documents/RIssmed/RIssmed/tests/test_constraints.bed
-2021-05-11 12:11:27,634 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ['128-136|+', '155-163|+', '216-224|+']
-2021-05-11 12:11:27,636 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 128-136|+
-2021-05-11 12:11:27,638 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 128-136|+ [128, 136, '+']
-2021-05-11 12:11:27,640 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000058673 128-136_1-336 .
-2021-05-11 12:11:27,641 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	128-136|+
-2021-05-11 12:11:27,643 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 155-163|+
-2021-05-11 12:11:27,645 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 155-163|+ [155, 163, '+']
-2021-05-11 12:11:27,646 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000058673 155-163_1-363 .
-2021-05-11 12:11:27,648 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	155-163|+
-2021-05-11 12:11:27,649 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 216-224|+
-2021-05-11 12:11:27,651 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 216-224|+ [216, 224, '+']
-2021-05-11 12:11:27,652 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000058673 216-224_16-424 .
-2021-05-11 12:11:27,654 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	216-224|+
-2021-05-11 12:11:27,656 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000257315! Assuming coordinates are already local!
-2021-05-11 12:11:27,682 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Working on ENSG00000257315	ENSG00000257315::chr1:203795713-203854999(+)
-2021-05-11 12:11:27,683 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating probs for ENSG00000257315 with constraint from file /home/rabsch/Documents/RIssmed/RIssmed/tests/test_constraints.bed
-2021-05-11 12:11:27,683 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ['68-76|+', '95-103|+', '156-164|+']
-2021-05-11 12:11:27,684 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 68-76|+
-2021-05-11 12:11:27,684 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 68-76|+ [68, 76, '+']
-2021-05-11 12:11:27,684 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000257315 68-76_1-276 .
-2021-05-11 12:11:27,685 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	68-76|+
-2021-05-11 12:11:27,685 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 95-103|+
-2021-05-11 12:11:27,689 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 95-103|+ [95, 103, '+']
-2021-05-11 12:11:27,690 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000257315 95-103_1-303 .
-2021-05-11 12:11:27,690 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	95-103|+
-2021-05-11 12:11:27,691 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 156-164|+
-2021-05-11 12:11:27,691 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 156-164|+ [156, 164, '+']
-2021-05-11 12:11:27,692 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000257315 156-164_1-364 .
-2021-05-11 12:11:27,692 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	156-164|+
-2021-05-11 12:11:27,693 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000222370! Assuming coordinates are already local!
-2021-05-11 12:11:27,693 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000222370 too short, seqlenght 131 with window size 100 and multiplyer 2
-2021-05-11 12:11:27,693 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000266618! Assuming coordinates are already local!
-2021-05-11 12:11:27,694 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000266618 too short, seqlenght 85 with window size 100 and multiplyer 2
-2021-05-11 12:11:27,695 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000240963! Assuming coordinates are already local!
-2021-05-11 12:11:27,702 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Working on ENSG00000240963	ENSG00000240963::chr1:244375099-244409592(-)
-2021-05-11 12:11:27,702 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating probs for ENSG00000240963 with constraint from file /home/rabsch/Documents/RIssmed/RIssmed/tests/test_constraints.bed
-2021-05-11 12:11:27,702 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ['144-152|-', '197-205|-', '222-230|-']
-2021-05-11 12:11:27,706 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 144-152|-
-2021-05-11 12:11:27,707 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 144-152|- [144, 152, '-']
-2021-05-11 12:11:27,707 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000240963 144-152_1-352 .
-2021-05-11 12:11:27,707 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	144-152|-
-2021-05-11 12:11:27,707 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 197-205|-
-2021-05-11 12:11:27,708 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 197-205|- [197, 205, '-']
-2021-05-11 12:11:27,708 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000240963 197-205_1-405 .
-2021-05-11 12:11:27,708 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	197-205|-
-2021-05-11 12:11:27,708 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 222-230|-
-2021-05-11 12:11:27,709 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 222-230|- [222, 230, '-']
-2021-05-11 12:11:27,709 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000240963 222-230_22-430 .
-2021-05-11 12:11:27,710 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	222-230|-
-2021-05-11 12:11:27,710 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000283881! Assuming coordinates are already local!
-2021-05-11 12:11:27,711 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000283881 too short, seqlenght 94 with window size 100 and multiplyer 2
-2021-05-11 12:11:27,721 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000101849! Assuming coordinates are already local!
-2021-05-11 12:11:27,721 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Working on ENSG00000101849	ENSG00000101849::chrX:9463294-9719743(+)
-2021-05-11 12:11:27,721 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: Could not compute constraints for ENSG00000101849 May be missing in constraint file.
-2021-05-11 12:11:27,727 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000101871! Assuming coordinates are already local!
-2021-05-11 12:11:27,742 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Working on ENSG00000101871	ENSG00000101871::chrX:10445309-10833654(-)
-2021-05-11 12:11:27,742 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: Could not compute constraints for ENSG00000101871 May be missing in constraint file.
-2021-05-11 12:11:27,775 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000198947! Assuming coordinates are already local!
-2021-05-11 12:11:27,776 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Working on ENSG00000198947	ENSG00000198947::chrX:31097676-33339441(-)
-2021-05-11 12:11:27,776 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: Could not compute constraints for ENSG00000198947 May be missing in constraint file.
-2021-05-11 12:11:27,779 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000085224! Assuming coordinates are already local!
-2021-05-11 12:11:27,780 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Working on ENSG00000085224	ENSG00000085224::chrX:77504877-77786269(-)
-2021-05-11 12:11:27,780 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: Could not compute constraints for ENSG00000085224 May be missing in constraint file.
-2021-05-11 12:11:27,790 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000147202! Assuming coordinates are already local!
-2021-05-11 12:11:27,791 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Working on ENSG00000147202	ENSG00000147202::chrX:96684662-97604997(+)
-2021-05-11 12:11:27,791 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: Could not compute constraints for ENSG00000147202 May be missing in constraint file.
-2021-05-11 12:11:27,794 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000188153! Assuming coordinates are already local!
-2021-05-11 12:11:27,794 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Working on ENSG00000188153	ENSG00000188153::chrX:108439843-108697545(+)
-2021-05-11 12:11:27,794 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: Could not compute constraints for ENSG00000188153 May be missing in constraint file.
-2021-05-11 12:11:27,798 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000171004! Assuming coordinates are already local!
-2021-05-11 12:11:27,798 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Working on ENSG00000171004	ENSG00000171004::chrX:132626015-132961395(-)
-2021-05-11 12:11:27,799 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: Could not compute constraints for ENSG00000171004 May be missing in constraint file.
-2021-05-11 12:11:28,795 SpawnPoolWorker-8 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 211 219
-2021-05-11 12:11:28,800 SpawnPoolWorker-8 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000180198 211-219_111-319 +
-2021-05-11 12:11:28,801 SpawnPoolWorker-8 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000180198::chr1:28505942-28539300(+) 7 33358 409 211-219_111-319 11 200 208 419
-2021-05-11 12:11:28,952 SpawnPoolWorker-6 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 174 182
-2021-05-11 12:11:28,953 SpawnPoolWorker-6 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000242125 174-182_74-282 +
-2021-05-11 12:11:28,954 SpawnPoolWorker-6 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000242125::chr1:28505979-28510892(+) 7 4913 382 174-182_74-282 1 173 181 382
-2021-05-11 12:11:28,983 SpawnPoolWorker-3 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 216 224
-2021-05-11 12:11:28,984 SpawnPoolWorker-3 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000242125 216-224_116-324 +
-2021-05-11 12:11:28,985 SpawnPoolWorker-3 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000242125::chr1:28505979-28510892(+) 7 4913 409 216-224_116-324 16 200 208 424
-2021-05-11 12:11:29,070 SpawnPoolWorker-8 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
-2021-05-11 12:11:29,076 SpawnPoolWorker-9 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 85 93
-2021-05-11 12:11:29,077 SpawnPoolWorker-9 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000274266 85-93_1-193 +
-2021-05-11 12:11:29,078 SpawnPoolWorker-9 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000274266::chr1:28507365-28507571(+) 7 206 206 85-93_1-193 1 84 92 206
-2021-05-11 12:11:29,102 SpawnPoolWorker-5 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 221 229
-2021-05-11 12:11:29,103 SpawnPoolWorker-5 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000242125 221-229_121-329 +
-2021-05-11 12:11:29,104 SpawnPoolWorker-5 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000242125::chr1:28505979-28510892(+) 7 4913 409 221-229_121-329 21 200 208 429
-2021-05-11 12:11:29,191 SpawnPoolWorker-8 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 100 and 308
-2021-05-11 12:11:29,192 SpawnPoolWorker-8 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 10 209 209 211-219_111-319
-2021-05-11 12:11:29,192 SpawnPoolWorker-8 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:29,197 SpawnPoolWorker-8 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:29,199 SpawnPoolWorker-9 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
-2021-05-11 12:11:29,200 SpawnPoolWorker-8 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:29,240 SpawnPoolWorker-7 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 92 100
-2021-05-11 12:11:29,241 SpawnPoolWorker-7 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000274266 92-100_1-200 +
-2021-05-11 12:11:29,243 SpawnPoolWorker-7 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000274266::chr1:28507365-28507571(+) 7 206 206 92-100_1-200 1 91 99 206
-2021-05-11 12:11:29,252 SpawnPoolWorker-6 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
-2021-05-11 12:11:29,267 SpawnPoolWorker-9 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 0 and 192
-2021-05-11 12:11:29,268 SpawnPoolWorker-9 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 10 0 193 85-93_1-193
-2021-05-11 12:11:29,268 SpawnPoolWorker-9 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 193 0 7
-2021-05-11 12:11:29,277 SpawnPoolWorker-9 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 193 0 7
-2021-05-11 12:11:29,281 SpawnPoolWorker-4 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 109 117
-2021-05-11 12:11:29,282 SpawnPoolWorker-4 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000274266 109-117_9-206 +
-2021-05-11 12:11:29,283 SpawnPoolWorker-4 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000274266::chr1:28507365-28507571(+) 7 206 206 109-117_9-206 1 108 116 206
-2021-05-11 12:11:29,284 SpawnPoolWorker-9 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 193 0 7
-2021-05-11 12:11:29,307 SpawnPoolWorker-3 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
-2021-05-11 12:11:29,373 SpawnPoolWorker-7 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
-2021-05-11 12:11:29,411 SpawnPoolWorker-4 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
-2021-05-11 12:11:29,419 SpawnPoolWorker-6 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 73 and 281
-2021-05-11 12:11:29,420 SpawnPoolWorker-6 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 10 209 209 174-182_74-282
-2021-05-11 12:11:29,420 SpawnPoolWorker-6 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:29,422 SpawnPoolWorker-5 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
-2021-05-11 12:11:29,426 SpawnPoolWorker-3 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 100 and 308
-2021-05-11 12:11:29,426 SpawnPoolWorker-3 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 10 209 209 216-224_116-324
-2021-05-11 12:11:29,427 SpawnPoolWorker-3 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:29,428 SpawnPoolWorker-6 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:29,433 SpawnPoolWorker-6 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:29,435 SpawnPoolWorker-3 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:29,441 SpawnPoolWorker-7 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 0 and 199
-2021-05-11 12:11:29,441 SpawnPoolWorker-7 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 10 0 200 92-100_1-200
-2021-05-11 12:11:29,441 SpawnPoolWorker-7 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 200 0 7
-2021-05-11 12:11:29,441 SpawnPoolWorker-3 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:29,449 SpawnPoolWorker-7 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 200 0 7
-2021-05-11 12:11:29,455 SpawnPoolWorker-7 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 200 0 7
-2021-05-11 12:11:29,499 SpawnPoolWorker-4 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 8 and 205
-2021-05-11 12:11:29,499 SpawnPoolWorker-4 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 10 198 198 109-117_9-206
-2021-05-11 12:11:29,514 SpawnPoolWorker-4 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 198 198 7
-2021-05-11 12:11:29,522 SpawnPoolWorker-4 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 198 198 7
-2021-05-11 12:11:29,528 SpawnPoolWorker-4 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 198 198 7
-2021-05-11 12:11:29,592 SpawnPoolWorker-5 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 100 and 308
-2021-05-11 12:11:29,593 SpawnPoolWorker-5 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 10 209 209 221-229_121-329
-2021-05-11 12:11:29,594 SpawnPoolWorker-5 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:29,607 SpawnPoolWorker-5 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:29,618 SpawnPoolWorker-5 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:30,766 SpawnPoolWorker-13 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 84 92
-2021-05-11 12:11:30,767 SpawnPoolWorker-13 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000200087 84-92_1-192 +
-2021-05-11 12:11:30,767 SpawnPoolWorker-13 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000200087::chr1:28508558-28508762(+) 7 204 204 84-92_1-192 1 83 91 204
-2021-05-11 12:11:30,780 SpawnPoolWorker-10 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 144 152
-2021-05-11 12:11:30,781 SpawnPoolWorker-10 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000274266 144-152_44-206 +
-2021-05-11 12:11:30,782 SpawnPoolWorker-10 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000274266::chr1:28507365-28507571(+) 7 206 206 144-152_44-206 1 143 151 206
-2021-05-11 12:11:30,849 SpawnPoolWorker-13 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
-2021-05-11 12:11:30,892 SpawnPoolWorker-13 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 0 and 191
-2021-05-11 12:11:30,893 SpawnPoolWorker-13 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 10 0 192 84-92_1-192
-2021-05-11 12:11:30,893 SpawnPoolWorker-13 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 192 0 7
-2021-05-11 12:11:30,897 SpawnPoolWorker-13 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 192 0 7
-2021-05-11 12:11:30,901 SpawnPoolWorker-13 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 192 0 7
-2021-05-11 12:11:30,907 SpawnPoolWorker-10 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
-2021-05-11 12:11:30,988 SpawnPoolWorker-10 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 43 and 205
-2021-05-11 12:11:30,989 SpawnPoolWorker-10 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 10 163 163 144-152_44-206
-2021-05-11 12:11:30,989 SpawnPoolWorker-10 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 163 163 7
-2021-05-11 12:11:30,999 SpawnPoolWorker-10 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 163 163 7
-2021-05-11 12:11:31,006 SpawnPoolWorker-10 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 163 163 7
-2021-05-11 12:11:31,024 SpawnPoolWorker-11 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 122 130
-2021-05-11 12:11:31,025 SpawnPoolWorker-11 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000200087 122-130_22-204 +
-2021-05-11 12:11:31,026 SpawnPoolWorker-11 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000200087::chr1:28508558-28508762(+) 7 204 204 122-130_22-204 1 121 129 204
-2021-05-11 12:11:31,112 SpawnPoolWorker-11 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
-2021-05-11 12:11:31,167 SpawnPoolWorker-11 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 21 and 203
-2021-05-11 12:11:31,168 SpawnPoolWorker-11 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 10 183 183 122-130_22-204
-2021-05-11 12:11:31,168 SpawnPoolWorker-11 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 183 183 7
-2021-05-11 12:11:31,173 SpawnPoolWorker-11 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 183 183 7
-2021-05-11 12:11:31,178 SpawnPoolWorker-11 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 183 183 7
-2021-05-11 12:11:31,187 SpawnPoolWorker-15 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 27 35
-2021-05-11 12:11:31,188 SpawnPoolWorker-15 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000270742 27-35_1-135 +
-2021-05-11 12:11:31,190 SpawnPoolWorker-15 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000270742::chr1:61124732-61125202(+) 7 470 235 27-35_1-135 1 26 34 235
-2021-05-11 12:11:31,190 SpawnPoolWorker-14 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 142 150
-2021-05-11 12:11:31,192 SpawnPoolWorker-14 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000200087 142-150_42-204 +
-2021-05-11 12:11:31,193 SpawnPoolWorker-14 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000200087::chr1:28508558-28508762(+) 7 204 204 142-150_42-204 1 141 149 204
-2021-05-11 12:11:31,203 SpawnPoolWorker-12 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 161 169
-2021-05-11 12:11:31,209 SpawnPoolWorker-12 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000137955 161-169_61-269 +
-2021-05-11 12:11:31,210 SpawnPoolWorker-12 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000137955::chr1:75786196-75795079(+) 7 8883 369 161-169_61-269 1 160 168 369
-2021-05-11 12:11:31,281 SpawnPoolWorker-16 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 184 192
-2021-05-11 12:11:31,288 SpawnPoolWorker-16 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000137955 184-192_84-292 +
-2021-05-11 12:11:31,289 SpawnPoolWorker-16 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000137955::chr1:75786196-75795079(+) 7 8883 392 184-192_84-292 1 183 191 392
-2021-05-11 12:11:31,340 SpawnPoolWorker-15 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
-2021-05-11 12:11:31,347 SpawnPoolWorker-14 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
-2021-05-11 12:11:31,413 SpawnPoolWorker-14 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 41 and 203
-2021-05-11 12:11:31,413 SpawnPoolWorker-14 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 10 163 163 142-150_42-204
-2021-05-11 12:11:31,413 SpawnPoolWorker-14 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 163 163 7
-2021-05-11 12:11:31,419 SpawnPoolWorker-14 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 163 163 7
-2021-05-11 12:11:31,424 SpawnPoolWorker-14 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 163 163 7
-2021-05-11 12:11:31,519 SpawnPoolWorker-15 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 0 and 134
-2021-05-11 12:11:31,520 SpawnPoolWorker-15 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 10 0 135 27-35_1-135
-2021-05-11 12:11:31,520 SpawnPoolWorker-15 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 135 0 7
-2021-05-11 12:11:31,526 SpawnPoolWorker-15 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 135 0 7
-2021-05-11 12:11:31,550 SpawnPoolWorker-15 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 135 0 7
-2021-05-11 12:11:31,618 SpawnPoolWorker-12 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
-2021-05-11 12:11:31,661 SpawnPoolWorker-16 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
-2021-05-11 12:11:31,755 SpawnPoolWorker-12 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 60 and 268
-2021-05-11 12:11:31,756 SpawnPoolWorker-12 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 10 209 209 161-169_61-269
-2021-05-11 12:11:31,756 SpawnPoolWorker-12 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:31,764 SpawnPoolWorker-12 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:31,784 SpawnPoolWorker-12 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:31,918 SpawnPoolWorker-16 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 83 and 291
-2021-05-11 12:11:31,919 SpawnPoolWorker-16 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 10 209 209 184-192_84-292
-2021-05-11 12:11:31,920 SpawnPoolWorker-16 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:31,928 SpawnPoolWorker-16 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:31,942 SpawnPoolWorker-16 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:32,708 SpawnPoolWorker-17 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 201 209
-2021-05-11 12:11:32,709 SpawnPoolWorker-17 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000137955 201-209_101-309 +
-2021-05-11 12:11:32,710 SpawnPoolWorker-17 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000137955::chr1:75786196-75795079(+) 7 8883 409 201-209_101-309 1 200 208 409
-2021-05-11 12:11:32,716 SpawnPoolWorker-18 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 210 218
-2021-05-11 12:11:32,717 SpawnPoolWorker-18 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000137955 210-218_110-318 +
-2021-05-11 12:11:32,717 SpawnPoolWorker-18 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000137955::chr1:75786196-75795079(+) 7 8883 409 210-218_110-318 10 200 208 418
-2021-05-11 12:11:32,720 SpawnPoolWorker-19 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 220 228
-2021-05-11 12:11:32,721 SpawnPoolWorker-19 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000137955 220-228_120-328 +
-2021-05-11 12:11:32,722 SpawnPoolWorker-19 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000137955::chr1:75786196-75795079(+) 7 8883 409 220-228_120-328 20 200 208 428
-2021-05-11 12:11:32,923 SpawnPoolWorker-20 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 120 128
-2021-05-11 12:11:32,924 SpawnPoolWorker-20 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000122406 120-128_20-228 +
-2021-05-11 12:11:32,925 SpawnPoolWorker-20 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000122406::chr1:92832024-92841924(+) 7 9900 328 120-128_20-228 1 119 127 328
-2021-05-11 12:11:33,017 SpawnPoolWorker-21 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 127 135
-2021-05-11 12:11:33,018 SpawnPoolWorker-21 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000122406 127-135_27-235 +
-2021-05-11 12:11:33,019 SpawnPoolWorker-21 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000122406::chr1:92832024-92841924(+) 7 9900 335 127-135_27-235 1 126 134 335
-2021-05-11 12:11:33,042 SpawnPoolWorker-17 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
-2021-05-11 12:11:33,054 SpawnPoolWorker-18 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
-2021-05-11 12:11:33,058 SpawnPoolWorker-19 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
-2021-05-11 12:11:33,161 SpawnPoolWorker-17 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 100 and 308
-2021-05-11 12:11:33,161 SpawnPoolWorker-17 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 10 209 209 201-209_101-309
-2021-05-11 12:11:33,161 SpawnPoolWorker-17 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:33,167 SpawnPoolWorker-17 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:33,172 SpawnPoolWorker-17 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:33,194 SpawnPoolWorker-20 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
-2021-05-11 12:11:33,230 SpawnPoolWorker-18 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 100 and 308
-2021-05-11 12:11:33,231 SpawnPoolWorker-18 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 10 209 209 210-218_110-318
-2021-05-11 12:11:33,231 SpawnPoolWorker-18 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:33,235 SpawnPoolWorker-19 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 100 and 308
-2021-05-11 12:11:33,236 SpawnPoolWorker-19 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 10 209 209 220-228_120-328
-2021-05-11 12:11:33,237 SpawnPoolWorker-19 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:33,240 SpawnPoolWorker-18 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:33,246 SpawnPoolWorker-19 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:33,247 SpawnPoolWorker-18 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:33,253 SpawnPoolWorker-19 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:33,295 SpawnPoolWorker-21 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
-2021-05-11 12:11:33,314 SpawnPoolWorker-23 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 205 213
-2021-05-11 12:11:33,315 SpawnPoolWorker-23 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000122406 205-213_105-313 +
-2021-05-11 12:11:33,317 SpawnPoolWorker-23 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000122406::chr1:92832024-92841924(+) 7 9900 409 205-213_105-313 5 200 208 413
-2021-05-11 12:11:33,367 SpawnPoolWorker-22 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 218 226
-2021-05-11 12:11:33,369 SpawnPoolWorker-22 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000122406 218-226_118-326 +
-2021-05-11 12:11:33,370 SpawnPoolWorker-22 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000122406::chr1:92832024-92841924(+) 7 9900 409 218-226_118-326 18 200 208 426
-2021-05-11 12:11:33,371 SpawnPoolWorker-20 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 19 and 227
-2021-05-11 12:11:33,371 SpawnPoolWorker-20 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 10 209 209 120-128_20-228
-2021-05-11 12:11:33,372 SpawnPoolWorker-20 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:33,383 SpawnPoolWorker-20 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:33,391 SpawnPoolWorker-20 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:33,535 SpawnPoolWorker-21 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 26 and 234
-2021-05-11 12:11:33,538 SpawnPoolWorker-21 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 10 209 209 127-135_27-235
-2021-05-11 12:11:33,539 SpawnPoolWorker-21 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:33,552 SpawnPoolWorker-21 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:33,563 SpawnPoolWorker-21 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:33,802 SpawnPoolWorker-22 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
-2021-05-11 12:11:33,869 SpawnPoolWorker-23 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
-2021-05-11 12:11:34,049 SpawnPoolWorker-22 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 100 and 308
-2021-05-11 12:11:34,049 SpawnPoolWorker-22 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 10 209 209 218-226_118-326
-2021-05-11 12:11:34,049 SpawnPoolWorker-22 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:34,058 SpawnPoolWorker-22 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:34,065 SpawnPoolWorker-22 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:34,096 SpawnPoolWorker-23 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 100 and 308
-2021-05-11 12:11:34,096 SpawnPoolWorker-23 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 10 209 209 205-213_105-313
-2021-05-11 12:11:34,097 SpawnPoolWorker-23 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:34,105 SpawnPoolWorker-23 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:34,114 SpawnPoolWorker-23 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:34,731 SpawnPoolWorker-24 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 133 141
-2021-05-11 12:11:34,732 SpawnPoolWorker-24 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000156875 133-141_33-241 +
-2021-05-11 12:11:34,733 SpawnPoolWorker-24 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000156875::chr1:100038096-100083377(+) 7 45281 341 133-141_33-241 1 132 140 341
-2021-05-11 12:11:34,815 SpawnPoolWorker-25 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 11 19
-2021-05-11 12:11:34,816 SpawnPoolWorker-25 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000240038 11-19_1-119 +
-2021-05-11 12:11:34,817 SpawnPoolWorker-25 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000240038::chr1:103553814-103579534(+) 7 25720 219 11-19_1-119 1 10 18 219
-2021-05-11 12:11:34,905 SpawnPoolWorker-24 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
-2021-05-11 12:11:34,962 SpawnPoolWorker-25 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
-2021-05-11 12:11:34,971 SpawnPoolWorker-26 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 186 194
-2021-05-11 12:11:34,972 SpawnPoolWorker-26 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000143543 186-194_86-294 -
-2021-05-11 12:11:34,973 SpawnPoolWorker-26 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000143543::chr1:153974268-153977688(-) 7 3420 394 186-194_86-294 1 185 193 394
-2021-05-11 12:11:34,988 SpawnPoolWorker-24 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 32 and 240
-2021-05-11 12:11:34,989 SpawnPoolWorker-24 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 10 209 209 133-141_33-241
-2021-05-11 12:11:34,989 SpawnPoolWorker-24 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:34,994 SpawnPoolWorker-24 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:34,996 SpawnPoolWorker-24 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:35,035 SpawnPoolWorker-25 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 0 and 118
-2021-05-11 12:11:35,036 SpawnPoolWorker-25 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 10 0 119 11-19_1-119
-2021-05-11 12:11:35,036 SpawnPoolWorker-25 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 119 0 7
-2021-05-11 12:11:35,042 SpawnPoolWorker-25 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 119 0 7
-2021-05-11 12:11:35,045 SpawnPoolWorker-25 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 119 0 7
-2021-05-11 12:11:35,125 SpawnPoolWorker-27 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 84 92
-2021-05-11 12:11:35,126 SpawnPoolWorker-27 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000177954 84-92_1-192 +
-2021-05-11 12:11:35,127 SpawnPoolWorker-27 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000177954::chr1:153990758-153992150(+) 7 1392 292 84-92_1-192 1 83 91 292
-2021-05-11 12:11:35,237 SpawnPoolWorker-28 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 133 141
-2021-05-11 12:11:35,238 SpawnPoolWorker-28 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000177954 133-141_33-241 +
-2021-05-11 12:11:35,239 SpawnPoolWorker-28 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000177954::chr1:153990758-153992150(+) 7 1392 341 133-141_33-241 1 132 140 341
-2021-05-11 12:11:35,257 SpawnPoolWorker-26 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
-2021-05-11 12:11:35,333 SpawnPoolWorker-27 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
-2021-05-11 12:11:35,443 SpawnPoolWorker-26 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 85 and 293
-2021-05-11 12:11:35,452 SpawnPoolWorker-26 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 10 209 209 186-194_86-294
-2021-05-11 12:11:35,453 SpawnPoolWorker-26 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:35,468 SpawnPoolWorker-26 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:35,480 SpawnPoolWorker-26 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:35,506 SpawnPoolWorker-28 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
-2021-05-11 12:11:35,508 SpawnPoolWorker-27 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 0 and 191
-2021-05-11 12:11:35,508 SpawnPoolWorker-27 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 10 0 192 84-92_1-192
-2021-05-11 12:11:35,509 SpawnPoolWorker-27 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 192 0 7
-2021-05-11 12:11:35,516 SpawnPoolWorker-27 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 192 0 7
-2021-05-11 12:11:35,522 SpawnPoolWorker-27 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 192 0 7
-2021-05-11 12:11:35,655 SpawnPoolWorker-28 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 32 and 240
-2021-05-11 12:11:35,656 SpawnPoolWorker-28 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 10 209 209 133-141_33-241
-2021-05-11 12:11:35,656 SpawnPoolWorker-28 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:35,667 SpawnPoolWorker-28 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:35,667 SpawnPoolWorker-30 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 221 229
-2021-05-11 12:11:35,668 SpawnPoolWorker-30 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000177954 221-229_121-329 +
-2021-05-11 12:11:35,669 SpawnPoolWorker-30 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000177954::chr1:153990758-153992150(+) 7 1392 409 221-229_121-329 21 200 208 429
-2021-05-11 12:11:35,672 SpawnPoolWorker-28 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:35,750 SpawnPoolWorker-29 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 128 136
-2021-05-11 12:11:35,751 SpawnPoolWorker-29 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000058673 128-136_28-236 +
-2021-05-11 12:11:35,752 SpawnPoolWorker-29 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000058673::chr1:203795653-203854999(+) 7 59346 336 128-136_28-236 1 127 135 336
-2021-05-11 12:11:35,991 SpawnPoolWorker-30 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
-2021-05-11 12:11:36,123 SpawnPoolWorker-29 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
-2021-05-11 12:11:36,173 SpawnPoolWorker-30 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 100 and 308
-2021-05-11 12:11:36,173 SpawnPoolWorker-30 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 10 209 209 221-229_121-329
-2021-05-11 12:11:36,173 SpawnPoolWorker-30 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:36,179 SpawnPoolWorker-30 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:36,181 SpawnPoolWorker-30 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:36,272 SpawnPoolWorker-29 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 27 and 235
-2021-05-11 12:11:36,273 SpawnPoolWorker-29 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 10 209 209 128-136_28-236
-2021-05-11 12:11:36,273 SpawnPoolWorker-29 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:36,282 SpawnPoolWorker-29 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:36,290 SpawnPoolWorker-29 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:36,753 SpawnPoolWorker-31 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 155 163
-2021-05-11 12:11:36,755 SpawnPoolWorker-31 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000058673 155-163_55-263 +
-2021-05-11 12:11:36,756 SpawnPoolWorker-31 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000058673::chr1:203795653-203854999(+) 7 59346 363 155-163_55-263 1 154 162 363
-2021-05-11 12:11:36,757 SpawnPoolWorker-32 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 216 224
-2021-05-11 12:11:36,771 SpawnPoolWorker-32 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000058673 216-224_116-324 +
-2021-05-11 12:11:36,772 SpawnPoolWorker-32 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000058673::chr1:203795653-203854999(+) 7 59346 409 216-224_116-324 16 200 208 424
-2021-05-11 12:11:37,026 SpawnPoolWorker-33 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 68 76
-2021-05-11 12:11:37,027 SpawnPoolWorker-33 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000257315 68-76_1-176 +
-2021-05-11 12:11:37,028 SpawnPoolWorker-33 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000257315::chr1:203795713-203854999(+) 7 59286 276 68-76_1-176 1 67 75 276
-2021-05-11 12:11:37,031 SpawnPoolWorker-31 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
-2021-05-11 12:11:37,061 SpawnPoolWorker-32 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
-2021-05-11 12:11:37,064 SpawnPoolWorker-34 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 95 103
-2021-05-11 12:11:37,065 SpawnPoolWorker-34 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000257315 95-103_1-203 +
-2021-05-11 12:11:37,065 SpawnPoolWorker-34 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000257315::chr1:203795713-203854999(+) 7 59286 303 95-103_1-203 1 94 102 303
-2021-05-11 12:11:37,182 SpawnPoolWorker-31 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 54 and 262
-2021-05-11 12:11:37,182 SpawnPoolWorker-31 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 10 209 209 155-163_55-263
-2021-05-11 12:11:37,183 SpawnPoolWorker-31 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:37,191 SpawnPoolWorker-31 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:37,198 SpawnPoolWorker-31 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:37,219 SpawnPoolWorker-32 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 100 and 308
-2021-05-11 12:11:37,220 SpawnPoolWorker-32 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 10 209 209 216-224_116-324
-2021-05-11 12:11:37,220 SpawnPoolWorker-32 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:37,226 SpawnPoolWorker-33 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
-2021-05-11 12:11:37,229 SpawnPoolWorker-32 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:37,236 SpawnPoolWorker-32 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:37,265 SpawnPoolWorker-34 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
-2021-05-11 12:11:37,283 SpawnPoolWorker-35 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 156 164
-2021-05-11 12:11:37,284 SpawnPoolWorker-35 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000257315 156-164_56-264 +
-2021-05-11 12:11:37,285 SpawnPoolWorker-35 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000257315::chr1:203795713-203854999(+) 7 59286 364 156-164_56-264 1 155 163 364
-2021-05-11 12:11:37,342 SpawnPoolWorker-33 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 0 and 175
-2021-05-11 12:11:37,342 SpawnPoolWorker-33 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 10 0 176 68-76_1-176
-2021-05-11 12:11:37,343 SpawnPoolWorker-33 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 176 0 7
-2021-05-11 12:11:37,350 SpawnPoolWorker-33 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 176 0 7
-2021-05-11 12:11:37,350 SpawnPoolWorker-34 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 0 and 202
-2021-05-11 12:11:37,351 SpawnPoolWorker-34 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 10 0 203 95-103_1-203
-2021-05-11 12:11:37,351 SpawnPoolWorker-34 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 203 0 7
-2021-05-11 12:11:37,356 SpawnPoolWorker-33 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 176 0 7
-2021-05-11 12:11:37,359 SpawnPoolWorker-34 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 203 0 7
-2021-05-11 12:11:37,364 SpawnPoolWorker-34 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 203 0 7
-2021-05-11 12:11:37,625 SpawnPoolWorker-35 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
-2021-05-11 12:11:37,658 SpawnPoolWorker-37 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 144 152
-2021-05-11 12:11:37,671 SpawnPoolWorker-37 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000240963 144-152_44-252 -
-2021-05-11 12:11:37,677 SpawnPoolWorker-37 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000240963::chr1:244375099-244409592(-) 7 34493 352 144-152_44-252 1 143 151 352
-2021-05-11 12:11:37,721 SpawnPoolWorker-36 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 197 205
-2021-05-11 12:11:37,730 SpawnPoolWorker-36 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000240963 197-205_97-305 -
-2021-05-11 12:11:37,731 SpawnPoolWorker-36 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000240963::chr1:244375099-244409592(-) 7 34493 405 197-205_97-305 1 196 204 405
-2021-05-11 12:11:37,848 SpawnPoolWorker-35 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 55 and 263
-2021-05-11 12:11:37,849 SpawnPoolWorker-35 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 10 209 209 156-164_56-264
-2021-05-11 12:11:37,849 SpawnPoolWorker-35 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:37,873 SpawnPoolWorker-35 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:37,880 SpawnPoolWorker-35 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:37,966 SpawnPoolWorker-37 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
-2021-05-11 12:11:38,043 SpawnPoolWorker-36 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
-2021-05-11 12:11:38,118 SpawnPoolWorker-37 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 43 and 251
-2021-05-11 12:11:38,118 SpawnPoolWorker-37 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 10 209 209 144-152_44-252
-2021-05-11 12:11:38,118 SpawnPoolWorker-37 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:38,127 SpawnPoolWorker-37 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:38,134 SpawnPoolWorker-37 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:38,262 SpawnPoolWorker-36 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 96 and 304
-2021-05-11 12:11:38,263 SpawnPoolWorker-36 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 10 209 209 197-205_97-305
-2021-05-11 12:11:38,264 SpawnPoolWorker-36 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:38,277 SpawnPoolWorker-36 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:38,288 SpawnPoolWorker-36 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:38,807 SpawnPoolWorker-39 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 222 230
-2021-05-11 12:11:38,808 SpawnPoolWorker-39 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000240963 222-230_122-330 -
-2021-05-11 12:11:38,809 SpawnPoolWorker-39 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000240963::chr1:244375099-244409592(-) 7 34493 409 222-230_122-330 22 200 208 430
-2021-05-11 12:11:39,073 SpawnPoolWorker-39 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
-2021-05-11 12:11:39,215 SpawnPoolWorker-39 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 100 and 308
-2021-05-11 12:11:39,216 SpawnPoolWorker-39 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 10 209 209 222-230_122-330
-2021-05-11 12:11:39,216 SpawnPoolWorker-39 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:39,222 SpawnPoolWorker-39 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:39,228 SpawnPoolWorker-39 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
-2021-05-11 12:11:39,685 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: DONE: output in: /home/rabsch/Documents/RIssmed/RIssmed/tests/multi_constraint_test
+2021-05-18 11:12:32,679 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.main: Running ConstraintPLFold on 7 cores.
+2021-05-18 11:12:32,681 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.main: CLI: /home/rabsch/.local/share/JetBrains/Toolbox/apps/PyCharm-P/ch-0/203.7717.81/plugins/python/helpers/pycharm/_jb_pytest_runner.py test_plfold.py::test_multi_constraint
+2021-05-18 11:12:36,415 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000252947! Assuming coordinates are already local!
+2021-05-18 11:12:36,416 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000252947 too short, seqlenght 166 with window size 100 and multiplyer 2
+2021-05-18 11:12:36,417 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000180198! Assuming coordinates are already local!
+2021-05-18 11:12:36,417 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Working on ENSG00000180198	ENSG00000180198::chr1:28505942-28539300(+)
+2021-05-18 11:12:36,418 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Parsing constraints for fold from Bed /home/rabsch/Documents/RIssmed/RIssmed/tests/testdata/test_constraints.bed
+2021-05-18 11:12:36,418 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating probs for ENSG00000180198 with constraint from file /home/rabsch/Documents/RIssmed/RIssmed/tests/testdata/test_constraints.bed
+2021-05-18 11:12:36,418 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ['211-219|+']
+2021-05-18 11:12:36,419 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 211-219|+
+2021-05-18 11:12:36,419 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 211-219|+ [211, 219, '+']
+2021-05-18 11:12:36,419 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000180198 211-219_11-419 .
+2021-05-18 11:12:36,419 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	211-219|+
+2021-05-18 11:12:36,420 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000242125! Assuming coordinates are already local!
+2021-05-18 11:12:36,420 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Working on ENSG00000242125	ENSG00000242125::chr1:28505979-28510892(+)
+2021-05-18 11:12:36,421 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating probs for ENSG00000242125 with constraint from file /home/rabsch/Documents/RIssmed/RIssmed/tests/testdata/test_constraints.bed
+2021-05-18 11:12:36,421 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ['174-182|+', '216-224|+', '221-229|+']
+2021-05-18 11:12:36,421 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 174-182|+
+2021-05-18 11:12:36,422 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 174-182|+ [174, 182, '+']
+2021-05-18 11:12:36,422 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000242125 174-182_1-382 .
+2021-05-18 11:12:36,422 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	174-182|+
+2021-05-18 11:12:36,423 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 216-224|+
+2021-05-18 11:12:36,423 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 216-224|+ [216, 224, '+']
+2021-05-18 11:12:36,423 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000242125 216-224_16-424 .
+2021-05-18 11:12:36,424 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	216-224|+
+2021-05-18 11:12:36,424 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 221-229|+
+2021-05-18 11:12:36,425 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 221-229|+ [221, 229, '+']
+2021-05-18 11:12:36,425 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000242125 221-229_21-429 .
+2021-05-18 11:12:36,426 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	221-229|+
+2021-05-18 11:12:36,426 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000274266! Assuming coordinates are already local!
+2021-05-18 11:12:36,427 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Working on ENSG00000274266	ENSG00000274266::chr1:28507365-28507571(+)
+2021-05-18 11:12:36,428 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating probs for ENSG00000274266 with constraint from file /home/rabsch/Documents/RIssmed/RIssmed/tests/testdata/test_constraints.bed
+2021-05-18 11:12:36,428 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ['85-93|+', '92-100|+', '109-117|+', '144-152|+']
+2021-05-18 11:12:36,428 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 85-93|+
+2021-05-18 11:12:36,429 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 85-93|+ [85, 93, '+']
+2021-05-18 11:12:36,429 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000274266 85-93_1-206 .
+2021-05-18 11:12:36,430 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	85-93|+
+2021-05-18 11:12:36,430 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 92-100|+
+2021-05-18 11:12:36,431 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 92-100|+ [92, 100, '+']
+2021-05-18 11:12:36,431 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000274266 92-100_1-206 .
+2021-05-18 11:12:36,432 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	92-100|+
+2021-05-18 11:12:36,432 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 109-117|+
+2021-05-18 11:12:36,433 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 109-117|+ [109, 117, '+']
+2021-05-18 11:12:36,433 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000274266 109-117_1-206 .
+2021-05-18 11:12:36,434 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	109-117|+
+2021-05-18 11:12:36,435 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 144-152|+
+2021-05-18 11:12:36,435 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 144-152|+ [144, 152, '+']
+2021-05-18 11:12:36,436 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000274266 144-152_1-206 .
+2021-05-18 11:12:36,436 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	144-152|+
+2021-05-18 11:12:36,437 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000200087! Assuming coordinates are already local!
+2021-05-18 11:12:36,437 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Working on ENSG00000200087	ENSG00000200087::chr1:28508558-28508762(+)
+2021-05-18 11:12:36,438 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating probs for ENSG00000200087 with constraint from file /home/rabsch/Documents/RIssmed/RIssmed/tests/testdata/test_constraints.bed
+2021-05-18 11:12:36,438 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ['84-92|+', '122-130|+', '142-150|+']
+2021-05-18 11:12:36,439 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 84-92|+
+2021-05-18 11:12:36,439 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 84-92|+ [84, 92, '+']
+2021-05-18 11:12:36,440 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000200087 84-92_1-204 .
+2021-05-18 11:12:36,441 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	84-92|+
+2021-05-18 11:12:36,441 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 122-130|+
+2021-05-18 11:12:36,442 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 122-130|+ [122, 130, '+']
+2021-05-18 11:12:36,442 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000200087 122-130_1-204 .
+2021-05-18 11:12:36,443 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	122-130|+
+2021-05-18 11:12:36,443 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 142-150|+
+2021-05-18 11:12:36,444 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 142-150|+ [142, 150, '+']
+2021-05-18 11:12:36,444 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000200087 142-150_1-204 .
+2021-05-18 11:12:36,445 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	142-150|+
+2021-05-18 11:12:36,446 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000221539! Assuming coordinates are already local!
+2021-05-18 11:12:36,446 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000221539 too short, seqlenght 74 with window size 100 and multiplyer 2
+2021-05-18 11:12:36,447 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000278274! Assuming coordinates are already local!
+2021-05-18 11:12:36,447 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000278274 too short, seqlenght 130 with window size 100 and multiplyer 2
+2021-05-18 11:12:36,448 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000273544! Assuming coordinates are already local!
+2021-05-18 11:12:36,448 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000273544 too short, seqlenght 132 with window size 100 and multiplyer 2
+2021-05-18 11:12:36,449 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000280498! Assuming coordinates are already local!
+2021-05-18 11:12:36,450 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000280498 too short, seqlenght 135 with window size 100 and multiplyer 2
+2021-05-18 11:12:36,451 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000274582! Assuming coordinates are already local!
+2021-05-18 11:12:36,451 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000274582 too short, seqlenght 137 with window size 100 and multiplyer 2
+2021-05-18 11:12:36,452 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000277916! Assuming coordinates are already local!
+2021-05-18 11:12:36,452 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000277916 too short, seqlenght 169 with window size 100 and multiplyer 2
+2021-05-18 11:12:36,453 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000201457! Assuming coordinates are already local!
+2021-05-18 11:12:36,453 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000201457 too short, seqlenght 135 with window size 100 and multiplyer 2
+2021-05-18 11:12:36,454 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000200913! Assuming coordinates are already local!
+2021-05-18 11:12:36,454 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000200913 too short, seqlenght 104 with window size 100 and multiplyer 2
+2021-05-18 11:12:36,455 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000202031! Assuming coordinates are already local!
+2021-05-18 11:12:36,455 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000202031 too short, seqlenght 70 with window size 100 and multiplyer 2
+2021-05-18 11:12:36,456 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000207421! Assuming coordinates are already local!
+2021-05-18 11:12:36,457 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000207421 too short, seqlenght 67 with window size 100 and multiplyer 2
+2021-05-18 11:12:36,458 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000281859! Assuming coordinates are already local!
+2021-05-18 11:12:36,459 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000281859 too short, seqlenght 69 with window size 100 and multiplyer 2
+2021-05-18 11:12:36,461 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000270742! Assuming coordinates are already local!
+2021-05-18 11:12:36,462 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Working on ENSG00000270742	ENSG00000270742::chr1:61124732-61125202(+)
+2021-05-18 11:12:36,463 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating probs for ENSG00000270742 with constraint from file /home/rabsch/Documents/RIssmed/RIssmed/tests/testdata/test_constraints.bed
+2021-05-18 11:12:36,463 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ['27-35|+']
+2021-05-18 11:12:36,464 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 27-35|+
+2021-05-18 11:12:36,465 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 27-35|+ [27, 35, '+']
+2021-05-18 11:12:36,466 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000270742 27-35_1-235 .
+2021-05-18 11:12:36,467 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	27-35|+
+2021-05-18 11:12:36,468 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000207721! Assuming coordinates are already local!
+2021-05-18 11:12:36,469 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000207721 too short, seqlenght 86 with window size 100 and multiplyer 2
+2021-05-18 11:12:36,470 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000137955! Assuming coordinates are already local!
+2021-05-18 11:12:36,471 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Working on ENSG00000137955	ENSG00000137955::chr1:75786196-75795079(+)
+2021-05-18 11:12:36,471 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating probs for ENSG00000137955 with constraint from file /home/rabsch/Documents/RIssmed/RIssmed/tests/testdata/test_constraints.bed
+2021-05-18 11:12:36,472 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ['161-169|+', '184-192|+', '201-209|+', '210-218|+', '220-228|+']
+2021-05-18 11:12:36,473 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 161-169|+
+2021-05-18 11:12:36,474 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 161-169|+ [161, 169, '+']
+2021-05-18 11:12:36,475 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000137955 161-169_1-369 .
+2021-05-18 11:12:36,475 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	161-169|+
+2021-05-18 11:12:36,476 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 184-192|+
+2021-05-18 11:12:36,477 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 184-192|+ [184, 192, '+']
+2021-05-18 11:12:36,478 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000137955 184-192_1-392 .
+2021-05-18 11:12:36,479 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	184-192|+
+2021-05-18 11:12:36,480 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 201-209|+
+2021-05-18 11:12:36,480 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 201-209|+ [201, 209, '+']
+2021-05-18 11:12:36,481 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000137955 201-209_1-409 .
+2021-05-18 11:12:36,482 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	201-209|+
+2021-05-18 11:12:36,483 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 210-218|+
+2021-05-18 11:12:36,484 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 210-218|+ [210, 218, '+']
+2021-05-18 11:12:36,485 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000137955 210-218_10-418 .
+2021-05-18 11:12:36,485 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	210-218|+
+2021-05-18 11:12:36,486 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 220-228|+
+2021-05-18 11:12:36,487 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 220-228|+ [220, 228, '+']
+2021-05-18 11:12:36,488 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000137955 220-228_20-428 .
+2021-05-18 11:12:36,489 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	220-228|+
+2021-05-18 11:12:36,490 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000206620! Assuming coordinates are already local!
+2021-05-18 11:12:36,490 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000206620 too short, seqlenght 79 with window size 100 and multiplyer 2
+2021-05-18 11:12:36,491 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000207241! Assuming coordinates are already local!
+2021-05-18 11:12:36,492 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000207241 too short, seqlenght 84 with window size 100 and multiplyer 2
+2021-05-18 11:12:36,493 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000122406! Assuming coordinates are already local!
+2021-05-18 11:12:36,494 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Working on ENSG00000122406	ENSG00000122406::chr1:92832024-92841924(+)
+2021-05-18 11:12:36,495 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating probs for ENSG00000122406 with constraint from file /home/rabsch/Documents/RIssmed/RIssmed/tests/testdata/test_constraints.bed
+2021-05-18 11:12:36,495 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ['120-128|+', '127-135|+', '205-213|+', '218-226|+']
+2021-05-18 11:12:36,496 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 120-128|+
+2021-05-18 11:12:36,497 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 120-128|+ [120, 128, '+']
+2021-05-18 11:12:36,498 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000122406 120-128_1-328 .
+2021-05-18 11:12:36,499 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	120-128|+
+2021-05-18 11:12:36,500 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 127-135|+
+2021-05-18 11:12:36,500 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 127-135|+ [127, 135, '+']
+2021-05-18 11:12:36,501 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000122406 127-135_1-335 .
+2021-05-18 11:12:36,502 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	127-135|+
+2021-05-18 11:12:36,503 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 205-213|+
+2021-05-18 11:12:36,504 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 205-213|+ [205, 213, '+']
+2021-05-18 11:12:36,505 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000122406 205-213_5-413 .
+2021-05-18 11:12:36,506 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	205-213|+
+2021-05-18 11:12:36,506 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 218-226|+
+2021-05-18 11:12:36,507 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 218-226|+ [218, 226, '+']
+2021-05-18 11:12:36,508 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000122406 218-226_18-426 .
+2021-05-18 11:12:36,509 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	218-226|+
+2021-05-18 11:12:36,510 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000206680! Assuming coordinates are already local!
+2021-05-18 11:12:36,510 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000206680 too short, seqlenght 95 with window size 100 and multiplyer 2
+2021-05-18 11:12:36,511 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000207523! Assuming coordinates are already local!
+2021-05-18 11:12:36,512 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000207523 too short, seqlenght 133 with window size 100 and multiplyer 2
+2021-05-18 11:12:36,514 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000156875! Assuming coordinates are already local!
+2021-05-18 11:12:36,514 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Working on ENSG00000156875	ENSG00000156875::chr1:100038096-100083377(+)
+2021-05-18 11:12:36,515 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating probs for ENSG00000156875 with constraint from file /home/rabsch/Documents/RIssmed/RIssmed/tests/testdata/test_constraints.bed
+2021-05-18 11:12:36,516 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ['133-141|+']
+2021-05-18 11:12:36,517 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 133-141|+
+2021-05-18 11:12:36,518 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 133-141|+ [133, 141, '+']
+2021-05-18 11:12:36,519 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000156875 133-141_1-341 .
+2021-05-18 11:12:36,520 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	133-141|+
+2021-05-18 11:12:36,521 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000240038! Assuming coordinates are already local!
+2021-05-18 11:12:36,522 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Working on ENSG00000240038	ENSG00000240038::chr1:103553814-103579534(+)
+2021-05-18 11:12:36,523 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating probs for ENSG00000240038 with constraint from file /home/rabsch/Documents/RIssmed/RIssmed/tests/testdata/test_constraints.bed
+2021-05-18 11:12:36,525 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ['11-19|+']
+2021-05-18 11:12:36,526 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 11-19|+
+2021-05-18 11:12:36,527 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 11-19|+ [11, 19, '+']
+2021-05-18 11:12:36,528 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000240038 11-19_1-219 .
+2021-05-18 11:12:36,529 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	11-19|+
+2021-05-18 11:12:36,530 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000277610! Assuming coordinates are already local!
+2021-05-18 11:12:36,531 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000277610 too short, seqlenght 164 with window size 100 and multiplyer 2
+2021-05-18 11:12:36,532 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000207340! Assuming coordinates are already local!
+2021-05-18 11:12:36,532 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000207340 too short, seqlenght 164 with window size 100 and multiplyer 2
+2021-05-18 11:12:36,533 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000238825! Assuming coordinates are already local!
+2021-05-18 11:12:36,534 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000238825 too short, seqlenght 162 with window size 100 and multiplyer 2
+2021-05-18 11:12:36,535 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000206828! Assuming coordinates are already local!
+2021-05-18 11:12:36,536 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000206828 too short, seqlenght 164 with window size 100 and multiplyer 2
+2021-05-18 11:12:36,537 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000143543! Assuming coordinates are already local!
+2021-05-18 11:12:36,537 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Working on ENSG00000143543	ENSG00000143543::chr1:153974268-153977688(-)
+2021-05-18 11:12:36,538 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating probs for ENSG00000143543 with constraint from file /home/rabsch/Documents/RIssmed/RIssmed/tests/testdata/test_constraints.bed
+2021-05-18 11:12:36,539 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ['186-194|-']
+2021-05-18 11:12:36,540 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 186-194|-
+2021-05-18 11:12:36,541 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 186-194|- [186, 194, '-']
+2021-05-18 11:12:36,542 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000143543 186-194_1-394 .
+2021-05-18 11:12:36,542 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	186-194|-
+2021-05-18 11:12:36,543 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000177954! Assuming coordinates are already local!
+2021-05-18 11:12:36,544 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Working on ENSG00000177954	ENSG00000177954::chr1:153990758-153992150(+)
+2021-05-18 11:12:36,545 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating probs for ENSG00000177954 with constraint from file /home/rabsch/Documents/RIssmed/RIssmed/tests/testdata/test_constraints.bed
+2021-05-18 11:12:36,546 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ['84-92|+', '133-141|+', '221-229|+']
+2021-05-18 11:12:36,547 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 84-92|+
+2021-05-18 11:12:36,548 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 84-92|+ [84, 92, '+']
+2021-05-18 11:12:36,548 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000177954 84-92_1-292 .
+2021-05-18 11:12:36,549 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	84-92|+
+2021-05-18 11:12:36,550 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 133-141|+
+2021-05-18 11:12:36,551 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 133-141|+ [133, 141, '+']
+2021-05-18 11:12:36,552 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000177954 133-141_1-341 .
+2021-05-18 11:12:36,553 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	133-141|+
+2021-05-18 11:12:36,553 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 221-229|+
+2021-05-18 11:12:36,554 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 221-229|+ [221, 229, '+']
+2021-05-18 11:12:36,555 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000177954 221-229_21-429 .
+2021-05-18 11:12:36,556 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	221-229|+
+2021-05-18 11:12:36,557 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000207475! Assuming coordinates are already local!
+2021-05-18 11:12:36,558 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000207475 too short, seqlenght 137 with window size 100 and multiplyer 2
+2021-05-18 11:12:36,559 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000280466! Assuming coordinates are already local!
+2021-05-18 11:12:36,560 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000280466 too short, seqlenght 128 with window size 100 and multiplyer 2
+2021-05-18 11:12:36,561 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000281394! Assuming coordinates are already local!
+2021-05-18 11:12:36,561 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000281394 too short, seqlenght 129 with window size 100 and multiplyer 2
+2021-05-18 11:12:36,562 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000283575! Assuming coordinates are already local!
+2021-05-18 11:12:36,563 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000283575 too short, seqlenght 96 with window size 100 and multiplyer 2
+2021-05-18 11:12:36,564 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000277681! Assuming coordinates are already local!
+2021-05-18 11:12:36,565 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000277681 too short, seqlenght 75 with window size 100 and multiplyer 2
+2021-05-18 11:12:36,567 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000058673! Assuming coordinates are already local!
+2021-05-18 11:12:36,568 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Working on ENSG00000058673	ENSG00000058673::chr1:203795653-203854999(+)
+2021-05-18 11:12:36,569 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating probs for ENSG00000058673 with constraint from file /home/rabsch/Documents/RIssmed/RIssmed/tests/testdata/test_constraints.bed
+2021-05-18 11:12:36,569 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ['128-136|+', '155-163|+', '216-224|+']
+2021-05-18 11:12:36,570 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 128-136|+
+2021-05-18 11:12:36,571 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 128-136|+ [128, 136, '+']
+2021-05-18 11:12:36,572 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000058673 128-136_1-336 .
+2021-05-18 11:12:36,573 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	128-136|+
+2021-05-18 11:12:36,574 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 155-163|+
+2021-05-18 11:12:36,574 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 155-163|+ [155, 163, '+']
+2021-05-18 11:12:36,575 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000058673 155-163_1-363 .
+2021-05-18 11:12:36,576 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	155-163|+
+2021-05-18 11:12:36,577 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 216-224|+
+2021-05-18 11:12:36,578 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 216-224|+ [216, 224, '+']
+2021-05-18 11:12:36,579 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000058673 216-224_16-424 .
+2021-05-18 11:12:36,580 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	216-224|+
+2021-05-18 11:12:36,581 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000257315! Assuming coordinates are already local!
+2021-05-18 11:12:36,582 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Working on ENSG00000257315	ENSG00000257315::chr1:203795713-203854999(+)
+2021-05-18 11:12:36,583 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating probs for ENSG00000257315 with constraint from file /home/rabsch/Documents/RIssmed/RIssmed/tests/testdata/test_constraints.bed
+2021-05-18 11:12:36,584 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ['68-76|+', '95-103|+', '156-164|+']
+2021-05-18 11:12:36,585 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 68-76|+
+2021-05-18 11:12:36,586 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 68-76|+ [68, 76, '+']
+2021-05-18 11:12:36,587 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000257315 68-76_1-276 .
+2021-05-18 11:12:36,588 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	68-76|+
+2021-05-18 11:12:36,589 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 95-103|+
+2021-05-18 11:12:36,590 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 95-103|+ [95, 103, '+']
+2021-05-18 11:12:36,591 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000257315 95-103_1-303 .
+2021-05-18 11:12:36,592 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	95-103|+
+2021-05-18 11:12:36,593 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 156-164|+
+2021-05-18 11:12:36,595 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 156-164|+ [156, 164, '+']
+2021-05-18 11:12:36,596 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000257315 156-164_1-364 .
+2021-05-18 11:12:36,597 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	156-164|+
+2021-05-18 11:12:36,599 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000222370! Assuming coordinates are already local!
+2021-05-18 11:12:36,602 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000222370 too short, seqlenght 131 with window size 100 and multiplyer 2
+2021-05-18 11:12:36,604 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000266618! Assuming coordinates are already local!
+2021-05-18 11:12:36,605 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000266618 too short, seqlenght 85 with window size 100 and multiplyer 2
+2021-05-18 11:12:36,607 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000240963! Assuming coordinates are already local!
+2021-05-18 11:12:36,608 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Working on ENSG00000240963	ENSG00000240963::chr1:244375099-244409592(-)
+2021-05-18 11:12:36,609 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating probs for ENSG00000240963 with constraint from file /home/rabsch/Documents/RIssmed/RIssmed/tests/testdata/test_constraints.bed
+2021-05-18 11:12:36,610 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ['144-152|-', '197-205|-', '222-230|-']
+2021-05-18 11:12:36,611 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 144-152|-
+2021-05-18 11:12:36,612 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 144-152|- [144, 152, '-']
+2021-05-18 11:12:36,612 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000240963 144-152_1-352 .
+2021-05-18 11:12:36,614 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	144-152|-
+2021-05-18 11:12:36,615 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 197-205|-
+2021-05-18 11:12:36,615 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 197-205|- [197, 205, '-']
+2021-05-18 11:12:36,616 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000240963 197-205_1-405 .
+2021-05-18 11:12:36,617 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	197-205|-
+2021-05-18 11:12:36,618 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENTRY: 222-230|-
+2021-05-18 11:12:36,619 MainProcess lib.Collection DEBUG    lib.Collection.get_location: 222-230|- [222, 230, '-']
+2021-05-18 11:12:36,620 MainProcess RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold: ENSG00000240963 222-230_22-430 .
+2021-05-18 11:12:36,621 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Calculating constraint	222-230|-
+2021-05-18 11:12:36,622 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000283881! Assuming coordinates are already local!
+2021-05-18 11:12:36,623 MainProcess RIssmed.ConstraintPLFold WARNING  Sequence of ENSG00000283881 too short, seqlenght 94 with window size 100 and multiplyer 2
+2021-05-18 11:12:36,629 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000101849! Assuming coordinates are already local!
+2021-05-18 11:12:36,630 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Working on ENSG00000101849	ENSG00000101849::chrX:9463294-9719743(+)
+2021-05-18 11:12:36,631 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: Could not compute constraints for ENSG00000101849 May be missing in constraint file.
+2021-05-18 11:12:36,638 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000101871! Assuming coordinates are already local!
+2021-05-18 11:12:36,639 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Working on ENSG00000101871	ENSG00000101871::chrX:10445309-10833654(-)
+2021-05-18 11:12:36,641 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: Could not compute constraints for ENSG00000101871 May be missing in constraint file.
+2021-05-18 11:12:36,677 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000198947! Assuming coordinates are already local!
+2021-05-18 11:12:36,678 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Working on ENSG00000198947	ENSG00000198947::chrX:31097676-33339441(-)
+2021-05-18 11:12:36,679 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: Could not compute constraints for ENSG00000198947 May be missing in constraint file.
+2021-05-18 11:12:36,685 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000085224! Assuming coordinates are already local!
+2021-05-18 11:12:36,686 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Working on ENSG00000085224	ENSG00000085224::chrX:77504877-77786269(-)
+2021-05-18 11:12:36,687 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: Could not compute constraints for ENSG00000085224 May be missing in constraint file.
+2021-05-18 11:12:36,702 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000147202! Assuming coordinates are already local!
+2021-05-18 11:12:36,703 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Working on ENSG00000147202	ENSG00000147202::chrX:96684662-97604997(+)
+2021-05-18 11:12:36,704 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: Could not compute constraints for ENSG00000147202 May be missing in constraint file.
+2021-05-18 11:12:36,711 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000188153! Assuming coordinates are already local!
+2021-05-18 11:12:36,712 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Working on ENSG00000188153	ENSG00000188153::chrX:108439843-108697545(+)
+2021-05-18 11:12:36,713 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: Could not compute constraints for ENSG00000188153 May be missing in constraint file.
+2021-05-18 11:12:36,720 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: No coords found for gene ENSG00000171004! Assuming coordinates are already local!
+2021-05-18 11:12:36,721 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: Working on ENSG00000171004	ENSG00000171004::chrX:132626015-132961395(-)
+2021-05-18 11:12:36,722 MainProcess RIssmed.ConstraintPLFold WARNING  ConstraintPLFold.fold: Could not compute constraints for ENSG00000171004 May be missing in constraint file.
+2021-05-18 11:12:37,106 SpawnPoolWorker-4 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 174 182
+2021-05-18 11:12:37,109 SpawnPoolWorker-4 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000242125 174-182_74-282 +
+2021-05-18 11:12:37,110 SpawnPoolWorker-4 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000242125::chr1:28505979-28510892(+) 7 4913 382 174-182_74-282 1 173 181 382
+2021-05-18 11:12:37,160 SpawnPoolWorker-3 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 211 219
+2021-05-18 11:12:37,162 SpawnPoolWorker-3 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000180198 211-219_111-319 +
+2021-05-18 11:12:37,163 SpawnPoolWorker-3 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000180198::chr1:28505942-28539300(+) 7 33358 409 211-219_111-319 11 200 208 419
+2021-05-18 11:12:37,249 SpawnPoolWorker-5 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 216 224
+2021-05-18 11:12:37,251 SpawnPoolWorker-5 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000242125 216-224_116-324 +
+2021-05-18 11:12:37,252 SpawnPoolWorker-5 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000242125::chr1:28505979-28510892(+) 7 4913 409 216-224_116-324 16 200 208 424
+2021-05-18 11:12:37,251 SpawnPoolWorker-7 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 85 93
+2021-05-18 11:12:37,254 SpawnPoolWorker-7 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000274266 85-93_1-193 +
+2021-05-18 11:12:37,255 SpawnPoolWorker-7 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000274266::chr1:28507365-28507571(+) 7 206 206 85-93_1-193 1 84 92 206
+2021-05-18 11:12:37,288 SpawnPoolWorker-6 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 221 229
+2021-05-18 11:12:37,290 SpawnPoolWorker-6 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000242125 221-229_121-329 +
+2021-05-18 11:12:37,291 SpawnPoolWorker-6 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000242125::chr1:28505979-28510892(+) 7 4913 409 221-229_121-329 21 200 208 429
+2021-05-18 11:12:37,425 SpawnPoolWorker-7 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
+2021-05-18 11:12:37,447 SpawnPoolWorker-4 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
+2021-05-18 11:12:37,494 SpawnPoolWorker-3 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
+2021-05-18 11:12:37,495 SpawnPoolWorker-7 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 0 and 192
+2021-05-18 11:12:37,496 SpawnPoolWorker-7 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 1 0 193 85-93_1-193
+2021-05-18 11:12:37,496 SpawnPoolWorker-7 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 193 0 7
+2021-05-18 11:12:37,533 SpawnPoolWorker-6 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
+2021-05-18 11:12:37,534 SpawnPoolWorker-7 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 193 0 7
+2021-05-18 11:12:37,545 SpawnPoolWorker-7 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 193 0 7
+2021-05-18 11:12:37,594 SpawnPoolWorker-4 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 73 and 281
+2021-05-18 11:12:37,595 SpawnPoolWorker-4 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 1 209 209 174-182_74-282
+2021-05-18 11:12:37,595 SpawnPoolWorker-4 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:37,631 SpawnPoolWorker-5 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
+2021-05-18 11:12:37,631 SpawnPoolWorker-8 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 92 100
+2021-05-18 11:12:37,633 SpawnPoolWorker-8 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000274266 92-100_1-200 +
+2021-05-18 11:12:37,634 SpawnPoolWorker-8 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000274266::chr1:28507365-28507571(+) 7 206 206 92-100_1-200 1 91 99 206
+2021-05-18 11:12:37,635 SpawnPoolWorker-4 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:37,642 SpawnPoolWorker-3 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 100 and 308
+2021-05-18 11:12:37,643 SpawnPoolWorker-3 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 1 209 209 211-219_111-319
+2021-05-18 11:12:37,643 SpawnPoolWorker-3 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:37,645 SpawnPoolWorker-4 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:37,683 SpawnPoolWorker-3 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:37,692 SpawnPoolWorker-6 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 100 and 308
+2021-05-18 11:12:37,693 SpawnPoolWorker-6 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 1 209 209 221-229_121-329
+2021-05-18 11:12:37,693 SpawnPoolWorker-3 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:37,693 SpawnPoolWorker-6 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:37,716 SpawnPoolWorker-6 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:37,723 SpawnPoolWorker-6 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:37,774 SpawnPoolWorker-8 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
+2021-05-18 11:12:37,775 SpawnPoolWorker-5 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 100 and 308
+2021-05-18 11:12:37,775 SpawnPoolWorker-5 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 1 209 209 216-224_116-324
+2021-05-18 11:12:37,776 SpawnPoolWorker-5 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:37,797 SpawnPoolWorker-5 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:37,805 SpawnPoolWorker-5 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:37,814 SpawnPoolWorker-8 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 0 and 199
+2021-05-18 11:12:37,815 SpawnPoolWorker-8 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 1 0 200 92-100_1-200
+2021-05-18 11:12:37,815 SpawnPoolWorker-8 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 200 0 7
+2021-05-18 11:12:37,837 SpawnPoolWorker-8 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 200 0 7
+2021-05-18 11:12:37,843 SpawnPoolWorker-8 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 200 0 7
+2021-05-18 11:12:38,156 SpawnPoolWorker-9 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 109 117
+2021-05-18 11:12:38,159 SpawnPoolWorker-9 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000274266 109-117_9-206 +
+2021-05-18 11:12:38,160 SpawnPoolWorker-9 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000274266::chr1:28507365-28507571(+) 7 206 206 109-117_9-206 1 108 116 206
+2021-05-18 11:12:38,452 SpawnPoolWorker-9 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
+2021-05-18 11:12:38,507 SpawnPoolWorker-9 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 8 and 205
+2021-05-18 11:12:38,508 SpawnPoolWorker-9 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 1 198 198 109-117_9-206
+2021-05-18 11:12:38,509 SpawnPoolWorker-9 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 198 198 7
+2021-05-18 11:12:38,532 SpawnPoolWorker-9 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 198 198 7
+2021-05-18 11:12:38,539 SpawnPoolWorker-9 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 198 198 7
+2021-05-18 11:12:39,574 SpawnPoolWorker-10 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 144 152
+2021-05-18 11:12:39,575 SpawnPoolWorker-10 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000274266 144-152_44-206 +
+2021-05-18 11:12:39,576 SpawnPoolWorker-10 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000274266::chr1:28507365-28507571(+) 7 206 206 144-152_44-206 1 143 151 206
+2021-05-18 11:12:39,696 SpawnPoolWorker-10 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
+2021-05-18 11:12:39,736 SpawnPoolWorker-10 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 43 and 205
+2021-05-18 11:12:39,737 SpawnPoolWorker-10 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 1 163 163 144-152_44-206
+2021-05-18 11:12:39,737 SpawnPoolWorker-10 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 163 163 7
+2021-05-18 11:12:39,755 SpawnPoolWorker-10 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 163 163 7
+2021-05-18 11:12:39,761 SpawnPoolWorker-10 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 163 163 7
+2021-05-18 11:12:40,146 SpawnPoolWorker-11 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 84 92
+2021-05-18 11:12:40,148 SpawnPoolWorker-11 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000200087 84-92_1-192 +
+2021-05-18 11:12:40,149 SpawnPoolWorker-11 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000200087::chr1:28508558-28508762(+) 7 204 204 84-92_1-192 1 83 91 204
+2021-05-18 11:12:40,322 SpawnPoolWorker-11 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
+2021-05-18 11:12:40,388 SpawnPoolWorker-11 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 0 and 191
+2021-05-18 11:12:40,389 SpawnPoolWorker-11 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 1 0 192 84-92_1-192
+2021-05-18 11:12:40,390 SpawnPoolWorker-11 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 192 0 7
+2021-05-18 11:12:40,432 SpawnPoolWorker-11 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 192 0 7
+2021-05-18 11:12:40,444 SpawnPoolWorker-11 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 192 0 7
+2021-05-18 11:12:40,918 SpawnPoolWorker-12 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 122 130
+2021-05-18 11:12:40,920 SpawnPoolWorker-12 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000200087 122-130_22-204 +
+2021-05-18 11:12:40,921 SpawnPoolWorker-12 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000200087::chr1:28508558-28508762(+) 7 204 204 122-130_22-204 1 121 129 204
+2021-05-18 11:12:41,028 SpawnPoolWorker-12 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
+2021-05-18 11:12:41,071 SpawnPoolWorker-12 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 21 and 203
+2021-05-18 11:12:41,071 SpawnPoolWorker-12 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 1 183 183 122-130_22-204
+2021-05-18 11:12:41,072 SpawnPoolWorker-12 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 183 183 7
+2021-05-18 11:12:41,092 SpawnPoolWorker-12 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 183 183 7
+2021-05-18 11:12:41,099 SpawnPoolWorker-12 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 183 183 7
+2021-05-18 11:12:41,407 SpawnPoolWorker-13 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 142 150
+2021-05-18 11:12:41,408 SpawnPoolWorker-13 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000200087 142-150_42-204 +
+2021-05-18 11:12:41,410 SpawnPoolWorker-13 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000200087::chr1:28508558-28508762(+) 7 204 204 142-150_42-204 1 141 149 204
+2021-05-18 11:12:41,529 SpawnPoolWorker-13 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
+2021-05-18 11:12:41,582 SpawnPoolWorker-13 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 41 and 203
+2021-05-18 11:12:41,582 SpawnPoolWorker-13 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 1 163 163 142-150_42-204
+2021-05-18 11:12:41,583 SpawnPoolWorker-13 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 163 163 7
+2021-05-18 11:12:41,602 SpawnPoolWorker-13 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 163 163 7
+2021-05-18 11:12:41,608 SpawnPoolWorker-13 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 163 163 7
+2021-05-18 11:12:42,080 SpawnPoolWorker-14 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 27 35
+2021-05-18 11:12:42,082 SpawnPoolWorker-14 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000270742 27-35_1-135 +
+2021-05-18 11:12:42,083 SpawnPoolWorker-14 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000270742::chr1:61124732-61125202(+) 7 470 235 27-35_1-135 1 26 34 235
+2021-05-18 11:12:42,221 SpawnPoolWorker-14 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
+2021-05-18 11:12:42,270 SpawnPoolWorker-14 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 0 and 134
+2021-05-18 11:12:42,271 SpawnPoolWorker-14 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 1 0 135 27-35_1-135
+2021-05-18 11:12:42,271 SpawnPoolWorker-14 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 135 0 7
+2021-05-18 11:12:42,286 SpawnPoolWorker-14 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 135 0 7
+2021-05-18 11:12:42,291 SpawnPoolWorker-14 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 135 0 7
+2021-05-18 11:12:42,649 SpawnPoolWorker-15 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 161 169
+2021-05-18 11:12:42,651 SpawnPoolWorker-15 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000137955 161-169_61-269 +
+2021-05-18 11:12:42,652 SpawnPoolWorker-15 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000137955::chr1:75786196-75795079(+) 7 8883 369 161-169_61-269 1 160 168 369
+2021-05-18 11:12:42,877 SpawnPoolWorker-15 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
+2021-05-18 11:12:42,969 SpawnPoolWorker-15 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 60 and 268
+2021-05-18 11:12:42,971 SpawnPoolWorker-15 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 1 209 209 161-169_61-269
+2021-05-18 11:12:42,971 SpawnPoolWorker-15 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:42,994 SpawnPoolWorker-15 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:43,002 SpawnPoolWorker-15 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:43,266 SpawnPoolWorker-16 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 184 192
+2021-05-18 11:12:43,268 SpawnPoolWorker-16 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000137955 184-192_84-292 +
+2021-05-18 11:12:43,269 SpawnPoolWorker-16 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000137955::chr1:75786196-75795079(+) 7 8883 392 184-192_84-292 1 183 191 392
+2021-05-18 11:12:43,543 SpawnPoolWorker-16 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
+2021-05-18 11:12:43,676 SpawnPoolWorker-16 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 83 and 291
+2021-05-18 11:12:43,677 SpawnPoolWorker-16 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 1 209 209 184-192_84-292
+2021-05-18 11:12:43,678 SpawnPoolWorker-16 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:43,713 SpawnPoolWorker-16 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:43,722 SpawnPoolWorker-16 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:43,988 SpawnPoolWorker-17 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 201 209
+2021-05-18 11:12:43,990 SpawnPoolWorker-17 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000137955 201-209_101-309 +
+2021-05-18 11:12:43,991 SpawnPoolWorker-17 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000137955::chr1:75786196-75795079(+) 7 8883 409 201-209_101-309 1 200 208 409
+2021-05-18 11:12:44,341 SpawnPoolWorker-17 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
+2021-05-18 11:12:44,562 SpawnPoolWorker-17 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 100 and 308
+2021-05-18 11:12:44,563 SpawnPoolWorker-17 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 1 209 209 201-209_101-309
+2021-05-18 11:12:44,564 SpawnPoolWorker-17 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:44,594 SpawnPoolWorker-18 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 210 218
+2021-05-18 11:12:44,596 SpawnPoolWorker-18 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000137955 210-218_110-318 +
+2021-05-18 11:12:44,598 SpawnPoolWorker-18 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000137955::chr1:75786196-75795079(+) 7 8883 409 210-218_110-318 10 200 208 418
+2021-05-18 11:12:44,602 SpawnPoolWorker-17 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:44,620 SpawnPoolWorker-17 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:44,958 SpawnPoolWorker-18 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
+2021-05-18 11:12:45,160 SpawnPoolWorker-18 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 100 and 308
+2021-05-18 11:12:45,161 SpawnPoolWorker-18 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 1 209 209 210-218_110-318
+2021-05-18 11:12:45,162 SpawnPoolWorker-18 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:45,224 SpawnPoolWorker-18 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:45,243 SpawnPoolWorker-18 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:45,294 SpawnPoolWorker-19 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 220 228
+2021-05-18 11:12:45,297 SpawnPoolWorker-19 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000137955 220-228_120-328 +
+2021-05-18 11:12:45,298 SpawnPoolWorker-19 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000137955::chr1:75786196-75795079(+) 7 8883 409 220-228_120-328 20 200 208 428
+2021-05-18 11:12:45,633 SpawnPoolWorker-19 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
+2021-05-18 11:12:45,781 SpawnPoolWorker-19 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 100 and 308
+2021-05-18 11:12:45,782 SpawnPoolWorker-19 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 1 209 209 220-228_120-328
+2021-05-18 11:12:45,783 SpawnPoolWorker-19 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:45,822 SpawnPoolWorker-19 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:45,833 SpawnPoolWorker-19 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:46,097 SpawnPoolWorker-20 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 120 128
+2021-05-18 11:12:46,099 SpawnPoolWorker-20 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000122406 120-128_20-228 +
+2021-05-18 11:12:46,101 SpawnPoolWorker-20 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000122406::chr1:92832024-92841924(+) 7 9900 328 120-128_20-228 1 119 127 328
+2021-05-18 11:12:46,371 SpawnPoolWorker-20 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
+2021-05-18 11:12:46,540 SpawnPoolWorker-20 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 19 and 227
+2021-05-18 11:12:46,541 SpawnPoolWorker-20 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 1 209 209 120-128_20-228
+2021-05-18 11:12:46,541 SpawnPoolWorker-20 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:46,576 SpawnPoolWorker-20 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:46,588 SpawnPoolWorker-20 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:46,915 SpawnPoolWorker-21 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 127 135
+2021-05-18 11:12:46,918 SpawnPoolWorker-21 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000122406 127-135_27-235 +
+2021-05-18 11:12:46,919 SpawnPoolWorker-21 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000122406::chr1:92832024-92841924(+) 7 9900 335 127-135_27-235 1 126 134 335
+2021-05-18 11:12:47,229 SpawnPoolWorker-21 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
+2021-05-18 11:12:47,348 SpawnPoolWorker-21 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 26 and 234
+2021-05-18 11:12:47,349 SpawnPoolWorker-21 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 1 209 209 127-135_27-235
+2021-05-18 11:12:47,351 SpawnPoolWorker-21 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:47,390 SpawnPoolWorker-21 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:47,406 SpawnPoolWorker-21 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:47,767 SpawnPoolWorker-22 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 205 213
+2021-05-18 11:12:47,769 SpawnPoolWorker-22 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000122406 205-213_105-313 +
+2021-05-18 11:12:47,770 SpawnPoolWorker-22 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000122406::chr1:92832024-92841924(+) 7 9900 409 205-213_105-313 5 200 208 413
+2021-05-18 11:12:48,095 SpawnPoolWorker-22 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
+2021-05-18 11:12:48,302 SpawnPoolWorker-22 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 100 and 308
+2021-05-18 11:12:48,303 SpawnPoolWorker-22 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 1 209 209 205-213_105-313
+2021-05-18 11:12:48,304 SpawnPoolWorker-22 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:48,337 SpawnPoolWorker-22 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:48,348 SpawnPoolWorker-22 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:48,433 SpawnPoolWorker-23 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 218 226
+2021-05-18 11:12:48,435 SpawnPoolWorker-23 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000122406 218-226_118-326 +
+2021-05-18 11:12:48,436 SpawnPoolWorker-23 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000122406::chr1:92832024-92841924(+) 7 9900 409 218-226_118-326 18 200 208 426
+2021-05-18 11:12:48,759 SpawnPoolWorker-23 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
+2021-05-18 11:12:48,974 SpawnPoolWorker-23 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 100 and 308
+2021-05-18 11:12:48,976 SpawnPoolWorker-23 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 1 209 209 218-226_118-326
+2021-05-18 11:12:48,976 SpawnPoolWorker-23 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:49,011 SpawnPoolWorker-23 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:49,027 SpawnPoolWorker-23 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:49,358 SpawnPoolWorker-24 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 133 141
+2021-05-18 11:12:49,360 SpawnPoolWorker-24 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000156875 133-141_33-241 +
+2021-05-18 11:12:49,362 SpawnPoolWorker-24 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000156875::chr1:100038096-100083377(+) 7 45281 341 133-141_33-241 1 132 140 341
+2021-05-18 11:12:49,591 SpawnPoolWorker-24 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
+2021-05-18 11:12:49,724 SpawnPoolWorker-24 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 32 and 240
+2021-05-18 11:12:49,725 SpawnPoolWorker-24 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 1 209 209 133-141_33-241
+2021-05-18 11:12:49,726 SpawnPoolWorker-24 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:49,757 SpawnPoolWorker-24 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:49,769 SpawnPoolWorker-24 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:50,169 SpawnPoolWorker-25 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 11 19
+2021-05-18 11:12:50,172 SpawnPoolWorker-25 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000240038 11-19_1-119 +
+2021-05-18 11:12:50,173 SpawnPoolWorker-25 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000240038::chr1:103553814-103579534(+) 7 25720 219 11-19_1-119 1 10 18 219
+2021-05-18 11:12:50,320 SpawnPoolWorker-25 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
+2021-05-18 11:12:50,380 SpawnPoolWorker-25 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 0 and 118
+2021-05-18 11:12:50,381 SpawnPoolWorker-25 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 1 0 119 11-19_1-119
+2021-05-18 11:12:50,381 SpawnPoolWorker-25 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 119 0 7
+2021-05-18 11:12:50,399 SpawnPoolWorker-25 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 119 0 7
+2021-05-18 11:12:50,404 SpawnPoolWorker-25 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 119 0 7
+2021-05-18 11:12:50,892 SpawnPoolWorker-26 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 186 194
+2021-05-18 11:12:50,895 SpawnPoolWorker-26 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000143543 186-194_86-294 -
+2021-05-18 11:12:50,896 SpawnPoolWorker-26 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000143543::chr1:153974268-153977688(-) 7 3420 394 186-194_86-294 1 185 193 394
+2021-05-18 11:12:51,178 SpawnPoolWorker-26 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
+2021-05-18 11:12:51,303 SpawnPoolWorker-26 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 85 and 293
+2021-05-18 11:12:51,305 SpawnPoolWorker-26 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 1 209 209 186-194_86-294
+2021-05-18 11:12:51,305 SpawnPoolWorker-26 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:51,359 SpawnPoolWorker-26 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:51,373 SpawnPoolWorker-26 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:51,654 SpawnPoolWorker-27 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 84 92
+2021-05-18 11:12:51,657 SpawnPoolWorker-27 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000177954 84-92_1-192 +
+2021-05-18 11:12:51,659 SpawnPoolWorker-27 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000177954::chr1:153990758-153992150(+) 7 1392 292 84-92_1-192 1 83 91 292
+2021-05-18 11:12:51,867 SpawnPoolWorker-27 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
+2021-05-18 11:12:51,953 SpawnPoolWorker-27 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 0 and 191
+2021-05-18 11:12:51,954 SpawnPoolWorker-27 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 1 0 192 84-92_1-192
+2021-05-18 11:12:51,955 SpawnPoolWorker-27 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 192 0 7
+2021-05-18 11:12:51,984 SpawnPoolWorker-27 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 192 0 7
+2021-05-18 11:12:51,994 SpawnPoolWorker-27 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 192 0 7
+2021-05-18 11:12:52,399 SpawnPoolWorker-28 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 133 141
+2021-05-18 11:12:52,402 SpawnPoolWorker-28 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000177954 133-141_33-241 +
+2021-05-18 11:12:52,403 SpawnPoolWorker-28 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000177954::chr1:153990758-153992150(+) 7 1392 341 133-141_33-241 1 132 140 341
+2021-05-18 11:12:52,663 SpawnPoolWorker-28 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
+2021-05-18 11:12:52,769 SpawnPoolWorker-28 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 32 and 240
+2021-05-18 11:12:52,769 SpawnPoolWorker-28 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 1 209 209 133-141_33-241
+2021-05-18 11:12:52,770 SpawnPoolWorker-28 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:52,803 SpawnPoolWorker-28 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:52,818 SpawnPoolWorker-28 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:53,200 SpawnPoolWorker-29 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 221 229
+2021-05-18 11:12:53,203 SpawnPoolWorker-29 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000177954 221-229_121-329 +
+2021-05-18 11:12:53,205 SpawnPoolWorker-29 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000177954::chr1:153990758-153992150(+) 7 1392 409 221-229_121-329 21 200 208 429
+2021-05-18 11:12:53,496 SpawnPoolWorker-29 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
+2021-05-18 11:12:53,621 SpawnPoolWorker-29 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 100 and 308
+2021-05-18 11:12:53,623 SpawnPoolWorker-29 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 1 209 209 221-229_121-329
+2021-05-18 11:12:53,624 SpawnPoolWorker-29 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:53,660 SpawnPoolWorker-29 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:53,668 SpawnPoolWorker-29 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:53,930 SpawnPoolWorker-30 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 128 136
+2021-05-18 11:12:53,932 SpawnPoolWorker-30 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000058673 128-136_28-236 +
+2021-05-18 11:12:53,933 SpawnPoolWorker-30 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000058673::chr1:203795653-203854999(+) 7 59346 336 128-136_28-236 1 127 135 336
+2021-05-18 11:12:54,190 SpawnPoolWorker-30 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
+2021-05-18 11:12:54,305 SpawnPoolWorker-30 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 27 and 235
+2021-05-18 11:12:54,305 SpawnPoolWorker-30 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 1 209 209 128-136_28-236
+2021-05-18 11:12:54,306 SpawnPoolWorker-30 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:54,337 SpawnPoolWorker-30 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:54,348 SpawnPoolWorker-30 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:54,676 SpawnPoolWorker-31 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 155 163
+2021-05-18 11:12:54,678 SpawnPoolWorker-31 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000058673 155-163_55-263 +
+2021-05-18 11:12:54,680 SpawnPoolWorker-31 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000058673::chr1:203795653-203854999(+) 7 59346 363 155-163_55-263 1 154 162 363
+2021-05-18 11:12:54,984 SpawnPoolWorker-31 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
+2021-05-18 11:12:55,149 SpawnPoolWorker-31 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 54 and 262
+2021-05-18 11:12:55,150 SpawnPoolWorker-31 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 1 209 209 155-163_55-263
+2021-05-18 11:12:55,150 SpawnPoolWorker-31 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:55,180 SpawnPoolWorker-31 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:55,189 SpawnPoolWorker-31 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:55,544 SpawnPoolWorker-32 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 216 224
+2021-05-18 11:12:55,547 SpawnPoolWorker-32 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000058673 216-224_116-324 +
+2021-05-18 11:12:55,548 SpawnPoolWorker-32 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000058673::chr1:203795653-203854999(+) 7 59346 409 216-224_116-324 16 200 208 424
+2021-05-18 11:12:55,849 SpawnPoolWorker-32 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
+2021-05-18 11:12:56,010 SpawnPoolWorker-32 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 100 and 308
+2021-05-18 11:12:56,011 SpawnPoolWorker-32 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 1 209 209 216-224_116-324
+2021-05-18 11:12:56,012 SpawnPoolWorker-32 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:56,042 SpawnPoolWorker-32 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:56,053 SpawnPoolWorker-32 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:56,375 SpawnPoolWorker-33 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 68 76
+2021-05-18 11:12:56,377 SpawnPoolWorker-33 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000257315 68-76_1-176 +
+2021-05-18 11:12:56,379 SpawnPoolWorker-33 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000257315::chr1:203795713-203854999(+) 7 59286 276 68-76_1-176 1 67 75 276
+2021-05-18 11:12:56,596 SpawnPoolWorker-33 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
+2021-05-18 11:12:56,687 SpawnPoolWorker-33 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 0 and 175
+2021-05-18 11:12:56,688 SpawnPoolWorker-33 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 1 0 176 68-76_1-176
+2021-05-18 11:12:56,689 SpawnPoolWorker-33 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 176 0 7
+2021-05-18 11:12:56,737 SpawnPoolWorker-33 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 176 0 7
+2021-05-18 11:12:56,751 SpawnPoolWorker-33 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 176 0 7
+2021-05-18 11:12:57,193 SpawnPoolWorker-34 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 95 103
+2021-05-18 11:12:57,195 SpawnPoolWorker-34 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000257315 95-103_1-203 +
+2021-05-18 11:12:57,197 SpawnPoolWorker-34 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000257315::chr1:203795713-203854999(+) 7 59286 303 95-103_1-203 1 94 102 303
+2021-05-18 11:12:57,435 SpawnPoolWorker-34 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
+2021-05-18 11:12:57,534 SpawnPoolWorker-34 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 0 and 202
+2021-05-18 11:12:57,535 SpawnPoolWorker-34 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 1 0 203 95-103_1-203
+2021-05-18 11:12:57,535 SpawnPoolWorker-34 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 203 0 7
+2021-05-18 11:12:57,564 SpawnPoolWorker-34 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 203 0 7
+2021-05-18 11:12:57,574 SpawnPoolWorker-34 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 203 0 7
+2021-05-18 11:12:57,947 SpawnPoolWorker-35 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 156 164
+2021-05-18 11:12:57,949 SpawnPoolWorker-35 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000257315 156-164_56-264 +
+2021-05-18 11:12:57,951 SpawnPoolWorker-35 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000257315::chr1:203795713-203854999(+) 7 59286 364 156-164_56-264 1 155 163 364
+2021-05-18 11:12:58,229 SpawnPoolWorker-35 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
+2021-05-18 11:12:58,345 SpawnPoolWorker-35 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 55 and 263
+2021-05-18 11:12:58,346 SpawnPoolWorker-35 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 1 209 209 156-164_56-264
+2021-05-18 11:12:58,347 SpawnPoolWorker-35 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:58,380 SpawnPoolWorker-35 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:58,392 SpawnPoolWorker-35 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:58,713 SpawnPoolWorker-36 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 144 152
+2021-05-18 11:12:58,715 SpawnPoolWorker-36 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000240963 144-152_44-252 -
+2021-05-18 11:12:58,717 SpawnPoolWorker-36 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000240963::chr1:244375099-244409592(-) 7 34493 352 144-152_44-252 1 143 151 352
+2021-05-18 11:12:59,055 SpawnPoolWorker-36 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
+2021-05-18 11:12:59,186 SpawnPoolWorker-36 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 43 and 251
+2021-05-18 11:12:59,188 SpawnPoolWorker-36 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 1 209 209 144-152_44-252
+2021-05-18 11:12:59,188 SpawnPoolWorker-36 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:59,256 SpawnPoolWorker-36 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:59,272 SpawnPoolWorker-36 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:12:59,518 SpawnPoolWorker-37 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 197 205
+2021-05-18 11:12:59,521 SpawnPoolWorker-37 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000240963 197-205_97-305 -
+2021-05-18 11:12:59,522 SpawnPoolWorker-37 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000240963::chr1:244375099-244409592(-) 7 34493 405 197-205_97-305 1 196 204 405
+2021-05-18 11:12:59,833 SpawnPoolWorker-37 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
+2021-05-18 11:12:59,985 SpawnPoolWorker-37 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 96 and 304
+2021-05-18 11:12:59,986 SpawnPoolWorker-37 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 1 209 209 197-205_97-305
+2021-05-18 11:12:59,987 SpawnPoolWorker-37 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:13:00,044 SpawnPoolWorker-37 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:13:00,061 SpawnPoolWorker-37 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:13:00,250 SpawnPoolWorker-38 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: CONSTRAINING AWAY with 222 230
+2021-05-18 11:13:00,252 SpawnPoolWorker-38 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: ENSG00000240963 222-230_122-330 -
+2021-05-18 11:13:00,254 SpawnPoolWorker-38 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq:  ENSG00000240963::chr1:244375099-244409592(-) 7 34493 409 222-230_122-330 22 200 208 430
+2021-05-18 11:13:00,558 SpawnPoolWorker-38 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.constrain_seq: Need to refold unconstraint sequence
+2021-05-18 11:13:00,690 SpawnPoolWorker-38 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.fold_unconstraint: Cutting RIO from fold with boundaries 100 and 308
+2021-05-18 11:13:00,692 SpawnPoolWorker-38 RIssmed.ConstraintPLFold DEBUG    ConstraintPLFold.write_unconstraint: 1 209 209 222-230_122-330
+2021-05-18 11:13:00,693 SpawnPoolWorker-38 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:13:00,733 SpawnPoolWorker-38 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:13:00,747 SpawnPoolWorker-38 lib.RNAtweaks DEBUG    lib.RNAtweaks.print_up: 209 209 7
+2021-05-18 11:13:03,494 MainProcess RIssmed.ConstraintPLFold INFO     ConstraintPLFold.fold: DONE: output in: /tmp/tmpmv1oo7dv/multi_constraint_test
