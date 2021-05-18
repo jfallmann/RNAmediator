@@ -22,8 +22,8 @@ EXPECTED_LOGS = os.path.join(TESTFOLDER, "Expected_Logs")
 EXPECTED_RESULTS = os.path.join(TESTFOLDER, "Expected_Results")
 TESTDATAPATH = os.path.join(TESTFOLDER, "testdata")
 
-tmp_dir = TemporaryDirectory()
-TMP_TEST_DIR = tmp_dir.name
+TMP_DIR = TemporaryDirectory()
+TMP_TEST_DIR = TMP_DIR.name
 
 
 @pytest.fixture()
@@ -87,6 +87,7 @@ def compare_output_folders(test_path: str, expected_path: str):
 
 def compare_logs(test_log: str, expected_log: str):
     test_lines = set()
+    substrings = ["CLI:", "JetBrains", "Running ConstraintPLFold on", "/home/rabsch/Documents/RIssmed/", "/tmp/"]
     with open(test_log) as test_file:
         for line in test_file:
             test_line = " ".join(line.split(" ")[4:])
@@ -94,8 +95,9 @@ def compare_logs(test_log: str, expected_log: str):
     with open(expected_log) as expected_file:
         for line in expected_file:
             expected_line = " ".join(line.split(" ")[4:])
-        if "CLI:" and "JetBrains" and "Running ConstraintPLFold on" and "DONE: output in" not in expected_line:
-            assert expected_line in test_lines
+            if not any(substring in expected_line for substring in substrings):
+                assert expected_line in test_lines
+
 
 def compare_arrays(test_array: np.ndarray, expected_array: np.ndarray):
     array_difference = test_array - expected_array
@@ -218,7 +220,7 @@ def test_fold_unconstraint(seq_id, region, window, span, unconstraint, save, out
         test_file = os.path.join(test_file_path, test_file)
         if ".gz" in test_file:
             test_result = PLFoldOutput.from_file(test_file)
-            test_array = test_result.get_numpy_array()  # TODO: Duplication can get replaced via comparison of outputs
+            test_array = test_result.get_numpy_array()
             compare_arrays(test_array, cmd_array)
         else:
             test_result = PLFoldOutput.from_rissmed_numpy_output(test_file)
