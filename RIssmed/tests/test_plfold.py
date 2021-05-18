@@ -97,6 +97,14 @@ def compare_logs(test_log: str, expected_log: str):
         if "CLI:" and "JetBrains" and "Running ConstraintPLFold on" and "DONE: output in" not in expected_line:
             assert expected_line in test_lines
 
+def compare_arrays(test_array: np.ndarray, expected_array: np.ndarray):
+    array_difference = test_array - expected_array
+    max_difference = np.max(np.abs(array_difference), where=~np.isnan(array_difference), initial=-1)
+    max_diff_idx = np.unravel_index(np.nanargmax(array_difference), array_difference.shape)
+    assert np.allclose(test_array, expected_array, equal_nan=True, atol=0.02), \
+        f"detected high difference between RIssmed and command line result " \
+        f"with a max of {max_difference} at index: {max_diff_idx}"
+
 
 @pytest.fixture()
 def single_constraint_args(default_args):
@@ -211,23 +219,11 @@ def test_fold_unconstraint(seq_id, region, window, span, unconstraint, save, out
         if ".gz" in test_file:
             test_result = PLFoldOutput.from_file(test_file)
             test_array = test_result.get_numpy_array()  # TODO: Duplication can get replaced via comparison of outputs
-            array_difference = test_array - cmd_array
-            max_difference = np.max(np.abs(array_difference), where=~np.isnan(array_difference), initial=-1)
-            max_diff_idx = np.unravel_index(np.nanargmax(array_difference), array_difference.shape)
-            assert np.allclose(test_array, cmd_array, equal_nan=True, atol=0.02), \
-                f"detected high difference between RIssmed and command line result " \
-                f"with a max of {max_difference} at index: {max_diff_idx}"
+            compare_arrays(test_array, cmd_array)
         else:
             test_result = PLFoldOutput.from_rissmed_numpy_output(test_file)
             test_array = test_result.get_numpy_array()
-            array_difference = test_array - cmd_array
-            max_difference = np.max(np.abs(array_difference), where=~np.isnan(array_difference), initial=-1)
-            max_diff_idx = np.unravel_index(np.nanargmax(array_difference), array_difference.shape)
-            # TODO: The numpy version of RIssmed looks very strange. Need to talk to Jörg
-            # TODO: differences of 0.012628 ... for index 299,0 of second test array seems to be very high
-            assert np.allclose(test_array, cmd_array, equal_nan=True, atol=0.02), \
-                f"detected high difference between RIssmed and command line result " \
-                f"with a max of {max_difference} at index: {max_diff_idx}"
+            compare_arrays(test_array, cmd_array)
 
 
 @pytest.mark.parametrize(
@@ -252,10 +248,11 @@ def test_fold_constraint(seq_id, start, end, window, span, region, multi, paired
     locend = end - tostart
 
     cmd_unpaired = run_pl_fold(seqtofold, window, span, locstart+1, locend+2, u=region)
-    cmd_unpaired.get_numpy_array()
     cmd_unpaired.localize(locws, locwe+1)
+    cmd_unpaired_array = cmd_unpaired.get_numpy_array()
     cmd_paired = run_pl_fold(seqtofold, window, span, locstart+1, locend+2, mode="paired", u=region)
     cmd_paired.localize(locws, locwe+1)
+    cmd_paired_array = cmd_paired.get_numpy_array()
 
     constrain_seq(seq_id, seq, start, end, window, span, region, multi, paired, unpaired, save, outdir, pl_data,
                   unconstraint=unconstraint)
@@ -267,16 +264,14 @@ def test_fold_constraint(seq_id, start, end, window, span, region, multi, paired
             if unpaired in test_file:
                 test_result = PLFoldOutput.from_file(test_file)
                 test_array = test_result.get_numpy_array()
-                cmd_unpaired_array = cmd_unpaired.get_numpy_array()
-                assert np.allclose(test_array, cmd_unpaired_array, equal_nan=True, atol=0.02)
+                compare_arrays(test_array, cmd_unpaired_array)
             if paired in test_file and unpaired not in test_file:
                 test_result = PLFoldOutput.from_file(test_file)
                 test_array = test_result.get_numpy_array()
-                cmd_paired_array = cmd_paired.get_numpy_array()
                 # TODO: seems like the API produces nan at paired constraint positions instead of 0.
                 test_array = np.nan_to_num(test_array)
                 cmd_paired_array = np.nan_to_num(cmd_paired_array)
-                assert np.allclose(test_array, cmd_paired_array, equal_nan=True, atol=0.02)
+                compare_arrays(test_array, cmd_paired_array)
 
 
 def run_pl_fold(sequence, window, span, start=None, end=None, mode="unpaired", u=30) -> PLFoldOutput:
