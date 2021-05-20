@@ -11,7 +11,7 @@ FASTA:
 TTTTTTCTTTATAATTATTCCCCTATTTGAAAAATCAACTTGTATATGAGGCAGCAAACACCTTGCAGAGCAGCATTCCCTTTTAGTTTCAGGACGTGGTGGTGGATGGAACCACTGTAACCTGGCCTCCCTCCATGAGAGGAGGGAATCCAGGTGGCCATGTTGAAATGTGCCTGTGTGCAGCAAGGCTTCTGAAATGACAAGAGAGCCCAGCAGCTTCCAAAGCAGCTGTGACTCTGGATCTCACCCATCATCTCTGCTTCTCACTGTTAGAGGAGTGAATCTGTGCTGCCTTAGGAGGCATGGAACCTGGGACTTTTCTTCCTTGTTTAATGTTTAATTTTATTAAAATAATTTGTAAGTGATAGATGTTGATCTCGTGACAAAAGAGAGATTCCCTCTTTATAAAACTATTCTAACTAAAGATCTTTTGTAAGCCCATGTGTTAGAAATAAAACTTGAATATCCCC
 
 CMD CALL:
-RNAplfold -L 100 -W 100 -u 7 --commands foo.txt < RIssmed/tests/testdata/test_single.fa
+RNAplfold -L 100 -W 100 -u 7 --commands foo.txt < bla.fa
 
 
 """
@@ -41,16 +41,8 @@ def test_api(seq, region, window, span):
 
 def up_callback(v, v_size, i, maxsize, what, data):
 
-    logid = scriptname+'.up_callback: '
-    try:
-        if what:
-            data['up'].extend([v])
-    except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
-            )
-        log.error(logid+''.join(tbe.format()))
+    if what:
+        data['up'].extend([v])
 
 
 if __name__ == "__main__":
