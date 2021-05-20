@@ -1,4 +1,4 @@
-# RIssmed  [![GitHub](https://img.shields.io/github/tag/jfallmann/RIssmed.svg)](https://github.com/jfallmann/RIssmed) [![Build Status](https://github.com/jfallmann/RIssmed/.github/workflows/python-app.yml/badge.svg?branch=main)](https://github.com/jfallmann/RIssmed/actions) [![Bioconda](https://anaconda.org/bioconda/RIssmed/badges/version.svg)](https://anaconda.org/bioconda/RIssmed)
+# RIssmed  [[![PyPI Latest Release](https://img.shields.io/pypi/v/RIssmed.svg)](https://pypi.org/project/RIssmed/) ![GitHub](https://img.shields.io/github/tag/jfallmann/RIssmed.svg)](https://github.com/jfallmann/RIssmed) [![Build Status](https://github.com/jfallmann/RIssmed/.github/workflows/python-app.yml/badge.svg?branch=main)](https://github.com/jfallmann/RIssmed/actions) [![Bioconda](https://anaconda.org/bioconda/RIssmed/badges/version.svg)](https://anaconda.org/bioconda/RIssmed)
 
 The RNA Interaction via secondary structure mediation (RIssmed) tool suite
 analyses the change of RNA secondary structure upon binding other molecules.
