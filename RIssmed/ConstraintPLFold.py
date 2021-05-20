@@ -70,7 +70,7 @@
 import os
 import sys
 import multiprocessing
-from multiprocessing import set_start_method, get_context
+from multiprocessing import set_start_method, get_context, get_start_method
 from io import StringIO
 import gzip
 import importlib
@@ -93,13 +93,14 @@ from lib.Collection import *
 from lib.FileProcessor import *
 from lib.RNAtweaks import *
 from lib.NPtweaks import *
+import errno
 
 
 log = logging.getLogger(__name__)  # use module name
 scriptname = os.path.basename(__file__).replace('.py', '')
 
 
-def preprocess(queue, configurer, level, sequence, window, span, region, multi, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, save, procs, vrna, temprange, outdir, genes, verbosity=False, pattern=None, cutoff=None):
+def preprocess(queue, configurer, level, sequence, window, span, region, multi, unconstraint, unpaired, paired, constrain, conslength, save, procs, vrna, temprange, outdir, genes, pattern=None):
 
     logid = scriptname+'.preprocess: '
     try:
@@ -137,7 +138,7 @@ def preprocess(queue, configurer, level, sequence, window, span, region, multi, 
                         f = gzip.open(constrain, 'rt')
                     else:
                         f = open(constrain, 'rt')
-                    constraintlist = readConstraintsCSV(f, linewise)
+                    constraintlist = readConstraintsFromCSV(f, linewise)
                 else:
                     if '.gz' in constrain:
                         f = gzip.open(constrain, 'rt')
@@ -158,14 +159,14 @@ def preprocess(queue, configurer, level, sequence, window, span, region, multi, 
                 sseq = StringIO(records[seqnr].format("fasta"))
                 constraint = constraintlist['lw'][seqnr]
 
-                pool.apply_async(parafold, args=(sseq, window, span, region, multi, unconstraint, unpaired, paired, length, gc, number, constraint, conslength, alphabet, save, procs, vrna, temprange, outdir, pattern, cutoff, seqnr, genecoords), kwds={'queue':queue, 'configurer':configurer, 'level':level})
+                pool.apply_async(parafold, args=(sseq, window, span, region, multi, unconstraint, unpaired, paired, constraint, conslength, save, procs, vrna, temprange, outdir, pattern, genecoords), kwds={'queue':queue, 'configurer':configurer, 'level':level})
                 seqnr += 1
 
             pool.close()
             pool.join()               # timeout
 
         else:
-            fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, save, procs, vrna, temprange, outdir, genecoords, verbosity=verbosity, pattern=pattern, cutoff=cutoff, queue=queue, configurer=configurer, level=level)
+            fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, constrain, conslength, save, procs, vrna, temprange, outdir, genecoords, pattern=pattern, queue=queue, configurer=configurer, level=level)
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
@@ -174,7 +175,7 @@ def preprocess(queue, configurer, level, sequence, window, span, region, multi, 
         log.error(logid+''.join(tbe.format()))
 
 
-def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, save, procs, vrna, temprange, outdir, genecoords, verbosity=False, pattern=None, cutoff=None, seqnr=None, mode=None, constraintlist=None, queue=None, configurer=None, level=None):
+def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, constrain, conslength, save, procs, vrna, temprange, outdir, genecoords, pattern=None, constraintlist=None, queue=None, configurer=None, level=None):
 
     logid = scriptname+'.fold: '
     try:
@@ -336,7 +337,7 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                                     f = gzip.open(constrain, 'rt')
                                 else:
                                     f = open(constrain, 'rt')
-                                constraintlist = readConstraintsCSV(f)
+                                constraintlist = readConstraintsFromCSV(f)
                             else:
                                 if '.gz' in constrain:
                                     f = gzip.open(constrain, 'rt')
@@ -434,7 +435,7 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
 
                                 pool.apply_async(constrain_seq_paired, args=(str(fa.id), str(fa.seq), fstart, fend, start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an, unconstraint), kwds={'queue':queue, 'configurer':configurer, 'level':level})
                             else:
-                                pool.apply_async(constrain_seq, args=(str(fa.id), str(fa.seq), start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an, unconstraint), kwds={'queue':queue, 'configurer':configurer, 'level':level})
+                                pool.apply_async(constrain_seq, args=(str(fa.id), str(fa.seq), start, end, window, span, region, multi, paired, unpaired, save, outdir, data, an, unconstraint), kwds={'queue':queue, 'configurer':configurer, 'level':level})
 
         pool.close()
         pool.join()       # timeout
@@ -448,7 +449,8 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
     log.info(logid+"DONE: output in: " + str(outdir))
     return 1
 
-def parafold(sequence, window, span, region, multi, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, save, procs, vrna, temprange, outdir, pattern, cutoff, seqnr, genecoords, queue=None, configurer=None, level=None):
+
+def parafold(sequence, window, span, region, multi, unconstraint, unpaired, paired, constrain, conslength, save, procs, vrna, outdir, pattern, genecoords, queue=None, configurer=None, level=None):
 
     logid = scriptname+'.parafold: '
     try:
@@ -547,7 +549,7 @@ def parafold(sequence, window, span, region, multi, unconstraint, unpaired, pair
                     an = None
 
                     try:
-                        constrain_seq(str(fa.id), str(fa.seq), start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an, queue=queue, configurer=configurer, level=level)
+                        constrain_seq(str(fa.id), str(fa.seq), start, end, window, span, region, multi, paired, unpaired, save, outdir, data, an, queue=queue, configurer=configurer, level=level)
                     except Exception:
                         exc_type, exc_value, exc_tb = sys.exc_info()
                         tbe = tb.TracebackException(
@@ -606,7 +608,7 @@ def fold_unconstraint(seq, id, region, window, span, unconstraint, save, outdir,
     return data['up']
 
 
-def constrain_seq(sid, seq, start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an=None, unconstraint=None, queue=None, configurer=None, level=None):
+def constrain_seq(sid, seq, start, end, window, span, region, multi, paired, unpaired, save, outdir, data, an=None, unconstraint=None, queue=None, configurer=None, level=None):
 
     logid = scriptname+'.constrain_seq: '
 
@@ -1069,8 +1071,8 @@ def main(args):
 
         makelogdir(logdir)
         makelogfile(logfile)
-
-        set_start_method('spawn')  # multiprocessing spawn set
+        if get_start_method(allow_none=True) != "spawn":
+            set_start_method("spawn")
         queue = multiprocessing.Manager().Queue(-1)
         listener = multiprocessing.Process(target=listener_process, args=(queue, listener_configurer, logfile, loglevel))
         listener.start()
@@ -1080,7 +1082,7 @@ def main(args):
         log.info(logid+'Running '+scriptname+' on '+str(args.procs)+' cores.')
         log.info(logid+'CLI: '+sys.argv[0]+' '+'{}'.format(' '.join( [shlex.quote(s) for s in sys.argv[1:]] )))
 
-        preprocess(queue, worker_configurer, loglevel, args.sequence, args.window, args.span, args.region, args.multi, args.unconstraint, args.unpaired, args.paired, args.length, args.gc, args.number, args.constrain, args.conslength, args.alphabet, args.save, args.procs, args.vrna, args.temprange, args.outdir, args.genes, args.verbosity, args.pattern, args.cutoff)
+        preprocess(queue, worker_configurer, loglevel, args.sequence, args.window, args.span, args.region, args.multi, args.unconstraint, args.unpaired, args.paired, args.constrain, args.conslength, args.save, args.procs, args.vrna, args.temprange, args.outdir, args.genes, args.pattern)
 
         queue.put_nowait(None)
         listener.join()
