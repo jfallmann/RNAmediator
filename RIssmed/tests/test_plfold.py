@@ -103,7 +103,7 @@ def compare_arrays(test_array: np.ndarray, expected_array: np.ndarray):
     array_difference = test_array - expected_array
     max_difference = np.max(np.abs(array_difference), where=~np.isnan(array_difference), initial=-1)
     max_diff_idx = np.unravel_index(np.nanargmax(array_difference), array_difference.shape)
-    assert np.allclose(test_array, expected_array, equal_nan=True, atol=0.02), \
+    assert np.allclose(test_array, expected_array, equal_nan=True, atol=0.0000001), \
         f"detected high difference between RIssmed and command line result " \
         f"with a max of {max_difference} at index: {max_diff_idx}"
 
@@ -207,9 +207,10 @@ def test_multi_constraint(multi_constraint_args):
 def test_fold_unconstraint(seq_id, region, window, span, unconstraint, save, outdir, seq):
     if os.path.isfile(seq):
         seq = str(SeqIO.read(seq, format="fasta").seq)
+    seq = seq.upper().replace("T", "U")
     outdir = os.path.join(TMP_TEST_DIR, outdir)
     # get the resulting np. array via the command line of RNAplfold
-    cmd_result = run_pl_fold(seq, 100, 60, u=region)
+    cmd_result = run_pl_fold(seq, window, span, u=region)
     cmd_array = cmd_result.get_numpy_array()
 
     # runs RIssmed to produce output files using the same input as the command line
@@ -239,6 +240,7 @@ def test_fold_constraint(seq_id, start, end, window, span, region, multi, paired
                          unconstraint, seq):
     if os.path.isfile(seq):
         seq = str(SeqIO.read(seq, format="fasta").seq)
+    seq = seq.upper().replace("T", "U")
     outdir = os.path.join(TMP_TEST_DIR, outdir)
     # TODO: Maybe rewrite this part in the ConstraintPLfold and just import the function
     tostart, toend = expand_window(start, end, window, multi, len(seq))
