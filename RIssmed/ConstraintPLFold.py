@@ -102,6 +102,22 @@ scriptname = os.path.basename(__file__).replace('.py', '')
 
 def preprocess(queue, configurer, level, sequence, window, span, region, multi, unconstraint, unpaired, paired, constrain, conslength, save, procs, vrna, temprange, outdir, genes, pattern=None):
 
+    """Does something
+
+    Parameters
+    ----------
+    a : str
+        The file location of the spreadsheet
+    b : bool, optional
+        A flag used to print the columns to the console (default is
+        False)
+
+    Returns
+    -------
+    list
+        a list of strings used that are the header columns
+    """
+
     logid = scriptname+'.preprocess: '
     try:
         if queue and level:
