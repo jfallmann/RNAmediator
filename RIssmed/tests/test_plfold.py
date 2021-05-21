@@ -119,7 +119,7 @@ def single_constraint_args(default_args):
     default_args.region = 7
     default_args.unpaired = "unpaired"
     default_args.paired = "paired"
-    default_args.unconstrained = "raw"
+    default_args.unconstraint = "raw"
     default_args.outdir = os.path.join(TMP_TEST_DIR, "single_constraint_test")
     default_args.save = 1
     default_args.logdir = os.path.join(TMP_TEST_DIR, "LOG_SINGLE")
@@ -136,7 +136,7 @@ def multi_constraint_args(default_args):
     default_args.region = 7
     default_args.unpaired = "unpaired"
     default_args.paired = "paired"
-    default_args.unconstrained = "raw"
+    default_args.unconstraint = "raw"
     default_args.outdir = os.path.join(TMP_TEST_DIR, "multi_constraint_test")
     default_args.save = 1
     default_args.logdir = os.path.join(TMP_TEST_DIR, "LOG_MULTI")
@@ -151,7 +151,7 @@ def sliding_args(default_args):
     default_args.region = 7
     default_args.unpaired = "unpaired"
     default_args.paired = "paired"
-    default_args.unconstrained = "raw"
+    default_args.unconstraint = "raw"
     default_args.outdir = os.path.join(TMP_TEST_DIR, "sliding_test")
     default_args.logdir = os.path.join(TMP_TEST_DIR, "LOG_SLIDING")
 
