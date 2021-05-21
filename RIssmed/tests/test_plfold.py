@@ -17,6 +17,7 @@ from RIssmed.ConstraintPLFold import main as pl_main
 from RIssmed.ConstraintPLFold import fold_unconstraint, constrain_seq
 from Bio import SeqIO
 from RIssmed.lib.Collection import expand_window, localize_window
+from RIssmed.lib.RNAtweaks import PLFoldOutput
 
 EXPECTED_LOGS = os.path.join(TESTFOLDER, "Expected_Logs")
 EXPECTED_RESULTS = os.path.join(TESTFOLDER, "Expected_Results")
@@ -324,76 +325,3 @@ def run_pl_fold(sequence, window, span, start=None, end=None, mode="unpaired", u
         return rnaplfold_output
 
 
-class PLFoldOutput:
-    def __init__(self, text: str):
-        self.text = self._sanitize(text)
-
-        self._array = None
-
-    def __str__(self):
-        return self.text
-
-    def __eq__(self, other: PLFoldOutput):
-        if type(other) != PLFoldOutput:
-            return False
-        return np.array_equal(self.get_numpy_array(), other.get_numpy_array(), equal_nan=True)
-
-    @staticmethod
-    def _sanitize(text: str):
-        list_text = text.split("\n")
-        if list_text[0].startswith("1\t"):
-            length = len(list_text[0].split("\t")) - 1
-            part = [str(x + 1) for x in range(length)]
-            list_text = ["#unpaired probabilities", " #$i\tl=" + "\t".join(part)] + list_text
-            text = "\n".join(list_text)
-        elif list_text[0].startswith("#") and list_text[1].startswith(" #"):
-            pass
-        else:
-            raise ValueError("text seems not to be a valid plfold string")
-        text = text.replace("nan", "NA")
-        return text
-
-    def get_numpy_array(self):
-        if self._array is None:
-            array = []
-            for line in self.text.split("\n"):
-                if not line.startswith("#") and not line.startswith(" #") and not line == "":
-                    data = line.split("\t")[1:]
-                    data = [float(x) if x != "NA" else np.nan for x in data]
-                    array.append(data)
-            array = np.array(array)
-            self._array = array
-        return self._array
-
-    def set_array(self, array: np.ndarray):
-        self._array = array
-
-    def localize(self, start: int, end: int):
-        if self._array is not None:
-            self._array = self._array[start:end]
-        text_list = self.text.split("\n")[start+2:end+2]
-        for x, item in enumerate(text_list):
-            text_list[x] = "\t".join([str(x+1)] + item.split("\t")[1:])
-        self.text = self._sanitize("\n".join(text_list))
-
-    @classmethod
-    def from_file(cls, file_path: str):
-        assert os.path.isfile(file_path), f"{file_path} is not a valid file path"
-        if ".gz" in file_path:
-            with gzip.open(file_path, "rt") as handle:
-                file_data = handle.read()
-        else:
-            with open(file_path, "r") as handle:
-                file_data = handle.read()
-        return PLFoldOutput(file_data)
-
-    @classmethod
-    def from_rissmed_numpy_output(cls, file_path: str):
-        assert os.path.isfile(file_path), f"{file_path} is not a valid file path"
-        ris_array = np.load(file_path)
-        array = np.squeeze(ris_array)
-        array_string = "\n".join(
-            ['\t'.join([str(x + 1)] + ['%.8f' % num for num in array[x]]) for x in range(len(array))])
-        output = PLFoldOutput(array_string)
-        output.set_array(array)
-        return output

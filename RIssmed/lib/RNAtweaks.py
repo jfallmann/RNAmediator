@@ -446,16 +446,16 @@ class PLFoldOutput:
 
     @staticmethod
     def _array_to_string(array):
-        array = np.array(array, dtype=np.float)
+        array = np.array(array, dtype=np.float).round(7)
         array_string = "\n".join(
-            ['\t'.join([str(x + 1)] + ['%.8f' % num for num in array[x]]) for x in range(len(array))])
+            ['\t'.join([str(x + 1)] + [str(num) for num in array[x]]) for x in range(len(array))])
         return array_string
 
     def get_text(self, nan="NA", truncated=True):
         out_string = self.text
         if truncated:
             out_string = "\n".join(out_string.split("\n")[2:])
-        out_string.replace("NA", nan)
+        out_string = out_string.replace("NA", nan)
         return out_string
 
     def get_rissmed_np_array(self):
