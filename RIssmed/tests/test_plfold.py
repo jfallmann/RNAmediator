@@ -240,6 +240,7 @@ def test_fold_unconstraint(seq_id, region, window, span, unconstraint, save, out
     fold_unconstraint(seq, seq_id, region, window, span, unconstraint, save, outdir)
     test_file_path = os.path.join(outdir, seq_id)
     test_files = os.listdir(test_file_path)
+    assert len(test_files) != 0, "fold_unconstraint  went wrong"
     for test_file in test_files:
         test_file = os.path.join(test_file_path, test_file)
         if ".gz" in test_file:
