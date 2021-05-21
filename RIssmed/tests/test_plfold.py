@@ -185,6 +185,7 @@ def test_parafold(parafold_args):
     compare_output_folders(test_path=test_path, expected_path=expected_path)
     # Here only files are compared as the parafold function seems to be a bit buggy
 
+
 def test_single_constraint(single_constraint_args):
     pl_main(single_constraint_args)
     expected_path = os.path.join(EXPECTED_RESULTS, "single_constraint_result")
