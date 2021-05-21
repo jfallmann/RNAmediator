@@ -77,7 +77,7 @@ def compare_output_folders(test_path: str, expected_path: str):
                 with gzip.open(test_file) as test, gzip.open(expected_file) as expected:
                     for test_line in test:
                         expected_line = expected.readline()
-                        assert expected_line == test_line
+                        assert expected_line == test_line, "lines are different"
             elif test_file.endswith(".npy"):
                 test_file = np.load(test_file)
                 expected_file = np.load(expected_file)
@@ -400,7 +400,7 @@ class PLFoldOutput:
         ris_array = np.load(file_path)
         array = np.squeeze(ris_array)
         array_string = "\n".join(
-            ['\t'.join([str(x + 1)] + ['%.5f' % num for num in array[x]]) for x in range(len(array))])
+            ['\t'.join([str(x + 1)] + ['%.8f' % num for num in array[x]]) for x in range(len(array))])
         output = PLFoldOutput(array_string)
         output.set_array(array)
         return output
