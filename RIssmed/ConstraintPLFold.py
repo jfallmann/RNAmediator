@@ -582,7 +582,7 @@ def parafold(sequence, window, span, region, multi, unconstraint, unpaired, pair
 
 ##### Functions #####
 def fold_unconstraint(seq, id, region, window, span, unconstraint, save, outdir, rawentry=None, locws=None, locwe=None, queue=None, configurer=None, level=None):
-
+    seq = seq.upper().replace("T", "U")
     logid = scriptname+'.fold_unconstraint: '
     data = {'up': []}
     try:
@@ -621,7 +621,7 @@ def fold_unconstraint(seq, id, region, window, span, unconstraint, save, outdir,
 
 
 def constrain_seq(sid, seq, start, end, window, span, region, multi, paired, unpaired, save, outdir, data, an=None, unconstraint=None, queue=None, configurer=None, level=None):
-
+    seq = seq.upper().replace("T", "U")
     logid = scriptname+'.constrain_seq: '
 
     try:
@@ -731,7 +731,7 @@ def constrain_seq(sid, seq, start, end, window, span, region, multi, paired, unp
 
 
 def constrain_seq_paired(sid, seq, fstart, fend, start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an, unconstraint, queue=None, configurer=None, level=None):
-
+    seq = seq.upper().replace("T", "U")
     logid = scriptname+'.constrain_seq_paired: '
     try:
         if queue and level:
@@ -837,7 +837,7 @@ def constrain_seq_paired(sid, seq, fstart, fend, start, end, conslength, const, 
 
 
 def constrain_temp(sid, seq, temp, window, span, region, multi, an, save, outdir, queue=None, configurer=None, level=None):
-
+    seq = seq.upper().replace("T", "U")
     logid = scriptname+'.constrain_temp: '
     try:
         if queue and level:
