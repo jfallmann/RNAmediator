@@ -286,7 +286,7 @@ def test_fold_constraint(seq_id, start, end, window, span, region, multi, paired
                   unconstraint=unconstraint)
     test_file_path = os.path.join(outdir, seq_id)
     test_files = os.listdir(test_file_path)
-    assert len(test_files) != 0, "constrain seq went wrong"
+    assert len(test_files) >= 3, "constrain seq went wrong"
     for test_file in test_files:
         test_file = os.path.join(test_file_path, test_file)
         if ".gz" in test_file:
