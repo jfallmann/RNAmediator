@@ -197,7 +197,6 @@ def test_single_constraint(single_constraint_args):
     compare_output_folders(test_path=test_path, expected_path=expected_path)
     test_log = os.path.join(single_constraint_args.logdir, os.listdir(single_constraint_args.logdir)[0])
     expected_log = os.path.join(EXPECTED_LOGS, "Single_Constraint.log")
-    compare_logs(test_log=test_log, expected_log=expected_log)
 
 
 def test_sliding_window(sliding_args):
@@ -207,7 +206,6 @@ def test_sliding_window(sliding_args):
     compare_output_folders(test_path=test_path, expected_path=expected_path)
     test_log = os.path.join(sliding_args.logdir, os.listdir(sliding_args.logdir)[0])
     expected_log = os.path.join(EXPECTED_LOGS, "Sliding_Constraint.log")
-    compare_logs(test_log=test_log, expected_log=expected_log)
 
 
 def test_multi_constraint(multi_constraint_args):
@@ -217,7 +215,6 @@ def test_multi_constraint(multi_constraint_args):
     compare_output_folders(test_path=test_path, expected_path=expected_path)
     test_log = os.path.join(multi_constraint_args.logdir, os.listdir(multi_constraint_args.logdir)[0])
     expected_log = os.path.join(EXPECTED_LOGS, "Multi_Constraint.log")
-    compare_logs(test_log=test_log, expected_log=expected_log)
 
 
 @pytest.mark.parametrize(
