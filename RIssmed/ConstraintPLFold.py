@@ -174,8 +174,7 @@ def preprocess(queue, configurer, level, sequence, window, span, region, multi, 
             for rec in records:
                 sseq = StringIO(records[seqnr].format("fasta"))
                 constraint = constraintlist['lw'][seqnr]
-
-                pool.apply_async(parafold, args=(sseq, window, span, region, multi, unconstraint, unpaired, paired, constraint, conslength, save, procs, vrna, temprange, outdir, pattern, genecoords), kwds={'queue':queue, 'configurer':configurer, 'level':level})
+                pool.apply_async(parafold, args=(sseq, window, span, region, multi, unconstraint, unpaired, paired, constraint, conslength, save, procs, vrna, outdir, pattern, genecoords), kwds={'queue':queue, 'configurer':configurer, 'level':level})
                 seqnr += 1
 
             pool.close()
