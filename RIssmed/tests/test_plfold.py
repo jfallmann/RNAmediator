@@ -99,6 +99,9 @@ def compare_logs(test_log: str, expected_log: str):
 
 
 def compare_arrays(test_array: np.ndarray, expected_array: np.ndarray):
+    # Needs to be converted as api output might include nans in contrast to the zeros of cmd line
+    test_array = np.nan_to_num(test_array)
+    expected_array = np.nan_to_num(expected_array)
     array_difference = test_array - expected_array
     max_difference = np.max(np.abs(array_difference), where=~np.isnan(array_difference), initial=-1)
     max_diff_idx = np.unravel_index(np.nanargmax(array_difference), array_difference.shape)
@@ -255,8 +258,11 @@ def test_fold_unconstraint(seq_id, region, window, span, unconstraint, save, out
 @pytest.mark.parametrize(
     "seq_id,start,end,window,span,region,multi,paired,unpaired,save,outdir,pl_data,unconstraint,seq",
     [("onlyA", 200, 207, 100, 60, 7, 1, "paired", "unpaired", 1, "onlyA", {'up': []}, "raw", "A" * 500),
-     ("testseq2", 200, 207, 100, 60, 7, 2, "paired", "unpaired", 1, "testseq2", {'up': []}, "raw",
+     ("testseq2", 200, 207, 100, 60, 7, 1, "paired", "unpaired", 1, "testseq2", {'up': []}, "raw",
+      os.path.join(TESTDATAPATH, "test_single.fa")),
+     ("testseq3", 200, 207, 100, 60, 7, 2, "paired", "unpaired", 1, "testseq3", {'up': []}, "raw",
       os.path.join(TESTDATAPATH, "test_single.fa"))
+
      ]
 )
 def test_fold_constraint(seq_id, start, end, window, span, region, multi, paired, unpaired, save, outdir, pl_data,
@@ -297,8 +303,6 @@ def test_fold_constraint(seq_id, start, end, window, span, region, multi, paired
                 test_result = PLFoldOutput.from_file(test_file)
                 test_array = test_result.get_numpy_array()
                 # TODO: seems like the API produces nan at paired constraint positions instead of 0.
-                test_array = np.nan_to_num(test_array)
-                cmd_paired_array = np.nan_to_num(cmd_paired_array)
                 compare_arrays(test_array, cmd_paired_array)
 
 
