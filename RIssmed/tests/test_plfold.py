@@ -81,8 +81,7 @@ def compare_output_folders(test_path: str, expected_path: str):
             elif test_file.endswith(".npy"):
                 test_file = np.load(test_file)
                 expected_file = np.load(expected_file)
-                assert np.array_equal(test_file, expected_file,
-                                      equal_nan=True), f"{test_file} does not match expected result"
+                compare_arrays(test_file, expected_file)
 
 
 def compare_logs(test_log: str, expected_log: str):
