@@ -584,7 +584,6 @@ def parafold(sequence, window, span, region, multi, unconstraint, unpaired, pair
 def fold_unconstraint(seq, id, region, window, span, unconstraint, save, outdir, rawentry=None, locws=None, locwe=None, queue=None, configurer=None, level=None):
     seq = seq.upper().replace("T", "U")
     logid = scriptname+'.fold_unconstraint: '
-    data = {'up': []}
     try:
         if queue and level:
             configurer(queue, level)
@@ -593,22 +592,15 @@ def fold_unconstraint(seq, id, region, window, span, unconstraint, save, outdir,
             log.error(logid+'Sequence to small, skipping '+str(id)+'\t'+str(len(seq)))
             return
 
-        # RNA = importlib.import_module('RNA')
-        md = RNA.md()
-        md.max_bp_span = span
-        md.window_size = window
-        # create new fold_compound object
-        fc = RNA.fold_compound(str(seq), md, RNA.OPTION_WINDOW)
-        # call prop window calculation
-        fc.probs_window(region, RNA.PROBS_WINDOW_UP, up_callback, data)
-        # fc.probs_window(region, RNA.PROBS_WINDOW_BPP, bpp_callback, data)
+        plfold_output = api_rnaplfold(seq, window, span, region)
 
         if locws is not None and locwe is not None:  # If we only need a subset of the folded sequence
             log.debug(logid+'Cutting RIO from fold with boundaries '+str(locws)+' and '+str(locwe))
-            data['up'] = [data['up'][x] for x in range(locws, locwe+1)]
+            plfold_output.localize(locws, locwe+1)
             seq = seq[locws-1:locwe]
 
-        write_unconstraint(save, str(id), str(seq), unconstraint, data, int(region), str(window), str(span), outdir, rawentry)
+        write_unconstraint(save, str(id), str(seq), unconstraint, plfold_output, int(region), str(window), str(span), outdir, rawentry)
+        return plfold_output
 
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -617,7 +609,19 @@ def fold_unconstraint(seq, id, region, window, span, unconstraint, save, outdir,
             )
         log.error(logid+''.join(tbe.format()))
 
-    return data['up']
+
+def api_rnaplfold(seq, window, span,  region):
+    data = {'up': []}
+    md = RNA.md()
+    md.max_bp_span = span
+    md.window_size = window
+    # create new fold_compound object
+    fc = RNA.fold_compound(str(seq), md, RNA.OPTION_WINDOW)
+    # call prop window calculation
+    fc.probs_window(region, RNA.PROBS_WINDOW_UP, up_callback, data)
+    array = np.array(data["up"]).squeeze()[:, 1:]
+    pl_output = PLFoldOutput.from_numpy(array)
+    return pl_output
 
 
 def constrain_seq(sid, seq, start, end, window, span, region, multi, paired, unpaired, save, outdir, data, an=None, unconstraint=None, queue=None, configurer=None, level=None):
@@ -699,8 +703,8 @@ def constrain_seq(sid, seq, start, end, window, span, region, multi, paired, unp
         # Calculating accessibility difference between unconstraint and constraint fold, <0 means less accessible with constraint, >0 means more accessible upon constraint
         if not an or len(an) < 1 or len(data['up']) != len(data_u['up']):
             log.debug(logid+'Need to refold unconstraint sequence')
-            data['up'] = fold_unconstraint(str(seqtofold), sid, region, window, span, unconstraint, save, outdir, cons, locws, locwe)
-            an = up_to_array(data['up'])  # create numpy array from output
+            plfold_unconstraint = fold_unconstraint(str(seqtofold), sid, region, window, span, unconstraint, save, outdir, cons, locws, locwe)
+            an = plfold_unconstraint.get_rissmed_np_array()  # create numpy array from output
 
         else:
             if len(an) > len(au):
@@ -878,10 +882,10 @@ def constrain_temp(sid, seq, temp, window, span, region, multi, an, save, outdir
         log.error(logid+''.join(tbe.format()))
 
 
-def write_unconstraint(save, sid, seq, unconstraint, data, region, window, span, outdir, rawentry=None):
+def write_unconstraint(save, sid, seq, unconstraint, data: PLFoldOutput, region, window, span, outdir, rawentry=None):
 
     logid = scriptname+'.write_unconstraint: '
-    log.debug(logid+' '.join([str(save),str(len(seq)),str(len(data['up'])),str(rawentry)]))
+    log.debug(logid+' '.join([str(save),str(len(seq)),str(len(data.get_numpy_array())),str(rawentry)]))
     try:
         goi, chrom, strand = idfromfa(sid)
         temp_outdir = os.path.join(outdir,goi)
@@ -908,25 +912,25 @@ def write_unconstraint(save, sid, seq, unconstraint, data, region, window, span,
             if rawentry:
                 if save > 0 and not os.path.exists(os.path.join(temp_outdir, str(goi+'_'+chrom+'_'+strand+'_'+rawentry+'_'+unconstraint+'_'+window+'_'+str(span)+'.gz'))):
                     with gzip.open(os.path.join(temp_outdir, goi+'_'+chrom+'_'+strand+'_'+rawentry+'_'+unconstraint+'_'+window+'_'+str(span)+'.gz'), 'wb') as o:
-                        out = print_up(data['up'],len(seq),region)
+                        out = data.get_text(nan="nan", truncated=True)
                         if out and len(out)>1:
-                            o.write(bytes(out,encoding='UTF-8'))
+                            o.write(bytes(out, encoding='UTF-8'))
                         else:
                             log.warning("No output produced "+sid)
                 if not os.path.exists(os.path.join(temp_outdir, str(goi+'_'+chrom+'_'+strand+'_'+rawentry+'_'+unconstraint+'_'+window+'_'+str(span)+'.npy'))):
-                    printdiff(up_to_array(data['up']),os.path.join(temp_outdir, str(goi+'_'+chrom+'_'+strand+'_'+rawentry+'_'+unconstraint+'_'+window+'_'+str(span)+'.npy')))
+                    printdiff(data.get_rissmed_np_array(),os.path.join(temp_outdir, str(goi+'_'+chrom+'_'+strand+'_'+rawentry+'_'+unconstraint+'_'+window+'_'+str(span)+'.npy')))
 
             else:
                 if save > 0 and not os.path.exists(os.path.join(temp_outdir,str(goi+'_'+chrom+'_'+strand+'_'+str(gr)+'_'+unconstraint+'_'+window+'_'+str(span)+'.gz'))):
                     with gzip.open(os.path.join(temp_outdir,goi+'_'+chrom+'_'+strand+'_'+str(gr)+'_'+unconstraint+'_'+window+'_'+str(span)+'.gz'), 'wb') as o:
-                        out = print_up(data['up'],len(seq),region)
+                        out = data.get_text(nan="nan", truncated=True)
                         if out and len(out)>1:
-                            o.write(bytes(out,encoding='UTF-8'))
+                            o.write(bytes(out, encoding='UTF-8'))
                 if not os.path.exists(os.path.join(temp_outdir,str(goi+'_'+chrom+'_'+strand+'_'+str(gr)+'_'+unconstraint+'_'+window+'_'+str(span)+'.npy'))):
-                    printdiff(up_to_array(data['up']),os.path.join(temp_outdir,str(goi+'_'+chrom+'_'+strand+'_'+str(gr)+'_'+unconstraint+'_'+window+'_'+str(span)+'.npy')))
+                    printdiff(data.get_rissmed_np_array(),os.path.join(temp_outdir,str(goi+'_'+chrom+'_'+strand+'_'+str(gr)+'_'+unconstraint+'_'+window+'_'+str(span)+'.npy')))
 
         else:
-            print (print_up(data['up'],len(seq),region))
+            print(data.get_text())
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(

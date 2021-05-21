@@ -105,7 +105,7 @@ def compare_arrays(test_array: np.ndarray, expected_array: np.ndarray):
     array_difference = test_array - expected_array
     max_difference = np.max(np.abs(array_difference), where=~np.isnan(array_difference), initial=-1)
     max_diff_idx = np.unravel_index(np.nanargmax(array_difference), array_difference.shape)
-    assert np.allclose(test_array, expected_array, equal_nan=True, atol=0.0000001), \
+    assert np.allclose(test_array, expected_array, equal_nan=True, atol=0.000001), \
         f"detected high difference between RIssmed and command line result " \
         f"with a max of {max_difference} at index: {max_diff_idx}"
 
@@ -221,7 +221,7 @@ def test_multi_constraint(multi_constraint_args):
 @pytest.mark.parametrize(
     "seq_id,region,window,span,unconstraint,save,outdir,seq",
     [("onlyA", 7, 100, 60, "raw", 1, "onlyA", "A" * 500),
-     ("testseq2", 7, 100, 60, "raw", 1, "testseq2", os.path.join(TESTDATAPATH, "test_single.fa"))]
+     ("testseq2", 7, 100, 60, "raw", 2, "testseq2", os.path.join(TESTDATAPATH, "test_single.fa"))]
 )
 def test_fold_unconstraint(seq_id, region, window, span, unconstraint, save, outdir, seq):
     if os.path.isfile(seq):
