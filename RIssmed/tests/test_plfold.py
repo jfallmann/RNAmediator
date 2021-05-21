@@ -158,15 +158,16 @@ def sliding_args(default_args):
 
 @pytest.fixture()
 def parafold_args(default_args):
-    default_args.sequence = os.path.join(TESTDATAPATH, "test.fa.gz")
-    constrain = os.path.join(TESTDATAPATH, "test_constraints.bed")
+    default_args.sequence = os.path.join(TESTDATAPATH, "foo.fa")
+    constrain = os.path.join(TESTDATAPATH, "foo.bed")
     default_args.window = 100
     default_args.unpaired = "unpaired"
     default_args.paired = "paired"
     default_args.unconstraint = "raw"
-    default_args.outdir = os.path.join(TESTFOLDER, "parafold_test")
-    default_args.logdir = os.path.join(TESTFOLDER, "LOG_PARAFOLD")
+    default_args.outdir = os.path.join(TMP_TEST_DIR, "parafold_test")
+    default_args.logdir = os.path.join(TMP_TEST_DIR, "LOG_PARAFOLD")
     default_args.constrain = f"ono,{constrain}"
+    default_args.save = 1
     return default_args
 
 
@@ -179,6 +180,10 @@ def test_data_available():
 
 def test_parafold(parafold_args):
     pl_main(parafold_args)
+    expected_path = os.path.join(EXPECTED_RESULTS, "parafold_result")
+    test_path = parafold_args.outdir
+    compare_output_folders(test_path=test_path, expected_path=expected_path)
+    # Here only files are compared as the parafold function seems to be a bit buggy
 
 def test_single_constraint(single_constraint_args):
     pl_main(single_constraint_args)
