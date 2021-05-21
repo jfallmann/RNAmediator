@@ -76,8 +76,8 @@ def compare_output_folders(test_path: str, expected_path: str):
             if ".gz" in test_file:
                 with gzip.open(test_file) as test, gzip.open(expected_file) as expected:
                     for test_line in test:
-                        expected_line = expected.readline()
-                        assert expected_line == test_line, "lines are different"
+                        expected_line = expected.readline().rstrip()
+                        assert expected_line == test_line.rstrip(), "lines are different"
             elif test_file.endswith(".npy"):
                 test_file = np.load(test_file)
                 expected_file = np.load(expected_file)
