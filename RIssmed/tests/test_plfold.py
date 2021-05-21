@@ -160,8 +160,8 @@ def sliding_args(default_args):
 
 @pytest.fixture()
 def parafold_args(default_args):
-    default_args.sequence = os.path.join(TESTDATAPATH, "foo.fa")
-    constrain = os.path.join(TESTDATAPATH, "foo.bed")
+    default_args.sequence = os.path.join(TESTDATAPATH, "parafold_test.fa")
+    constrain = os.path.join(TESTDATAPATH, "parafold_test.bed")
     default_args.window = 100
     default_args.unpaired = "unpaired"
     default_args.paired = "paired"
