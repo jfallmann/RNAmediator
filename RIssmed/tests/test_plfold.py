@@ -178,6 +178,8 @@ def test_data_available():
     assert os.path.exists(os.path.join(TESTDATAPATH, "test_single.fa")), "Test data not available"
     assert os.path.isfile(os.path.join(TESTDATAPATH, "test_single_constraint.bed"))
     assert os.path.isfile(os.path.join(TESTDATAPATH, "test_constraints.bed"))
+    assert os.path.isfile(os.path.join(TESTDATAPATH, "parafold_test.bed"))
+    assert os.path.isfile(os.path.join(TESTDATAPATH, "parafold_test.fa"))
 
 
 def test_parafold(parafold_args):
