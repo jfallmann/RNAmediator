@@ -522,22 +522,19 @@ def parafold(sequence, window, span, region, multi, unconstraint, unpaired, pair
             an = [np.nan]
             num_processes = procs or 1
             # with get_context("spawn").Pool(processes=num_processes-1, maxtasksperchild=1) as pool:
-            pool = multiprocessing.Pool(processes=num_processes, maxtasksperchild=1)
             conslist = []
             conslist.append(constrain)
 
             for entry in conslist:
                 if entry == 'NOCONS':  # in case we just want to fold the sequence without constraints at all
                     try:
-                        res = pool.apply_async(fold_unconstraint, args=(str(fa.seq), str(fa.id), region, window, span, unconstraint, save, outdir), kwds={'queue':queue, 'configurer':configurer, 'level':level})
+                        data['up'] = fold_unconstraint(fa.seq, fa.id, region, window, span, unconstraint, save, outdir, queue=queue, configurer=configurer, level=level)
                     except Exception:
                         exc_type, exc_value, exc_tb = sys.exc_info()
                         tbe = tb.TracebackException(
                             exc_type, exc_value, exc_tb,
                         )
                         log.error(logid+''.join(tbe.format()))
-
-                    data['up'] = res.get()
 
                 else:
                     # we now have a list of constraints and for the raw seq comparison we only need to fold windows around these constraints
