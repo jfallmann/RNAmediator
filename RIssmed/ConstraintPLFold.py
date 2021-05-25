@@ -94,7 +94,7 @@ from lib.FileProcessor import *
 from lib.RNAtweaks import *
 from lib.NPtweaks import *
 import errno
-from typing import Union, List, Tuple
+from typing import Union, List, Tuple, Iterable
 
 
 log = logging.getLogger(__name__)  # use module name
@@ -611,10 +611,9 @@ def fold_unconstraint(seq, id, region, window, span, unconstraint, save, outdir,
         log.error(logid+''.join(tbe.format()))
 
 
-def api_rnaplfold(seq: str, window: int, span: int,  region: int, temperature: float = 37, mode: str = None,
-                  constraint: Union[Tuple, List] = None):
-    if mode is not None and constraint is None or mode is None and constraint is not None:
-        raise ValueError(f"constraint and mode do not match, both have to be None or set to values")
+def api_rnaplfold(seq: str, window: int, span: int,  region: int, temperature: float = 37,
+                  constraint: Iterable[Tuple] = None):
+    seq = seq.upper().replace("T", "U")
     data = {'up': []}
     md = RNA.md()
     md.max_bp_span = span
@@ -624,12 +623,16 @@ def api_rnaplfold(seq: str, window: int, span: int,  region: int, temperature: f
     # create new fold_compound object
     fc = RNA.fold_compound(str(seq), md, RNA.OPTION_WINDOW)
     if constraint is not None:
-        start = constraint[0]
-        end = constraint[1]
-        if mode == "paired":
-            fc = constrain_paired(fc, start, end)
-        elif mode == "unpaired":
-            fc = constrain_unpaired(fc, start, end)
+        for entry in constraint:
+            mode = entry[0]
+            start = entry[1]
+            end = entry[2]
+            if mode == "paired" or mode == "p":
+                fc = constrain_paired(fc, start, end)
+            elif mode == "unpaired" or mode == "u":
+                fc = constrain_unpaired(fc, start, end)
+            else:
+                raise ValueError("Constraint wrongly formatted. Has to be ('paired(p)'/'unpaired(u)', start, end)")
 
     # call prop window calculation
     fc.probs_window(region, RNA.PROBS_WINDOW_UP, up_callback, data)
@@ -700,8 +703,8 @@ def constrain_seq(sid, seq, start, end, window, span, region, multi, paired, unp
 
         fc_p.probs_window(region, RNA.PROBS_WINDOW_UP, up_callback, data_p)
         fc_u.probs_window(region, RNA.PROBS_WINDOW_UP, up_callback, data_u)
-        plfold_paired = api_rnaplfold(seqtofold, window, span, region, mode="paired", constraint=(locstart, locend+1))
-        plfold_unpaired = api_rnaplfold(seqtofold, window, span, region, mode="unpaired", constraint=(locstart, locend+1))
+        plfold_paired = api_rnaplfold(seqtofold, window, span, region, constraint=[("paired", locstart, locend+1)])
+        plfold_unpaired = api_rnaplfold(seqtofold, window, span, region, constraint=[("unpaired", locstart, locend+1)])
         # Cut sequence of interest from data, we no longer need the window extension as no effect outside of window is visible with plfold anyways
         # get local start,ends 0 based closed
         locws = locws - tostart
@@ -929,24 +932,28 @@ def write_unconstraint(save, sid, seq, unconstraint, data: PLFoldOutput, region,
                     if e.errno != errno.EEXIST:
                         raise
             if rawentry:
-                if save > 0 and not os.path.exists(os.path.join(temp_outdir, str(goi+'_'+chrom+'_'+strand+'_'+rawentry+'_'+unconstraint+'_'+window+'_'+str(span)+'.gz'))):
-                    with gzip.open(os.path.join(temp_outdir, goi+'_'+chrom+'_'+strand+'_'+rawentry+'_'+unconstraint+'_'+window+'_'+str(span)+'.gz'), 'wb') as o:
+                gz_filepath = os.path.join(temp_outdir, str(goi+'_'+chrom+'_'+strand+'_'+rawentry+'_'+unconstraint+'_'+window+'_'+str(span)+'.gz'))
+                npy_filepath = os.path.join(temp_outdir, str(goi+'_'+chrom+'_'+strand+'_'+rawentry+'_'+unconstraint+'_'+window+'_'+str(span)+'.npy'))
+                if save > 0 and not os.path.exists(gz_filepath):
+                    with gzip.open(gz_filepath, 'wb') as o:
                         out = data.get_text(nan="nan", truncated=True)
                         if out and len(out)>1:
                             o.write(bytes(out, encoding='UTF-8'))
                         else:
                             log.warning("No output produced "+sid)
-                if not os.path.exists(os.path.join(temp_outdir, str(goi+'_'+chrom+'_'+strand+'_'+rawentry+'_'+unconstraint+'_'+window+'_'+str(span)+'.npy'))):
-                    printdiff(data.get_rissmed_np_array(),os.path.join(temp_outdir, str(goi+'_'+chrom+'_'+strand+'_'+rawentry+'_'+unconstraint+'_'+window+'_'+str(span)+'.npy')))
+                if not os.path.exists(npy_filepath):
+                    printdiff(data.get_rissmed_np_array(), npy_filepath)
 
             else:
-                if save > 0 and not os.path.exists(os.path.join(temp_outdir,str(goi+'_'+chrom+'_'+strand+'_'+str(gr)+'_'+unconstraint+'_'+window+'_'+str(span)+'.gz'))):
-                    with gzip.open(os.path.join(temp_outdir,goi+'_'+chrom+'_'+strand+'_'+str(gr)+'_'+unconstraint+'_'+window+'_'+str(span)+'.gz'), 'wb') as o:
+                gz_filepath = os.path.join(temp_outdir,str(goi+'_'+chrom+'_'+strand+'_'+str(gr)+'_'+unconstraint+'_'+window+'_'+str(span)+'.gz'))
+                npy_filepath = os.path.join(temp_outdir,str(goi+'_'+chrom+'_'+strand+'_'+str(gr)+'_'+unconstraint+'_'+window+'_'+str(span)+'.npy'))
+                if save > 0 and not os.path.exists(gz_filepath):
+                    with gzip.open(gz_filepath, 'wb') as o:
                         out = data.get_text(nan="nan", truncated=True)
                         if out and len(out)>1:
                             o.write(bytes(out, encoding='UTF-8'))
-                if not os.path.exists(os.path.join(temp_outdir,str(goi+'_'+chrom+'_'+strand+'_'+str(gr)+'_'+unconstraint+'_'+window+'_'+str(span)+'.npy'))):
-                    printdiff(data.get_rissmed_np_array(),os.path.join(temp_outdir,str(goi+'_'+chrom+'_'+strand+'_'+str(gr)+'_'+unconstraint+'_'+window+'_'+str(span)+'.npy')))
+                if not os.path.exists(npy_filepath):
+                    printdiff(data.get_rissmed_np_array(), npy_filepath)
 
         else:
             print(data.get_text(nan="nan", truncated=True))
