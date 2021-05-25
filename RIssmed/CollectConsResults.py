@@ -180,7 +180,7 @@ def judge_diff(raw, u, p, gs, ge, gstrand, ulim, cutoff, border, outdir, padding
     try:
         if queue and level:
             configurer(queue, level)
-            
+
         goi, chrom, strand, cons, reg, f, window, span = map(str,os.path.basename(raw).split(sep='_'))
         span = span.split(sep='.')[0]
         cs, ce = map(int, cons.split(sep='-'))
@@ -237,8 +237,8 @@ def judge_diff(raw, u, p, gs, ge, gstrand, ulim, cutoff, border, outdir, padding
             nrgdiffu[np.isneginf(nrgdiffu)] = np.nan
             nrgdiffp[np.isneginf(nrgdiffp)] = np.nan
 
-            kdu = np.exp(nrgdiffu/RT)#math.exp(np.array(nrgdiffu//RT))) ###THIS IS BASICALLY ACCESSIBILITY AGAIN
-            kdp = np.exp(nrgdiffp/RT)#math.exp(np.array(nrgdiffp//RT))) ###THIS IS BASICALLY ACCESSIBILITY AGAIN
+            kdu = np.exp(nrgdiffu/RT)  # math.exp(np.array(nrgdiffu//RT))) ### THIS IS BASICALLY ACCESSIBILITY AGAIN
+            kdp = np.exp(nrgdiffp/RT)  # math.exp(np.array(nrgdiffp//RT))) ### THIS IS BASICALLY ACCESSIBILITY AGAIN
 
             log.debug(logid+'NRG: '+str(nrgdiffu[:10]))
             log.debug(logid+'KD: '+str(kdu[:10])+' mean: '+str(np.nanmean(kdu))+' std: '+str(np.nanstd(kdu)))
@@ -261,6 +261,7 @@ def judge_diff(raw, u, p, gs, ge, gstrand, ulim, cutoff, border, outdir, padding
 
             log.debug(logid+'WINDOWS: '+str.join(' ',map(str, [goi, strand, ws, cs, ce, we, str(cs+ws-1)+'-'+str(ce+ws), str(we-ce-1)+'-'+str(we-cs)])))
 
+            accprecons = noc[ce]
             for pos in range(len(noc)):
                 if pos not in range(cs-padding+1-ulim, ce+padding+1+ulim):
                     if strand != '-':
@@ -288,7 +289,7 @@ def judge_diff(raw, u, p, gs, ge, gstrand, ulim, cutoff, border, outdir, padding
                         zscore = zscoresu[pos]
 
                         if not any([x is np.nan for x in [preacc,nrgdiff,kd,zscore]]):
-                            out['u'].append('\t'.join([str(chrom), str(gpos), str(gend), str(goi) + '|' + str(cons) + '|' + str(gcons), str(uc[pos]), str(strand), str(dist), str(noc[pos]), str(preacc), str(nrgdiff), str(kd), str(zscore)]))
+                            out['u'].append('\t'.join([str(chrom), str(gpos), str(gend), str(goi) + '|' + str(cons) + '|' + str(gcons), str(uc[pos]), str(strand), str(dist), str(noc[pos]), str(preacc), str(nrgdiff), str(kd), str(zscore), str(accprecons)]))
 
                     if border < abs(pc[pos]):
                         if ce < pos:  # get distance up or downstream
@@ -302,7 +303,7 @@ def judge_diff(raw, u, p, gs, ge, gstrand, ulim, cutoff, border, outdir, padding
                         zscore = zscoresu[pos]
 
                         if not any([x is np.nan for x in [preacc,nrgdiff,kd,zscore]]):
-                            out['p'].append('\t'.join([str(chrom), str(gpos), str(gend), str(goi) + '|' + str(cons) + '|' + str(gcons), str(pc[pos]), str(strand), str(dist), str(noc[pos]), str(preacc), str(nrgdiff), str(kd)]))
+                            out['p'].append('\t'.join([str(chrom), str(gpos), str(gend), str(goi) + '|' + str(cons) + '|' + str(gcons), str(pc[pos]), str(strand), str(dist), str(noc[pos]), str(preacc), str(nrgdiff), str(kd), str(zscore), str(accprecons)]))
 
         savelists(out, outdir)
 
