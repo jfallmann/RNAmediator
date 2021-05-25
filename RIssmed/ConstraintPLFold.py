@@ -743,7 +743,7 @@ def constrain_seq(sid, seq, start, end, window, span, region, multi, paired, unp
 
         seqtoprint = seqtofold[locws-1:locwe]
 
-        write_constraint(save, str(sid), seqtoprint, paired, unpaired, data_u, data_p, cons, int(region), diff_nu, diff_np, str(window), str(span), outdir)
+        write_constraint(save, str(sid), seqtoprint, paired, unpaired, plfold_unpaired, plfold_paired, cons, int(region), diff_nu, diff_np, str(window), str(span), outdir)
 
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -949,7 +949,7 @@ def write_unconstraint(save, sid, seq, unconstraint, data: PLFoldOutput, region,
                     printdiff(data.get_rissmed_np_array(),os.path.join(temp_outdir,str(goi+'_'+chrom+'_'+strand+'_'+str(gr)+'_'+unconstraint+'_'+window+'_'+str(span)+'.npy')))
 
         else:
-            print(data.get_text())
+            print(data.get_text(nan="nan", truncated=True))
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
@@ -971,26 +971,26 @@ def write_constraint(save, sid, seq, paired, unpaired, data_u, data_p, constrain
                 os.makedirs(temp_outdir)
             if save > 0 and not os.path.exists(os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_'+paired+'_'+window+'_'+str(span)+'.gz')):
                 with gzip.open(os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_'+paired+'_'+window+'_'+str(span)+'.gz'), 'wb') as o:
-                    out = print_up(data_p['up'],len(seq),region)
-                    if out and len(out)>1:
-                        o.write(bytes(out,encoding='UTF-8'))
+                    out = data_p.get_text(nan="nan", truncated=True)
+                    if out and len(out) > 1:
+                        o.write(bytes(out, encoding='UTF-8'))
                     else:
                         log.error("No output produced "+sid)
         else:
-            print(print_up(data_p['up'],len(seq),region))
+            print(data_p.get_text(nan="nan", truncated=True))
 
         if unpaired != 'STDOUT':
             if not os.path.exists(temp_outdir):
                 os.makedirs(temp_outdir)
             if save > 0 and not os.path.exists(os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_'+unpaired+'_'+window+'_'+str(span)+'.gz')):
                 with gzip.open(os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_'+unpaired+'_'+window+'_'+str(span)+'.gz'), 'wb') as o:
-                    out = print_up(data_u['up'],len(seq),region)
+                    out = data_u.get_text(nan="nan", truncated=True)
                     if out and len(out)>1:
                         o.write(bytes(out,encoding='UTF-8'))
                     else:
                         log.error("No output produced "+sid)
         else:
-            print(print_up(data_u['up'],len(seq),region))
+            print(data_u.get_text(nan="nan", truncated=True))
 
         if not (diff_nu is None) and diff_nu.any():
             if unpaired != 'STDOUT':
