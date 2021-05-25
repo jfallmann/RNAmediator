@@ -402,7 +402,6 @@ class PLFoldOutput:
                     data = [float(x) if x != "NA" else np.nan for x in data]
                     array.append(data)
             array = np.array(array)
-            array[array == 0] = np.nan
             self._array = array
         return self._array
 
