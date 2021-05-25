@@ -99,9 +99,6 @@ def compare_logs(test_log: str, expected_log: str):
 
 
 def compare_arrays(test_array: np.ndarray, expected_array: np.ndarray):
-    # Needs to be converted as api output might include nans in contrast to the zeros of cmd line
-    test_array = np.nan_to_num(test_array)
-    expected_array = np.nan_to_num(expected_array)
     array_difference = test_array - expected_array
     max_difference = np.max(np.abs(array_difference), where=~np.isnan(array_difference), initial=-1)
     max_diff_idx = np.unravel_index(np.nanargmax(array_difference), array_difference.shape)
