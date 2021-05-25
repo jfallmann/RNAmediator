@@ -201,7 +201,7 @@ def parseargs_collectWindow():
 def isvalid(x=None):
     logid = scriptn+'.isvalid: '
     try:
-        if x:
+        if x or x == 0:
             if x in ('None', 'nan', 'none', 'NA', 'NAN') or x is None or x is np.nan:
                 return False
             else:
@@ -218,7 +218,7 @@ def isvalid(x=None):
 def isinvalid(x=None):
     logid = scriptn+'.isinvalid: '
     try:
-        if x:
+        if x or x == 0:
             if x in ('None', 'nan', 'none', 'NA', 'NAN') or x is None or x is np.nan:
                 return True
             else:
