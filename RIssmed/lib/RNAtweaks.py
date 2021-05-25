@@ -374,7 +374,7 @@ class PLFoldOutput:
         return self.text
 
     def __eq__(self, other: PLFoldOutput):
-        if type(other) != PLFoldOutput:
+        if self.__class__ != other.__class__:
             return False
         return np.array_equal(self.get_numpy_array(), other.get_numpy_array(), equal_nan=True)
 
@@ -402,6 +402,7 @@ class PLFoldOutput:
                     data = [float(x) if x != "NA" else np.nan for x in data]
                     array.append(data)
             array = np.array(array)
+            array[array == 0] = np.nan
             self._array = array
         return self._array
 

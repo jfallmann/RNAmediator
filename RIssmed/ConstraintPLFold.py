@@ -94,6 +94,7 @@ from lib.FileProcessor import *
 from lib.RNAtweaks import *
 from lib.NPtweaks import *
 import errno
+from typing import Union, List, Tuple
 
 
 log = logging.getLogger(__name__)  # use module name
@@ -610,13 +611,26 @@ def fold_unconstraint(seq, id, region, window, span, unconstraint, save, outdir,
         log.error(logid+''.join(tbe.format()))
 
 
-def api_rnaplfold(seq, window, span,  region):
+def api_rnaplfold(seq: str, window: int, span: int,  region: int, temperature: float = 37, mode: str = None,
+                  constraint: Union[Tuple, List] = None):
+    if mode is not None and constraint is None or mode is None and constraint is not None:
+        raise ValueError(f"constraint and mode do not match, both have to be None or set to values")
     data = {'up': []}
     md = RNA.md()
     md.max_bp_span = span
     md.window_size = window
+    md.temperature = temperature
+
     # create new fold_compound object
     fc = RNA.fold_compound(str(seq), md, RNA.OPTION_WINDOW)
+    if constraint is not None:
+        start = constraint[0]
+        end = constraint[1]
+        if mode == "paired":
+            fc = constrain_paired(fc, start, end)
+        elif mode == "unpaired":
+            fc = constrain_unpaired(fc, start, end)
+
     # call prop window calculation
     fc.probs_window(region, RNA.PROBS_WINDOW_UP, up_callback, data)
     array = np.array(data["up"]).squeeze()[:, 1:]
@@ -686,7 +700,8 @@ def constrain_seq(sid, seq, start, end, window, span, region, multi, paired, unp
 
         fc_p.probs_window(region, RNA.PROBS_WINDOW_UP, up_callback, data_p)
         fc_u.probs_window(region, RNA.PROBS_WINDOW_UP, up_callback, data_u)
-
+        plfold_paired = api_rnaplfold(seqtofold, window, span, region, mode="paired", constraint=(locstart, locend+1))
+        plfold_unpaired = api_rnaplfold(seqtofold, window, span, region, mode="unpaired", constraint=(locstart, locend+1))
         # Cut sequence of interest from data, we no longer need the window extension as no effect outside of window is visible with plfold anyways
         # get local start,ends 0 based closed
         locws = locws - tostart
@@ -696,10 +711,13 @@ def constrain_seq(sid, seq, start, end, window, span, region, multi, paired, unp
 
         data_u['up'] = [data_u['up'][x] for x in range(locws, locwe+1)]
         data_p['up'] = [data_p['up'][x] for x in range(locws, locwe+1)]
+        plfold_paired.localize(locws, locwe+1)
+        plfold_unpaired.localize(locws, locwe+1)
 
         au = up_to_array(data_u['up'])  # create numpy array from output
         ap = up_to_array(data_p['up'])  # create numpy array from output
-
+        ap = plfold_paired.get_rissmed_np_array()
+        au = plfold_unpaired.get_rissmed_np_array()
         # Calculating accessibility difference between unconstraint and constraint fold, <0 means less accessible with constraint, >0 means more accessible upon constraint
         if not an or len(an) < 1 or len(data['up']) != len(data_u['up']):
             log.debug(logid+'Need to refold unconstraint sequence')
@@ -718,6 +736,7 @@ def constrain_seq(sid, seq, start, end, window, span, region, multi, paired, unp
 
         if not np.array_equal(an, ap):
             diff_np = ap - an
+
         else:
             log.info(logid+'No influence on structure with paired constraint at ' + cons)
             diff_np = None
