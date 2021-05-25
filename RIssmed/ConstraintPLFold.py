@@ -674,35 +674,13 @@ def constrain_seq(sid, seq, start, end, window, span, region, multi, paired, unp
             log.warning(logid+str(cons)+' Existst for '+str(sid)+'! Skipping!')
             return
 
-        #RNA = importlib.import_module('RNA')
-        #refresh model details
-        md = RNA.md()
-        md.max_bp_span = span
-        md.window_size = window
-
-        # create new fold_compound objects
-        fc_p = RNA.fold_compound(seqtofold, md, RNA.OPTION_WINDOW)
-        fc_u = RNA.fold_compound(seqtofold, md, RNA.OPTION_WINDOW)
-
         # get local start,ends 0 based closed
         locstart = start - tostart
         locend = end - tostart
 
         log.debug(' '.join(map(str, [logid, sid, region, str(len(seq)), str(len(seqtofold)), cons, tostart, locstart, locend, toend])))
 
-        # enforce paired
-        fc_p = constrain_paired(fc_p, locstart, locend+1)
-        # fc_p.hc_add_bp_nonspecific(x,0) #0 means without direction  ( $ d < 0 $: pairs upstream, $ d > 0 $: pairs downstream, $ d == 0 $: no direction)
 
-        # enforce unpaired
-        fc_u = constrain_unpaired(fc_u, locstart, locend+1)
-
-        # new data struct
-        data_p = {'up': []}
-        data_u = {'up': []}
-
-        fc_p.probs_window(region, RNA.PROBS_WINDOW_UP, up_callback, data_p)
-        fc_u.probs_window(region, RNA.PROBS_WINDOW_UP, up_callback, data_u)
         plfold_paired = api_rnaplfold(seqtofold, window, span, region, constraint=[("paired", locstart, locend+1)])
         plfold_unpaired = api_rnaplfold(seqtofold, window, span, region, constraint=[("unpaired", locstart, locend+1)])
         # Cut sequence of interest from data, we no longer need the window extension as no effect outside of window is visible with plfold anyways
@@ -710,19 +688,14 @@ def constrain_seq(sid, seq, start, end, window, span, region, multi, paired, unp
         locws = locws - tostart
         locwe = locwe - tostart
 
-        #log.debug('UP_BEFORE: '+str(len(data_u['up']))+' '+str(locws)+' '+str(locwe))  ##### HIER WEITER
-
-        data_u['up'] = [data_u['up'][x] for x in range(locws, locwe+1)]
-        data_p['up'] = [data_p['up'][x] for x in range(locws, locwe+1)]
         plfold_paired.localize(locws, locwe+1)
         plfold_unpaired.localize(locws, locwe+1)
 
-        au = up_to_array(data_u['up'])  # create numpy array from output
-        ap = up_to_array(data_p['up'])  # create numpy array from output
+
         ap = plfold_paired.get_rissmed_np_array()
         au = plfold_unpaired.get_rissmed_np_array()
         # Calculating accessibility difference between unconstraint and constraint fold, <0 means less accessible with constraint, >0 means more accessible upon constraint
-        if not an or len(an) < 1 or len(data['up']) != len(data_u['up']):
+        if not an or len(an) < 1 or len(data['up']) != len(an):  # TODO: maybe change this and remove arguments
             log.debug(logid+'Need to refold unconstraint sequence')
             plfold_unconstraint = fold_unconstraint(str(seqtofold), sid, region, window, span, unconstraint, save, outdir, cons, locws, locwe)
             an = plfold_unconstraint.get_rissmed_np_array()  # create numpy array from output
@@ -932,8 +905,9 @@ def write_unconstraint(save, sid, seq, unconstraint, data: PLFoldOutput, region,
                     if e.errno != errno.EEXIST:
                         raise
             if rawentry:
-                gz_filepath = os.path.join(temp_outdir, str(goi+'_'+chrom+'_'+strand+'_'+rawentry+'_'+unconstraint+'_'+window+'_'+str(span)+'.gz'))
-                npy_filepath = os.path.join(temp_outdir, str(goi+'_'+chrom+'_'+strand+'_'+rawentry+'_'+unconstraint+'_'+window+'_'+str(span)+'.npy'))
+                filename = f"{goi}_{chrom}_{strand}_{rawentry}_{unconstraint}_{window}_{span}"
+                gz_filepath = os.path.join(temp_outdir, f"{filename}.gz")
+                npy_filepath = os.path.join(temp_outdir, f"{filename}.npy")
                 if save > 0 and not os.path.exists(gz_filepath):
                     with gzip.open(gz_filepath, 'wb') as o:
                         out = data.get_text(nan="nan", truncated=True)
@@ -945,8 +919,9 @@ def write_unconstraint(save, sid, seq, unconstraint, data: PLFoldOutput, region,
                     printdiff(data.get_rissmed_np_array(), npy_filepath)
 
             else:
-                gz_filepath = os.path.join(temp_outdir,str(goi+'_'+chrom+'_'+strand+'_'+str(gr)+'_'+unconstraint+'_'+window+'_'+str(span)+'.gz'))
-                npy_filepath = os.path.join(temp_outdir,str(goi+'_'+chrom+'_'+strand+'_'+str(gr)+'_'+unconstraint+'_'+window+'_'+str(span)+'.npy'))
+                filename = f"{goi}_{chrom}_{strand}_{gr}_{unconstraint}_{window}_{span}"
+                gz_filepath = os.path.join(temp_outdir, f"{filename}.gz")
+                npy_filepath = os.path.join(temp_outdir, f"{filename}.npy")
                 if save > 0 and not os.path.exists(gz_filepath):
                     with gzip.open(gz_filepath, 'wb') as o:
                         out = data.get_text(nan="nan", truncated=True)
@@ -976,8 +951,10 @@ def write_constraint(save, sid, seq, paired, unpaired, data_u, data_p, constrain
         if paired != 'STDOUT':
             if not os.path.exists(temp_outdir):
                 os.makedirs(temp_outdir)
-            if save > 0 and not os.path.exists(os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_'+paired+'_'+window+'_'+str(span)+'.gz')):
-                with gzip.open(os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_'+paired+'_'+window+'_'+str(span)+'.gz'), 'wb') as o:
+            filename = f'StruCons_{goi}_{chrom}_{strand}_{constrain}_{paired}_{window}_{span}.gz'
+            filepath = os.path.join(temp_outdir, filename)
+            if save > 0 and not os.path.exists(filepath):
+                with gzip.open(filepath, 'wb') as o:
                     out = data_p.get_text(nan="nan", truncated=True)
                     if out and len(out) > 1:
                         o.write(bytes(out, encoding='UTF-8'))
@@ -989,8 +966,10 @@ def write_constraint(save, sid, seq, paired, unpaired, data_u, data_p, constrain
         if unpaired != 'STDOUT':
             if not os.path.exists(temp_outdir):
                 os.makedirs(temp_outdir)
-            if save > 0 and not os.path.exists(os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_'+unpaired+'_'+window+'_'+str(span)+'.gz')):
-                with gzip.open(os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_'+unpaired+'_'+window+'_'+str(span)+'.gz'), 'wb') as o:
+            filename = f'StruCons_{goi}_{chrom}_{strand}_{constrain}_{unpaired}_{window}_{span}.gz'
+            filepath = os.path.join(temp_outdir, filename)
+            if save > 0 and not os.path.exists(filepath):
+                with gzip.open(filepath, 'wb') as o:
                     out = data_u.get_text(nan="nan", truncated=True)
                     if out and len(out)>1:
                         o.write(bytes(out,encoding='UTF-8'))
@@ -1003,8 +982,10 @@ def write_constraint(save, sid, seq, paired, unpaired, data_u, data_p, constrain
             if unpaired != 'STDOUT':
                 if not os.path.exists(temp_outdir):
                     os.makedirs(temp_outdir)
-                if not os.path.exists(os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_diffnu_'+window+'_'+str(span)+'.npy')):
-                    printdiff(diff_nu,os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_diffnu_'+window+'_'+str(span)+'.npy'))
+                filename = f'StruCons_{goi}_{chrom}_{strand}_{constrain}_diffnu_{window}_{span}.npy'
+                filepath = os.path.join(temp_outdir, filename)
+                if not os.path.exists(filepath):
+                    printdiff(diff_nu, filepath)
             else:
                 npprint(diff_nu)
 
@@ -1012,8 +993,10 @@ def write_constraint(save, sid, seq, paired, unpaired, data_u, data_p, constrain
             if unpaired != 'STDOUT':
                 if not os.path.exists(temp_outdir):
                     os.makedirs(temp_outdir)
-                if not os.path.exists(os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_diffnp_'+window+'_'+str(span)+'.npy')):
-                    printdiff(diff_np,os.path.join(temp_outdir,'StruCons_'+goi+'_'+chrom+'_'+strand+'_'+constrain+'_diffnp_'+window+'_'+str(span)+'.npy'))
+                filename = f'StruCons_{goi}_{chrom}_{strand}_{constrain}_diffnp_{window}_{span}.npy'
+                filepath = os.path.join(temp_outdir, filename)
+                if not os.path.exists(filepath):
+                    printdiff(diff_np, filepath)
             else:
                 npprint(diff_np)
     except Exception:
