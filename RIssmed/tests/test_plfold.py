@@ -75,10 +75,17 @@ def compare_output_folders(test_path: str, expected_path: str):
             assert os.path.exists(test_file), f"test: {test_file} does not exist"
             assert os.path.exists(expected_file), f"expected: {expected_file} does not exist"
             if ".gz" in test_file:
-                with gzip.open(test_file) as test, gzip.open(expected_file) as expected:
-                    for test_line in test:
-                        expected_line = expected.readline().rstrip()
-                        assert expected_line == test_line.rstrip(), "lines are different"
+                with gzip.open(test_file, "rt") as test, gzip.open(expected_file, "rt") as expected:
+                    for x, test_line in enumerate(test):
+                        expected_line = expected.readline().rstrip().split("\t")
+                        test_line = test_line.rstrip().split("\t")
+                        for y in range(len(expected_line)):
+                            expected_num = expected_line[y]
+                            test_num = test_line[y]
+                            if expected_num != "nan" and test_num != "nan":
+                                expected_num = float(expected_num)
+                                test_num = float(test_num)
+                                assert np.allclose(expected_num, test_num, atol=0.0000001), f"files are different at {x}, {y}"
             elif test_file.endswith(".npy"):
                 test_file = np.load(test_file)
                 expected_file = np.load(expected_file)
