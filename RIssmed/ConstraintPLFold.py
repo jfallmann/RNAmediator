@@ -67,6 +67,7 @@
 
 ### Code:
 ## IMPORTS
+from __future__ import annotations
 import os
 import sys
 import multiprocessing
@@ -94,11 +95,96 @@ from lib.FileProcessor import *
 from lib.RNAtweaks import *
 from lib.NPtweaks import *
 import errno
-from typing import Union, List, Tuple, Iterable
+from typing import Union, List, Tuple, Iterable, Dict
+from dataclasses import dataclass
 
 
 log = logging.getLogger(__name__)  # use module name
 scriptname = os.path.basename(__file__).replace('.py', '')
+
+
+class SequenceSettings:
+    def __init__(self, sequence_record: SeqIO.SeqRecord, gene: str = "nogene", chrom: str = "nochrom",
+                 strand: str = "+",
+                 constrainlist: Iterable[Constraint] = None):
+        self.sequence_record = sequence_record
+        self._constrainlist = constrainlist
+        self.strand = strand
+        self.chromosome = chrom
+        self.gene = gene
+
+    def add_constraint(self, constraint: Constraint):
+        if self._constrainlist is None:
+            self._constrainlist = []
+        self._constrainlist += [constraint]
+
+    def get_constrainlist(self):
+        return self._constrainlist
+
+
+@dataclass(frozen=True)
+class Constraint:
+    start: int
+    end: int
+    strand: str
+
+
+def get_run_settings_dict(sequence, constrain):
+    run_settings: Dict[str, SequenceSettings] = dict()
+    sequence = parseseq(sequence)
+    if 'ono' == str(constrain.split(',')[0]):
+        constrain = constrain.split(',')[1]
+        constraintlist = read_constraints(constrain, linewise=True)
+        for x, record in enumerate(SeqIO.parse(sequence, "fasta")):
+            cons = constraintlist["lw"][x]
+            run_settings = add_rissmed_constraint(run_settings, cons, record)
+    else:
+        constraintlist = read_constraints(constrain=constrain)
+        for record in SeqIO.parse(sequence, "fasta"):
+            goi, chrom, strand = idfromfa(record.id)
+            cons = constraintlist[goi]
+            for entry in cons:
+                run_settings = add_rissmed_constraint(run_settings, entry, record)
+    return run_settings
+
+
+def add_rissmed_constraint(run_settings: Dict[str, SequenceSettings], constraint: str, record: SeqIO.SeqRecord):
+    cons, strand = constraint.split("|")
+    cons_start, cons_end = cons.split("-")
+    cons = Constraint(int(cons_start), int(cons_end), strand)
+    if record.id in run_settings:
+        run_settings[record.id].add_constraint(cons)
+    else:
+        settings = SequenceSettings(record, constrainlist=[cons])
+        run_settings[record.id] = settings
+    return run_settings
+
+
+def read_constraints(constrain, linewise=False):
+    constraintlist = []
+    logid = f"{scriptname}.read_constraints"
+    if os.path.isfile(constrain):
+        if '.bed' in constrain:
+            log.info(logid + 'Parsing constraints from Bed ' + constrain)
+            if '.gz' in constrain:
+                f = gzip.open(constrain, 'rt')
+            else:
+                f = open(constrain, 'rt')
+            constraintlist = readConstraintsFromBed(f, linewise)
+        elif '.csv' in constrain:
+            if '.gz' in constrain:
+                f = gzip.open(constrain, 'rt')
+            else:
+                f = open(constrain, 'rt')
+            constraintlist = readConstraintsFromCSV(f, linewise)
+        else:
+            if '.gz' in constrain:
+                f = gzip.open(constrain, 'rt')
+            else:
+                f = open(constrain, 'rt')
+            constraintlist = readConstraintsFromGeneric(f, linewise)
+        f.close()
+    return constraintlist
 
 
 def preprocess(queue, configurer, level, sequence, window, span, region, multi, unconstraint, unpaired, paired, constrain, conslength, save, procs, vrna, temprange, outdir, genes, pattern=None):
@@ -127,7 +213,7 @@ def preprocess(queue, configurer, level, sequence, window, span, region, multi, 
         #set path for output
         if outdir:
             if not os.path.isabs(outdir):
-                outdir =  os.path.abspath(outdir)
+                outdir = os.path.abspath(outdir)
             if not os.path.exists(outdir):
                 os.makedirs(outdir)
         else:
@@ -137,32 +223,11 @@ def preprocess(queue, configurer, level, sequence, window, span, region, multi, 
             genecoords = parse_annotation_bed(genes)  # get genomic coords to print to bed later, should always be just one set of coords per gene
         else:
             genecoords = None
-
+        get_run_settings_dict(sequence, constrain)
         if 'ono' == str(constrain.split(',')[0]):  # One constraint line per sequence line
             constrain = constrain.split(',')[1]
-            constraintlist = []
-            if (os.path.isfile(constrain)):
-                linewise = True
-                if '.bed' in constrain:
-                    log.info(logid+'Parsing constraints from Bed '+constrain)
-                    if '.gz' in constrain:
-                        f = gzip.open(constrain, 'rt')
-                    else:
-                        f = open(constrain, 'rt')
-                    constraintlist = readConstraintsFromBed(f, linewise)
-                elif '.csv' in constrain:
-                    if '.gz' in constrain:
-                        f = gzip.open(constrain, 'rt')
-                    else:
-                        f = open(constrain, 'rt')
-                    constraintlist = readConstraintsFromCSV(f, linewise)
-                else:
-                    if '.gz' in constrain:
-                        f = gzip.open(constrain, 'rt')
-                    else:
-                        f = open(constrain, 'rt')
-                    constraintlist = readConstraintsFromGeneric(f, linewise)
-                f.close()
+            constraintlist = read_constraints(constrain, linewise=True)
+
 
             seq = parseseq(sequence)
             records = list(SeqIO.parse(seq, "fasta"))
