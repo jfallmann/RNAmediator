@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Wed Dec 16 13:17:58 2020 (+0100)
+## Last-Updated: Wed May 26 13:43:17 2021 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 459
+##     Update #: 460
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -288,7 +288,7 @@ def judge_diff(raw, u, p, gs, ge, gstrand, ulim, cutoff, border, outdir, padding
                         kd = kdu[pos]
                         zscore = zscoresu[pos]
 
-                        if not any([x is np.nan for x in [preacc,nrgdiff,kd,zscore]]):
+                        if not any([x is np.nan for x in [preacc, nrgdiff, kd, zscore]]):
                             out['u'].append('\t'.join([str(chrom), str(gpos), str(gend), str(goi) + '|' + str(cons) + '|' + str(gcons), str(uc[pos]), str(strand), str(dist), str(noc[pos]), str(preacc), str(nrgdiff), str(kd), str(zscore), str(accprecons)]))
 
                     if border < abs(pc[pos]):
@@ -302,7 +302,7 @@ def judge_diff(raw, u, p, gs, ge, gstrand, ulim, cutoff, border, outdir, padding
                         kd = kdu[pos]
                         zscore = zscoresu[pos]
 
-                        if not any([x is np.nan for x in [preacc,nrgdiff,kd,zscore]]):
+                        if not any([x is np.nan for x in [preacc, nrgdiff, kd, zscore]]):
                             out['p'].append('\t'.join([str(chrom), str(gpos), str(gend), str(goi) + '|' + str(cons) + '|' + str(gcons), str(pc[pos]), str(strand), str(dist), str(noc[pos]), str(preacc), str(nrgdiff), str(kd), str(zscore), str(accprecons)]))
 
         savelists(out, outdir)
