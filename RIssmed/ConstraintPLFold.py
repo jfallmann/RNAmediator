@@ -370,7 +370,7 @@ def fold(window, span, region, multi, unconstraint, unpaired, paired, constrain,
 
                             pool.apply_async(constrain_seq_paired, args=(seq_record.id, str(seq_record.seq), fstart, fend, start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an, unconstraint), kwds={'queue':queue, 'configurer':configurer, 'level':level})
                         else:
-                            pool.apply_async(constrain_seq, args=(str(seq_record.id), str(seq_record.seq), start, end, window, span, region, multi, paired, unpaired, save, outdir, data, an, unconstraint), kwds={'queue':queue, 'configurer':configurer, 'level':level})
+                            pool.apply_async(constrain_seq, args=(str(seq_record.id), str(seq_record.seq), start, end, window, span, region, multi, paired, unpaired, save, outdir), kwds={'unconstraint':unconstraint,'queue':queue, 'configurer':configurer, 'level':level})
 
         pool.close()
         pool.join()       # timeout
@@ -384,120 +384,6 @@ def fold(window, span, region, multi, unconstraint, unpaired, paired, constrain,
     log.info(logid+"DONE: output in: " + str(outdir))
     return 1
 
-
-def parafold(sequence, window, span, region, multi, unconstraint, unpaired, paired, constrain, conslength, save, procs, vrna, outdir, pattern, genecoords, queue=None, configurer=None, level=None):
-
-    logid = scriptname+'.parafold: '
-    try:
-        if queue and level:
-            configurer(queue, level)
-        seq = sequence
-        # set path for VRNA lib
-        if vrna:
-            sys.path = [vrna] + sys.path
-            global RNA
-            RNA = importlib.import_module('RNA')
-            globals().update(
-                {n: getattr(RNA, n) for n in RNA.__all__}
-                if hasattr(RNA, '__all__')
-                else {
-                    k: v for (k, v) in RNA.__dict__.items() if not k.startswith('_')
-                    }
-                )
-    except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
-            )
-        log.error(logid+''.join(tbe.format()))
-
-    try:
-        for fa in SeqIO.parse(seq,'fasta'):
-            fa.seq = str(fa.seq).upper()
-            goi, chrom, strand = idfromfa(fa.id)
-            if genecoords:
-                if goi in genecoords:
-                    gs, ge, gstrand = get_location(genecoords[goi][0])
-                    if gstrand != strand:
-                        log.warning(logid+'Strand values differ between Gene annotation and FASTA file! Please check your input for '+str(goi))
-                else:
-                    gs, ge, gstrand = 0, 0, '.'
-            else:
-                gs = ge = 0
-                gstrand = '.'
-                log.warning(logid+'No coords found for gene '+goi+'! Assuming coordinates are already local!')
-
-            if len(fa.seq) < window*multi:
-                log.warning(str('Sequence of '+goi+' too short, seqlenght '+str(len(fa.seq))+' with window size '+str(window)+' and multiplyer '+str(multi)))
-                continue
-
-            if pattern and pattern not in goi:
-                next
-            else:
-                log.info(logid+'Working on ' + goi)
-
-            # define data structures
-            data = { 'up': [] }
-            an = [np.nan]
-            num_processes = procs or 1
-            # with get_context("spawn").Pool(processes=num_processes-1, maxtasksperchild=1) as pool:
-            conslist = []
-            conslist.append(constrain)
-
-            for entry in conslist:
-                if entry == 'NOCONS':  # in case we just want to fold the sequence without constraints at all
-                    try:
-                        data['up'] = fold_unconstraint(fa.seq, fa.id, region, window, span, unconstraint, save, outdir, queue=queue, configurer=configurer, level=level)
-                    except Exception:
-                        exc_type, exc_value, exc_tb = sys.exc_info()
-                        tbe = tb.TracebackException(
-                            exc_type, exc_value, exc_tb,
-                        )
-                        log.error(logid+''.join(tbe.format()))
-
-                else:
-                    # we now have a list of constraints and for the raw seq comparison we only need to fold windows around these constraints
-                    if gstrand == '+' or gstrand == '.':
-                        start,end = map(lambda x: x - gs,list(get_location(entry)[:2]))
-                    else:
-                        start,end = map(lambda x: ge - x,list(get_location(entry)[:2][::-1]))
-
-                    tostart, toend = expand_window(start, end, window, multi, len(fa.seq))
-                    cons = str(start)+'-'+str(end)+'_'+str(tostart)+'-'+str(toend)
-
-                    if start < 1 or end > len(fa.seq):
-                        log.warning(logid+'Constraint out of sequence bounds! skipping! '+','.join([len(fa.seq),str(start)+'-'+str(end)]))
-                        continue
-
-                    if checkexisting(str(fa.id), paired, unpaired, cons, region, window, span, outdir):
-                        log.warning(logid+str(cons)+' Exists for '+str(fa.id)+'! Skipping!')
-                        continue
-
-                    log.info(logid+'Calculating constraint\t' + entry)
-
-                    const = np.array([start, end])
-
-                    data = { 'up': [] }
-                    an = None
-
-                    try:
-                        constrain_seq(str(fa.id), str(fa.seq), start, end, window, span, region, multi, paired, unpaired, save, outdir, data, an, queue=queue, configurer=configurer, level=level)
-                    except Exception:
-                        exc_type, exc_value, exc_tb = sys.exc_info()
-                        tbe = tb.TracebackException(
-                            exc_type, exc_value, exc_tb,
-                        )
-                        log.error(logid+''.join(tbe.format()))
-
-    except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
-        )
-        log.error(logid+''.join(tbe.format()))
-
-    log.info(logid+"DONE: output in: " + str(outdir))
-    return 1
 
 
 ##### Functions #####
@@ -560,7 +446,7 @@ def api_rnaplfold(seq: str, window: int, span: int,  region: int, temperature: f
     return pl_output
 
 
-def constrain_seq(sid, seq, start, end, window, span, region, multi, paired, unpaired, save, outdir, data, an=None, unconstraint=None, queue=None, configurer=None, level=None):
+def constrain_seq(sid, seq, start, end, window, span, region, multi, paired, unpaired, save, outdir,  unconstraint=None, queue=None, configurer=None, level=None):
     seq = seq.upper().replace("T", "U")
     logid = scriptname+'.constrain_seq: '
 
@@ -614,14 +500,9 @@ def constrain_seq(sid, seq, start, end, window, span, region, multi, paired, unp
         ap = plfold_paired.get_rissmed_np_array()
         au = plfold_unpaired.get_rissmed_np_array()
         # Calculating accessibility difference between unconstraint and constraint fold, <0 means less accessible with constraint, >0 means more accessible upon constraint
-        if not an or len(an) < 1 or len(data['up']) != len(an):  # TODO: maybe change this and remove arguments
-            log.debug(logid+'Need to refold unconstraint sequence')
-            plfold_unconstraint = fold_unconstraint(str(seqtofold), sid, region, window, span, unconstraint, save, outdir, cons, locws, locwe)
-            an = plfold_unconstraint.get_rissmed_np_array()  # create numpy array from output
-
-        else:
-            if len(an) > len(au):
-                an = an[locws:locwe, :]
+        log.debug(logid+'Need to refold unconstraint sequence')
+        plfold_unconstraint = fold_unconstraint(str(seqtofold), sid, region, window, span, unconstraint, save, outdir, cons, locws, locwe)
+        an = plfold_unconstraint.get_rissmed_np_array()  # create numpy array from output
 
         if not np.array_equal(an, au):
             diff_nu = au - an

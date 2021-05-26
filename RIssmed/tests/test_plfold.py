@@ -254,16 +254,16 @@ def test_fold_unconstraint(seq_id, region, window, span, unconstraint, save, out
 
 
 @pytest.mark.parametrize(
-    "seq_id,start,end,window,span,region,multi,paired,unpaired,save,outdir,pl_data,unconstraint,seq",
-    [("onlyA", 200, 207, 100, 60, 7, 1, "paired", "unpaired", 1, "onlyA", {'up': []}, "raw", "A" * 500),
-     ("testseq2", 200, 207, 100, 60, 7, 1, "paired", "unpaired", 1, "testseq2", {'up': []}, "raw",
+    "seq_id,start,end,window,span,region,multi,paired,unpaired,save,outdir,unconstraint,seq",
+    [("onlyA", 200, 207, 100, 60, 7, 1, "paired", "unpaired", 1, "onlyA", "raw", "A" * 500),
+     ("testseq2", 200, 207, 100, 60, 7, 1, "paired", "unpaired", 1, "testseq2", "raw",
       os.path.join(TESTDATAPATH, "test_single.fa")),
-     ("testseq3", 200, 207, 100, 60, 7, 2, "paired", "unpaired", 1, "testseq3", {'up': []}, "raw",
+     ("testseq3", 200, 207, 100, 60, 7, 2, "paired", "unpaired", 1, "testseq3", "raw",
       os.path.join(TESTDATAPATH, "test_single.fa"))
 
      ]
 )
-def test_fold_constraint(seq_id, start, end, window, span, region, multi, paired, unpaired, save, outdir, pl_data,
+def test_fold_constraint(seq_id, start, end, window, span, region, multi, paired, unpaired, save, outdir,
                          unconstraint, seq):
     if os.path.isfile(seq):
         seq = str(SeqIO.read(seq, format="fasta").seq)
@@ -285,7 +285,7 @@ def test_fold_constraint(seq_id, start, end, window, span, region, multi, paired
     cmd_paired.localize(locws, locwe+1)
     cmd_paired_array = cmd_paired.get_numpy_array()
 
-    constrain_seq(seq_id, seq, start, end, window, span, region, multi, paired, unpaired, save, outdir, pl_data,
+    constrain_seq(seq_id, seq, start, end, window, span, region, multi, paired, unpaired, save, outdir,
                   unconstraint=unconstraint)
     test_file_path = os.path.join(outdir, seq_id)
     test_files = os.listdir(test_file_path)
