@@ -106,12 +106,13 @@ scriptname = os.path.basename(__file__).replace('.py', '')
 class SequenceSettings:
     def __init__(self, sequence_record: SeqIO.SeqRecord, gene: str = "nogene", chrom: str = "nochrom",
                  strand: str = "+",
-                 constrainlist: Iterable[Constraint] = None):
+                 constrainlist: Iterable[Constraint] = None, genomic_coords: Constraint=None):
         self.sequence_record = sequence_record
         self._constrainlist = constrainlist
         self.strand = strand
         self.chromosome = chrom
         self.gene = gene
+        self.genomic_coords = genomic_coords
 
     def add_constraint(self, constraint: Constraint):
         if self._constrainlist is None:
@@ -132,7 +133,26 @@ class Constraint:
         return f"{self.start}-{self.end}|{self.strand}"
 
 
-def get_run_settings_dict(sequence, constrain, conslength):
+def get_gene_coords(genecoords: Dict, goi: str, strand: str):
+    logid = f"{scriptname}.read_constraints"
+    if genecoords:
+        if goi in genecoords:
+            gs, ge, gstrand = get_location(genecoords[goi][0])
+            if gstrand != strand:
+                log.warning(
+                    logid + 'Strand values differ between Gene annotation and FASTA file! Please check your input for '
+                    + str(goi))
+        else:
+            gs, ge, gstrand = 0, 0, '.'
+            log.warning(logid + 'No coords found for gene ' + goi + '! Assuming coordinates are already local!')
+    else:
+        gs = ge = 0
+        gstrand = '.'
+        log.warning(logid + 'No coords found for gene ' + goi + '! Assuming coordinates are already local!')
+    return gs, ge, gstrand
+
+
+def get_run_settings_dict(sequence, constrain, conslength, genes):
     run_settings: Dict[str, SequenceSettings] = dict()
     sequence = parseseq(sequence)
     if 'ono' == str(constrain.split(',')[0]):
@@ -156,6 +176,15 @@ def get_run_settings_dict(sequence, constrain, conslength):
             cons = constraintlist[goi]
             for entry in cons:
                 run_settings = add_rissmed_constraint(run_settings, entry, record, goi, chrom, strand)
+    if genes != '':
+        genecoords = parse_annotation_bed(genes)  # get genomic coords to print to bed later, should always be just one set of coords per gene
+    else:
+        genecoords = None
+    for entry in run_settings:
+        fasta_settings = run_settings[entry]
+        goi, chrom ,strand = idfromfa(fasta_settings.sequence_record.id)
+        genomic_start, genomic_end, genomic_strand = get_gene_coords(genecoords, goi, strand)
+        fasta_settings.genomic_coords = Constraint(genomic_start, genomic_end, genomic_strand)
     return run_settings
 
 
@@ -230,13 +259,14 @@ def preprocess(queue, configurer, level, sequence, window, span, region, multi, 
                 os.makedirs(outdir)
         else:
             outdir = os.path.abspath(os.getcwd())
-
         if genes != '':
-            genecoords = parse_annotation_bed(genes)  # get genomic coords to print to bed later, should always be just one set of coords per gene
+            genecoords = parse_annotation_bed(
+                genes)  # get genomic coords to print to bed later, should always be just one set of coords per gene
         else:
             genecoords = None
-        run_settings = get_run_settings_dict(sequence, constrain, conslength)
-        fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, constrain, conslength, save, procs, vrna, temprange, outdir, genecoords, run_settings, pattern=pattern, queue=queue, configurer=configurer, level=level)
+
+        run_settings = get_run_settings_dict(sequence, constrain, conslength, genes)
+        fold(window, span, region, multi, unconstraint, unpaired, paired, constrain, conslength, save, procs, vrna, outdir, run_settings, pattern=pattern, queue=queue, configurer=configurer, level=level)
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
@@ -245,7 +275,7 @@ def preprocess(queue, configurer, level, sequence, window, span, region, multi, 
         log.error(logid+''.join(tbe.format()))
 
 
-def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, constrain, conslength, save, procs, vrna, temprange, outdir, genecoords, run_settings:  Dict[str, SequenceSettings], pattern=None, constraintlist=None, queue=None, configurer=None, level=None):
+def fold(window, span, region, multi, unconstraint, unpaired, paired, constrain, conslength, save, procs, vrna, outdir, run_settings:  Dict[str, SequenceSettings], pattern=None, constraintlist=None, queue=None, configurer=None, level=None):
 
     logid = scriptname+'.fold: '
     try:
@@ -263,192 +293,84 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                 else {k: v for (k, v) in RNA.__dict__.items() if not k.startswith('_')}
                 )
 
-        seq = parseseq(sequence)
-
         # Create process pool with processes
         num_processes = procs or 1
         # with get_context("spawn").Pool(processes=num_processes-1, maxtasksperchild=1) as pool:
         pool = multiprocessing.Pool(processes=num_processes, maxtasksperchild=1)
-        for fa in SeqIO.parse(seq, 'fasta'):
-            fa.seq = str(fa.seq).upper()
-            if not fa.id in run_settings:
-                continue
-            fasta_settings = run_settings[fa.id]
+        for entry in run_settings:
+            fasta_settings = run_settings[entry]
             goi = fasta_settings.gene
-            chrom = fasta_settings.chromosome
-            strand = fasta_settings.strand
-            if genecoords:
-                if goi in genecoords:
-                    gs, ge, gstrand = get_location(genecoords[goi][0])
-                    if gstrand != strand:
-                        log.warning(logid+'Strand values differ between Gene annotation and FASTA file! Please check your input for '+str(goi))
-                else:
-                    gs, ge, gstrand = 0, 0, '.'
-                    log.warning(logid+'No coords found for gene '+goi+'! Assuming coordinates are already local!')
-            else:
-                gs = ge = 0
-                gstrand = '.'
-                log.warning(logid+'No coords found for gene '+goi+'! Assuming coordinates are already local!')
-
-            if len(fa.seq) < window*multi:
-                log.warning(str('Sequence of '+goi+' too short, seqlenght '+str(len(fa.seq))+' with window size '+str(window)+' and multiplyer '+str(multi)))
+            gs = fasta_settings.genomic_coords.start
+            ge = fasta_settings.genomic_coords.end
+            gstrand = fasta_settings.genomic_coords.strand
+            seq_record = fasta_settings.sequence_record
+            if len(seq_record.seq) < window*multi:
+                log.warning(str('Sequence of '+goi+' too short, seqlenght '+str(len(seq_record.seq))+' with window size '+str(window)+' and multiplyer '+str(multi)))
                 continue
 
             if pattern and pattern not in goi:
                 continue
             else:
-                log.info(logid+'Working on ' + goi + "\t" + fa.id)
+                log.info(logid+'Working on ' + goi + "\t" + seq_record.id)
 
                 # define data structures
                 data = {'up': []}
                 an = [np.nan]
                 # We check if we need to fold the whole seq or just a region around the constraints
-                if constrain == 'temperature':  # here we fold the whole seq once, because we can reuse it for multiple contstraints
-                    # if not already available, run raw fold for whole sequence as we have a sliding window constraint
-                    check = str(goi)+'_'+str(chrom)+'_'+str(strand)+'_'+unconstraint+'_'+str(window)+'_'+str(span)+'.gz'
-                    if not (os.path.isfile(check)):
-                        try:
-                            res = pool.apply_async(fold_unconstraint, args=(str(fa.seq), str(fa.id), region, window, span, unconstraint, save, outdir), kwds={'queue':queue, 'configurer':configurer, 'level':level})
-                        except Exception:
-                            exc_type, exc_value, exc_tb = sys.exc_info()
-                            tbe = tb.TracebackException(
-                                exc_type, exc_value, exc_tb,
-                            )
-                            log.error(logid+''.join(tbe.format()))
-                            sys.exit()
+                conslist = fasta_settings.get_constrainlist()
+                log.debug(logid+str(conslist))
+                for entry in conslist:
+                    entry = str(entry)
+                    log.debug(logid+'ENTRY: '+str(entry))
+                    if entry == 'NOCONS':  # in case we just want to fold the sequence without constraints at all
+                        res = pool.apply_async(fold_unconstraint, args=(str(seq_record.seq), str(seq_record.id), region, window, span, unconstraint, save, outdir), kwds={'queue':queue, 'configurer':configurer, 'level':level})
                         data['up'] = res.get()
+
                     else:
-                        # The hard work of folding this has already been done, so we just read in the results
-                        log.info(logid+'Found '+str(goi+'_'+unconstraint+'_'+str(window)+'_'+str(span)+'.gz')+', will read in data and not recalculate')
-                        data['up'] = read_precalc_plfold(data['up'], check, str(fa.seq))
-
-                    an = up_to_array(data['up'], int(region), len(fa.seq))  # convert to array for fast diff calc
-
-                    ts, te = map(int, temprange.split('-'))
-
-                    try:
-                        for temp in range(ts, te+1):
-                            # Create the process, and connect it to the worker function
-                            pool.apply_async(constrain_temp, args=(str(fa.id), str(fa.seq), temp, window, span, region, an, save, outdir), kwds={'queue':queue, 'configurer':configurer, 'level':level})
-                    except Exception:
-                        exc_type, exc_value, exc_tb = sys.exc_info()
-                        tbe = tb.TracebackException(
-                            exc_type, exc_value, exc_tb,
-                            )
-                        log.error(logid+''.join(tbe.format()))
-
-                elif constrain == 'tempprobe':
-                    probeargs = temprange.split(',')
-                    log.info(logid+'Calculating cutoff probs for temperature constraint '+probeargs[0])
-                    ts, te = map(int, probeargs[0].split('-'))
-                    if len(fa.seq) > window*multi:  # If the sequence is very large and we only need a proxy of changes to get a border for the cutoff of CalcConsDiffs we randomly select 10 regions of size window of the sequence for folding
-                        selection = ''
-                        if probeargs[1]:  # if we have constraints we choose windows around the constraints for tempprobing
-                            for const in probeargs[1:]:
-                                conss, conse = map(int, const.split('-'))
-                                strt = conss-window*multi
-                                endt = conse+window*multi
-                                if strt < 0:
-                                    strt = 0
-                                if endt > len(fa.seq):
-                                    endt = len(fa.seq)
-                                selection = selection + str(fa.seq[strt:endt])
-                        else:
-                            for chosen in range(1, 11):  # we randomly choose 10 windows from the sequence
-                                items = range(window, len(fa.seq)-window-1)
-                                sel = choice(items)
-                                selection = selection + (fa.seq[sel:sel+window])
-                                fa.seq = Seq(str(selection))
-
-                    # we check if we already have the raw seq folded
-                    check = str(goi)+'_'+str(chrom)+'_'+str(strand)+'_'+unconstraint+'_'+str(window)+'.gz'
-                    if (os.path.isfile(check)):
-                        # The hard work of folding this has already been done, so we just read in the results
-                        log.info(logid+'Found '+check+', will read in data and not recalculate')
-                        data['up'] = read_precalc_plfold(data['up'], check, str(fa.seq))
-                        # convert to array for fast diff calc
-                        an = up_to_array(data['up'], int(region), len(fa.seq))
-
-                    if an[0] is np.nan or len(an) > len(fa.seq):  # This means that the prob info was loaded from file or the raw sequence has not been folded yet, but we need a subsequence for the cutoff calculation, so we fold the subsequence
-                        log.info(logid+'Recalculating at default temp with subseq')
-                        try:
-                            res = pool.apply_async(fold_unconstraint, args=(str(fa.seq), str(fa.id), region, window, span, unconstraint, save, outdir), kwds={'queue':queue, 'configurer':configurer, 'level':level})
-                        except Exception:
-                            exc_type, exc_value, exc_tb = sys.exc_info()
-                            tbe = tb.TracebackException(
-                                exc_type, exc_value, exc_tb,
-                            )
-                            log.error(logid+''.join(tbe.format()))
-
-                        data['up'] = res.get()
-                        an = up_to_array(data['up'], int(region), len(fa.seq))
-
-                    try:
-                        for temp in range(ts, te+1):
-                            # Create the process, and connect it to the worker function
-                            pool.apply_async(constrain_temp, args=(str(fa.id), str(fa.seq), temp, window, span, region, multi, an, save, outdir), kwds={'queue':queue, 'configurer':configurer, 'level':level})
-                    except Exception:
-                        exc_type, exc_value, exc_tb = sys.exc_info()
-                        tbe = tb.TracebackException(
-                            exc_type, exc_value, exc_tb,
-                            )
-                        log.error(logid+''.join(tbe.format()))
-
-                else:
-                    conslist = fasta_settings.get_constrainlist()
-                    log.debug(logid+str(conslist))
-                    for entry in conslist:
-                        entry = str(entry)
-                        log.debug(logid+'ENTRY: '+str(entry))
-                        if entry == 'NOCONS':  # in case we just want to fold the sequence without constraints at all
-                            res = pool.apply_async(fold_unconstraint, args=(str(fa.seq), str(fa.id), region, window, span, unconstraint, save, outdir), kwds={'queue':queue, 'configurer':configurer, 'level':level})
-                            data['up'] = res.get()
-
-                        else:
-                            # we now have a list of constraints and for the raw seq comparison we only need to fold windows around these constraints
-                            # In case we want to constrain pairwise
-                            fstart, fend = [None, None]
-                            if constrain == 'paired' or ':' in entry:  # Not strand dependend, still genomic coords
-                                if gstrand == '+' or gstrand == '.':
-                                    [fstart, fend], [start, end] = [[x - gs for x in get_location(cn)[:2]] for cn in entry.split(':', 1)]
-                                else:
-                                    [fstart, fend], [start, end] = [[ge - x for x in get_location(cn)[:2][::-1]] for cn in entry.split(':', 1)]
-                                cons = str(fstart)+'-'+str(fend)+':'+str(start)+'-'+str(end)
-                                if start < 0 or fstart < 0 or end > len(fa.seq) or fend > len(fa.seq):
-                                    log.warning(logid+'Constraint out of sequence bounds! skipping! '+','.join(map(str, [goi, len(fa.seq), str(start)+'-'+str(end), str(fstart)+'-'+str(fend)])))
-                                    continue
-
+                        # we now have a list of constraints and for the raw seq comparison we only need to fold windows around these constraints
+                        # In case we want to constrain pairwise
+                        fstart, fend = [None, None]
+                        if constrain == 'paired' or ':' in entry:  # Not strand dependend, still genomic coords
+                            if gstrand == '+' or gstrand == '.':
+                                [fstart, fend], [start, end] = [[x - gs for x in get_location(cn)[:2]] for cn in entry.split(':', 1)]
                             else:
-                                if gstrand == '+' or gstrand == '.':
-                                    start, end = [x - gs for x in get_location(entry)[:2]]
-                                else:
-                                    start, end = [ge - x for x in get_location(entry)[:2][::-1]]
-
-                                tostart, toend = expand_window(start, end, window, multi, len(fa.seq))
-                                cons = str(start)+'-'+str(end)+'_'+str(tostart)+'-'+str(toend)
-                                log.debug(logid+str.join(' ', [goi, cons, gstrand]))
-
-                                if start < 0 or end > len(fa.seq):
-                                    log.warning(logid+'Constraint out of sequence bounds! skipping! '+','.join(map(str, [goi, len(fa.seq), str(start)+'-'+str(end)])))
-                                    continue
-
-                            if checkexisting(str(fa.id), paired, unpaired, cons, region, window, span, outdir):
-                                log.warning(logid+str(cons)+' Exists for '+str(fa.id)+'! Skipping!')
+                                [fstart, fend], [start, end] = [[ge - x for x in get_location(cn)[:2][::-1]] for cn in entry.split(':', 1)]
+                            cons = str(fstart)+'-'+str(fend)+':'+str(start)+'-'+str(end)
+                            if start < 0 or fstart < 0 or end > len(seq_record.seq) or fend > len(seq_record.seq):
+                                log.warning(logid+'Constraint out of sequence bounds! skipping! '+','.join(map(str, [goi, len(seq_record.seq), str(start)+'-'+str(end), str(fstart)+'-'+str(fend)])))
                                 continue
 
-                            log.info(logid+'Calculating constraint\t' + entry)
-                            const = np.array([fstart, fend, start, end])
-
-                            data = {'up': []}
-                            an = None
-
-                            if fstart is not None and fend is not None:
-                                log.info(logid+'Constraining to '+str(fstart) + ' and ' + str(fend))
-                                goi, chrom, strand = idfromfa(fa.id)
-
-                                pool.apply_async(constrain_seq_paired, args=(str(fa.id), str(fa.seq), fstart, fend, start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an, unconstraint), kwds={'queue':queue, 'configurer':configurer, 'level':level})
+                        else:
+                            if gstrand == '+' or gstrand == '.':
+                                start, end = [x - gs for x in get_location(entry)[:2]]
                             else:
-                                pool.apply_async(constrain_seq, args=(str(fa.id), str(fa.seq), start, end, window, span, region, multi, paired, unpaired, save, outdir, data, an, unconstraint), kwds={'queue':queue, 'configurer':configurer, 'level':level})
+                                start, end = [ge - x for x in get_location(entry)[:2][::-1]]
+
+                            tostart, toend = expand_window(start, end, window, multi, len(seq_record.seq))
+                            cons = str(start)+'-'+str(end)+'_'+str(tostart)+'-'+str(toend)
+                            log.debug(logid+str.join(' ', [goi, cons, gstrand]))
+
+                            if start < 0 or end > len(seq_record.seq):
+                                log.warning(logid+'Constraint out of sequence bounds! skipping! '+','.join(map(str, [goi, len(seq_record.seq), str(start)+'-'+str(end)])))
+                                continue
+
+                        if checkexisting(str(seq_record.id), paired, unpaired, cons, region, window, span, outdir):
+                            log.warning(logid+str(cons)+' Exists for '+str(seq_record.id)+'! Skipping!')
+                            continue
+
+                        log.info(logid+'Calculating constraint\t' + entry)
+                        const = np.array([fstart, fend, start, end])
+
+                        data = {'up': []}
+                        an = None
+
+                        if fstart is not None and fend is not None:
+                            log.info(logid+'Constraining to '+str(fstart) + ' and ' + str(fend))
+                            goi, chrom, strand = idfromfa(seq_record.id)
+
+                            pool.apply_async(constrain_seq_paired, args=(seq_record.id, str(seq_record.seq), fstart, fend, start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an, unconstraint), kwds={'queue':queue, 'configurer':configurer, 'level':level})
+                        else:
+                            pool.apply_async(constrain_seq, args=(str(seq_record.id), str(seq_record.seq), start, end, window, span, region, multi, paired, unpaired, save, outdir, data, an, unconstraint), kwds={'queue':queue, 'configurer':configurer, 'level':level})
 
         pool.close()
         pool.join()       # timeout
