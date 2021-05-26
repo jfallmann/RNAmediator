@@ -133,7 +133,26 @@ class Constraint:
         return f"{self.start}-{self.end}|{self.strand}"
 
 
-def get_gene_coords(genecoords: Dict, goi: str, strand: str):
+def get_gene_coords(genecoords: Union[None, Dict], goi: str, strand: str) -> Tuple[int, int, str]:
+    """Gets the genomic coordinates for a gene name (goi) frp, the genecoords dictionary returns a default if the gene
+    is missing or genecoords is not set
+
+       Parameters
+       ----------
+        genecoords : Union[None, Dict]
+           gene coords dictionary, storing start, end and strand of a gene (key) as values
+        goi : str
+           gene of interest, for which coordinates should be retrieved
+        conslength : int
+            Length of the constraint, only used if constrain is sliding
+        strand:
+            strand of the gene to compare whether strand matches the strand in the gencoords dict
+
+       Returns
+       -------
+       Tuple[int, int, str]
+           genomic start, end, strand retrieved from genecoords dict or a default value (0, 0, '.')
+       """
     logid = f"{scriptname}.read_constraints"
     if genecoords:
         if goi in genecoords:
@@ -152,7 +171,26 @@ def get_gene_coords(genecoords: Dict, goi: str, strand: str):
     return gs, ge, gstrand
 
 
-def get_run_settings_dict(sequence, constrain, conslength, genes):
+def get_run_settings_dict(sequence, constrain: str, conslength: int, genes: str) -> Dict[str, SequenceSettings]:
+    """Uses command line parameters to build the run settings dictionary.
+
+       Parameters
+       ----------
+        sequence : str
+           The file location of the sequence
+        constrain : str
+           The file location of constrain file
+        conslength : int
+            Length of the constraint, only used if constrain is sliding
+        genes:
+            The file location of the genomic coordinates bed file
+
+       Returns
+       -------
+       Dict[str, SequenceSettings]
+           a dictionary using the fasta sequence id as key and stores corresponding settings in an SequenceSettings
+           object
+       """
     run_settings: Dict[str, SequenceSettings] = dict()
     sequence = parseseq(sequence)
     if 'ono' == str(constrain.split(',')[0]):
