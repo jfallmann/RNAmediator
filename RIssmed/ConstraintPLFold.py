@@ -139,8 +139,9 @@ def get_run_settings_dict(sequence, constrain, conslength):
         constrain = constrain.split(',')[1]
         constraintlist = read_constraints(constrain, linewise=True)
         for x, record in enumerate(SeqIO.parse(sequence, "fasta")):
+            goi, chrom, strand = idfromfa(record.id)
             cons = constraintlist["lw"][x]
-            run_settings = add_rissmed_constraint(run_settings, cons, record)
+            run_settings = add_rissmed_constraint(run_settings, cons, record, goi, chrom, strand)
     elif constrain == 'sliding':
         for record in SeqIO.parse(sequence, "fasta"):
             goi, chrom, strand = idfromfa(record.id)
