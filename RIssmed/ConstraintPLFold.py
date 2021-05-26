@@ -884,19 +884,12 @@ def write_unconstraint(save, sid, seq, unconstraint, data: PLFoldOutput, region,
     try:
         goi, chrom, strand = idfromfa(sid)
         temp_outdir = os.path.join(outdir,goi)
-    except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
-            )
-        log.error(logid+''.join(tbe.format()))
 
-    try:
-        gr = str(sid.split(':')[3].split('(')[0])
-    except:
-        gr = 'na'
+        try:
+            gr = str(sid.split(':')[3].split('(')[0])
+        except IndexError:
+            gr = 'na'
 
-    try:
         if unconstraint != 'STDOUT':
             if not os.path.exists(temp_outdir):
                 try:
