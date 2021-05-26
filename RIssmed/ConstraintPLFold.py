@@ -128,8 +128,11 @@ class Constraint:
     end: int
     strand: str
 
+    def __str__(self):
+        return f"{self.start}-{self.end}|{self.strand}"
 
-def get_run_settings_dict(sequence, constrain):
+
+def get_run_settings_dict(sequence, constrain, conslength):
     run_settings: Dict[str, SequenceSettings] = dict()
     sequence = parseseq(sequence)
     if 'ono' == str(constrain.split(',')[0]):
@@ -138,24 +141,32 @@ def get_run_settings_dict(sequence, constrain):
         for x, record in enumerate(SeqIO.parse(sequence, "fasta")):
             cons = constraintlist["lw"][x]
             run_settings = add_rissmed_constraint(run_settings, cons, record)
+    elif constrain == 'sliding':
+        for record in SeqIO.parse(sequence, "fasta"):
+            goi, chrom, strand = idfromfa(record.id)
+            for start in range(1, len(record.seq) - conslength + 2):
+                end = start + conslength - 1
+                cons = str(start) + '-' + str(end) + '|' + str(strand) # AUA
+                run_settings = add_rissmed_constraint(run_settings, cons, record, goi, chrom, strand)
     else:
         constraintlist = read_constraints(constrain=constrain)
         for record in SeqIO.parse(sequence, "fasta"):
             goi, chrom, strand = idfromfa(record.id)
             cons = constraintlist[goi]
             for entry in cons:
-                run_settings = add_rissmed_constraint(run_settings, entry, record)
+                run_settings = add_rissmed_constraint(run_settings, entry, record, goi, chrom, strand)
     return run_settings
 
 
-def add_rissmed_constraint(run_settings: Dict[str, SequenceSettings], constraint: str, record: SeqIO.SeqRecord):
+def add_rissmed_constraint(run_settings: Dict[str, SequenceSettings], constraint: str, record: SeqIO.SeqRecord,
+                           goi: str = "nogene", chrom: str = "nochrom", strand: str = "+"):
     cons, strand = constraint.split("|")
     cons_start, cons_end = cons.split("-")
     cons = Constraint(int(cons_start), int(cons_end), strand)
     if record.id in run_settings:
         run_settings[record.id].add_constraint(cons)
     else:
-        settings = SequenceSettings(record, constrainlist=[cons])
+        settings = SequenceSettings(record, constrainlist=[cons], chrom=chrom, gene=goi, strand=strand)
         run_settings[record.id] = settings
     return run_settings
 
@@ -223,31 +234,8 @@ def preprocess(queue, configurer, level, sequence, window, span, region, multi, 
             genecoords = parse_annotation_bed(genes)  # get genomic coords to print to bed later, should always be just one set of coords per gene
         else:
             genecoords = None
-        get_run_settings_dict(sequence, constrain)
-        if 'ono' == str(constrain.split(',')[0]):  # One constraint line per sequence line
-            constrain = constrain.split(',')[1]
-            constraintlist = read_constraints(constrain, linewise=True)
-
-
-            seq = parseseq(sequence)
-            records = list(SeqIO.parse(seq, "fasta"))
-            seqnr = 0
-
-            # Create process pool with processes
-            num_processes = procs or 1
-            pool = multiprocessing.Pool(processes=num_processes, maxtasksperchild=1)
-
-            for rec in records:
-                sseq = StringIO(records[seqnr].format("fasta"))
-                constraint = constraintlist['lw'][seqnr]
-                pool.apply_async(parafold, args=(sseq, window, span, region, multi, unconstraint, unpaired, paired, constraint, conslength, save, procs, vrna, outdir, pattern, genecoords), kwds={'queue':queue, 'configurer':configurer, 'level':level})
-                seqnr += 1
-
-            pool.close()
-            pool.join()               # timeout
-
-        else:
-            fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, constrain, conslength, save, procs, vrna, temprange, outdir, genecoords, pattern=pattern, queue=queue, configurer=configurer, level=level)
+        run_settings = get_run_settings_dict(sequence, constrain, conslength)
+        fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, constrain, conslength, save, procs, vrna, temprange, outdir, genecoords, run_settings, pattern=pattern, queue=queue, configurer=configurer, level=level)
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
@@ -256,7 +244,7 @@ def preprocess(queue, configurer, level, sequence, window, span, region, multi, 
         log.error(logid+''.join(tbe.format()))
 
 
-def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, constrain, conslength, save, procs, vrna, temprange, outdir, genecoords, pattern=None, constraintlist=None, queue=None, configurer=None, level=None):
+def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, constrain, conslength, save, procs, vrna, temprange, outdir, genecoords, run_settings:  Dict[str, SequenceSettings], pattern=None, constraintlist=None, queue=None, configurer=None, level=None):
 
     logid = scriptname+'.fold: '
     try:
@@ -282,7 +270,12 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
         pool = multiprocessing.Pool(processes=num_processes, maxtasksperchild=1)
         for fa in SeqIO.parse(seq, 'fasta'):
             fa.seq = str(fa.seq).upper()
-            goi, chrom, strand = idfromfa(fa.id)
+            if not fa.id in run_settings:
+                continue
+            fasta_settings = run_settings[fa.id]
+            goi = fasta_settings.gene
+            chrom = fasta_settings.chromosome
+            strand = fasta_settings.strand
             if genecoords:
                 if goi in genecoords:
                     gs, ge, gstrand = get_location(genecoords[goi][0])
@@ -401,72 +394,10 @@ def fold(sequence, window, span, region, multi, unconstraint, unpaired, paired, 
                         log.error(logid+''.join(tbe.format()))
 
                 else:
-                    conslist = list()
-                    if constraintlist is None or not constraintlist:
-                        constraintlist = list()
-                        if (os.path.isfile(os.path.abspath(constrain))):
-                            constrain = os.path.abspath(constrain)
-                            if '.bed' in constrain:
-                                log.info(logid+'Parsing constraints for fold from Bed '+constrain)
-                                if '.gz' in constrain:
-                                    f = gzip.open(constrain, 'rt')
-                                else:
-                                    f = open(constrain, 'rt')
-                                constraintlist = readConstraintsFromBed(f)
-                            elif '.csv' in constrain:
-                                if '.gz' in constrain:
-                                    f = gzip.open(constrain, 'rt')
-                                else:
-                                    f = open(constrain, 'rt')
-                                constraintlist = readConstraintsFromCSV(f)
-                            else:
-                                if '.gz' in constrain:
-                                    f = gzip.open(constrain, 'rt')
-                                else:
-                                    f = open(constrain, 'rt')
-                                constraintlist = readConstraintsFromGeneric(f)
-                            f.close()
-
-                    if (os.path.isfile(os.path.abspath(constrain))):
-                        if goi in constraintlist:
-                            conslist = constraintlist[goi]
-                            log.info(logid+'Calculating probs for '+goi+' with constraint from file ' + constrain)
-                        elif 'generic' in constraintlist:
-                            conslist = constraintlist['generic']
-                        elif 'NOCONS' in constraintlist:
-                            conslist = constraintlist
-                        elif constrain == 'sliding':
-                            for start in range(1, len(fa.seq)-conslength+2):
-                                end = start+conslength-1
-                                conslist.append(str(start)+'-'+str(end)+'|'+str(gstrand))
-                        elif '-' in constrain:
-                            log.info(logid+'Calculating probs for constraint ' + constrain)
-                            constraintlist = constrain.split(',')
-                        else:
-                            log.warning(logid+'Could not compute constraints for '+str(goi)+' May be missing in constraint file.')
-                            continue
-
-                    elif constrain == 'file' or constrain == 'paired':
-                        log.info(logid+'Calculating probs for constraint from file ' + str(goi + '_constraints'))
-                        with open(goi+'_constraints', 'rt') as o:
-                            for line in o:
-                                conslist.append(line.rstrip())
-                        o.close()
-                    elif constrain == 'none':
-                        conslist = ['NOCONS']
-                    elif constrain == 'sliding':
-                        for start in range(1, len(fa.seq)-conslength+2):
-                            end = start+conslength-1
-                            conslist.append(str(start)+'-'+str(end)+'|'+str(gstrand))
-                    elif '-' in constrain:
-                        conslist.extend([str(start)+'-'+str(end)+'|'+str(gstrand) for start, end in [str(x).split('-') for x in constrain.split(',')]])
-                    else:
-                        log.info(logid+'Calculating probs for constraint ' + constrain)
-                        conslist = constrain.split(',')
-
+                    conslist = fasta_settings.get_constrainlist()
                     log.debug(logid+str(conslist))
-
                     for entry in conslist:
+                        entry = str(entry)
                         log.debug(logid+'ENTRY: '+str(entry))
                         if entry == 'NOCONS':  # in case we just want to fold the sequence without constraints at all
                             res = pool.apply_async(fold_unconstraint, args=(str(fa.seq), str(fa.id), region, window, span, unconstraint, save, outdir), kwds={'queue':queue, 'configurer':configurer, 'level':level})
