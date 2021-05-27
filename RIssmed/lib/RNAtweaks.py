@@ -51,6 +51,8 @@ import os
 import sys
 import inspect
 import traceback as tb
+from typing import Iterable, Tuple
+
 import numpy as np
 import gzip
 import math
@@ -58,6 +60,7 @@ from collections import defaultdict
 import logging
 # own
 from lib.Collection import isinvalid
+import RNA
 
 ####################
 # ViennaRNA helper
@@ -364,6 +367,51 @@ def constrain_unpaired(fc, start, end):
         log.error(logid+''.join(tbe.format()))
 
 
+
+def up_callback(v, v_size, i, maxsize, what, data):
+
+    logid = scriptn + '.up_callback: '
+    try:
+        if what:
+            data['up'].extend([v])
+    except Exception:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+            exc_type, exc_value, exc_tb,
+            )
+        log.error(logid+''.join(tbe.format()))
+
+
+def api_rnaplfold(seq: str, window: int, span: int,  region: int, temperature: float = 37,
+                  constraint: Iterable[Tuple] = None):
+    seq = seq.upper().replace("T", "U")
+    data = {'up': []}
+    md = RNA.md()
+    md.max_bp_span = span
+    md.window_size = window
+    md.temperature = temperature
+
+    # create new fold_compound object
+    fc = RNA.fold_compound(str(seq), md, RNA.OPTION_WINDOW)
+    if constraint is not None:
+        for entry in constraint:
+            mode = entry[0]
+            start = entry[1]
+            end = entry[2]
+            if mode == "paired" or mode == "p":
+                fc = constrain_paired(fc, start, end)
+            elif mode == "unpaired" or mode == "u":
+                fc = constrain_unpaired(fc, start, end)
+            else:
+                raise ValueError("Constraint wrongly formatted. Has to be ('paired(p)'/'unpaired(u)', start, end)")
+
+    # call prop window calculation
+    fc.probs_window(region, RNA.PROBS_WINDOW_UP, up_callback, data)
+    array = np.array(data["up"]).squeeze()[:, 1:]
+    pl_output = PLFoldOutput.from_numpy(array)
+    return pl_output
+
+
 class PLFoldOutput:
     def __init__(self, text: str):
         self.text = self._sanitize(text)
@@ -375,7 +423,7 @@ class PLFoldOutput:
 
     def __eq__(self, other: PLFoldOutput):
         if self.__class__ != other.__class__:
-            return False
+            raise NotImplementedError
         return np.array_equal(self.get_numpy_array(), other.get_numpy_array(), equal_nan=True)
 
     @staticmethod
@@ -405,7 +453,7 @@ class PLFoldOutput:
             self._array = array
         return self._array
 
-    def set_array(self, array: np.ndarray):
+    def __set_array(self, array: np.ndarray):
         self._array = array
 
     def localize(self, start: int, end: int):
@@ -434,14 +482,14 @@ class PLFoldOutput:
         array = np.squeeze(ris_array)
         array_string = cls._array_to_string(array)
         output = PLFoldOutput(array_string)
-        output.set_array(array)
+        output.__set_array(array)
         return output
 
     @classmethod
     def from_numpy(cls, array: np.ndarray):
         array_string = cls._array_to_string(array)
         output = PLFoldOutput(array_string)
-        output.set_array(array)
+        output.__set_array(array)
         return output
 
     @staticmethod

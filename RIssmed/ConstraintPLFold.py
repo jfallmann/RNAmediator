@@ -524,36 +524,6 @@ def fold_unconstraint(seq, id, region, window, span, unconstraint, save, outdir,
         log.error(logid+''.join(tbe.format()))
 
 
-def api_rnaplfold(seq: str, window: int, span: int,  region: int, temperature: float = 37,
-                  constraint: Iterable[Tuple] = None):
-    seq = seq.upper().replace("T", "U")
-    data = {'up': []}
-    md = RNA.md()
-    md.max_bp_span = span
-    md.window_size = window
-    md.temperature = temperature
-
-    # create new fold_compound object
-    fc = RNA.fold_compound(str(seq), md, RNA.OPTION_WINDOW)
-    if constraint is not None:
-        for entry in constraint:
-            mode = entry[0]
-            start = entry[1]
-            end = entry[2]
-            if mode == "paired" or mode == "p":
-                fc = constrain_paired(fc, start, end)
-            elif mode == "unpaired" or mode == "u":
-                fc = constrain_unpaired(fc, start, end)
-            else:
-                raise ValueError("Constraint wrongly formatted. Has to be ('paired(p)'/'unpaired(u)', start, end)")
-
-    # call prop window calculation
-    fc.probs_window(region, RNA.PROBS_WINDOW_UP, up_callback, data)
-    array = np.array(data["up"]).squeeze()[:, 1:]
-    pl_output = PLFoldOutput.from_numpy(array)
-    return pl_output
-
-
 def constrain_seq(sid, seq, start, end, window, span, region, multi, paired, unpaired, save, outdir,  unconstraint=None, queue=None, configurer=None, level=None):
     seq = seq.upper().replace("T", "U")
     logid = scriptname+'.constrain_seq: '
@@ -963,20 +933,6 @@ def bpp_callback(v, v_size, i, maxsize, what, data):
     try:
         if what:
             data['bpp'].extend([{'i': i, 'j': j, 'p': p} for j, p in enumerate(v) if (p is not None)])  # and (p >= 0.01)])
-    except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
-            )
-        log.error(logid+''.join(tbe.format()))
-
-
-def up_callback(v, v_size, i, maxsize, what, data):
-
-    logid = scriptname+'.up_callback: '
-    try:
-        if what:
-            data['up'].extend([v])
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
