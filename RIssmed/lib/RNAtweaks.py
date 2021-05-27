@@ -485,7 +485,31 @@ class PLFoldOutput:
         return array
 
 
-def cmd_rnaplfold(sequence, window, span, region=30, constraint: Iterable[Tuple] = None) -> PLFoldOutput:
+def cmd_rnaplfold(sequence: str, window: int, span: int, region: int = 30, temperature: float = 37,
+                  constraint: Iterable[Tuple[str, int, int]] = None) -> PLFoldOutput:
+    """command line wrapper for RNAplfold
+
+           Parameters
+           ----------
+            sequence : str
+               string representation of the sequence either RNA or DNA
+            window : int
+               RNAplfold window option
+            span: int
+                RNAplfold span option
+            region: int, optional
+                RNAplfold region (u) option (default is 30)
+            temperature: float
+                RNAplfold temperature setting
+            constraint: Iterable[Tuple[str, int, int]], optional
+                Constraints as Tuple in format (paired(p)/unpaired(u), start, end) (default is None)
+                !!Warning!! ZERO BASED !!Warning!!
+
+           Returns
+           -------
+           PLFoldOutput
+               PLFoldOutput object
+           """
     with TemporaryDirectory() as tmp_dir, NamedTemporaryFile(mode="r+") as constraint_file:
         constraint_string = ""
         if constraint is not None:
@@ -503,7 +527,8 @@ def cmd_rnaplfold(sequence, window, span, region=30, constraint: Iterable[Tuple]
         constraint_file.write(constraint_string)
         constraint_file.seek(0)
         rnaplfold = subprocess.Popen(["RNAplfold", "-W", str(window), "-L", str(span),
-                                      "--commands", constraint_file.name, "--auto-id", "-u", str(region)],
+                                      "--commands", constraint_file.name, "--auto-id", "-u", str(region), "-T",
+                                      str(temperature)],
                                      stderr=subprocess.PIPE, stdout=subprocess.PIPE, stdin=subprocess.PIPE,
                                      cwd=tmp_dir)
         stdout, stderr = rnaplfold.communicate(sequence.encode("utf-8"))
@@ -513,9 +538,32 @@ def cmd_rnaplfold(sequence, window, span, region=30, constraint: Iterable[Tuple]
         return rnaplfold_output
 
 
-def api_rnaplfold(seq: str, window: int, span: int,  region: int, temperature: float = 37,
-                  constraint: Iterable[Tuple] = None):
-    seq = seq.upper().replace("T", "U")
+def api_rnaplfold(sequence: str, window: int, span: int, region: int = 30, temperature: float = 37,
+                  constraint: Iterable[Tuple] = None) -> PLFoldOutput:
+    """command line wrapper for RNAplfold
+
+           Parameters
+           ----------
+            sequence : str
+               string representation of the sequence either RNA or DNA
+            window : int
+               RNAplfold window option
+            span: int
+                RNAplfold span option
+            region: int, optional
+                RNAplfold region (u) option (default is 30)
+            temperature: float
+                RNAplfold temperature setting
+            constraint: Iterable[Tuple[str, int, int]], optional
+                Constraints as Tuple in format (paired(p)/unpaired(u), start, end) (default is None)
+                !!Warning!! ZERO BASED !!Warning!!
+
+           Returns
+           -------
+           PLFoldOutput
+               PLFoldOutput object
+           """
+    sequence = sequence.upper().replace("T", "U")
     data = {'up': []}
     md = RNA.md()
     md.max_bp_span = span
@@ -523,7 +571,7 @@ def api_rnaplfold(seq: str, window: int, span: int,  region: int, temperature: f
     md.temperature = temperature
 
     # create new fold_compound object
-    fc = RNA.fold_compound(str(seq), md, RNA.OPTION_WINDOW)
+    fc = RNA.fold_compound(str(sequence), md, RNA.OPTION_WINDOW)
     if constraint is not None:
         for entry in constraint:
             mode = entry[0]
