@@ -404,48 +404,6 @@ class PLFoldOutput:
             raise NotImplementedError
         return np.allclose(self.numpy_array, other.numpy_array, equal_nan=True, atol=0.0000001, rtol=0)
 
-    @staticmethod
-    def __sanitize(text: str):
-        list_text = text.split("\n")
-        if list_text[0].startswith("1\t"):
-            length = len(list_text[0].split("\t")) - 1
-            part = [str(x + 1) for x in range(length)]
-            list_text = ["#unpaired probabilities", " #$i\tl=" + "\t".join(part)] + list_text
-            text = "\n".join(list_text)
-        elif list_text[0].startswith("#") and list_text[1].startswith(" #"):
-            pass
-        else:
-            raise ValueError("text seems not to be a valid plfold string")
-        text = text.replace("nan", "NA")
-        return text
-
-    @property
-    def numpy_array(self):
-        """numpy array representation of lunpaired file"""
-        if self._numpy_array is None:
-            array = []
-            for line in self.text.split("\n"):
-                if not line.startswith("#") and not line.startswith(" #") and not line == "":
-                    data = line.split("\t")[1:]
-                    data = [float(x) if x != "NA" else np.nan for x in data]
-                    array.append(data)
-            array = np.array(array, dtype=np.float)
-            self.__set_array(array)
-        return self._numpy_array
-
-    def __set_array(self, array: np.ndarray):
-        array = np.array(array, dtype=np.float)
-        self._numpy_array = array
-
-    def localize(self, start: int, end: int):
-        """trims the output (zero based)"""
-        if self._numpy_array is not None:
-            self._numpy_array = self._numpy_array[start:end]
-        text_list = self.text.split("\n")[start+2:end+2]
-        for x, item in enumerate(text_list):
-            text_list[x] = "\t".join([str(x+1)] + item.split("\t")[1:])
-        self.text = self.__sanitize("\n".join(text_list))
-
     @classmethod
     def from_file(cls, file_path: str):
         """creates PLfoldOutput from a punpaired file
@@ -509,11 +467,54 @@ class PLFoldOutput:
         return output
 
     @staticmethod
+    def __sanitize(text: str):
+        list_text = text.split("\n")
+        if list_text[0].startswith("1\t"):
+            length = len(list_text[0].split("\t")) - 1
+            part = [str(x + 1) for x in range(length)]
+            list_text = ["#unpaired probabilities", " #$i\tl=" + "\t".join(part)] + list_text
+            text = "\n".join(list_text)
+        elif list_text[0].startswith("#") and list_text[1].startswith(" #"):
+            pass
+        else:
+            raise ValueError("text seems not to be a valid plfold string")
+        text = text.replace("nan", "NA")
+        return text
+
+    @staticmethod
     def __array_to_string(array):
         array = np.array(array, dtype=np.float).round(7)
         array_string = "\n".join(
             ['\t'.join([str(x + 1)] + [str(num) for num in array[x]]) for x in range(len(array))])
         return array_string
+
+    def __set_array(self, array: np.ndarray):
+        """sets numpy array and ensures data type is np.float"""
+        array = np.array(array, dtype=np.float)
+        self._numpy_array = array
+
+    @property
+    def numpy_array(self):
+        """numpy array representation of lunpaired file"""
+        if self._numpy_array is None:
+            array = []
+            for line in self.text.split("\n"):
+                if not line.startswith("#") and not line.startswith(" #") and not line == "":
+                    data = line.split("\t")[1:]
+                    data = [float(x) if x != "NA" else np.nan for x in data]
+                    array.append(data)
+            array = np.array(array, dtype=np.float)
+            self.__set_array(array)
+        return self._numpy_array
+
+    def localize(self, start: int, end: int):
+        """trims the output (zero based)"""
+        if self._numpy_array is not None:
+            self._numpy_array = self._numpy_array[start:end]
+        text_list = self.text.split("\n")[start+2:end+2]
+        for x, item in enumerate(text_list):
+            text_list[x] = "\t".join([str(x+1)] + item.split("\t")[1:])
+        self.text = self.__sanitize("\n".join(text_list))
 
     def get_text(self, nan="NA", truncated=True) -> str:
         """get string of the unpaired probabiity file
