@@ -104,22 +104,56 @@ scriptname = os.path.basename(__file__).replace('.py', '')
 
 
 class SequenceSettings:
+    """The summary line for a class docstring should fit on one line.
+        Attributes
+       ----------
+        sequence_record : SeqIO.SeqRecord
+           Sequence record the settings belong to
+        gene : str, optional
+           name of the gene of interest (default is nogene)
+        chrom: str, optional
+            chromosome of the gene (default is nochrom)
+        strand: str, optional
+            strand of the gene (default is +)
+        constrainlist: Iterable[Constraint], optional
+            List of constraint objects. (default is None)
+        genomic_coords: Constraint, optional optional
+            genomic coordinates of the sequence record (default is None)
+        """
     def __init__(self, sequence_record: SeqIO.SeqRecord, gene: str = "nogene", chrom: str = "nochrom",
                  strand: str = "+",
                  constrainlist: Iterable[Constraint] = None, genomic_coords: Constraint=None):
         self.sequence_record = sequence_record
-        self._constrainlist = constrainlist
-        self.strand = strand
+        self._constrainlist = list(constrainlist)
+        if strand in ["+", "-"]:
+            self.strand = strand
+        else:
+            self.strand = "+"
+            print("strand value automatically set to +")
         self.chromosome = chrom
         self.gene = gene
         self.genomic_coords = genomic_coords
 
+        self._check_strands()
+
+    def _check_strands(self):
+        if self._constrainlist is not None:
+            for entry in self._constrainlist:
+                assert entry.strand == self.strand, \
+                    "strand values of constraint does not match the strand from the sequence"
+
     def add_constraint(self, constraint: Constraint):
+        """adds a constraint to the list of constraints"""
+        assert constraint.__class__ == Constraint, "can only add Contraint objects to the constraintliste"
         if self._constrainlist is None:
             self._constrainlist = []
+        assert self.strand == constraint.strand, \
+            "strand values of constraint does not match the strand from the sequence"
         self._constrainlist += [constraint]
 
-    def get_constrainlist(self):
+    @property
+    def constrainlist(self):
+        """getter method for constraintlist attribute"""
         return self._constrainlist
 
 
@@ -134,8 +168,7 @@ class Constraint:
 
 
 def get_gene_coords(genecoords: Union[None, Dict], goi: str, strand: str) -> Tuple[int, int, str]:
-    """Gets the genomic coordinates for a gene name (goi) frp, the genecoords dictionary returns a default if the gene
-    is missing or genecoords is not set
+    """Get genomic coordinates for a gene (goi) from the genecoords dict or returns  default values
 
        Parameters
        ----------
@@ -143,8 +176,6 @@ def get_gene_coords(genecoords: Union[None, Dict], goi: str, strand: str) -> Tup
            gene coords dictionary, storing start, end and strand of a gene (key) as values
         goi : str
            gene of interest, for which coordinates should be retrieved
-        conslength : int
-            Length of the constraint, only used if constrain is sliding
         strand:
             strand of the gene to compare whether strand matches the strand in the gencoords dict
 
@@ -227,19 +258,58 @@ def get_run_settings_dict(sequence, constrain: str, conslength: int, genes: str)
 
 
 def add_rissmed_constraint(run_settings: Dict[str, SequenceSettings], constraint: str, record: SeqIO.SeqRecord,
-                           goi: str = "nogene", chrom: str = "nochrom", strand: str = "+"):
-    cons, strand = constraint.split("|")
+                           goi: str = "nogene", chrom: str = "nochrom", sequence_strand: str = "+"):
+    """Adds constraints in string format to the goi in the run settings dict. Creates sequence settings if missing
+
+           Parameters
+           ----------
+            run_settings : Dict[str, SequenceSettings]
+               run settings dictionary using fasta ids as keys and Sequence Settings as values
+            constraint : str
+               constraint in string format start-end|strand
+            record : SeqIO.SeqRecord
+                Sequence record of the sequence to which the constraint should be added
+            goi:
+                gene name assumed from fasta sequence header
+            chrom:
+                chromosome of the sequence
+            sequence_strand:
+               strand of the sequence
+
+           Returns
+           -------
+           Dict[str, SequenceSettings]
+               a dictionary using the fasta sequence id as key and stores corresponding settings in an SequenceSettings
+               object.
+           """
+    cons, cons_strand = constraint.split("|")
     cons_start, cons_end = cons.split("-")
-    cons = Constraint(int(cons_start), int(cons_end), strand)
+    cons = Constraint(int(cons_start), int(cons_end), cons_strand)
     if record.id in run_settings:
         run_settings[record.id].add_constraint(cons)
     else:
-        settings = SequenceSettings(record, constrainlist=[cons], chrom=chrom, gene=goi, strand=strand)
+        settings = SequenceSettings(record, constrainlist=[cons], chrom=chrom, gene=goi, strand=sequence_strand)
         run_settings[record.id] = settings
     return run_settings
 
 
-def read_constraints(constrain, linewise=False):
+def read_constraints(constrain: str, linewise: bool = False) -> Dict[str, List[str]]:
+    """Reads constrains from the constraints file
+
+           Parameters
+           ----------
+            constrain : Union[None, Dict]
+               file location of the constrains file
+            linewise : bool, optional
+               does not add the gene identifier to the returned cinstrantslist dictionary is set to True
+               (default is False)
+
+           Returns
+           -------
+           Dict[str, List[str]]
+               Dictionary containing the goi in the bed file as keys and constraints in string format (start-end|strand)
+               as values. If linewise is set to True only a single key ("lw") is used to store all constraints.
+           """
     constraintlist = []
     logid = f"{scriptname}.read_constraints"
     if os.path.isfile(constrain):
@@ -355,7 +425,7 @@ def fold(window, span, region, multi, unconstraint, unpaired, paired, constrain,
                 data = {'up': []}
                 an = [np.nan]
                 # We check if we need to fold the whole seq or just a region around the constraints
-                conslist = fasta_settings.get_constrainlist()
+                conslist = fasta_settings.constrainlist
                 log.debug(logid+str(conslist))
                 for entry in conslist:
                     entry = str(entry)
