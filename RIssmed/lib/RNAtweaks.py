@@ -384,10 +384,17 @@ def up_callback(v, v_size, i, maxsize, what, data):
 
 
 class PLFoldOutput:
-    def __init__(self, text: str):
-        self.text = self._sanitize(text)
+    """Output wrapper for unpaired probability files of RNAplfold
+           Attributes
+          ----------
+           text : str
+              string representation of an RNAplfold punpaired output file.
+              Missing the lines starting with # is supported
 
-        self._array = None
+           """
+    def __init__(self, text: str):
+        self.text = self.__sanitize(text)
+        self._numpy_array = None
 
     def __str__(self):
         return self.text
@@ -395,10 +402,10 @@ class PLFoldOutput:
     def __eq__(self, other: PLFoldOutput):
         if self.__class__ != other.__class__:
             raise NotImplementedError
-        return np.array_equal(self.get_numpy_array(), other.get_numpy_array(), equal_nan=True)
+        return np.allclose(self.numpy_array, other.numpy_array, equal_nan=True, atol=0.0000001, rtol=0)
 
     @staticmethod
-    def _sanitize(text: str):
+    def __sanitize(text: str):
         list_text = text.split("\n")
         if list_text[0].startswith("1\t"):
             length = len(list_text[0].split("\t")) - 1
@@ -412,8 +419,10 @@ class PLFoldOutput:
         text = text.replace("nan", "NA")
         return text
 
-    def get_numpy_array(self):
-        if self._array is None:
+    @property
+    def numpy_array(self):
+        """numpy array representation of lunpaired file"""
+        if self._numpy_array is None:
             array = []
             for line in self.text.split("\n"):
                 if not line.startswith("#") and not line.startswith(" #") and not line == "":
@@ -422,22 +431,35 @@ class PLFoldOutput:
                     array.append(data)
             array = np.array(array, dtype=np.float)
             self.__set_array(array)
-        return self._array
+        return self._numpy_array
 
     def __set_array(self, array: np.ndarray):
         array = np.array(array, dtype=np.float)
-        self._array = array
+        self._numpy_array = array
 
     def localize(self, start: int, end: int):
-        if self._array is not None:
-            self._array = self._array[start:end]
+        """trims the output (zero based)"""
+        if self._numpy_array is not None:
+            self._numpy_array = self._numpy_array[start:end]
         text_list = self.text.split("\n")[start+2:end+2]
         for x, item in enumerate(text_list):
             text_list[x] = "\t".join([str(x+1)] + item.split("\t")[1:])
-        self.text = self._sanitize("\n".join(text_list))
+        self.text = self.__sanitize("\n".join(text_list))
 
     @classmethod
     def from_file(cls, file_path: str):
+        """creates PLfoldOutput from a punpaired file
+
+            Parameters
+           ----------
+            file_path : str
+               file location of the punpaired file
+            Returns
+           -------
+           PLFoldOutput
+               PLFoldOutput object
+        """
+
         assert os.path.isfile(file_path), f"{file_path} is not a valid file path"
         if ".gz" in file_path:
             with gzip.open(file_path, "rt") as handle:
@@ -449,37 +471,81 @@ class PLFoldOutput:
 
     @classmethod
     def from_rissmed_numpy_output(cls, file_path: str):
+        """creates PLfoldOutput from original rissmed np arrays
+
+            Parameters
+           ----------
+            file_path : str
+               file location of the rissmed numpy array
+            Returns
+           -------
+           PLFoldOutput
+               PLFoldOutput object
+        """
         assert os.path.isfile(file_path), f"{file_path} is not a valid file path"
         ris_array = np.load(file_path)
         array = np.squeeze(ris_array)
-        array_string = cls._array_to_string(array)
+        array_string = cls.__array_to_string(array)
         output = PLFoldOutput(array_string)
         output.__set_array(array)
         return output
 
     @classmethod
     def from_numpy(cls, array: np.ndarray):
-        array_string = cls._array_to_string(array)
+        """creates PLfoldOutput from np arrays
+
+            Parameters
+           ----------
+            array : np.ndarray
+               array containing unpaired probabilities
+            Returns
+           -------
+           PLFoldOutput
+               PLFoldOutput object
+        """
+        array_string = cls.__array_to_string(array)
         output = PLFoldOutput(array_string)
         output.__set_array(array)
         return output
 
     @staticmethod
-    def _array_to_string(array):
+    def __array_to_string(array):
         array = np.array(array, dtype=np.float).round(7)
         array_string = "\n".join(
             ['\t'.join([str(x + 1)] + [str(num) for num in array[x]]) for x in range(len(array))])
         return array_string
 
-    def get_text(self, nan="NA", truncated=True):
+    def get_text(self, nan="NA", truncated=True) -> str:
+        """get string of the unpaired probabiity file
+
+            Parameters
+           ----------
+            nan : str, optional
+               replaces not a number with this string (default is 'NA')
+            truncated : bool, optional
+               choose whether the # lines should be included in the string
+               (default is True)
+
+            Returns
+           -------
+           str
+               string representation of the unpaired probability output
+        """
         out_string = self.text
         if truncated:
             out_string = "\n".join(out_string.split("\n")[2:])
         out_string = out_string.replace("NA", nan)
         return out_string
 
-    def get_rissmed_np_array(self):
-        array = self.get_numpy_array()
+    def get_rissmed_np_array(self) -> np.ndarray:
+        """get original RIssmed numpy array output
+
+            Returns
+           -------
+           np.ndarray
+               original rissmed numpy array with an additional empty axis
+        """
+        array = self.numpy_array
         array = np.array(array, dtype=np.float)
         array = np.expand_dims(array, axis=1)
         return array

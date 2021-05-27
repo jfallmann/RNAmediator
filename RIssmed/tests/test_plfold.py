@@ -234,7 +234,7 @@ def test_fold_unconstraint(seq_id, region, window, span, unconstraint, save, out
     outdir = os.path.join(TMP_TEST_DIR, outdir)
     # get the resulting np. array via the command line of RNAplfold
     cmd_result = cmd_rnaplfold(seq, window, span, region=region)
-    cmd_array = cmd_result.get_numpy_array()
+    cmd_array = cmd_result.numpy_array
 
     # runs RIssmed to produce output files using the same input as the command line
     fold_unconstraint(seq, seq_id, region, window, span, unconstraint, save, outdir)
@@ -245,11 +245,11 @@ def test_fold_unconstraint(seq_id, region, window, span, unconstraint, save, out
         test_file = os.path.join(test_file_path, test_file)
         if ".gz" in test_file:
             test_result = PLFoldOutput.from_file(test_file)
-            test_array = test_result.get_numpy_array()
+            test_array = test_result.numpy_array
             compare_arrays(test_array, cmd_array)
         else:
             test_result = PLFoldOutput.from_rissmed_numpy_output(test_file)
-            test_array = test_result.get_numpy_array()
+            test_array = test_result.numpy_array
             compare_arrays(test_array, cmd_array)
 
 
@@ -280,10 +280,10 @@ def test_fold_constraint(seq_id, start, end, window, span, region, multi, paired
 
     cmd_unpaired = cmd_rnaplfold(seqtofold, window, span, region=region, constraint=[("unpaired", locstart, locend + 1)])
     cmd_unpaired.localize(locws, locwe+1)
-    cmd_unpaired_array = cmd_unpaired.get_numpy_array()
+    cmd_unpaired_array = cmd_unpaired.numpy_array
     cmd_paired = cmd_rnaplfold(seqtofold, window, span, region=region, constraint=[("paired", locstart, locend + 1)])
     cmd_paired.localize(locws, locwe+1)
-    cmd_paired_array = cmd_paired.get_numpy_array()
+    cmd_paired_array = cmd_paired.numpy_array
 
     constrain_seq(seq_id, seq, start, end, window, span, region, multi, paired, unpaired, save, outdir,
                   unconstraint=unconstraint)
@@ -295,11 +295,11 @@ def test_fold_constraint(seq_id, start, end, window, span, region, multi, paired
         if ".gz" in test_file:
             if unpaired in test_file:
                 test_result = PLFoldOutput.from_file(test_file)
-                test_array = test_result.get_numpy_array()
+                test_array = test_result.numpy_array
                 compare_arrays(test_array, cmd_unpaired_array)
             if paired in test_file and unpaired not in test_file:
                 test_result = PLFoldOutput.from_file(test_file)
-                test_array = test_result.get_numpy_array()
+                test_array = test_result.numpy_array
                 # TODO: seems like the API produces nan at paired constraint positions instead of 0.
                 compare_arrays(test_array, cmd_paired_array)
 

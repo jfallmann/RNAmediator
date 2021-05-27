@@ -758,7 +758,7 @@ def constrain_temp(sid, seq, temp, window, span, region, multi, an, save, outdir
 def write_unconstraint(save, sid, seq, unconstraint, data: PLFoldOutput, region, window, span, outdir, rawentry=None):
 
     logid = scriptname+'.write_unconstraint: '
-    log.debug(logid+' '.join([str(save),str(len(seq)),str(len(data.get_numpy_array())),str(rawentry)]))
+    log.debug(logid +' '.join([str(save), str(len(seq)), str(len(data.numpy_array)), str(rawentry)]))
     try:
         goi, chrom, strand = idfromfa(sid)
         temp_outdir = os.path.join(outdir,goi)
