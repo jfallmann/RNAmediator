@@ -383,36 +383,6 @@ def up_callback(v, v_size, i, maxsize, what, data):
         log.error(logid+''.join(tbe.format()))
 
 
-def api_rnaplfold(seq: str, window: int, span: int,  region: int, temperature: float = 37,
-                  constraint: Iterable[Tuple] = None):
-    seq = seq.upper().replace("T", "U")
-    data = {'up': []}
-    md = RNA.md()
-    md.max_bp_span = span
-    md.window_size = window
-    md.temperature = temperature
-
-    # create new fold_compound object
-    fc = RNA.fold_compound(str(seq), md, RNA.OPTION_WINDOW)
-    if constraint is not None:
-        for entry in constraint:
-            mode = entry[0]
-            start = entry[1]
-            end = entry[2]
-            if mode == "paired" or mode == "p":
-                fc = constrain_paired(fc, start, end)
-            elif mode == "unpaired" or mode == "u":
-                fc = constrain_unpaired(fc, start, end)
-            else:
-                raise ValueError("Constraint wrongly formatted. Has to be ('paired(p)'/'unpaired(u)', start, end)")
-
-    # call prop window calculation
-    fc.probs_window(region, RNA.PROBS_WINDOW_UP, up_callback, data)
-    array = np.array(data["up"]).squeeze()[:, 1:]
-    pl_output = PLFoldOutput.from_numpy(array)
-    return pl_output
-
-
 class PLFoldOutput:
     def __init__(self, text: str):
         self.text = self._sanitize(text)
@@ -514,22 +484,25 @@ class PLFoldOutput:
         return array
 
 
-def run_pl_fold(sequence, window, span, start=None, end=None, mode="unpaired", u=30) -> PLFoldOutput:
+def run_pl_fold(sequence, window, span, region=30, constraint: Iterable[Tuple] = None) -> PLFoldOutput:
     with TemporaryDirectory() as tmp_dir, NamedTemporaryFile(mode="r+") as constraint_file:
-        if mode == "paired":
-            const = "F"
-        elif mode == "unpaired":
-            const = "P"
-        else:
-            raise ValueError("mode must be either paired or unpaired")
-        if start is not None and end is not None:
-            constraint_string = f"{const} {start} {0} {end - start}"
-        else:
-            constraint_string = ""
+        constraint_string = ""
+        if constraint is not None:
+            for entry in constraint:
+                mode = entry[0]
+                start = entry[1]
+                end = entry[2]
+                if mode == "paired" or mode == "p":
+                    const = "F"
+                elif mode == "unpaired" or mode == "u":
+                    const = "P"
+                else:
+                    raise ValueError("Constraint wrongly formatted. Has to be ('paired(p)'/'unpaired(u)', start, end)")
+                constraint_string += f"{const} {start} {0} {end - start}\n"
         constraint_file.write(constraint_string)
         constraint_file.seek(0)
         rnaplfold = subprocess.Popen(["RNAplfold", "-W", str(window), "-L", str(span),
-                                      "--commands", constraint_file.name, "--auto-id", "-u", str(u)],
+                                      "--commands", constraint_file.name, "--auto-id", "-u", str(region)],
                                      stderr=subprocess.PIPE, stdout=subprocess.PIPE, stdin=subprocess.PIPE,
                                      cwd=tmp_dir)
         stdout, stderr = rnaplfold.communicate(sequence.encode("utf-8"))
@@ -537,6 +510,36 @@ def run_pl_fold(sequence, window, span, start=None, end=None, mode="unpaired", u
         file = os.path.join(tmp_dir, "sequence_0001_lunp")
         rnaplfold_output = PLFoldOutput.from_file(file)
         return rnaplfold_output
+
+
+def api_rnaplfold(seq: str, window: int, span: int,  region: int, temperature: float = 37,
+                  constraint: Iterable[Tuple] = None):
+    seq = seq.upper().replace("T", "U")
+    data = {'up': []}
+    md = RNA.md()
+    md.max_bp_span = span
+    md.window_size = window
+    md.temperature = temperature
+
+    # create new fold_compound object
+    fc = RNA.fold_compound(str(seq), md, RNA.OPTION_WINDOW)
+    if constraint is not None:
+        for entry in constraint:
+            mode = entry[0]
+            start = entry[1]
+            end = entry[2]
+            if mode == "paired" or mode == "p":
+                fc = constrain_paired(fc, start, end)
+            elif mode == "unpaired" or mode == "u":
+                fc = constrain_unpaired(fc, start, end)
+            else:
+                raise ValueError("Constraint wrongly formatted. Has to be ('paired(p)'/'unpaired(u)', start, end)")
+
+    # call prop window calculation
+    fc.probs_window(region, RNA.PROBS_WINDOW_UP, up_callback, data)
+    array = np.array(data["up"]).squeeze()[:, 1:]
+    pl_output = PLFoldOutput.from_numpy(array)
+    return pl_output
 
 
 

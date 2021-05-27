@@ -233,7 +233,7 @@ def test_fold_unconstraint(seq_id, region, window, span, unconstraint, save, out
     seq = seq.upper().replace("T", "U")
     outdir = os.path.join(TMP_TEST_DIR, outdir)
     # get the resulting np. array via the command line of RNAplfold
-    cmd_result = run_pl_fold(seq, window, span, u=region)
+    cmd_result = run_pl_fold(seq, window, span, region=region)
     cmd_array = cmd_result.get_numpy_array()
 
     # runs RIssmed to produce output files using the same input as the command line
@@ -278,10 +278,10 @@ def test_fold_constraint(seq_id, start, end, window, span, region, multi, paired
     locstart = start - tostart
     locend = end - tostart
 
-    cmd_unpaired = run_pl_fold(seqtofold, window, span, locstart+1, locend+2, u=region)
+    cmd_unpaired = run_pl_fold(seqtofold, window, span, region=region, constraint=[("unpaired", locstart+1, locend+2)])
     cmd_unpaired.localize(locws, locwe+1)
     cmd_unpaired_array = cmd_unpaired.get_numpy_array()
-    cmd_paired = run_pl_fold(seqtofold, window, span, locstart+1, locend+2, mode="paired", u=region)
+    cmd_paired = run_pl_fold(seqtofold, window, span, region=region, constraint=[("paired", locstart+1, locend+2)])
     cmd_paired.localize(locws, locwe+1)
     cmd_paired_array = cmd_paired.get_numpy_array()
 
