@@ -60,7 +60,7 @@ import math
 from collections import defaultdict
 import logging
 # own
-from lib.Collection import isinvalid
+#from lib.Collection import isinvalid
 import RNA
 
 ####################
@@ -420,11 +420,12 @@ class PLFoldOutput:
                     data = line.split("\t")[1:]
                     data = [float(x) if x != "NA" else np.nan for x in data]
                     array.append(data)
-            array = np.array(array)
-            self._array = array
+            array = np.array(array, dtype=np.float)
+            self.__set_array(array)
         return self._array
 
     def __set_array(self, array: np.ndarray):
+        array = np.array(array, dtype=np.float)
         self._array = array
 
     def localize(self, start: int, end: int):
@@ -484,7 +485,7 @@ class PLFoldOutput:
         return array
 
 
-def run_pl_fold(sequence, window, span, region=30, constraint: Iterable[Tuple] = None) -> PLFoldOutput:
+def cmd_rnaplfold(sequence, window, span, region=30, constraint: Iterable[Tuple] = None) -> PLFoldOutput:
     with TemporaryDirectory() as tmp_dir, NamedTemporaryFile(mode="r+") as constraint_file:
         constraint_string = ""
         if constraint is not None:
@@ -498,7 +499,7 @@ def run_pl_fold(sequence, window, span, region=30, constraint: Iterable[Tuple] =
                     const = "P"
                 else:
                     raise ValueError("Constraint wrongly formatted. Has to be ('paired(p)'/'unpaired(u)', start, end)")
-                constraint_string += f"{const} {start} {0} {end - start}\n"
+                constraint_string += f"{const} {start+1} {0} {end - start}\n"
         constraint_file.write(constraint_string)
         constraint_file.seek(0)
         rnaplfold = subprocess.Popen(["RNAplfold", "-W", str(window), "-L", str(span),
