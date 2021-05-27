@@ -17,7 +17,7 @@ from RIssmed.ConstraintPLFold import main as pl_main
 from RIssmed.ConstraintPLFold import fold_unconstraint, constrain_seq
 from Bio import SeqIO
 from RIssmed.lib.Collection import expand_window, localize_window
-from RIssmed.lib.RNAtweaks import PLFoldOutput
+from RIssmed.lib.RNAtweaks import PLFoldOutput, run_pl_fold
 
 EXPECTED_LOGS = os.path.join(TESTFOLDER, "Expected_Logs")
 EXPECTED_RESULTS = os.path.join(TESTFOLDER, "Expected_Results")
@@ -304,28 +304,6 @@ def test_fold_constraint(seq_id, start, end, window, span, region, multi, paired
                 compare_arrays(test_array, cmd_paired_array)
 
 
-def run_pl_fold(sequence, window, span, start=None, end=None, mode="unpaired", u=30) -> PLFoldOutput:
-    with TemporaryDirectory() as tmp_dir, NamedTemporaryFile(mode="r+") as constraint_file:
-        if mode == "paired":
-            const = "F"
-        elif mode == "unpaired":
-            const = "P"
-        else:
-            raise ValueError("mode must be either paired or unpaired")
-        if start is not None and end is not None:
-            constraint_string = f"{const} {start} {0} {end - start}"
-        else:
-            constraint_string = ""
-        constraint_file.write(constraint_string)
-        constraint_file.seek(0)
-        rnaplfold = subprocess.Popen(["RNAplfold", "-W", str(window), "-L", str(span),
-                                      "--commands", constraint_file.name, "--auto-id", "-u", str(u)],
-                                     stderr=subprocess.PIPE, stdout=subprocess.PIPE, stdin=subprocess.PIPE,
-                                     cwd=tmp_dir)
-        stdout, stderr = rnaplfold.communicate(sequence.encode("utf-8"))
-        assert stderr == b"", f"call to RNApfold went wrong: \n {stderr.decode()}"
-        file = os.path.join(tmp_dir, "sequence_0001_lunp")
-        rnaplfold_output = PLFoldOutput.from_file(file)
-        return rnaplfold_output
+
 
 

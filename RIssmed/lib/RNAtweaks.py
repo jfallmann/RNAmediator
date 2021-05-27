@@ -52,7 +52,8 @@ import sys
 import inspect
 import traceback as tb
 from typing import Iterable, Tuple
-
+from tempfile import NamedTemporaryFile, TemporaryDirectory
+import subprocess
 import numpy as np
 import gzip
 import math
@@ -513,6 +514,29 @@ class PLFoldOutput:
         return array
 
 
+def run_pl_fold(sequence, window, span, start=None, end=None, mode="unpaired", u=30) -> PLFoldOutput:
+    with TemporaryDirectory() as tmp_dir, NamedTemporaryFile(mode="r+") as constraint_file:
+        if mode == "paired":
+            const = "F"
+        elif mode == "unpaired":
+            const = "P"
+        else:
+            raise ValueError("mode must be either paired or unpaired")
+        if start is not None and end is not None:
+            constraint_string = f"{const} {start} {0} {end - start}"
+        else:
+            constraint_string = ""
+        constraint_file.write(constraint_string)
+        constraint_file.seek(0)
+        rnaplfold = subprocess.Popen(["RNAplfold", "-W", str(window), "-L", str(span),
+                                      "--commands", constraint_file.name, "--auto-id", "-u", str(u)],
+                                     stderr=subprocess.PIPE, stdout=subprocess.PIPE, stdin=subprocess.PIPE,
+                                     cwd=tmp_dir)
+        stdout, stderr = rnaplfold.communicate(sequence.encode("utf-8"))
+        assert stderr == b"", f"call to RNApfold went wrong: \n {stderr.decode()}"
+        file = os.path.join(tmp_dir, "sequence_0001_lunp")
+        rnaplfold_output = PLFoldOutput.from_file(file)
+        return rnaplfold_output
 
 
 
