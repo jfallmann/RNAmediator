@@ -59,8 +59,6 @@ import gzip
 import math
 from collections import defaultdict
 import logging
-# own
-#from lib.Collection import isinvalid
 import RNA
 
 ####################
@@ -77,6 +75,42 @@ except Exception:
         exc_type, exc_value, exc_tb,
     )
     print(''.join(tbe.format()),file=sys.stderr)
+
+
+def isvalid(x=None):
+    logid = scriptn+'.isvalid: '
+    try:
+        if x or x == 0:
+            if x in ('None', 'nan', 'none', 'NA', 'NAN') or x is None or x is np.nan:
+                return False
+            else:
+                return True
+        else:
+            return False
+    except Exception:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+            exc_type, exc_value, exc_tb,
+        )
+        log.error(logid+''.join(tbe.format()))
+
+
+def isinvalid(x=None):
+    logid = scriptn+'.isinvalid: '
+    try:
+        if x or x == 0:
+            if x in ('None', 'nan', 'none', 'NA', 'NAN') or x is None or x is np.nan:
+                return True
+            else:
+                return False
+        else:
+            return True
+    except Exception:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+            exc_type, exc_value, exc_tb,
+        )
+        log.error(logid+''.join(tbe.format()))
 
 ### Calculate nrg/prob/bppm/ddg
 
@@ -450,7 +484,7 @@ class PLFoldOutput:
 
     @classmethod
     def from_numpy(cls, array: np.ndarray):
-        """creates PLfoldOutput from np arrays
+        """creates PLFoldOutput from np arrays
 
             Parameters
            ----------
@@ -522,9 +556,9 @@ class PLFoldOutput:
             Parameters
            ----------
             nan : str, optional
-               replaces not a number with this string (default is 'NA')
+               replaces not a number with this string (default is as original output 'NA')
             truncated : bool, optional
-               choose whether the # lines should be included in the string
+               choose whether the starting # lines should be included in the string
                (default is True)
 
             Returns
@@ -607,7 +641,7 @@ def cmd_rnaplfold(sequence: str, window: int, span: int, region: int = 30, tempe
 
 def api_rnaplfold(sequence: str, window: int, span: int, region: int = 30, temperature: float = 37,
                   constraint: Iterable[Tuple] = None) -> PLFoldOutput:
-    """command line wrapper for RNAplfold
+    """api wrapper for RNAplfold
 
            Parameters
            ----------

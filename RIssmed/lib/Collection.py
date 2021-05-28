@@ -198,39 +198,6 @@ def parseargs_collectWindow():
 ####### VALIDITY CHECK #######
 ##############################
 
-def isvalid(x=None):
-    logid = scriptn+'.isvalid: '
-    try:
-        if x or x == 0:
-            if x in ('None', 'nan', 'none', 'NA', 'NAN') or x is None or x is np.nan:
-                return False
-            else:
-                return True
-        else:
-            return False
-    except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
-        )
-        log.error(logid+''.join(tbe.format()))
-
-def isinvalid(x=None):
-    logid = scriptn+'.isinvalid: '
-    try:
-        if x or x == 0:
-            if x in ('None', 'nan', 'none', 'NA', 'NAN') or x is None or x is np.nan:
-                return True
-            else:
-                return False
-        else:
-            return True
-    except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
-        )
-        log.error(logid+''.join(tbe.format()))
 
 ##############################
 ####### Helper #######
