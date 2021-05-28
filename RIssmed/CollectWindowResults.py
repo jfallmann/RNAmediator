@@ -62,26 +62,17 @@
 ##
 ### Code:
 ### IMPORTS
-import os
-import sys
 import glob
-import argparse
-import gzip
-import traceback as tb
 # collections
-from collections import defaultdict
 # multiprocessing
 import multiprocessing
-from multiprocessing import get_context
-from multiprocessing import set_start_method
 # Logging
 import datetime
-import logging
 from lib.logger import makelogdir, makelogfile, listener_process, listener_configurer, worker_configurer
 # load own modules
 from lib.Collection import *
 from lib.FileProcessor import *
-from lib.RNAtweaks import *
+from RIssmed.RNAtweaks.RNAtweaks import *
 from lib.NPtweaks import *
 
 log = logging.getLogger(__name__)  # use module name

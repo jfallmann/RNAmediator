@@ -67,40 +67,21 @@
 ##
 ### Code:
 ### IMPORTS
-import os
-import sys
-import inspect
 # other modules
-import argparse
-import pprint
-from io import StringIO
-import time
-import math
-import gzip
-import copy
 import importlib
 import multiprocessing
-from multiprocessing import get_context
-import traceback as tb
-import shutil
 import shlex
-from Randseq import createrandseq
 # Biopython stuff
 from Bio import SeqIO
-from Bio.Seq import Seq
 # numpy
-import numpy as np
-from random import choices, choice, shuffle  # need this if tempprobing was choosen
 # RNA
-import RNA
 # Logging
 import datetime
-import logging
 from lib.logger import makelogdir, makelogfile, listener_process, listener_configurer, worker_configurer
 # load own modules
 from lib.Collection import *
 from lib.FileProcessor import *
-from lib.RNAtweaks import *
+from RIssmed.RNAtweaks.RNAtweaks import *
 from lib.NPtweaks import *
 
 

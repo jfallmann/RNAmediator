@@ -2,10 +2,9 @@ from __future__ import annotations
 
 import gzip
 import os
-import subprocess
 import sys
 from argparse import Namespace
-from tempfile import TemporaryDirectory, NamedTemporaryFile
+from tempfile import TemporaryDirectory
 
 import numpy as np
 import pytest
@@ -17,7 +16,7 @@ from RIssmed.ConstraintPLFold import main as pl_main
 from RIssmed.ConstraintPLFold import fold_unconstraint, constrain_seq
 from Bio import SeqIO
 from RIssmed.lib.Collection import expand_window, localize_window
-from RIssmed.lib.RNAtweaks import PLFoldOutput, cmd_rnaplfold
+from RIssmed.RNAtweaks.RNAtweaks import PLFoldOutput, cmd_rnaplfold
 
 EXPECTED_LOGS = os.path.join(TESTFOLDER, "Expected_Logs")
 EXPECTED_RESULTS = os.path.join(TESTFOLDER, "Expected_Results")

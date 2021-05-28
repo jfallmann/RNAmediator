@@ -68,31 +68,21 @@
 ### Code:
 ## IMPORTS
 from __future__ import annotations
-import os
-import sys
 import multiprocessing
-from multiprocessing import set_start_method, get_context, get_start_method
-from io import StringIO
-import gzip
+from multiprocessing import set_start_method, get_start_method
 import importlib
-import traceback as tb
 import shlex
 # Biopython stuff
 from Bio import SeqIO
-from Bio.Seq import Seq
 # numpy
-import numpy as np
-from random import choice  # need this if tempprobing was choosen
 # RNA
-import RNA
 # Logging
 import datetime
-import logging
 from lib.logger import makelogdir, makelogfile, listener_process, listener_configurer, worker_configurer
 # load own modules
 from lib.Collection import *
 from lib.FileProcessor import *
-from lib.RNAtweaks import *
+from RIssmed.RNAtweaks.RNAtweaks import *
 from lib.NPtweaks import *
 import errno
 from typing import Union, List, Tuple, Iterable, Dict
