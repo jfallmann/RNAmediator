@@ -82,7 +82,7 @@ from lib.logger import makelogdir, makelogfile, listener_process, listener_confi
 # load own modules
 from lib.Collection import *
 from lib.FileProcessor import *
-from RIssmed.RNAtweaks.RNAtweaks import *
+from RNAtweaks.RNAtweaks import *
 from lib.NPtweaks import *
 import errno
 from typing import Union, List, Tuple, Iterable, Dict

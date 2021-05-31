@@ -16,7 +16,7 @@ from RIssmed.ConstraintPLFold import main as pl_main
 from RIssmed.ConstraintPLFold import fold_unconstraint, constrain_seq
 from Bio import SeqIO
 from RIssmed.lib.Collection import expand_window, localize_window
-from RIssmed.RNAtweaks.RNAtweaks import PLFoldOutput, cmd_rnaplfold
+from RNAtweaks.RNAtweaks import PLFoldOutput, cmd_rnaplfold
 
 EXPECTED_LOGS = os.path.join(TESTFOLDER, "Expected_Logs")
 EXPECTED_RESULTS = os.path.join(TESTFOLDER, "Expected_Results")
