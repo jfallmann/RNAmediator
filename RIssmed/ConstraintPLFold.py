@@ -94,7 +94,7 @@ scriptname = os.path.basename(__file__).replace('.py', '')
 
 
 class SequenceSettings:
-    """The summary line for a class docstring should fit on one line.
+    """ConstraintPLfold settings for a sequence object
         Attributes
        ----------
         sequence_record : SeqIO.SeqRecord
