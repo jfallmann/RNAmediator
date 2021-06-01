@@ -1,50 +1,3 @@
-# RNAtweaks.py ---
-#
-# Filename: RNAtweaks.py
-# Description:
-# Author: Joerg Fallmann
-# Maintainer:
-# Created: Fri Aug 21 10:23:40 2020 (+0200)
-# Version:
-# Package-Requires: ()
-# Last-Updated: Tue Sep  1 11:09:40 2020 (+0200)
-#           By: Joerg Fallmann
-#     Update #: 16
-# URL:
-# Doc URL:
-# Keywords:
-# Compatibility:
-#
-#
-
-# Commentary:
-#
-#
-#
-#
-
-# Change Log:
-#
-#
-#
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or (at
-# your option) any later version.
-#
-# This program is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-# General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-#
-#
-
-# Code:
-
 ### IMPORTS
 from __future__ import annotations
 import os
@@ -77,7 +30,7 @@ except Exception:
     print(''.join(tbe.format()),file=sys.stderr)
 
 
-def isvalid(x=None):
+def _isvalid(x=None):
     logid = scriptn+'.isvalid: '
     try:
         if x or x == 0:
@@ -95,7 +48,7 @@ def isvalid(x=None):
         log.error(logid+''.join(tbe.format()))
 
 
-def isinvalid(x=None):
+def _isinvalid(x=None):
     logid = scriptn+'.isinvalid: '
     try:
         if x or x == 0:
@@ -114,7 +67,8 @@ def isinvalid(x=None):
 
 ### Calculate nrg/prob/bppm/ddg
 
-def calc_gibbs(fc):
+
+def _calc_gibbs(fc):
     logid = scriptn+'.calc_gibbs: '
     try:
         return fc.pf()[1]
@@ -125,7 +79,8 @@ def calc_gibbs(fc):
             )
         log.error(logid+''.join(tbe.format()))
 
-def get_bppm(tmp, start, end):
+
+def _get_bppm(tmp, start, end):
     logid = scriptn+'.get_bppm: '
     bppm = []
     try:
@@ -145,7 +100,8 @@ def get_bppm(tmp, start, end):
         )
         log.error(logid+''.join(tbe.format()))
 
-def get_ddg(file):
+
+def _get_ddg(file):
     logid = scriptn+'.get_ddg: '
     try:
         ret = defaultdict()
@@ -173,7 +129,8 @@ def get_ddg(file):
         )
         log.error(logid+''.join(tbe.format()))
 
-def calc_ddg(ddgs):
+
+def _calc_ddg(ddgs):
     logid = scriptn+'.calc_ddg: '
 
     try:
@@ -190,7 +147,8 @@ def calc_ddg(ddgs):
             )
         log.error(logid+''.join(tbe.format()))
 
-def calc_bpp(bppm):
+
+def _calc_bpp(bppm):
     logid = scriptn+'.calc_bpp: '
     bpp = 0.0;
     try:
@@ -206,7 +164,8 @@ def calc_bpp(bppm):
 
     return bpp
 
-def calc_nrg(bpp):
+
+def _calc_nrg(bpp):
     logid = scriptn+'.calc_nrg: '
     #set kT for nrg2prob and vice versa calcs
     kT = 0.61632077549999997
@@ -222,14 +181,15 @@ def calc_nrg(bpp):
         )
         log.error(logid+''.join(tbe.format()))
 
-def print_region_up(data, seqlength=None, region=None):
+
+def _print_region_up(data, seqlength=None, region=None):
     logid = scriptn+'.print_region_up: '
     try:
         if data:
             ups=''
             x = int(region)
             for i in range(int(seqlength)):
-                if isinvalid(data[i][x]):
+                if _isinvalid(data[i][x]):
                     data[i][x] = np.nan
                 else:
                     data[i][x] = round(data[i][x],7)
@@ -246,7 +206,8 @@ def print_region_up(data, seqlength=None, region=None):
         )
         log.error(logid+''.join(tbe.format()))
 
-def print_up(data=None, seqlength=None, region=None):
+
+def _print_up(data=None, seqlength=None, region=None):
     logid = scriptn+'.print_up: '
     log.debug(logid+str(len(data))+' '+str(seqlength)+' '+str(region))
     try:
@@ -260,7 +221,7 @@ def print_up(data=None, seqlength=None, region=None):
                 for x in range(1,region+1):
                     if x >= len(data[i]):
                         log.error(logid+'x larger than size of subarray')
-                    if isinvalid(data[i][x]):
+                    if _isinvalid(data[i][x]):
                         data[i][x] = np.nan
                     else:
                         data[i][x] = round(data[i][x],7)
@@ -276,7 +237,8 @@ def print_up(data=None, seqlength=None, region=None):
         )
         log.error(logid+''.join(tbe.format()))
 
-def up_to_array(data=None, region=None, seqlength=None):
+
+def _up_to_array(data=None, region=None, seqlength=None):
     logid = scriptn+'.up_to_array: '
     try:
         if data:
@@ -288,7 +250,7 @@ def up_to_array(data=None, region=None, seqlength=None):
             for i in range(seqlength):
                 entries.append([])
                 for e in range(len(data[i])):
-                    if isinvalid(data[i][e]):
+                    if _isinvalid(data[i][e]):
                         data[i][e] = np.nan
                     else:
                         data[i][e] = round(data[i][e],8)
@@ -305,7 +267,7 @@ def up_to_array(data=None, region=None, seqlength=None):
         log.error(logid+''.join(tbe.format())+'\t'+str(entries)+'\t'+str(region)+'\t'+str(seqlength))
 
 
-def npprint(a, o=None):#, format_string ='{0:.2f}'):
+def _npprint(a, o=None):#, format_string ='{0:.2f}'):
     logid = scriptn+'.npprint: '
     try:
         out = ''
@@ -324,6 +286,7 @@ def npprint(a, o=None):#, format_string ='{0:.2f}'):
         )
         log.error(logid+''.join(tbe.format()))
 
+
 def printdiff(a, o=None):
     logid = scriptn+'.printdiff: '
     try:
@@ -335,7 +298,8 @@ def printdiff(a, o=None):
         )
         log.error(logid+''.join(tbe.format()))
 
-def read_precalc_plfold(data, name, seq):
+
+def _read_precalc_plfold(data, name, seq):
     logid = scriptn+'.read_precalc_plfold: '
     try:
         for i in range(len(seq)):
@@ -357,7 +321,8 @@ def read_precalc_plfold(data, name, seq):
         )
         log.error(logid+''.join(tbe.format()))
 
-def pl_to_array(name, ulim, fmt='npy'):
+
+def _pl_to_array(name, ulim, fmt='npy'):
     logid = scriptn+'.pl_to_array: '
     try:
         log.debug('\t'.join([logid, name, str(ulim), fmt]))
@@ -375,7 +340,8 @@ def pl_to_array(name, ulim, fmt='npy'):
 
 ###Constraints
 
-def constrain_paired(fc, start, end):
+
+def _constrain_paired(fc, start, end):
     logid = scriptn+'.constrain_paired: '
     try:
         for x in range(start+1, end+1):
@@ -388,7 +354,8 @@ def constrain_paired(fc, start, end):
             )
         log.error(logid+''.join(tbe.format()))
 
-def constrain_unpaired(fc, start, end):
+
+def _constrain_unpaired(fc, start, end):
     logid = scriptn+'.constrain_unpaired: '
     try:
         for x in range(start+1, end+1):
@@ -402,8 +369,7 @@ def constrain_unpaired(fc, start, end):
         log.error(logid+''.join(tbe.format()))
 
 
-
-def up_callback(v, v_size, i, maxsize, what, data):
+def _up_callback(v, v_size, i, maxsize, what, data):
 
     logid = scriptn + '.up_callback: '
     try:
@@ -517,14 +483,14 @@ class PLFoldOutput:
 
     @staticmethod
     def __array_to_string(array):
-        array = np.array(array, dtype=np.float).round(7)
+        array = np.array(array, dtype=float).round(7)
         array_string = "\n".join(
             ['\t'.join([str(x + 1)] + [str(num) for num in array[x]]) for x in range(len(array))])
         return array_string
 
     def __set_array(self, array: np.ndarray):
-        """sets numpy array and ensures data type is np.float"""
-        array = np.array(array, dtype=np.float)
+        """sets numpy array and ensures data type is float"""
+        array = np.array(array, dtype=float)
         self._numpy_array = array
 
     @property
@@ -537,7 +503,7 @@ class PLFoldOutput:
                     data = line.split("\t")[1:]
                     data = [float(x) if x != "NA" else np.nan for x in data]
                     array.append(data)
-            array = np.array(array, dtype=np.float)
+            array = np.array(array, dtype=float)
             self.__set_array(array)
         return self._numpy_array
 
@@ -581,7 +547,7 @@ class PLFoldOutput:
                original rissmed numpy array with an additional empty axis
         """
         array = self.numpy_array
-        array = np.array(array, dtype=np.float)
+        array = np.array(array, dtype=float)
         array = np.expand_dims(array, axis=1)
         return array
 
@@ -679,14 +645,14 @@ def api_rnaplfold(sequence: str, window: int, span: int, region: int = 30, tempe
             start = entry[1]
             end = entry[2]
             if mode == "paired" or mode == "p":
-                fc = constrain_paired(fc, start, end)
+                fc = _constrain_paired(fc, start, end)
             elif mode == "unpaired" or mode == "u":
-                fc = constrain_unpaired(fc, start, end)
+                fc = _constrain_unpaired(fc, start, end)
             else:
                 raise ValueError("Constraint wrongly formatted. Has to be ('paired(p)'/'unpaired(u)', start, end)")
 
     # call prop window calculation
-    fc.probs_window(region, RNA.PROBS_WINDOW_UP, up_callback, data)
+    fc.probs_window(region, RNA.PROBS_WINDOW_UP, _up_callback, data)
     array = np.array(data["up"]).squeeze()[:, 1:]
     pl_output = PLFoldOutput.from_numpy(array)
     return pl_output
