@@ -438,6 +438,21 @@ def _constrain_unpaired(fc, start, end):
         log.error(logid+''.join(tbe.format()))
 
 
+def bpp_callback(v, v_size, i, maxsize, what, data):
+
+    logid = scriptn + '.bpp_callback: '
+    try:
+        if what:
+            data['bpp'].extend([{'i': i, 'j': j, 'p': p} for j, p in enumerate(v) if (p is not None)])  # and (p >= 0.01)])
+    except Exception:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+            exc_type, exc_value, exc_tb,
+            )
+        log.error(logid+''.join(tbe.format()))
+
+
+
 def _up_callback(v, v_size, i, maxsize, what, data):
 
     logid = scriptn + '.up_callback: '
