@@ -81,8 +81,8 @@ import datetime
 from lib.logger import makelogdir, makelogfile, listener_process, listener_configurer, worker_configurer
 # load own modules
 from lib.Collection import *
-from lib.FileProcessor import *
-from RNAtweaks.RNAtweaks import *
+from RIssmed.RNAtweaks.FileProcessor import *
+from RIssmed.RNAtweaks.RNAtweaks import *
 from lib.NPtweaks import *
 import errno
 from typing import Union, List, Tuple, Iterable, Dict
@@ -309,19 +309,19 @@ def read_constraints(constrain: str, linewise: bool = False) -> Dict[str, List[s
                 f = gzip.open(constrain, 'rt')
             else:
                 f = open(constrain, 'rt')
-            constraintlist = readConstraintsFromBed(f, linewise)
+            constraintlist = read_constraints_from_bed(f, linewise)
         elif '.csv' in constrain:
             if '.gz' in constrain:
                 f = gzip.open(constrain, 'rt')
             else:
                 f = open(constrain, 'rt')
-            constraintlist = readConstraintsFromCSV(f, linewise)
+            constraintlist = read_constraints_from_csv(f, linewise)
         else:
             if '.gz' in constrain:
                 f = gzip.open(constrain, 'rt')
             else:
                 f = open(constrain, 'rt')
-            constraintlist = readConstraintsFromGeneric(f, linewise)
+            constraintlist = read_constraints_from_generic(f, linewise)
         f.close()
     return constraintlist
 

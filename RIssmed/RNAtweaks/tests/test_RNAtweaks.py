@@ -1,13 +1,14 @@
 import os
 import sys
-
-TESTFOLDER = os.path.dirname(os.path.abspath(__file__))
-PARPATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(PARPATH)
-from RNAtweaks.RNAtweaks import api_rnaplfold, cmd_rnaplfold
 import pytest
 import random
 import numpy as np
+TESTFOLDER = os.path.dirname(os.path.abspath(__file__))
+PARPATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+PROJECT_DIR = os.path.dirname(os.path.dirname(PARPATH))
+sys.path.append(PARPATH)
+sys.path.append(PROJECT_DIR)
+from RIssmed.RNAtweaks.RNAtweaks import api_rnaplfold, cmd_rnaplfold
 
 
 def random_sequence(seed: int = 1):
@@ -39,9 +40,9 @@ def test_api_and_cmd_plfold(seq, window, span, constraint):
 )
 def test_constraint_error(seq, window, span, constraint):
     with pytest.raises(ValueError):
-        api_result = api_rnaplfold(seq, window, span, constraint=constraint)
+        api_rnaplfold(seq, window, span, constraint=constraint)
     with pytest.raises(ValueError):
-        cmd_result = cmd_rnaplfold(seq, window, span, constraint=constraint)
+        cmd_rnaplfold(seq, window, span, constraint=constraint)
 
 
 def test_localization():
@@ -68,14 +69,3 @@ def test_constraint(seq, window, span, constraint):
         assert np.all(test == 0)
     elif mode == "unpaired" or mode == "u":
         assert np.all(test == 1)
-        
-
-
-
-
-
-
-
-
-
-

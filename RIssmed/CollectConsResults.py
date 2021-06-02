@@ -73,7 +73,7 @@ import datetime
 from lib.logger import makelogdir, makelogfile, listener_process, listener_configurer, worker_configurer
 # load own modules
 from lib.Collection import *
-from lib.FileProcessor import *
+from RIssmed.RNAtweaks.FileProcessor import *
 from RIssmed.RNAtweaks.RNAtweaks import *
 from lib.NPtweaks import *
 

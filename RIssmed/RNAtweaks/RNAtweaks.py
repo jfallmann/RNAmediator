@@ -1,18 +1,18 @@
-### IMPORTS
 from __future__ import annotations
-import os
-import sys
-import inspect
-import traceback as tb
-from typing import Iterable, Tuple
-from tempfile import NamedTemporaryFile, TemporaryDirectory
-import subprocess
-import numpy as np
+
 import gzip
-import math
-from collections import defaultdict
 import logging
+import math
+import os
+import subprocess
+import sys
+import traceback as tb
+from collections import defaultdict
+from tempfile import NamedTemporaryFile, TemporaryDirectory
+from typing import Iterable, Tuple
+
 import RNA
+import numpy as np
 
 ####################
 # ViennaRNA helper
@@ -23,11 +23,11 @@ try:
     scriptn = __name__  # os.path.basename(inspect.stack()[-1].filename).replace('.py', '')
     log.debug('LOGGING IN RNAtweaks'+str(scriptn)+str(log)+str(log.handlers))
 except Exception:
-    exc_type, exc_value, exc_tb = sys.exc_info()
-    tbe = tb.TracebackException(
-        exc_type, exc_value, exc_tb,
+    EXC_TYPE, EXC_VALUE, EXC_TB = sys.exc_info()
+    TBE = tb.TracebackException(
+        EXC_TYPE, EXC_VALUE, EXC_TB,
     )
-    print(''.join(tbe.format()),file=sys.stderr)
+    print(''.join(TBE.format()), file=sys.stderr)
 
 
 def _isvalid(x=None):
@@ -65,7 +65,7 @@ def _isinvalid(x=None):
         )
         log.error(logid+''.join(tbe.format()))
 
-### Calculate nrg/prob/bppm/ddg
+# Calculate nrg/prob/bppm/ddg
 
 
 def _calc_gibbs(fc):
@@ -85,13 +85,14 @@ def _get_bppm(tmp, start, end):
     bppm = []
     try:
         if start < 0 or end > len(tmp):
-            log.warning(logid+'start of constraint '+str(start)+' end of constraint '+str(end)+' while length of bpp matrix '+str(len(tmp))+'! Skipping!')
+            log.warning(f"{logid} start of constraint: {start} end of constraint: {end} "
+                        f"while length of bpp matrix {len(tmp)} ! Skipping!")
             return None
 
         for item in tmp:
-            for i in range(int(start),int(end)+1):
+            for i in range(int(start), int(end)+1):
                 if item[i] > 0.0:
-                    bppm.append(str.join('\t',[str(tmp.index(item)), str(i), str(item[i])]))
+                    bppm.append(str.join('\t', [str(tmp.index(item)), str(i), str(item[i])]))
         return bppm
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -105,11 +106,11 @@ def _get_ddg(file):
     logid = scriptn+'.get_ddg: '
     try:
         ret = defaultdict()
-        if (isinstance(file, str) and os.path.isfile(file)):
-            if '.gz' in file :
-                res = gzip.open(file,'rt')
+        if isinstance(file, str) and os.path.isfile(file):
+            if '.gz' in file:
+                res = gzip.open(file, 'rt')
             else:
-                res = open(file,'rt')
+                res = open(file, 'rt')
 
             for line in res:
                 log.debug(logid+line)
@@ -135,8 +136,14 @@ def _calc_ddg(ddgs):
 
     try:
         log.debug(logid+str(ddgs))
-        ddg = ddgs['constraint_unpaired']+ddgs['secondconstraint_unpaired']-ddgs['bothconstraint_unpaired']-ddgs['unconstraint']
-        """Yi-Hsuan Lin, Ralf Bundschuh, RNA structure generates natural cooperativity between single-stranded RNA binding proteins targeting 5' and 3'UTRs, Nucleic Acids Research, Volume 43, Issue 2, 30 January 2015, Pages 1160-1169, https://doi.org/10.1093/nar/gku1320"""
+        cons_up = ddgs['constraint_unpaired']
+        sec_cons_up = ddgs['secondconstraint_unpaired']
+        both_cons_up = ddgs['bothconstraint_unpaired']
+        uncons = ddgs['unconstraint']
+        ddg = cons_up + sec_cons_up - both_cons_up - uncons
+        """Yi-Hsuan Lin, Ralf Bundschuh, RNA structure generates natural cooperativity between 
+        single-stranded RNA binding proteins targeting 5' and 3'UTRs, Nucleic Acids Research, 
+        Volume 43, Issue 2, 30 January 2015, Pages 1160-1169, https://doi.org/10.1093/nar/gku1320"""
 
         return ddg
 
@@ -150,10 +157,10 @@ def _calc_ddg(ddgs):
 
 def _calc_bpp(bppm):
     logid = scriptn+'.calc_bpp: '
-    bpp = 0.0;
+    bpp = 0.0
     try:
         for entry in bppm:
-            base, mate, prob = map(float,entry.split('\t'))
+            base, mate, prob = map(float, entry.split('\t'))
             bpp += prob
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -167,12 +174,12 @@ def _calc_bpp(bppm):
 
 def _calc_nrg(bpp):
     logid = scriptn+'.calc_nrg: '
-    #set kT for nrg2prob and vice versa calcs
-    kT = 0.61632077549999997
-    nrg = 0.0;
+    # set k_t for nrg2prob and vice versa calcs
+    k_t = 0.61632077549999997
+    nrg = 0.0
     try:
         if bpp > 0.0:
-            nrg = -1 * kT * math.log(bpp)
+            nrg = -1 * k_t * math.log(bpp)
         return nrg
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -186,19 +193,18 @@ def _print_region_up(data, seqlength=None, region=None):
     logid = scriptn+'.print_region_up: '
     try:
         if data:
-            ups=''
+            ups = ''
             x = int(region)
             for i in range(int(seqlength)):
                 if _isinvalid(data[i][x]):
                     data[i][x] = np.nan
                 else:
-                    data[i][x] = round(data[i][x],7)
-                ups+=str(i+1)+"\t"+str(data[i][x])+"\n"
+                    data[i][x] = round(data[i][x], 7)
+                ups += str(i+1) + "\t"+str(data[i][x]) + "\n"
             return ups
         else:
             log.error(logid+'No up data to print')
-            return ups
-
+            raise NameError("name 'ups' is not defined")
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
@@ -218,18 +224,18 @@ def _print_up(data=None, seqlength=None, region=None):
             for i in range(len(data)):
                 if i >= len(data):
                     log.error(logid+'i larger than size of array')
-                for x in range(1,region+1):
+                for x in range(1, region+1):
                     if x >= len(data[i]):
                         log.error(logid+'x larger than size of subarray')
                     if _isinvalid(data[i][x]):
                         data[i][x] = np.nan
                     else:
-                        data[i][x] = round(data[i][x],7)
-                ups+=str(i+1)+"\t"+"\t".join(map(str,data[i][1:region+1]))+"\n"
+                        data[i][x] = round(data[i][x], 7)
+                ups += str(i+1)+"\t"+"\t".join(map(str, data[i][1:region+1]))+"\n"
             return ups
         else:
             log.error(logid+'No up data to print')
-            return ups
+            raise NameError("name 'ups' is not defined")
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
@@ -240,20 +246,20 @@ def _print_up(data=None, seqlength=None, region=None):
 
 def _up_to_array(data=None, region=None, seqlength=None):
     logid = scriptn+'.up_to_array: '
+    entries = []
     try:
         if data:
-            entries=[]
             if not seqlength:
                 seqlength = len(data)
             if not region:
-                region = slice(1,len(data[0]))
+                region = slice(1, len(data[0]))
             for i in range(seqlength):
                 entries.append([])
                 for e in range(len(data[i])):
                     if _isinvalid(data[i][e]):
                         data[i][e] = np.nan
                     else:
-                        data[i][e] = round(data[i][e],8)
+                        data[i][e] = round(data[i][e], 8)
                 entries[i].append(data[i][region])
             return np.array(entries)
         else:
@@ -267,22 +273,22 @@ def _up_to_array(data=None, region=None, seqlength=None):
         log.error(logid+''.join(tbe.format())+'\t'+str(entries)+'\t'+str(region)+'\t'+str(seqlength))
 
 
-def _npprint(a, o=None):#, format_string ='{0:.2f}'):
+def _npprint(a, o=None):  # format_string ='{0:.2f}'):
     logid = scriptn+'.npprint: '
     try:
         out = ''
         it = np.nditer(a, flags=['f_index'])
         while not it.finished:
-            out += "%d\t%0.7f" % (it.index+1,it[0])+"\n"
+            out += "%d\t%0.7f" % (it.index+1, it[0])+"\n"
             it.iternext()
         if o:
-            o.write(bytes(out,encoding='UTF-8'))
+            o.write(bytes(out, encoding='UTF-8'))
         else:
             print(out)
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
-        exc_type, exc_value, exc_tb,
+            exc_type, exc_value, exc_tb,
         )
         log.error(logid+''.join(tbe.format()))
 
@@ -294,7 +300,7 @@ def printdiff(a, o=None):
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
-        exc_type, exc_value, exc_tb,
+            exc_type, exc_value, exc_tb,
         )
         log.error(logid+''.join(tbe.format()))
 
@@ -310,14 +316,14 @@ def _read_precalc_plfold(data, name, seq):
                 cells = line.rstrip().split('\t')
                 data[int(cells[0])-1].append([])
                 data[int(cells[0])-1][0] = None
-                for a in range(1,len(cells)):
+                for a in range(1, len(cells)):
                     data[int(cells[0])-1].append([])
                     data[int(cells[0])-1][a] = float(cells[a])
         return data
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
-        exc_type, exc_value, exc_tb,
+            exc_type, exc_value, exc_tb,
         )
         log.error(logid+''.join(tbe.format()))
 
@@ -329,23 +335,86 @@ def _pl_to_array(name, ulim, fmt='npy'):
         if fmt == 'txt':
             return np.array(np.loadtxt(name, usecols=ulim, unpack=True, delimiter='\t', encoding='bytes'))
         elif fmt == 'npy':
-            #log.debug(np.load(name)[:,0][:,0])
-            return np.array(np.load(name)[:,0][:,ulim-1])
+            # log.debug(np.load(name)[:,0][:,0])
+            return np.array(np.load(name)[:, 0][:, ulim-1])
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
-        exc_type, exc_value, exc_tb,
+            exc_type, exc_value, exc_tb,
         )
         log.error(logid+' '+name+': '.join(tbe.format()))
 
-###Constraints
 
+def get_location(entry):
+    logid = scriptn+'.get_location: '
+    try:
+        ret = list()
+        start = end = strand = None
+        start, end = map(int, entry.split(sep='|')[0].split(sep='-'))
+        strand = str(entry.split(sep='|')[1])
+        ret.extend([start, end, strand])
+
+        if any([x == None for x in ret]):
+            log.warning(logid+'Undefined variable: '+str(ret))
+
+        log.debug(logid+str.join(' ',[str(entry),str(ret)]))
+        return ret
+
+    except Exception:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+            exc_type, exc_value, exc_tb,
+        )
+        log.error(logid+''.join(tbe.format()))
+
+
+def expand_window(start, end, window, multiplyer, seqlen):
+    logid = scriptn+'.expand_window: '
+    try:
+        tostart = start - multiplyer*window
+        if tostart < 1:
+            tostart = 1
+        toend = end + multiplyer*window
+        if toend > seqlen:
+            toend = seqlen
+        return [tostart, toend]
+    except Exception:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+            exc_type, exc_value, exc_tb,
+            )
+        log.error(logid+''.join(tbe.format()))
+
+
+def localize_window(start, end, window, seqlen):
+    logid = scriptn+'.localize_window: '
+    try:
+        diff = start - window
+        if diff < 1:
+            locws = 1
+        else:
+            locws = diff
+        # this makes sure that if the start was trimmed, we do not just extend too much
+        locwe = diff + 2 * window + (end - start)
+
+        if locwe > seqlen:
+            locwe = seqlen
+        return [locws, locwe]
+    except Exception:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+            exc_type, exc_value, exc_tb,
+            )
+        log.error(logid+''.join(tbe.format()))
+# Constraints
 
 def _constrain_paired(fc, start, end):
     logid = scriptn+'.constrain_paired: '
     try:
         for x in range(start+1, end+1):
-            fc.hc_add_bp_nonspecific(x,0) #0 means without direction  ( $ d < 0 $: pairs upstream, $ d > 0 $: pairs downstream, $ d == 0 $: no direction)
+            # 0 means without direction
+            # ( $ d < 0 $: pairs upstream, $ d > 0 $: pairs downstream, $ d == 0 $: no direction)
+            fc.hc_add_bp_nonspecific(x, 0)
         return fc
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()

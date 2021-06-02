@@ -80,7 +80,7 @@ import datetime
 from lib.logger import makelogdir, makelogfile, listener_process, listener_configurer, worker_configurer
 # load own modules
 from lib.Collection import *
-from lib.FileProcessor import *
+from RIssmed.RNAtweaks.FileProcessor import *
 from RIssmed.RNAtweaks.RNAtweaks import *
 from lib.NPtweaks import *
 
@@ -187,10 +187,10 @@ def fold(sequence, window, span, unconstraint, unpaired, paired, length, gc, num
                         f = open(constrain,'rt')
                     if any(x in constrain for x in ['paired','Paired']):
                         log.info(logid+'Reading paired constraints')
-                        constraintlist = readPairedConstraintsFromBed(f)
+                        constraintlist = read_paired_constraints_from_bed(f)
                     else:
                         log.info(logid+'Reading single constraints')
-                        constraintlist = readConstraintsFromBed(f)
+                        constraintlist = read_constraints_from_bed(f)
                 elif '.csv' in constrain:
                     if '.gz' in constrain:
                         f = gzip.open(constrain,'rt')
@@ -202,7 +202,7 @@ def fold(sequence, window, span, unconstraint, unpaired, paired, length, gc, num
                         f = gzip.open(constrain,'rt')
                     else:
                         f = open(constrain,'rt')
-                    constraintlist = readConstraintsFromGeneric(f)
+                    constraintlist = read_constraints_from_generic(f)
                 f.close()
 
             elif constrain == 'file' or constrain == 'paired':
