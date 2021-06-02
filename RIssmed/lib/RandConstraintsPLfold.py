@@ -47,14 +47,11 @@
 
 # Code:
 
-import argparse
-import os, sys, inspect
-import time
 import regex as re
 
 import RNA
 #load own modules
-from Collection import *
+from RIssmed.RNAtweaks.RIssmedArgparsers import *
 
 def parseargs():
 	parser = argparse.ArgumentParser(description='Fold Fasta, add random constraints, fold again, plot changes.')

@@ -45,25 +45,17 @@
 #
 
 # Code:
-import os, sys, inspect
 import glob
-import argparse
-import subprocess
 import gzip
 from matplotlib import pyplot as plt
-from matplotlib.patches import Rectangle # need that for histogram legend, don't ask
-import numpy as np
-from collections import Counter
 from collections import defaultdict
 import multiprocessing
 from multiprocessing import Manager
-import heapq
-from operator import itemgetter
-from natsort import natsorted, ns
+from natsort import natsorted
 #Biopython stuff
 from Bio import SeqIO
 
-from lib.Collection import *
+from RIssmed.RNAtweaks.RIssmedArgparsers import *
 #from ConstraintPLfold.py import
 
 #parse args

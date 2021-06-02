@@ -1,6 +1,6 @@
-### Collection.py ---
+### RIssmedArgparsers.py ---
 ##
-## Filename: Collection.py
+## Filename: RIssmedArgparsers.py
 ## Description:
 ## Author: Joerg Fallmann
 ## Maintainer:
@@ -285,4 +285,4 @@ def parseargs_collect_window():
 #         log.error(logid+''.join(tbe.format()))
 
 #
-# Collection.py ends here
+# RIssmedArgparsers.py ends here
