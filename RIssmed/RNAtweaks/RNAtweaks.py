@@ -368,44 +368,6 @@ def get_location(entry):
         log.error(logid+''.join(tbe.format()))
 
 
-def expand_window(start, end, window, multiplyer, seqlen):
-    logid = scriptn+'.expand_window: '
-    try:
-        tostart = start - multiplyer*window
-        if tostart < 1:
-            tostart = 1
-        toend = end + multiplyer*window
-        if toend > seqlen:
-            toend = seqlen
-        return [tostart, toend]
-    except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
-            )
-        log.error(logid+''.join(tbe.format()))
-
-
-def localize_window(start, end, window, seqlen):
-    logid = scriptn+'.localize_window: '
-    try:
-        diff = start - window
-        if diff < 1:
-            locws = 1
-        else:
-            locws = diff
-        # this makes sure that if the start was trimmed, we do not just extend too much
-        locwe = diff + 2 * window + (end - start)
-
-        if locwe > seqlen:
-            locwe = seqlen
-        return [locws, locwe]
-    except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
-            )
-        log.error(logid+''.join(tbe.format()))
 # Constraints
 
 def _constrain_paired(fc, start, end):
