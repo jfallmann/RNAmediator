@@ -114,7 +114,7 @@ class SequenceSettings:
         """
     def __init__(self, sequence_record: SeqIO.SeqRecord, gene: str = "nogene", chrom: str = "nochrom",
                  strand: str = "+",
-                 constrainlist: Iterable[Constraint] = None, genomic_coords: Constraint = None):
+                 constrainlist: Iterable[Tuple[Constraint]] = None, genomic_coords: Constraint = None):
         self.sequence_record = sequence_record
         self._constrainlist = list(constrainlist)
         if strand in ["+", "-"]:
@@ -130,18 +130,20 @@ class SequenceSettings:
 
     def _check_strands(self):
         if self._constrainlist is not None:
-            for entry in self._constrainlist:
-                assert entry.strand == self.strand, \
-                    "strand values of constraint does not match the strand from the sequence"
+            for constraint_tuple in self._constrainlist:
+                for entry in constraint_tuple:
+                    assert entry.strand == self.strand, \
+                        "strand values of constraint does not match the strand from the sequence"
 
-    def add_constraint(self, constraint: Constraint):
-        """adds a constraint to the list of constraints"""
-        assert constraint.__class__ == Constraint, "can only add Contraint objects to the constraintliste"
+    def add_constraints(self, constraints: Tuple[Constraint]):
+        """adds a constraints to the list of constraints"""
         if self._constrainlist is None:
             self._constrainlist = []
-        assert self.strand == constraint.strand, \
-            "strand values of constraint does not match the strand from the sequence"
-        self._constrainlist += [constraint]
+        for constraint in constraints:
+            assert constraints.__class__ == Constraint, "can only add Contraint objects to the constraintliste"
+            assert self.strand == constraint.strand, \
+                "strand values of constraint does not match the strand from the sequence"
+        self._constrainlist += [constraints]
 
     @property
     def constrainlist(self):
@@ -279,9 +281,9 @@ def add_rissmed_constraint(run_settings: Dict[str, SequenceSettings], constraint
     cons_start, cons_end = cons.split("-")
     cons = Constraint(int(cons_start), int(cons_end), cons_strand)
     if record.id in run_settings:
-        run_settings[record.id].add_constraint(cons)
+        run_settings[record.id].add_constraints((cons, ))
     else:
-        settings = SequenceSettings(record, constrainlist=[cons], chrom=chrom, gene=goi, strand=sequence_strand)
+        settings = SequenceSettings(record, constrainlist=[(cons, )], chrom=chrom, gene=goi, strand=sequence_strand)
         run_settings[record.id] = settings
     return run_settings
 
@@ -410,7 +412,7 @@ def fold(window, span, region, multi, unconstraint, unpaired, paired, constrain,
                 conslist = fasta_settings.constrainlist
                 log.debug(logid+str(conslist))
                 for entry in conslist:
-                    entry = str(entry)
+                    entry = str(entry[0])  # indexing because conslist is a list of tuples for multi constraints
                     log.debug(logid+'ENTRY: '+str(entry))
                     if entry == 'NOCONS':  # in case we just want to fold the sequence without constraints at all
                         res = pool.apply_async(fold_unconstraint,
