@@ -8,7 +8,8 @@ import sys
 import traceback as tb
 from Bio import SeqIO
 from RIssmed.RNAtweaks.FileProcessor import parseseq, idfromfa, parse_annotation_bed, \
-    read_constraints_from_bed, read_constraints_from_csv, read_constraints_from_generic
+    read_constraints_from_bed, read_constraints_from_csv, read_constraints_from_generic, \
+    read_paired_constraints_from_bed
 import gzip
 from RIssmed.RNAtweaks.RNAtweaks import get_location
 from RIssmed.lib.logger import makelogdir, makelogfile, listener_process, listener_configurer, worker_configurer
@@ -31,7 +32,7 @@ class SequenceSettings:
             chromosome of the gene (default is nochrom)
         strand: str, optional
             strand of the gene (default is +)
-        constrainlist: Iterable[Constraint], optional
+        constrainlist: Iterable[Tuple[Constraint]], optional
             List of constraint objects. (default is None)
         genomic_coords: Constraint, optional optional
             genomic coordinates of the sequence record (default is None)
@@ -177,7 +178,7 @@ def get_run_settings_dict(sequence, constrain: str, conslength: int, genes: str)
     return run_settings
 
 
-def add_rissmed_constraint(run_settings: Dict[str, SequenceSettings], constraint: str, record: SeqIO.SeqRecord,
+def add_rissmed_constraint(run_settings: Dict[str, SequenceSettings], constraints: str, record: SeqIO.SeqRecord,
                            goi: str = "nogene", chrom: str = "nochrom", sequence_strand: str = "+"):
     """Adds constraints in string format to the goi in the run settings dict. Creates sequence settings if missing
 
@@ -185,7 +186,7 @@ def add_rissmed_constraint(run_settings: Dict[str, SequenceSettings], constraint
            ----------
             run_settings : Dict[str, SequenceSettings]
                run settings dictionary using fasta ids as keys and Sequence Settings as values
-            constraint : str
+            constraints : str
                constraint in string format start-end|strand
             record : SeqIO.SeqRecord
                 Sequence record of the sequence to which the constraint should be added
@@ -202,13 +203,17 @@ def add_rissmed_constraint(run_settings: Dict[str, SequenceSettings], constraint
                a dictionary using the fasta sequence id as key and stores corresponding settings in an SequenceSettings
                object.
            """
-    cons, cons_strand = constraint.split("|")
-    cons_start, cons_end = cons.split("-")
-    cons = Constraint(int(cons_start), int(cons_end), cons_strand)
+    cons_list = []
+    for constraint in constraints.split(":"):  # Should now work with paired constraints split via : seperator
+        cons, cons_strand = constraint.split("|")
+        cons_start, cons_end = cons.split("-")
+        cons_list.append(Constraint(int(cons_start), int(cons_end), cons_strand))
+    cons_tuple = tuple(cons_list)
     if record.id in run_settings:
-        run_settings[record.id].add_constraints((cons, ))
+        run_settings[record.id].add_constraints(cons_tuple)
     else:
-        settings = SequenceSettings(record, constrainlist=[(cons, )], chrom=chrom, gene=goi, strand=sequence_strand)
+        settings = SequenceSettings(record, constrainlist=[cons_tuple], chrom=chrom, gene=goi,
+                                    strand=sequence_strand)
         run_settings[record.id] = settings
     return run_settings
 
@@ -240,7 +245,10 @@ def read_constraints(constrain: str, linewise: bool = False) -> Dict[str, List[s
                 f = gzip.open(constrain, 'rt')
             else:
                 f = open(constrain, 'rt')
-            constraintlist = read_constraints_from_bed(f, linewise)
+            if "paired" in constrain:
+                read_paired_constraints_from_bed(f, linewise)  # Not sure if it works but it should
+            else:
+                constraintlist = read_constraints_from_bed(f, linewise)
         elif '.csv' in constrain:
             if '.gz' in constrain:
                 f = gzip.open(constrain, 'rt')
