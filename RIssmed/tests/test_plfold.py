@@ -131,6 +131,23 @@ def single_constraint_args(default_args):
 
 
 @pytest.fixture()
+def paired_constraint_args(default_args):
+    default_args.sequence = os.path.join(TESTDATAPATH, "test.fa.gz")
+    default_args.constrain = os.path.join(TESTDATAPATH, "paired_constraints.bed")
+    default_args.conslength = 7
+    default_args.window = 20
+    default_args.span = 20
+    default_args.region = 7
+    default_args.unpaired = "unpaired"
+    default_args.paired = "paired"
+    default_args.unconstraint = "raw"
+    default_args.outdir = os.path.join(TMP_TEST_DIR, "paired_constraint_test")
+    default_args.save = 1
+    default_args.logdir = os.path.join(TMP_TEST_DIR, "LOG_PAIRED")
+    return default_args
+
+
+@pytest.fixture()
 def multi_constraint_args(default_args):
     default_args.sequence = os.path.join(TESTDATAPATH, "test.fa.gz")
     default_args.constrain = os.path.join(TESTDATAPATH, "test_constraints.bed")
@@ -184,6 +201,11 @@ def test_data_available():
     assert os.path.isfile(os.path.join(TESTDATAPATH, "test_constraints.bed"))
     assert os.path.isfile(os.path.join(TESTDATAPATH, "parafold_test.bed"))
     assert os.path.isfile(os.path.join(TESTDATAPATH, "parafold_test.fa"))
+
+
+def test_paired_constraint(paired_constraint_args):
+    pl_main(paired_constraint_args)
+    # TODO: Not done yet but settings for paired constraints work now
 
 
 def test_parafold(parafold_args):

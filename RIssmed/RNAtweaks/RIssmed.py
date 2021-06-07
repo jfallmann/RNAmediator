@@ -175,6 +175,7 @@ def get_run_settings_dict(sequence, constrain: str, conslength: int, genes: str)
         goi, chrom, strand = idfromfa(fasta_settings.sequence_record.id)
         genomic_start, genomic_end, genomic_strand = get_gene_coords(genecoords, goi, strand)
         fasta_settings.genomic_coords = Constraint(genomic_start, genomic_end, genomic_strand)
+
     return run_settings
 
 
@@ -246,7 +247,7 @@ def read_constraints(constrain: str, linewise: bool = False) -> Dict[str, List[s
             else:
                 f = open(constrain, 'rt')
             if "paired" in constrain:
-                read_paired_constraints_from_bed(f, linewise)  # Not sure if it works but it should
+                constraintlist = read_paired_constraints_from_bed(f, linewise)  # Not sure if it works but it should
             else:
                 constraintlist = read_constraints_from_bed(f, linewise)
         elif '.csv' in constrain:

@@ -154,6 +154,7 @@ def pl_fold(window, span, region, multi, unconstraint, unpaired, paired, save, p
                         # TODO: Currently not working. To make it work the run settings dict needs a
                         #  possibility to read paired constraints
                         if len(cons_tuple) > 1:  # Then paired constraints should be used
+                            cons_tuple = [str(cons) for cons in cons_tuple]
                             cons = ":".join(cons_tuple)
                             if gstrand == '+' or gstrand == '.':
                                 [fstart, fend], [start, end] = \
