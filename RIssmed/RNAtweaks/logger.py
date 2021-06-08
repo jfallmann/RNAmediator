@@ -18,6 +18,7 @@ import shutil
 #
 # In practice, you can configure the listener however you want
 
+
 def listener_configurer(logfile, loglevel):
     root = logging.getLogger()
     if (root.hasHandlers()):

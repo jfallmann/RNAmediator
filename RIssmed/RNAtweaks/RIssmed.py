@@ -12,7 +12,7 @@ from RIssmed.RNAtweaks.FileProcessor import parseseq, idfromfa, parse_annotation
     read_paired_constraints_from_bed
 import gzip
 from RIssmed.RNAtweaks.RNAtweaks import get_location
-from RIssmed.lib.logger import makelogdir, makelogfile, listener_process, listener_configurer, worker_configurer
+from RIssmed.RNAtweaks.logger import makelogdir, makelogfile, listener_process, listener_configurer, worker_configurer
 import multiprocessing
 
 
@@ -46,7 +46,7 @@ class SequenceSettings:
             self.strand = strand
         else:
             self.strand = "+"
-            print("strand value automatically set to +")
+            log.warning("strand value automatically set to +")
         self.chromosome = chrom
         self.gene = gene
         self.genomic_coords = genomic_coords

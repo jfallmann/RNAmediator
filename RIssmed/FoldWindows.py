@@ -82,7 +82,7 @@ from Bio import SeqIO
 
 #Logging
 import datetime
-from lib.logger import makelogdir, setup_multiprocess_logger
+from RIssmed.RNAtweaks.logger import makelogdir, setup_multiprocess_logger
 
 scriptname = os.path.basename(__file__).replace('.py','')
 makelogdir('LOGS')

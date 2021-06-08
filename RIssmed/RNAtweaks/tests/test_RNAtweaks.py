@@ -1,14 +1,12 @@
 import os
-import sys
 import pytest
 import random
 import numpy as np
+from RIssmed.RNAtweaks.RNAtweaks import api_rnaplfold, cmd_rnaplfold
+
 TESTFOLDER = os.path.dirname(os.path.abspath(__file__))
 PARPATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PROJECT_DIR = os.path.dirname(os.path.dirname(PARPATH))
-sys.path.append(PARPATH)
-sys.path.append(PROJECT_DIR)
-from RIssmed.RNAtweaks.RNAtweaks import api_rnaplfold, cmd_rnaplfold
 
 
 def random_sequence(seed: int = 1):
