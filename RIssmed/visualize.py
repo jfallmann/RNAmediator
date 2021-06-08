@@ -14,6 +14,7 @@ import plotly.graph_objects as go
 import plotly.io as pio
 from dash.dependencies import Input, Output
 
+app = dash.Dash("FOO", external_stylesheets=[dbc.themes.DARKLY])
 
 MODE = "db"
 PLOTLY_COLORS = px.colors.qualitative.Light24
@@ -162,17 +163,6 @@ def update_graph_via_sql(slct_chrom, slct_constraint):
 
 
 
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.DARKLY])
-
-#csv_to_sqlite("testfile.bed", "testfile.db")
-
-df = read_data("testfile.bed")
-
-df = "testfile.db"
-
-get_app_layout(app, df)
-
-
 def update_graph_via_pandas(slct_chrom, slct_constraint):
     dff = df.copy()
     dff = dff[dff["Chr"] == slct_chrom]
@@ -210,4 +200,13 @@ def update_graph(slct_chrom, slct_constraint):
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True, port=8080, host="0.0.0.0")
+    from tempfile import TemporaryDirectory
+    with TemporaryDirectory() as handle:
+        csv_to_sqlite("testfile.bed", os.path.join(handle, "test.db"))
+        global df
+        df = read_data("testfile.bed")
+        df = os.path.join(handle, "test.db")
+        get_app_layout(app, df)
+
+        app.run_server(debug=True, port=8080, host="0.0.0.0")
+
