@@ -83,7 +83,7 @@ from RIssmed.RNAtweaks.RIssmed import preprocess, SequenceSettings, rissmed_logg
     localize_window
 from RIssmed.RNAtweaks.RNAtweaks import *
 from RIssmed.RNAtweaks.RNAtweaks import _npprint
-from lib.NPtweaks import *
+from RIssmed.lib.NPtweaks import *
 
 # Biopython stuff
 

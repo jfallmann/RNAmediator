@@ -68,9 +68,8 @@ import glob
 import multiprocessing
 # Logging
 import datetime
-from lib.logger import makelogdir, makelogfile, listener_process, listener_configurer, worker_configurer
+from RIssmed.RNAtweaks.logger import makelogdir, makelogfile, listener_process, listener_configurer, worker_configurer
 # load own modules
-from RIssmed.RNAtweaks.RIssmedArgparsers import *
 from RIssmed.RNAtweaks.FileProcessor import *
 from RIssmed.RNAtweaks.RNAtweaks import *
 from lib.NPtweaks import *

@@ -12,7 +12,7 @@ from RIssmed.RNAtweaks.FileProcessor import parseseq, idfromfa, parse_annotation
     read_paired_constraints_from_bed
 import gzip
 from RIssmed.RNAtweaks.RNAtweaks import get_location
-from RIssmed.lib.logger import makelogdir, makelogfile, listener_process, listener_configurer, worker_configurer
+from RIssmed.RNAtweaks.logger import makelogdir, makelogfile, listener_process, listener_configurer, worker_configurer
 import multiprocessing
 
 

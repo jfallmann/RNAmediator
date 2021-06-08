@@ -1,23 +1,19 @@
 from __future__ import annotations
-
 import gzip
 import os
-import sys
 from argparse import Namespace
 from tempfile import TemporaryDirectory
-
 import numpy as np
 import pytest
-
-TESTFOLDER = os.path.dirname(os.path.abspath(__file__))
-PARPATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(PARPATH)
 from RIssmed.ConstraintPLFold import main as pl_main
 from RIssmed.ConstraintPLFold import fold_unconstraint, constrain_seq
 from Bio import SeqIO
 from RIssmed.RNAtweaks.RNAtweaks import PLFoldOutput, cmd_rnaplfold
 from RIssmed.RNAtweaks.RIssmed import expand_window, localize_window
 
+
+TESTFOLDER = os.path.dirname(os.path.abspath(__file__))
+PARPATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 EXPECTED_LOGS = os.path.join(TESTFOLDER, "Expected_Logs")
 EXPECTED_RESULTS = os.path.join(TESTFOLDER, "Expected_Results")
 TESTDATAPATH = os.path.join(TESTFOLDER, "testdata")

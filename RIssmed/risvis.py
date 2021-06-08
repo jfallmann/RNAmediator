@@ -46,16 +46,15 @@
 
 # Code:
 
-from flask import Flask, flash, redirect, render_template, request,   session, abort,send_from_directory,send_file,jsonify
+from flask import Flask, render_template, request, jsonify
 import pandas as pd
 import json
-import sys,os,gzip
-import inspect
+import sys,os
 import traceback as tb
 import argparse
 import shlex
 
-from lib.logger import makelogdir, setup_logger
+from RIssmed.RNAtweaks.logger import makelogdir, setup_logger
 # Create log dir
 makelogdir('LOGS')
 scriptname=os.path.basename(__file__)
