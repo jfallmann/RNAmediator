@@ -2,7 +2,6 @@ import csv
 import gzip
 import os
 import sqlite3
-from itertools import chain
 from typing import Dict, List, Union
 
 import dash  # (version 1.12.0) pip install dash
@@ -15,12 +14,13 @@ import plotly.express as px  # (version 4.7.0)
 import plotly.graph_objects as go
 import plotly.io as pio
 from dash import callback_context
-from dash.dependencies import Input, Output, State
+from dash.dependencies import Input, Output, State, ALL
 
 app = dash.Dash("FOO", external_stylesheets=[dbc.themes.DARKLY])
 
 MODE = "db"
 NUMBER_OF_INTERESTING = 10
+TABLE_COLUMNS = 1
 PLOTLY_COLORS = px.colors.qualitative.Light24
 COLUMN_NAMES = {'Chr': "VARCHAR(20)",
                 'Start': "INT",
@@ -75,7 +75,8 @@ def insert_interesting_table(db_path: str):
     cur.execute(f'CREATE TABLE IF NOT EXISTS importance '
                 f'( Chr VARCHAR(5), '
                 f'Fold_Constraint VARCHAR(40) PRIMARY KEY, '
-                f'Importance REAL, '
+                f'Mean_Value REAL, '
+                f'Max_Value REAL, '
                 f' FOREIGN KEY (Fold_Constraint) REFERENCES test(Fold_Constraint)) ')
     cur.execute("SELECT DISTINCT Fold_Constraint, Chr FROM test")
     constraints = cur.fetchall()
@@ -84,8 +85,9 @@ def insert_interesting_table(db_path: str):
                     "WHERE Fold_Constraint=? AND Chr=?",
                     entry)
         values = cur.fetchall()
-        constraint_mean = np.max([abs(diff[1]) for diff in values])
-        cur.execute("INSERT INTO importance VALUES (?, ?, ?)", [entry[1], entry[0], constraint_mean])
+        constraint_max = np.max([abs(diff[1]) for diff in values])
+        constraint_mean = np.mean([abs(diff[1]) for diff in values])
+        cur.execute("INSERT INTO importance VALUES (?, ?, ?, ?)", [entry[1], entry[0], constraint_mean, constraint_max])
     con.commit()
     con.close()
 
@@ -130,24 +132,31 @@ def dropdown_menues(gene_id_options: List[Dict], constraint_options: List[Dict])
     return menu
 
 
-def interesting_table(interesting: List, prev_clicks: int = 0, next_clicks: int = 0):
+def interesting_table(interesting: List[sqlite3.Row], prev_clicks: int = 0, next_clicks: int = 0):
     page = next_clicks - prev_clicks
+    header = ["index"] + interesting[0].keys()
     interesting = [(x + page*NUMBER_OF_INTERESTING, *element) for x, element in enumerate(interesting)]
-    menu = html.Div([html.Div(html.Button("prev", id="prev-button", n_clicks=prev_clicks,),
+    menu = html.Div([html.Div(html.Button("", id="prev-button", n_clicks=prev_clicks,),
                               style={"display": "table-cell", "margin": "auto", 'align-items': 'center',
                                      "justify-content": "center", "vertical-align": "middle"}),
             html.Div(html.Table(
                 [html.Tr(
+                    [html.Td(element,
+                             className="interesting-table-header",
+                             style={"font-weight": "bold"}) for element in header]
+                )] +
+                [html.Tr(
                     list(tablerow_generator(entry, y))
                 ) for y, entry in enumerate(interesting)],
-                id="interesting-table", style={"width": "100%", "margin": "auto", 'text-align': 'center'}
+                className="interesting-table-tablerows", style={"width": "100%", "margin": "auto", 'text-align': 'center'}
 
-            ), style={"display": "table-cell", "width": "80%"}),
-            html.Div(html.Button("next", id="next-button", n_clicks=next_clicks,
+            ), style={"display": "table-cell", "width": "80%"}, className="interesting-table"),
+            html.Div(html.Button("", id="next-button", n_clicks=next_clicks,
                                  style={"margin": "auto"}),
                      style={"display": "table-cell", "margin": "auto", 'align-items': 'center',
                             "justify-content": "center", "vertical-align": "middle"})
-            ], style={"display": "table", "width": "100%", 'text-align': 'center', "vertical-align": "middle"})
+            ], style={"display": "table", "width": "100%", 'text-align': 'center', "vertical-align": "middle"},
+                    className="interesting-table-all")
     return menu
 
 
@@ -155,12 +164,16 @@ def tablerow_generator(row, row_idx: int):
     for x, col in enumerate(row):
         if x == 0:
             style = {"width": "7%"}
+            classname = "interesting-table-index-column"
         else:
             style = {}
-        column = html.Td(html.Div(html.Button(col, id=f"{x}-{row_idx}", n_clicks=0, className=f"{row[2]}",
-                                              style={"white-space": "nowrap", "margin": "auto", "width": "100%"}),
-                                  style={"width": "100%", "margin": "auto", 'text-align': 'center', }),
-                         className="interesting-table", style=style)
+            classname = "interesting-table-column"
+        column = html.Td(html.Button(col, id={"index": f"{x}-{row_idx}", "type": "interesting-table-button",
+                                              "chrom": f"{row[1]}", "constraint": row[2]},
+                                     n_clicks=0, className=f"{row[2]}",
+                                     style={"white-space": "nowrap", "margin": "auto", "width": "100%"}),
+
+                         className=classname, style=style)
         yield column
 
 
@@ -187,12 +200,15 @@ def get_app_layout(app: dash.Dash, df: Union[pd.DataFrame, str]):
 
 def get_interesting(db_path: str, page: int = 0):
     conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
     cur = conn.cursor()
-    cur.execute(f"SELECT Chr, Fold_Constraint, Importance FROM importance "
-                f"ORDER BY Importance DESC "
+    cur.execute(f"SELECT * FROM importance "
+                f"ORDER BY Max_Value DESC "
                 f"LIMIT {NUMBER_OF_INTERESTING} OFFSET {NUMBER_OF_INTERESTING * page}")
     return_list = cur.fetchall()
     conn.close()
+    global TABLE_COLUMNS
+    TABLE_COLUMNS = len(return_list[0])
     return return_list
 
 
@@ -268,28 +284,27 @@ def update_graph(slct_chrom, slct_constraint):
     [
 
         Output(component_id="slct_constraint", component_property="value"),
+        Output(component_id="slct_chrom", component_property="value"),
 
     ],
-    list(
-        chain.from_iterable((Input(component_id=f'{y}-{x}', component_property="n_clicks"),
-                             Input(component_id=f'{y}-{x}', component_property="className"))
-                            for x in range(NUMBER_OF_INTERESTING) for y in range(4))
-    ),
+    [
+        Input({"type": "interesting-table-button", "index": ALL, "constraint": ALL, "chrom": ALL}, "n_clicks")
+    ],
     [
         State(component_id="slct_constraint", component_property="value"),
+        State(component_id="slct_chrom", component_property="value"),
      ]
 
 )
 def table_click_callback(*args):
-
-    trigger = callback_context.triggered[0]["prop_id"].split(".")[0]
-    if trigger != "" and trigger not in ["prev-button", "next-button"]:
-        print(trigger)
-        new = callback_context.inputs[f"{trigger}.className"]
-
+    callback_dict = callback_context.triggered[0]["prop_id"].split(".")[0]
+    if callback_dict != "":
+        callback_dict = eval(callback_dict)
+        chrom = callback_dict["chrom"]
+        constraint = callback_dict["constraint"]
     else:
-        new = args[-1]
-    return [new]
+        constraint, chrom = args[-2:]
+    return [constraint, chrom]
 
 
 
@@ -320,6 +335,6 @@ if __name__ == '__main__':
         #df = read_data("testfile.bed")
         df = os.path.join(handle, "test.db")
         get_app_layout(app, df)
-
+        get_interesting(df)
         app.run_server(debug=True, port=8080, host="0.0.0.0")
 
