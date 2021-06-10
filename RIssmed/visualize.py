@@ -3,7 +3,7 @@ import gzip
 import os
 import sqlite3
 from typing import Dict, List, Union
-
+import sys
 import dash  # (version 1.12.0) pip install dash
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
@@ -16,7 +16,9 @@ import plotly.io as pio
 from dash import callback_context
 from dash.dependencies import Input, Output, State, ALL
 
-app = dash.Dash("FOO", external_stylesheets=[dbc.themes.DARKLY])
+FILEDIR = os.path.dirname(os.path.abspath(__file__))
+ASSETS_DIR = os.path.join(FILEDIR, "assets")
+app = dash.Dash("FOO", external_stylesheets=[dbc.themes.DARKLY], assets_folder=ASSETS_DIR)
 
 MODE = "db"
 NUMBER_OF_INTERESTING = 10
@@ -212,8 +214,6 @@ def get_interesting(db_path: str, page: int = 0):
                 f"LIMIT {NUMBER_OF_INTERESTING} OFFSET {NUMBER_OF_INTERESTING * page}")
     return_list = cur.fetchall()
     conn.close()
-    global TABLE_COLUMNS
-    TABLE_COLUMNS = len(return_list[0])
     return return_list
 
 
@@ -237,7 +237,7 @@ def selectors_sql(db_path: str):
 
 
 def update_graph_via_sql(slct_chrom, slct_constraint):
-    conn = sqlite3.connect("whole_bed.db")
+    conn = sqlite3.connect(df)
     cur = conn.cursor()
     cur.execute("SELECT Distance_to_constraint, Accessibility_difference FROM test WHERE Fold_Constraint=? AND Chr=?",
                 (slct_constraint, slct_chrom))
@@ -335,11 +335,11 @@ def table_switch_callback(prev_clicks, next_clicks):
 if __name__ == '__main__':
     from tempfile import TemporaryDirectory
     with TemporaryDirectory() as handle:
-        csv_to_sqlite("testfile.bed", os.path.join(handle, "test.db"))
+        testfile = os.path.join(FILEDIR, "testfile.bed")
+        csv_to_sqlite(testfile, os.path.join(handle, "test.db"))
         global df
         #df = read_data("testfile.bed")
         df = os.path.join(handle, "test.db")
         get_app_layout(app, df)
-        get_interesting(df)
         app.run_server(debug=True, port=8080, host="0.0.0.0")
 
