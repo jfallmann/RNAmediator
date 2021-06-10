@@ -73,16 +73,19 @@ def insert_interesting_table(db_path: str):
     con = sqlite3.connect(db_path)
     cur = con.cursor()
     cur.execute(f'CREATE TABLE IF NOT EXISTS importance '
-                f'( Fold_Constraint VARCHAR(40) PRIMARY KEY, '
+                f'( Chr VARCHAR(5), '
+                f'Fold_Constraint VARCHAR(40) PRIMARY KEY, '
                 f'Importance REAL, '
                 f' FOREIGN KEY (Fold_Constraint) REFERENCES test(Fold_Constraint)) ')
-    cur.execute("SELECT DISTINCT Fold_Constraint FROM test")
+    cur.execute("SELECT DISTINCT Fold_Constraint, Chr FROM test")
     constraints = cur.fetchall()
     for entry in constraints:
-        cur.execute("SELECT Distance_to_constraint, Accessibility_difference FROM test WHERE Fold_Constraint=?", entry)
+        cur.execute("SELECT Distance_to_constraint, Accessibility_difference, Chr FROM test "
+                    "WHERE Fold_Constraint=? AND Chr=?",
+                    entry)
         values = cur.fetchall()
         constraint_mean = np.max([abs(diff[1]) for diff in values])
-        cur.execute("INSERT INTO importance VALUES (?, ?)", [entry[0], constraint_mean])
+        cur.execute("INSERT INTO importance VALUES (?, ?, ?)", [entry[1], entry[0], constraint_mean])
     con.commit()
     con.close()
 
@@ -135,7 +138,7 @@ def interesting_table(interesting: List, prev_clicks: int = 0, next_clicks: int 
                                      "justify-content": "center", "vertical-align": "middle"}),
             html.Div(html.Table(
                 [html.Tr(
-                    [html.Td(html.Div(html.Button(col, id=f"{x}-{y}", n_clicks=0, className=f"{entry[1]}",
+                    [html.Td(html.Div(html.Button(col, id=f"{x}-{y}", n_clicks=0, className=f"{entry[2]}",
                                                   style={"white-space": "nowrap", "margin": "auto", "width": "100%"}),
                                       style={"width": "100%", "margin": "auto", 'text-align': 'center', }),
                              className="interesting-table") for x, col in
@@ -176,12 +179,12 @@ def get_app_layout(app: dash.Dash, df: Union[pd.DataFrame, str]):
 def get_interesting(db_path: str, page: int = 0):
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
-    cur.execute(f"SELECT Fold_Constraint, Importance FROM importance "
+    cur.execute(f"SELECT Chr, Fold_Constraint, Importance FROM importance "
                 f"ORDER BY Importance DESC "
                 f"LIMIT {NUMBER_OF_INTERESTING} OFFSET {NUMBER_OF_INTERESTING * page}")
-    list = cur.fetchall()
+    return_list = cur.fetchall()
     conn.close()
-    return list
+    return return_list
 
 
 def selectors_pandas(df: pd.DataFrame):
@@ -256,19 +259,15 @@ def update_graph(slct_chrom, slct_constraint):
     [
 
         Output(component_id="slct_constraint", component_property="value"),
-        Output(component_id="interesting-table-div", component_property="children")
 
     ],
     list(
         chain.from_iterable((Input(component_id=f'{y}-{x}', component_property="n_clicks"),
                              Input(component_id=f'{y}-{x}', component_property="className"))
-                            for x in range(NUMBER_OF_INTERESTING) for y in range(3))
-    ) + [Input(component_id="prev-button", component_property="n_clicks"),
-         Input(component_id="next-button", component_property="n_clicks"),
-         ],
+                            for x in range(NUMBER_OF_INTERESTING) for y in range(4))
+    ),
     [
         State(component_id="slct_constraint", component_property="value"),
-        State(component_id="interesting-table-div", component_property="children"),
      ]
 
 )
@@ -278,20 +277,30 @@ def table_click_callback(*args):
     if trigger != "" and trigger not in ["prev-button", "next-button"]:
         print(trigger)
         new = callback_context.inputs[f"{trigger}.className"]
-        print(new)
-        html_stuff = args[-1]
+
     else:
-        new = args[-2]
-        next_clicks = args[-3]
-        prev_clicks = args[-4]
-        page = next_clicks - prev_clicks
-        if page < 0:
-            next_clicks, prev_clicks, page = 0, 0, 0
-        interesting = get_interesting(df, page)
-        html_stuff = interesting_table(interesting, prev_clicks, next_clicks)
-    return [new, html_stuff]
+        new = args[-1]
+    return [new]
 
 
+
+@app.callback(
+    [
+        Output(component_id="interesting-table-div", component_property="children")
+    ],
+    [
+        Input(component_id="prev-button", component_property="n_clicks"),
+        Input(component_id="next-button", component_property="n_clicks"),
+    ]
+
+)
+def table_switch_callback(prev_clicks, next_clicks):
+    page = next_clicks - prev_clicks
+    if page < 0:
+        next_clicks, prev_clicks, page = 0, 0, 0
+    interesting = get_interesting(df, page)
+    html_table = interesting_table(interesting, prev_clicks, next_clicks)
+    return [html_table]
 
 
 if __name__ == '__main__':
