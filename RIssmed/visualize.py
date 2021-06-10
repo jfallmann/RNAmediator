@@ -146,7 +146,7 @@ def interesting_table(interesting: List[sqlite3.Row], prev_clicks: int = 0, next
                              style={"font-weight": "bold"}) for element in header]
                 )] +
                 [html.Tr(
-                    list(tablerow_generator(entry, y))
+                    list(tablerow_generator(entry))
                 ) for y, entry in enumerate(interesting)],
                 className="interesting-table-tablerows", style={"width": "100%", "margin": "auto", 'text-align': 'center'}
 
@@ -160,7 +160,7 @@ def interesting_table(interesting: List[sqlite3.Row], prev_clicks: int = 0, next
     return menu
 
 
-def tablerow_generator(row, row_idx: int):
+def tablerow_generator(row):
     for x, col in enumerate(row):
         if x == 0:
             style = {"width": "7%"}
@@ -168,9 +168,14 @@ def tablerow_generator(row, row_idx: int):
         else:
             style = {}
             classname = "interesting-table-column"
-        column = html.Td(html.Button(col, id={"index": f"{x}-{row_idx}", "type": "interesting-table-button",
+        if type(col) == float:
+            col_to_show = round(col, 3)
+        else:
+            col_to_show = col
+            col = ""
+        column = html.Td(html.Button(col_to_show, id={"index": f"{x}-{row[1]}-{row[2]}", "type": "interesting-table-button",
                                               "chrom": f"{row[1]}", "constraint": row[2]},
-                                     n_clicks=0, className=f"{row[2]}",
+                                     n_clicks=0, className=f"{row[2]}", title=f"{col}",
                                      style={"white-space": "nowrap", "margin": "auto", "width": "100%"}),
 
                          className=classname, style=style)
