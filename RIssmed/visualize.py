@@ -138,11 +138,7 @@ def interesting_table(interesting: List, prev_clicks: int = 0, next_clicks: int 
                                      "justify-content": "center", "vertical-align": "middle"}),
             html.Div(html.Table(
                 [html.Tr(
-                    [html.Td(html.Div(html.Button(col, id=f"{x}-{y}", n_clicks=0, className=f"{entry[2]}",
-                                                  style={"white-space": "nowrap", "margin": "auto", "width": "100%"}),
-                                      style={"width": "100%", "margin": "auto", 'text-align': 'center', }),
-                             className="interesting-table") for x, col in
-                     enumerate(entry)]
+                    list(tablerow_generator(entry, y))
                 ) for y, entry in enumerate(interesting)],
                 id="interesting-table", style={"width": "100%", "margin": "auto", 'text-align': 'center'}
 
@@ -153,6 +149,19 @@ def interesting_table(interesting: List, prev_clicks: int = 0, next_clicks: int 
                             "justify-content": "center", "vertical-align": "middle"})
             ], style={"display": "table", "width": "100%", 'text-align': 'center', "vertical-align": "middle"})
     return menu
+
+
+def tablerow_generator(row, row_idx: int):
+    for x, col in enumerate(row):
+        if x == 0:
+            style = {"width": "7%"}
+        else:
+            style = {}
+        column = html.Td(html.Div(html.Button(col, id=f"{x}-{row_idx}", n_clicks=0, className=f"{row[2]}",
+                                              style={"white-space": "nowrap", "margin": "auto", "width": "100%"}),
+                                  style={"width": "100%", "margin": "auto", 'text-align': 'center', }),
+                         className="interesting-table", style=style)
+        yield column
 
 
 def get_app_layout(app: dash.Dash, df: Union[pd.DataFrame, str]):
