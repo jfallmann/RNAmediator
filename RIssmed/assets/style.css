@@ -50,6 +50,7 @@
 #wrapper .plotly-graph {
 	background-color:  #323232;
 	width: 99%;
+    height: 90%;
 	border-radius: 10px;
 	border-color: black;
 	padding: 20px;
@@ -63,6 +64,8 @@
 #wrapper .databox {
 	background-color:  #323232;
 	width: 99%;
+    resize: vertical;
+    overflow-y: auto;
 	border-radius: 10px;
 	border-color: black;
 	padding: 20px;
@@ -114,18 +117,6 @@
 }
 
 
-#wrapper .interesting-table-header{
-    background: #666666;
-    color: black;
-    outline: 3px solid #7f7f7f;
-    padding: 10px;
-    font-size: 18px;
-
-
-}
-
-
-
 
 #wrapper .interesting-table-tablerows tr {
     color: white;
@@ -134,6 +125,16 @@
 #wrapper .interesting-table-tablerows tr:hover {
     background: #7bb6b3;
     color: black;
+}
+
+#wrapper .interesting-table-header button{
+    background: #666666;
+    color: black;
+    outline: 3px solid #7f7f7f;
+    padding: 10px;
+    font-size: 18px;
+
+
 }
 
 #wrapper .interesting-table-tablerows {
@@ -180,7 +181,25 @@
 }
 
 
-@media screen and (max-width:1080px) {
+@media screen and (min-width:2000px) {
+
+    #wrapper .databox {
+        display: table;
+        width: 48.5%;
+        float: left;
+        margin: 10px;
+        min-height: 800px;
+        max-height: 800px;
+        vertical-align: middle;
+
+    }
+    #wrapper .interesting-table-all {
+        display: table-cell;
+        vertical-align: middle;
+    }
+}
+
+@media screen and (max-width:800px) {
     .selection-table table tr > *{
         display: block;
         padding: 5px;

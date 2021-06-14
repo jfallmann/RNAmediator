@@ -3,7 +3,7 @@ import gzip
 import os
 import sqlite3
 from typing import Dict, List, Union
-import sys
+
 import dash  # (version 1.12.0) pip install dash
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
@@ -108,6 +108,7 @@ def main():
 
 
 def dropdown_menues(gene_id_options: List[Dict], constraint_options: List[Dict]):
+    print("dropdown-styles")
     dropdown_style = {'width': "100%", "margin": "auto", }
     dropdowns = [
         dcc.Dropdown(id="slct_chrom",
@@ -122,31 +123,31 @@ def dropdown_menues(gene_id_options: List[Dict], constraint_options: List[Dict])
                      style=dropdown_style
                      ),
     ]
-    menu = html.Table(
+    menu = html.Div(html.Table(
         html.Tr(
             [html.Td(html.Div(col, style={"width": "100%"}), className="selection-table_interactive") for col in
              dropdowns]
         ),
         id="selection-table", style={"width": "80%", "margin": "auto"}
 
-    )
-
+    ), id="some-id", style={"margin": "auto", "width": "100%", "height": "20%", "padding-bottom": "20px"})
+    print(menu)
     return menu
 
 
-def interesting_table(interesting: List[sqlite3.Row], prev_clicks: int = 0, next_clicks: int = 0):
+def interesting_table(interesting: List[sqlite3.Row], prev_clicks: int = 0, next_clicks: int = 0,
+                      sorting: str = "Max_Value", sorting_clicks: int = 0):
     page = next_clicks - prev_clicks
-    header = ["index"] + interesting[0].keys()
+    header = interesting[0].keys()
     interesting = [(x + page*NUMBER_OF_INTERESTING, *element) for x, element in enumerate(interesting)]
-    menu = html.Div([html.Div(html.Button("", id="prev-button", n_clicks=prev_clicks,),
+    menu = [html.Div([html.Div(html.Button("", id="prev-button", n_clicks=prev_clicks,),
                               style={"display": "table-cell", "margin": "auto", 'align-items': 'center',
                                      "justify-content": "center", "vertical-align": "middle"}),
             html.Div(html.Table(
-                [html.Tr(
-                    [html.Td(element,
-                             className="interesting-table-header",
-                             style={"font-weight": "bold"}) for element in header]
-                )] +
+                [html.Tr([html.Td(html.Button("#", style={"width": "100%", "pointer-events": "None"}), 
+                                  className="interesting-table-header")] +
+                         list(table_header_generator(header, sort=sorting, sorting_clicks=sorting_clicks))
+                         )] +
                 [html.Tr(
                     list(tablerow_generator(entry))
                 ) for y, entry in enumerate(interesting)],
@@ -158,8 +159,37 @@ def interesting_table(interesting: List[sqlite3.Row], prev_clicks: int = 0, next
                      style={"display": "table-cell", "margin": "auto", 'align-items': 'center',
                             "justify-content": "center", "vertical-align": "middle"})
             ], style={"display": "table", "width": "100%", 'text-align': 'center', "vertical-align": "middle"},
-                    className="interesting-table-all")
+                    className="interesting-table-all", id="interesting-table-all")]
     return menu
+
+
+def table_header_generator(row, sort, sorting_clicks):
+    for element in row:
+
+        if element == sort:
+            if sorting_clicks % 2:
+                order = "\U000025B2"
+            else:
+                order = "\U000025BC"
+            column = html.Td(html.Button(f"{element}{order}", n_clicks=sorting_clicks,
+                                         id={"index": "sorting",
+                                             "type": "interesting-table-header-button",
+                                             "name": f"{element}"},
+                                         style={"white-space": "nowrap", "margin": "auto", "width": "100%",
+                                                "font-weight": "bold"}),
+                             className="interesting-table-header",
+                             style={"font-weight": "bold"})
+        else:
+            column = html.Td(html.Button(element,
+                                         id={"index": f"intertesting-table-header-{element}",
+                                             "type": "interesting-table-header-button",
+                                             "name": f"{element}"},
+                                         style={"white-space": "nowrap", "margin": "auto", "width": "100%",
+                                                "font-weight": "bold"}),
+                             className="interesting-table-header",
+                             style={"font-weight": "bold"})
+        yield column
+
 
 
 def tablerow_generator(row):
@@ -167,8 +197,11 @@ def tablerow_generator(row):
         if x == 0:
             style = {"width": "7%"}
             classname = "interesting-table-index-column"
+        elif x == 1:
+            style = {"width": "10%"}
+            classname = "interesting-table-column"
         else:
-            style = {}
+            style = {"width": f"{(100-17)/(len(row)-2)}%"}
             classname = "interesting-table-column"
         if type(col) == float:
             col_to_show = round(col, 3)
@@ -193,24 +226,27 @@ def get_app_layout(app: dash.Dash, df: Union[pd.DataFrame, str]):
         interesting = []
 
     app.layout = html.Div([
+        dcc.Location(id="url", refresh=False),
+        html.Div(html.H3("RIssmed Dasboard", style={'text-align': 'center'}), className="page-header"),
 
-        html.Div(html.H1("RIssmed Dasboard", style={'text-align': 'center'}), className="page-header"),
-        html.Div(dropdown_menues(*sel), className="databox"),
-
-        html.Div([html.H3(id='header', children=[], style={"text-align": "center"}),
-                  dcc.Graph(id='plotly_graph', figure={"layout": {"height": 700}})], className="plotly-graph"),
-        html.Div([html.H3(id='header-2', children=[], style={"text-align": "center"})]),
-        html.Div(interesting_table(interesting), className="databox", id="interesting-table-div")],
+        html.Div([html.H4(id='header', children=[], style={"text-align": "center"}),
+                  dcc.Graph(id='plotly_graph', style={"height": "100%"})], className="databox"),
+        html.Div([dropdown_menues(*sel)] + interesting_table(interesting),
+                 className="databox", id="interesting-table-div")],
         id="wrapper"
     )
 
 
-def get_interesting(db_path: str, page: int = 0):
+def get_interesting(db_path: str, page: int = 0, ordering: str = "Max_Value", sorting_clicks: int = 0):
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
+    if sorting_clicks % 2:
+        deasc = "ASC"
+    else:
+        deasc = "DESC"
     cur = conn.cursor()
     cur.execute(f"SELECT * FROM importance "
-                f"ORDER BY Max_Value DESC "
+                f"ORDER BY {ordering} {deasc} "
                 f"LIMIT {NUMBER_OF_INTERESTING} OFFSET {NUMBER_OF_INTERESTING * page}")
     return_list = cur.fetchall()
     conn.close()
@@ -277,6 +313,10 @@ def update_graph_via_pandas(slct_chrom, slct_constraint):
 
 )
 def update_graph(slct_chrom, slct_constraint):
+    print("______")
+    print(slct_chrom)
+    print("______")
+
     header = f"Changes in probabilities of being unpaired (Accessibility) for Gene {slct_chrom} at constraint {slct_constraint}"
     if MODE == "db":
         fig = update_graph_via_sql(slct_chrom, slct_constraint)
@@ -315,21 +355,42 @@ def table_click_callback(*args):
 
 @app.callback(
     [
-        Output(component_id="interesting-table-div", component_property="children")
+        Output(component_id="interesting-table-all", component_property="children"),
+        Output(component_id="url", component_property="pathname")
     ],
     [
         Input(component_id="prev-button", component_property="n_clicks"),
         Input(component_id="next-button", component_property="n_clicks"),
+        Input({"type": "interesting-table-header-button", "index": ALL, "name": ALL}, "n_clicks")
+    ],
+    [
+        State(component_id="url", component_property="pathname"),
+        State(component_id={"index": "sorting", "name": ALL, "type": ALL}, component_property="n_clicks"),
     ]
 
 )
-def table_switch_callback(prev_clicks, next_clicks):
-    page = next_clicks - prev_clicks
-    if page < 0:
+def table_switch_callback(prev_clicks, next_clicks, inputs, url, last_sort): # inputs is necessary for callback_context
+    trigger = callback_context.triggered[0]["prop_id"].split(".")[0]
+    if trigger in ["next-button", "prev-button", "", "url"]:
+        page = next_clicks - prev_clicks
+        url = url[1:] if url.startswith("/") else url
+        if page < 0:
+            next_clicks, prev_clicks, page = 0, 0, 0
+        if url == "" or url == "/":
+            sorting = "Max_Value"
+        else:
+            sorting = url
+        sorting_clicks = last_sort[0]
+        interesting = get_interesting(df, page, sorting, sorting_clicks=sorting_clicks)
+        html_table = interesting_table(interesting, prev_clicks, next_clicks, sorting, sorting_clicks=sorting_clicks)
+    else:
+        sorting_clicks = callback_context.triggered[0]["value"]
+        trigger_dict = eval(trigger)
         next_clicks, prev_clicks, page = 0, 0, 0
-    interesting = get_interesting(df, page)
-    html_table = interesting_table(interesting, prev_clicks, next_clicks)
-    return [html_table]
+        sorting = trigger_dict["name"]
+        interesting = get_interesting(df, page, sorting, sorting_clicks)
+        html_table = interesting_table(interesting, prev_clicks, next_clicks, sorting, sorting_clicks=sorting_clicks)
+    return [html_table, sorting]
 
 
 if __name__ == '__main__':
