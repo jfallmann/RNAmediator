@@ -15,10 +15,13 @@ import plotly.graph_objects as go
 import plotly.io as pio
 from dash import callback_context
 from dash.dependencies import Input, Output, State, ALL
+import base64
 
 FILEDIR = os.path.dirname(os.path.abspath(__file__))
 ASSETS_DIR = os.path.join(FILEDIR, "assets")
 app = dash.Dash("FOO", external_stylesheets=[dbc.themes.DARKLY], assets_folder=ASSETS_DIR)
+
+
 
 MODE = "db"
 NUMBER_OF_INTERESTING = 10
@@ -108,7 +111,6 @@ def main():
 
 
 def dropdown_menues(gene_id_options: List[Dict], constraint_options: List[Dict]):
-    print("dropdown-styles")
     dropdown_style = {'width': "100%", "margin": "auto", }
     dropdowns = [
         dcc.Dropdown(id="slct_chrom",
@@ -131,22 +133,64 @@ def dropdown_menues(gene_id_options: List[Dict], constraint_options: List[Dict])
         id="selection-table", style={"width": "80%", "margin": "auto"}
 
     ), id="some-id", style={"margin": "auto", "width": "100%", "height": "20%", "padding-bottom": "20px"})
-    print(menu)
+    return menu
+
+
+def search_inputs():
+    menu = html.Div(
+        [
+            html.Label(
+                "Chr",
+                htmlFor="search-chr-input",
+                className="search-label"
+
+            ),
+            dcc.Input(id="search-chr-input",
+                      className="search-input",
+                      placeholder="Search Chromosome",
+                      ),
+            html.Label(
+                "Fold Constraint",
+                htmlFor="search-chr-input",
+                className="search-label"
+            ),
+            dcc.Input(id="search-input",
+                      placeholder="Search Constraint",
+                      className="search-input",
+                      ),
+         ],
+        className="search-wrapper",
+        style={
+
+            "display": "table",
+            "margin": "auto",
+            "width": "80%",
+            'text-align': 'center'
+
+        }
+    )
     return menu
 
 
 def interesting_table(interesting: List[sqlite3.Row], prev_clicks: int = 0, next_clicks: int = 0,
                       sorting: str = "Max_Value", sorting_clicks: int = 0):
     page = next_clicks - prev_clicks
-    header = interesting[0].keys()
-    interesting = [(x + page*NUMBER_OF_INTERESTING, *element) for x, element in enumerate(interesting)]
+    if len(interesting) == 0:
+        header = ["WARNING", "No matching entries found"]
+        interesting = [(0, "-", "-")]
+        clickable = False
+    else:
+        clickable = True
+        header = interesting[0].keys()
+        interesting = [(x + page*NUMBER_OF_INTERESTING, *element) for x, element in enumerate(interesting)]
     menu = [html.Div([html.Div(html.Button("", id="prev-button", n_clicks=prev_clicks,),
                               style={"display": "table-cell", "margin": "auto", 'align-items': 'center',
                                      "justify-content": "center", "vertical-align": "middle"}),
             html.Div(html.Table(
                 [html.Tr([html.Td(html.Button("#", style={"width": "100%", "pointer-events": "None"}), 
                                   className="interesting-table-header")] +
-                         list(table_header_generator(header, sort=sorting, sorting_clicks=sorting_clicks))
+                         list(table_header_generator(header, sort=sorting, sorting_clicks=sorting_clicks,
+                                                     clickable=clickable))
                          )] +
                 [html.Tr(
                     list(tablerow_generator(entry))
@@ -163,33 +207,30 @@ def interesting_table(interesting: List[sqlite3.Row], prev_clicks: int = 0, next
     return menu
 
 
-def table_header_generator(row, sort, sorting_clicks):
+def table_header_generator(row, sort, sorting_clicks, clickable: bool = True):
     for element in row:
-
+        if clickable:
+            style = {"white-space": "nowrap", "margin": "auto", "width": "100%",
+                                            "font-weight": "bold"}
+        else:
+            style = {"white-space": "nowrap", "margin": "auto", "width": "100%",
+                     "font-weight": "bold", "pointer-events": "None", "color": "#FF7676"}
         if element == sort:
             if sorting_clicks % 2:
                 order = "\U000025B2"
             else:
                 order = "\U000025BC"
-            column = html.Td(html.Button(f"{element}{order}", n_clicks=sorting_clicks,
-                                         id={"index": "sorting",
-                                             "type": "interesting-table-header-button",
-                                             "name": f"{element}"},
-                                         style={"white-space": "nowrap", "margin": "auto", "width": "100%",
-                                                "font-weight": "bold"}),
-                             className="interesting-table-header",
-                             style={"font-weight": "bold"})
-        else:
-            column = html.Td(html.Button(element,
-                                         id={"index": f"intertesting-table-header-{element}",
-                                             "type": "interesting-table-header-button",
-                                             "name": f"{element}"},
-                                         style={"white-space": "nowrap", "margin": "auto", "width": "100%",
-                                                "font-weight": "bold"}),
-                             className="interesting-table-header",
-                             style={"font-weight": "bold"})
-        yield column
 
+        else:
+            order = ""
+        column = html.Td(html.Button(f"{element.replace('_', ' ')}{order}", n_clicks=sorting_clicks,
+                                     id={"index": "sorting",
+                                         "type": "interesting-table-header-button",
+                                         "name": f"{element}"},
+                                     style=style),
+                         className="interesting-table-header",
+                         style={"font-weight": "bold"})
+        yield column
 
 
 def tablerow_generator(row):
@@ -231,21 +272,42 @@ def get_app_layout(app: dash.Dash, df: Union[pd.DataFrame, str]):
 
         html.Div([html.H4(id='header', children=[], style={"text-align": "center"}),
                   dcc.Graph(id='plotly_graph', style={"height": "100%"})], className="databox"),
-        html.Div([dropdown_menues(*sel)] + interesting_table(interesting),
-                 className="databox", id="interesting-table-div")],
+        html.Div([search_inputs()] + interesting_table(interesting),
+                 className="databox", id="interesting-table-div"),
+        html.Div([],
+                className="", id="ingo")],
         id="wrapper"
     )
 
 
-def get_interesting(db_path: str, page: int = 0, ordering: str = "Max_Value", sorting_clicks: int = 0):
+def get_ingo():
+    img_path = os.path.join(ASSETS_DIR, "animation")
+    encoded_img = base64.b64encode(open(img_path, "rb").read())
+    svg = 'data:image/svg+xml;base64,{}'.format(encoded_img.decode())
+    ingo = html.Div(
+        [
+            html.H3("Say Hello to Ingo", style={"text-align": "center"}),
+            html.Img(src=svg)
+            ], style={"position": "relative", "height": "300"}, className="databox")
+    return ingo
+
+
+def get_interesting(db_path: str, page: int = 0, ordering: str = "Max_Value", sorting_clicks: int = 0,
+                    substrings: List[str] = None):
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     if sorting_clicks % 2:
         deasc = "ASC"
     else:
         deasc = "DESC"
+    substrings = ["", ""] if substrings is None else substrings
+    for x, element in enumerate(substrings):
+        substrings[x] = "" if element is None else element
+
     cur = conn.cursor()
     cur.execute(f"SELECT * FROM importance "
+                f"WHERE Fold_Constraint like '{substrings[0]}%' "
+                f"AND Chr like '{substrings[1]}%' "
                 f"ORDER BY {ordering} {deasc} "
                 f"LIMIT {NUMBER_OF_INTERESTING} OFFSET {NUMBER_OF_INTERESTING * page}")
     return_list = cur.fetchall()
@@ -275,14 +337,46 @@ def selectors_sql(db_path: str):
 def update_graph_via_sql(slct_chrom, slct_constraint):
     conn = sqlite3.connect(df)
     cur = conn.cursor()
-    cur.execute("SELECT Distance_to_constraint, Accessibility_difference FROM test WHERE Fold_Constraint=? AND Chr=?",
+    cur.execute("SELECT Distance_to_constraint, Accessibility_difference, Accessibility_no_constraint, "
+                "Accessibility_constraint FROM test WHERE Fold_Constraint=? AND Chr=?",
                 (slct_constraint, slct_chrom))
     rows = cur.fetchall()
-    x, y = zip(*rows)
+    if len(rows) > 0:
+        distance, acc_diff, acc_no_const, acc_cons = zip(*rows)
+    else:
+        distance = acc_diff = acc_no_const = acc_cons = []
+    test = set(distance)
+    distance = list(distance)
+    acc_diff = list(acc_diff)
+    acc_no_const = list(acc_no_const)
+    acc_cons = list(acc_cons)
+    for x in range(len(test)):
+        if x not in test:
+            distance.append(x)
+            acc_diff.append("")
+            acc_no_const.append("")
+            acc_cons.append("")
+        if -x not in test:
+            distance.append(-x)
+            acc_diff.append("")
+            acc_no_const.append("")
+            acc_cons.append("")
+        if x in test and -x in test:
+            break
+    if len(test) > 0:
+        sorted_data = sorted(zip(distance, acc_diff, acc_no_const, acc_cons))
+        distance, acc_diff, acc_no_const, acc_cons = zip(*sorted_data)
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=x, y=y, line={"width": 4, "color": PLOTLY_COLORS[0]}))
+    fig.add_trace(go.Scatter(x=distance, y=acc_diff, line={"width": 4, "color": PLOTLY_COLORS[7]},
+                             name="Accessibility Difference", visible="legendonly", connectgaps=False))
+    fig.add_trace(go.Scatter(x=distance, y=acc_no_const, line={"width": 4, "color": PLOTLY_COLORS[1]},
+                             name="Accessibility no constraint", connectgaps=False))
+    fig.add_trace(go.Scatter(x=distance, y=acc_cons, line={"width": 4, "color": PLOTLY_COLORS[0]},
+                             name="Accessibility with constraint", connectgaps=False))
     fig.layout.template = "plotly_white"
-    fig.update_yaxes(range=[-1, 1])
+    fig.update_yaxes(range=[-1, 1], title="Probability of being unpaired")
+    x_range = np.max(np.abs(distance)) if len(distance) > 0 else 120
+    fig.update_xaxes(range=[-x_range, x_range], title="Distance to constraint")
     conn.close()
     return fig
 
@@ -304,41 +398,33 @@ def update_graph_via_pandas(slct_chrom, slct_constraint):
 
 
 @app.callback(
-    [Output(component_id='header', component_property='children'),
+    [
      Output(component_id='plotly_graph', component_property='figure'),
      ],
-    [Input(component_id='slct_chrom', component_property='value'),
-     Input(component_id='slct_constraint', component_property='value'),
+    [Input(component_id='header', component_property='children'),
      ]
 
 )
-def update_graph(slct_chrom, slct_constraint):
-    print("______")
-    print(slct_chrom)
-    print("______")
-
-    header = f"Changes in probabilities of being unpaired (Accessibility) for Gene {slct_chrom} at constraint {slct_constraint}"
+def update_graph(header):
+    slct_chrom, slct_constraint = header.split(" ")
     if MODE == "db":
         fig = update_graph_via_sql(slct_chrom, slct_constraint)
     else:
         fig = update_graph_via_pandas(slct_chrom, slct_constraint)
-    return [header, fig]
+    return [fig]
 
 
 @app.callback(
     [
 
-        Output(component_id="slct_constraint", component_property="value"),
-        Output(component_id="slct_chrom", component_property="value"),
+        Output(component_id="header", component_property="children"),
+
 
     ],
     [
         Input({"type": "interesting-table-button", "index": ALL, "constraint": ALL, "chrom": ALL}, "n_clicks")
     ],
-    [
-        State(component_id="slct_constraint", component_property="value"),
-        State(component_id="slct_chrom", component_property="value"),
-     ]
+
 
 )
 def table_click_callback(*args):
@@ -348,20 +434,23 @@ def table_click_callback(*args):
         chrom = callback_dict["chrom"]
         constraint = callback_dict["constraint"]
     else:
-        constraint, chrom = args[-2:]
-    return [constraint, chrom]
+        constraint = chrom = ""
+    return [f"{chrom} {constraint}"]
 
 
 
 @app.callback(
     [
         Output(component_id="interesting-table-all", component_property="children"),
-        Output(component_id="url", component_property="pathname")
+        Output(component_id="url", component_property="pathname"),
+        Output(component_id="ingo", component_property="children")
     ],
     [
         Input(component_id="prev-button", component_property="n_clicks"),
         Input(component_id="next-button", component_property="n_clicks"),
-        Input({"type": "interesting-table-header-button", "index": ALL, "name": ALL}, "n_clicks")
+        Input({"type": "interesting-table-header-button", "index": ALL, "name": ALL}, "n_clicks"),
+        Input(component_id="search-input", component_property="value"),
+        Input(component_id="search-chr-input", component_property="value"),
     ],
     [
         State(component_id="url", component_property="pathname"),
@@ -369,28 +458,38 @@ def table_click_callback(*args):
     ]
 
 )
-def table_switch_callback(prev_clicks, next_clicks, inputs, url, last_sort): # inputs is necessary for callback_context
+def table_switch_callback(prev_clicks, next_clicks, inputs, search_input, search_chr_input, url, last_sort): # inputs is necessary for callback_context
     trigger = callback_context.triggered[0]["prop_id"].split(".")[0]
     if trigger in ["next-button", "prev-button", "", "url"]:
         page = next_clicks - prev_clicks
         url = url[1:] if url.startswith("/") else url
         if page < 0:
-            next_clicks, prev_clicks, page = 0, 0, 0
+            next_clicks = prev_clicks = page = 0
         if url == "" or url == "/":
             sorting = "Max_Value"
         else:
             sorting = url
         sorting_clicks = last_sort[0]
-        interesting = get_interesting(df, page, sorting, sorting_clicks=sorting_clicks)
-        html_table = interesting_table(interesting, prev_clicks, next_clicks, sorting, sorting_clicks=sorting_clicks)
+    elif trigger == "search-input" or trigger == "search-chr-input":
+        if url == "" or url == "/":
+            sorting = "Max_Value"
+        else:
+            sorting = url
+        next_clicks = prev_clicks = page = 0
+        sorting_clicks = 0
+
     else:
         sorting_clicks = callback_context.triggered[0]["value"]
         trigger_dict = eval(trigger)
-        next_clicks, prev_clicks, page = 0, 0, 0
+        next_clicks = prev_clicks = page = 0
         sorting = trigger_dict["name"]
-        interesting = get_interesting(df, page, sorting, sorting_clicks)
-        html_table = interesting_table(interesting, prev_clicks, next_clicks, sorting, sorting_clicks=sorting_clicks)
-    return [html_table, sorting]
+    interesting = get_interesting(df, page, sorting, sorting_clicks, [search_input, search_chr_input])
+    if search_chr_input == "ingo" or search_chr_input == "Ingo":
+        ingo = get_ingo()
+    else:
+        ingo = []
+    html_table = interesting_table(interesting, prev_clicks, next_clicks, sorting, sorting_clicks=sorting_clicks)
+    return [html_table, sorting, ingo]
 
 
 if __name__ == '__main__':
