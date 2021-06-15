@@ -1,3 +1,4 @@
+from __future__ import annotations
 import csv
 import gzip
 import os
@@ -38,7 +39,11 @@ COLUMN_NAMES = {'Chr': "VARCHAR(20)",
                 'Accessibility_constraint': "REAL",
                 'Energy_Difference': "REAL",
                 'Kd_change': "REAL",
-                'Zscore': "REAL"}
+                'Zscore': "REAL",
+                'Genomic_Start': 'INT',
+                'Genomic_END': 'INT',
+                'Gene_of_interest': 'VARCHAR(20)',
+                }
 pio.templates["plotly_white"].update({"layout": {
     # e.g. you want to change the background to transparent
     'paper_bgcolor': 'rgba(0,0,0,0)',
@@ -67,7 +72,10 @@ def csv_to_sqlite(file: str, db_path: str):
         file_handle = open(file)
     csv_reader = csv.reader(file_handle, delimiter="\t", )
     for row in csv_reader:
-        cur.execute("INSERT INTO test VALUES (?,?,?,?,?,?,?,?,?,?,?,?);", row)
+        goi, pos, genomic_pos = row[3].split("|")
+        gstart, gend = genomic_pos.split("-")
+        row = row + [int(gstart), int(gend), goi]
+        cur.execute("INSERT INTO test VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);", row)
     file_handle.close()
     con.commit()
     con.close()
@@ -80,19 +88,22 @@ def insert_interesting_table(db_path: str):
     cur.execute(f'CREATE TABLE IF NOT EXISTS importance '
                 f'( Chr VARCHAR(5), '
                 f'Fold_Constraint VARCHAR(40) PRIMARY KEY, '
+                f'Gene_of_interest VARCHAR(20), '
+                f'Genomic_Start INT,'
+                f'Genomic_End INT, '
                 f'Mean_Value REAL, '
                 f'Max_Value REAL, '
                 f' FOREIGN KEY (Fold_Constraint) REFERENCES test(Fold_Constraint)) ')
-    cur.execute("SELECT DISTINCT Fold_Constraint, Chr FROM test")
+    cur.execute("SELECT DISTINCT Fold_Constraint, Chr, Gene_of_interest, Genomic_Start, Genomic_End FROM test")
     constraints = cur.fetchall()
     for entry in constraints:
         cur.execute("SELECT Distance_to_constraint, Accessibility_difference, Chr FROM test "
-                    "WHERE Fold_Constraint=? AND Chr=?",
+                    "WHERE Fold_Constraint=? AND Chr=? AND Gene_of_interest=? AND Genomic_Start=? AND Genomic_End=?",
                     entry)
         values = cur.fetchall()
         constraint_max = np.max([abs(diff[1]) for diff in values])
         constraint_mean = np.mean([abs(diff[1]) for diff in values])
-        cur.execute("INSERT INTO importance VALUES (?, ?, ?, ?)", [entry[1], entry[0], constraint_mean, constraint_max])
+        cur.execute("INSERT INTO importance VALUES (?, ?, ?, ?, ?, ?, ?)", [entry[1], entry[0], entry[2], entry[3], entry[4], constraint_mean, constraint_max])
     con.commit()
     con.close()
 
@@ -156,6 +167,33 @@ def search_inputs():
             ),
             dcc.Input(id="search-input",
                       placeholder="Search Constraint",
+                      className="search-input",
+                      ),
+            html.Label(
+                "Gene of Interest",
+                htmlFor="search-goi-input",
+                className="search-label"
+            ),
+            dcc.Input(id="search-goi-input",
+                      placeholder="Search Gene",
+                      className="search-input",
+                      ),
+            html.Label(
+                "Span Start",
+                htmlFor="search-span-start-input",
+                className="search-label"
+            ),
+            dcc.Input(id="search-span-start-input",
+                      placeholder="Search Gene",
+                      className="search-input",
+                      ),
+            html.Label(
+                "Span End",
+                htmlFor="search-span-end-input",
+                className="search-label"
+            ),
+            dcc.Input(id="search-span-end-input",
+                      placeholder="Search Gene",
                       className="search-input",
                       ),
          ],
@@ -293,23 +331,26 @@ def get_ingo():
 
 
 def get_interesting(db_path: str, page: int = 0, ordering: str = "Max_Value", sorting_clicks: int = 0,
-                    substrings: List[str] = None):
+                    substrings: SearchSettings = None):
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     if sorting_clicks % 2:
         deasc = "ASC"
     else:
         deasc = "DESC"
-    substrings = ["", ""] if substrings is None else substrings
-    for x, element in enumerate(substrings):
-        substrings[x] = "" if element is None else element
-
+    if substrings is None:
+        substrings = SearchSettings()
+    print(substrings)
     cur = conn.cursor()
     cur.execute(f"SELECT * FROM importance "
-                f"WHERE Fold_Constraint like '{substrings[0]}%' "
-                f"AND Chr like '{substrings[1]}%' "
+                f"WHERE Fold_Constraint like '{substrings.fold_constraint}%' "
+                f"AND Chr like '{substrings.chr}%' "
+                f"AND Gene_of_interest like '{substrings.goi}%' "
+                f"AND Genomic_Start >= ? "
+                f"AND Genomic_End <= ? "
                 f"ORDER BY {ordering} {deasc} "
-                f"LIMIT {NUMBER_OF_INTERESTING} OFFSET {NUMBER_OF_INTERESTING * page}")
+                f"LIMIT {NUMBER_OF_INTERESTING} OFFSET {NUMBER_OF_INTERESTING * page}",
+                (substrings.span_start, substrings.span_end))
     return_list = cur.fetchall()
     conn.close()
     return return_list
@@ -451,6 +492,9 @@ def table_click_callback(*args):
         Input({"type": "interesting-table-header-button", "index": ALL, "name": ALL}, "n_clicks"),
         Input(component_id="search-input", component_property="value"),
         Input(component_id="search-chr-input", component_property="value"),
+        Input(component_id="search-goi-input", component_property="value"),
+        Input(component_id="search-span-start-input", component_property="value"),
+        Input(component_id="search-span-end-input", component_property="value"),
     ],
     [
         State(component_id="url", component_property="pathname"),
@@ -458,7 +502,8 @@ def table_click_callback(*args):
     ]
 
 )
-def table_switch_callback(prev_clicks, next_clicks, inputs, search_input, search_chr_input, url, last_sort): # inputs is necessary for callback_context
+def table_switch_callback(prev_clicks, next_clicks, inputs, search_input, search_chr_input,
+                          search_goi, search_span_start, search_span_end, url, last_sort): # inputs is necessary for callback_context
     trigger = callback_context.triggered[0]["prop_id"].split(".")[0]
     if trigger in ["next-button", "prev-button", "", "url"]:
         page = next_clicks - prev_clicks
@@ -470,7 +515,7 @@ def table_switch_callback(prev_clicks, next_clicks, inputs, search_input, search
         else:
             sorting = url
         sorting_clicks = last_sort[0]
-    elif trigger == "search-input" or trigger == "search-chr-input":
+    elif trigger in ["search-input", "search-chr-input", "search-goi-input", "search-span-start-input", "search-span-end-input"]:
         if url == "" or url == "/":
             sorting = "Max_Value"
         else:
@@ -483,13 +528,32 @@ def table_switch_callback(prev_clicks, next_clicks, inputs, search_input, search
         trigger_dict = eval(trigger)
         next_clicks = prev_clicks = page = 0
         sorting = trigger_dict["name"]
-    interesting = get_interesting(df, page, sorting, sorting_clicks, [search_input, search_chr_input])
+    search_settings = SearchSettings(search_input, search_chr_input, search_goi, search_span_start, search_span_end)
+    interesting = get_interesting(df, page, sorting, sorting_clicks, search_settings)
     if search_chr_input == "ingo" or search_chr_input == "Ingo":
         ingo = get_ingo()
     else:
         ingo = []
     html_table = interesting_table(interesting, prev_clicks, next_clicks, sorting, sorting_clicks=sorting_clicks)
     return [html_table, sorting, ingo]
+
+
+class SearchSettings:
+    def __init__(self, fold_constraint="", chr="", goi="", span_start=0, span_end="Infinity"):
+        self.fold_constraint = fold_constraint if fold_constraint is not None else ""
+        self.chr = chr if chr is not None else ""
+        self.goi = goi if goi is not None else ""
+        try:
+            self.span_start = int(span_start)
+        except (ValueError, TypeError):
+            self.span_start = 0
+        try:
+            self.span_end = int(span_end)
+        except (ValueError, TypeError):
+            self.span_end = "Infinity"
+
+    def __str__(self):
+        return str(self.__dict__)
 
 
 if __name__ == '__main__':
