@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+import base64
 import csv
 import gzip
 import os
@@ -16,7 +18,6 @@ import plotly.graph_objects as go
 import plotly.io as pio
 from dash import callback_context
 from dash.dependencies import Input, Output, State, ALL
-import base64
 
 FILEDIR = os.path.dirname(os.path.abspath(__file__))
 ASSETS_DIR = os.path.join(FILEDIR, "assets")
@@ -31,7 +32,6 @@ PLOTLY_COLORS = px.colors.qualitative.Light24
 COLUMN_NAMES = {'Chr': "VARCHAR(20)",
                 'Start': "INT",
                 'End': "INT",
-                'Fold_Constraint': "VARCHAR(40)",
                 'Accessibility_difference': "REAL",
                 'Strand': "VARCHAR(2)",
                 'Distance_to_constraint': "INT",
@@ -65,7 +65,10 @@ def csv_to_sqlite(file: str, db_path: str):
     columns = ", ".join(names)
     call = f'CREATE TABLE IF NOT EXISTS test ( {columns} ) '
     cur.execute(call)
-    cur.execute("CREATE INDEX constraint_index ON test (Fold_Constraint)")
+    cur.execute("CREATE INDEX goi_index ON test (Gene_of_interest)")
+    cur.execute("CREATE INDEX chr_index ON test (Chr)")
+    cur.execute("CREATE INDEX gstart_index ON test (Genomic_Start)")
+    cur.execute("CREATE INDEX gend_index ON test (Genomic_End)")
     if ".gz" in file:
         file_handle = gzip.open(file, "rt")
     else:
@@ -75,7 +78,8 @@ def csv_to_sqlite(file: str, db_path: str):
         goi, pos, genomic_pos = row[3].split("|")
         gstart, gend = genomic_pos.split("-")
         row = row + [int(gstart), int(gend), goi]
-        cur.execute("INSERT INTO test VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);", row)
+        row.pop(3)
+        cur.execute("INSERT INTO test VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?);", row)
     file_handle.close()
     con.commit()
     con.close()
@@ -87,23 +91,22 @@ def insert_interesting_table(db_path: str):
     cur = con.cursor()
     cur.execute(f'CREATE TABLE IF NOT EXISTS importance '
                 f'( Chr VARCHAR(5), '
-                f'Fold_Constraint VARCHAR(40) PRIMARY KEY, '
                 f'Gene_of_interest VARCHAR(20), '
                 f'Genomic_Start INT,'
                 f'Genomic_End INT, '
                 f'Mean_Value REAL, '
                 f'Max_Value REAL, '
-                f' FOREIGN KEY (Fold_Constraint) REFERENCES test(Fold_Constraint)) ')
-    cur.execute("SELECT DISTINCT Fold_Constraint, Chr, Gene_of_interest, Genomic_Start, Genomic_End FROM test")
+                f' FOREIGN KEY (Gene_of_interest) REFERENCES test(Gene_of_interest)) ')
+    cur.execute("SELECT DISTINCT Chr, Gene_of_interest, Genomic_Start, Genomic_End FROM test")
     constraints = cur.fetchall()
     for entry in constraints:
         cur.execute("SELECT Distance_to_constraint, Accessibility_difference, Chr FROM test "
-                    "WHERE Fold_Constraint=? AND Chr=? AND Gene_of_interest=? AND Genomic_Start=? AND Genomic_End=?",
+                    "WHERE Chr=? AND Gene_of_interest=? AND Genomic_Start=? AND Genomic_End=?",
                     entry)
         values = cur.fetchall()
         constraint_max = np.max([abs(diff[1]) for diff in values])
         constraint_mean = np.mean([abs(diff[1]) for diff in values])
-        cur.execute("INSERT INTO importance VALUES (?, ?, ?, ?, ?, ?, ?)", [entry[1], entry[0], entry[2], entry[3], entry[4], constraint_mean, constraint_max])
+        cur.execute("INSERT INTO importance VALUES (?, ?, ?, ?, ?, ?)", [entry[0], entry[1], entry[2], entry[3], constraint_mean, constraint_max])
     con.commit()
     con.close()
 
@@ -150,59 +153,67 @@ def dropdown_menues(gene_id_options: List[Dict], constraint_options: List[Dict])
 def search_inputs():
     menu = html.Div(
         [
-            html.Label(
-                "Chr",
-                htmlFor="search-chr-input",
-                className="search-label"
+            html.Nobr([
+                html.Label(
+                    "Chr",
+                    htmlFor="search-chr-input",
+                    className="search-label"
 
-            ),
-            dcc.Input(id="search-chr-input",
-                      className="search-input",
-                      placeholder="Search Chromosome",
-                      ),
-            html.Label(
-                "Fold Constraint",
-                htmlFor="search-chr-input",
-                className="search-label"
-            ),
-            dcc.Input(id="search-input",
-                      placeholder="Search Constraint",
-                      className="search-input",
-                      ),
-            html.Label(
-                "Gene of Interest",
-                htmlFor="search-goi-input",
-                className="search-label"
-            ),
-            dcc.Input(id="search-goi-input",
-                      placeholder="Search Gene",
-                      className="search-input",
-                      ),
-            html.Label(
-                "Span Start",
-                htmlFor="search-span-start-input",
-                className="search-label"
-            ),
-            dcc.Input(id="search-span-start-input",
-                      placeholder="Search Gene",
-                      className="search-input",
-                      ),
-            html.Label(
-                "Span End",
-                htmlFor="search-span-end-input",
-                className="search-label"
-            ),
-            dcc.Input(id="search-span-end-input",
-                      placeholder="Search Gene",
-                      className="search-input",
-                      ),
+                ),
+                dcc.Input(id="search-chr-input",
+                          className="search-input",
+                          placeholder="Search Chromosome",
+                          )
+            ]),
+            html.Nobr([
+                html.Label(
+                    "Fold Constraint",
+                    htmlFor="search-chr-input",
+                    className="search-label"
+                ),
+                dcc.Input(id="search-input",
+                          placeholder="Search Constraint",
+                          className="search-input",
+                          )
+            ]),
+            html.Nobr([
+                html.Label(
+                    "Gene of Interest",
+                    htmlFor="search-goi-input",
+                    className="search-label"
+                ),
+                dcc.Input(id="search-goi-input",
+                          placeholder="Search Gene",
+                          className="search-input",
+                          )
+            ]),
+            html.Nobr([
+                html.Label(
+                    "Span Start",
+                    htmlFor="search-span-start-input",
+                    className="search-label"
+                ),
+                dcc.Input(id="search-span-start-input",
+                          placeholder="Search Gene",
+                          className="search-input",
+                          )
+            ]),
+            html.Nobr([
+                html.Label(
+                    "Span End",
+                    htmlFor="search-span-end-input",
+                    className="search-label"
+                ),
+                dcc.Input(id="search-span-end-input",
+                          placeholder="Search Gene",
+                          className="search-input",
+                          )
+            ]),
          ],
         className="search-wrapper",
         style={
 
             "display": "table",
-            "margin": "auto",
-            "width": "80%",
             'text-align': 'center'
 
         }
@@ -288,8 +299,8 @@ def tablerow_generator(row):
             col_to_show = col
             col = ""
         column = html.Td(html.Button(col_to_show, id={"index": f"{x}-{row[1]}-{row[2]}", "type": "interesting-table-button",
-                                              "chrom": f"{row[1]}", "constraint": row[2]},
-                                     n_clicks=0, className=f"{row[2]}", title=f"{col}",
+                                              "chrom": f"{row[1]}", "goi": row[2], "start": row[3], "end": row[4]},
+                                     n_clicks=0, className="interesting-table-button", title=f"{col}",
                                      style={"white-space": "nowrap", "margin": "auto", "width": "100%"}),
 
                          className=classname, style=style)
@@ -298,7 +309,6 @@ def tablerow_generator(row):
 
 def get_app_layout(app: dash.Dash, df: Union[pd.DataFrame, str]):
     if MODE == "db":
-        sel = selectors_sql(df)
         interesting = get_interesting(df)
     else:
         sel = selectors_pandas(df)
@@ -306,10 +316,10 @@ def get_app_layout(app: dash.Dash, df: Union[pd.DataFrame, str]):
 
     app.layout = html.Div([
         dcc.Location(id="url", refresh=False),
-        html.Div(html.H3("RIssmed Dasboard", style={'text-align': 'center'}), className="page-header"),
+        html.Div(html.H3("RIssmed Dasboard"), className="page-header"),
 
         html.Div([html.H4(id='header', children=[], style={"text-align": "center"}),
-                  dcc.Graph(id='plotly_graph', style={"height": "100%"})], className="databox"),
+                  dcc.Graph(id='plotly_graph', style={"height": "375px"})], className="databox", id="graph-box"),
         html.Div([search_inputs()] + interesting_table(interesting),
                  className="databox", id="interesting-table-div"),
         html.Div([],
@@ -343,8 +353,7 @@ def get_interesting(db_path: str, page: int = 0, ordering: str = "Max_Value", so
     print(substrings)
     cur = conn.cursor()
     cur.execute(f"SELECT * FROM importance "
-                f"WHERE Fold_Constraint like '{substrings.fold_constraint}%' "
-                f"AND Chr like '{substrings.chr}%' "
+                f"WHERE Chr like '{substrings.chr}%' "
                 f"AND Gene_of_interest like '{substrings.goi}%' "
                 f"AND Genomic_Start >= ? "
                 f"AND Genomic_End <= ? "
@@ -375,12 +384,13 @@ def selectors_sql(db_path: str):
     return gene_id_opts, constraint_opts
 
 
-def update_graph_via_sql(slct_chrom, slct_constraint):
+def update_graph_via_sql(slct_chrom, slct_goi, slct_start, slct_end):
     conn = sqlite3.connect(df)
     cur = conn.cursor()
     cur.execute("SELECT Distance_to_constraint, Accessibility_difference, Accessibility_no_constraint, "
-                "Accessibility_constraint FROM test WHERE Fold_Constraint=? AND Chr=?",
-                (slct_constraint, slct_chrom))
+                "Accessibility_constraint FROM test WHERE Gene_of_interest=? AND Genomic_Start=? AND "
+                "Genomic_End=? AND Chr=?",
+                (slct_goi, slct_start, slct_end, slct_chrom))
     rows = cur.fetchall()
     if len(rows) > 0:
         distance, acc_diff, acc_no_const, acc_cons = zip(*rows)
@@ -447,11 +457,11 @@ def update_graph_via_pandas(slct_chrom, slct_constraint):
 
 )
 def update_graph(header):
-    slct_chrom, slct_constraint = header.split(" ")
+    slct_chrom, slct_goi, slct_start, slct_end = header.split(" ")
     if MODE == "db":
-        fig = update_graph_via_sql(slct_chrom, slct_constraint)
+        fig = update_graph_via_sql(slct_chrom, slct_goi, slct_start, slct_end)
     else:
-        fig = update_graph_via_pandas(slct_chrom, slct_constraint)
+        raise NotImplementedError
     return [fig]
 
 
@@ -463,20 +473,24 @@ def update_graph(header):
 
     ],
     [
-        Input({"type": "interesting-table-button", "index": ALL, "constraint": ALL, "chrom": ALL}, "n_clicks")
+        Input({"type": "interesting-table-button", "index": ALL, "goi": ALL, "chrom": ALL,
+               "start": ALL, "end": ALL}, "n_clicks")
     ],
 
 
 )
 def table_click_callback(*args):
     callback_dict = callback_context.triggered[0]["prop_id"].split(".")[0]
+    x = callback_context
     if callback_dict != "":
         callback_dict = eval(callback_dict)
         chrom = callback_dict["chrom"]
-        constraint = callback_dict["constraint"]
+        goi = callback_dict["goi"]
+        start = callback_dict["start"]
+        end = callback_dict["end"]
     else:
-        constraint = chrom = ""
-    return [f"{chrom} {constraint}"]
+        goi = start = end = chrom = ""
+    return [f"{chrom} {goi} {start} {end}"]
 
 
 
@@ -530,7 +544,7 @@ def table_switch_callback(prev_clicks, next_clicks, inputs, search_input, search
         sorting = trigger_dict["name"]
     search_settings = SearchSettings(search_input, search_chr_input, search_goi, search_span_start, search_span_end)
     interesting = get_interesting(df, page, sorting, sorting_clicks, search_settings)
-    if search_chr_input == "ingo" or search_chr_input == "Ingo":
+    if search_chr_input in ["ingo", "Ingo"] and search_goi in ["Flamingo", "flamingo"]:
         ingo = get_ingo()
     else:
         ingo = []

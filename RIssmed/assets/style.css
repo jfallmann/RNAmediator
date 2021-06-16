@@ -74,16 +74,18 @@
 	margin: auto;
 	margin-top: 5px;
 	margin-bottom: 5px;
+    max-height: 460px;
 
 
 }
 
 #wrapper .page-header {
+    text-align: center;
 	background-color:  #323232;
 	width: 99%;
 	border-radius: 10px;
 	border-color: black;
-	padding: 20px;
+	padding: 5px;
 	border-width: 2px;
 	border-style: solid;
 	margin: auto;
@@ -202,22 +204,33 @@
 
 }
 
+#wrapper .search-wrapper {
+        margin: auto;
+        width: 90%;
+    }
+
 
 #wrapper .search-input:focus {
     background: white;
 }
 
 
-@media screen and (min-width:4000px) {
+@media screen and (min-width:2000px) {
 
     #wrapper .databox {
-        display: table;
-        width: 48.5%;
+        width: 49%;
+        float: right;
+        margin-right: 0.5%;
+        height: 600px;
+        max-height: None;
+
+
+
+    }
+    #wrapper #graph-box {
         float: left;
-        margin: 10px;
-        min-height: 800px;
-        max-height: 800px;
-        vertical-align: middle;
+        margin-left: 0.5%;
+        width: 49%;
 
     }
     #wrapper .interesting-table-all {
@@ -226,7 +239,7 @@
     }
 }
 
-@media screen and (max-width:800px) {
+@media screen and (max-width:1100px) {
     .selection-table table tr > *{
         display: block;
         padding: 5px;
@@ -249,6 +262,26 @@
         padding-left: 20px;
         padding-right: 20px;
     }
+
+    #wrapper .search-label {
+        font-size: 12px;
+        font-weight: bold;
+    }
+    #wrapper .search-input {
+        font-size: 12px;
+    }
+    #wrapper .search-wrapper {
+        margin-left: 0;
+        margin-right: 0;
+
+    }
+    #wrapper .interesting-table button {
+        font-size: 12px;
+    }
+    #wrapper .interesting-table-header-button {
+        font-size: 12px;
+    }
+
 
 }
 
