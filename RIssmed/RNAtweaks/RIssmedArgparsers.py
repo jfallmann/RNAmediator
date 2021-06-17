@@ -257,6 +257,14 @@ def parseargs_collect_window():
     return parser.parse_args()
 
 
+def visualiziation_parser():
+    parser = argparse.ArgumentParser(description="Visualize RIssmed Output using bed files")
+    parser.add_argument("-f", "--file", type=str, help="Path to the RIssmed BED file")
+    parser.add_argument("-t", "--tmp", action="store_true", help="Will produce the database and store it in a tmp file")
+    parser.add_argument("-d", "--database", type=str, help="path to store the database file. If it already exists "
+                                                           "this file is used and -f is ignored")
+    return parser.parse_args()
+
 # Code utils
 
 # def print_globaldicts():

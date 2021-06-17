@@ -1,12 +1,12 @@
 from __future__ import annotations
-
+from tempfile import TemporaryDirectory
 import base64
 import csv
 import gzip
 import os
 import sqlite3
 from typing import Dict, List, Union
-
+from RNAtweaks.RIssmedArgparsers import visualiziation_parser
 import dash  # (version 1.12.0) pip install dash
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
@@ -106,7 +106,8 @@ def insert_interesting_table(db_path: str):
         values = cur.fetchall()
         constraint_max = np.max([abs(diff[1]) for diff in values])
         constraint_mean = np.mean([abs(diff[1]) for diff in values])
-        cur.execute("INSERT INTO importance VALUES (?, ?, ?, ?, ?, ?)", [entry[0], entry[1], entry[2], entry[3], constraint_mean, constraint_max])
+        cur.execute("INSERT INTO importance VALUES (?, ?, ?, ?, ?, ?)", [entry[0], entry[1], entry[2], entry[3],
+                                                                         constraint_mean, constraint_max])
     con.commit()
     con.close()
 
@@ -122,32 +123,6 @@ def main():
                 break
     with open("testfile.bed", "w") as handle:
         handle.write("".join(data))
-
-
-def dropdown_menues(gene_id_options: List[Dict], constraint_options: List[Dict]):
-    dropdown_style = {'width': "100%", "margin": "auto", }
-    dropdowns = [
-        dcc.Dropdown(id="slct_chrom",
-                     options=gene_id_options,
-                     multi=False,
-                     value=gene_id_options[0]["value"],
-                     style=dropdown_style),
-        dcc.Dropdown(id="slct_constraint",
-                     options=constraint_options,
-                     multi=False,
-                     value=constraint_options[0]["value"],
-                     style=dropdown_style
-                     ),
-    ]
-    menu = html.Div(html.Table(
-        html.Tr(
-            [html.Td(html.Div(col, style={"width": "100%"}), className="selection-table_interactive") for col in
-             dropdowns]
-        ),
-        id="selection-table", style={"width": "80%", "margin": "auto"}
-
-    ), id="some-id", style={"margin": "auto", "width": "100%", "height": "20%", "padding-bottom": "20px"})
-    return menu
 
 
 def search_inputs():
@@ -311,7 +286,6 @@ def get_app_layout(app: dash.Dash, df: Union[pd.DataFrame, str]):
     if MODE == "db":
         interesting = get_interesting(df)
     else:
-        sel = selectors_pandas(df)
         interesting = []
 
     app.layout = html.Div([
@@ -385,7 +359,7 @@ def selectors_sql(db_path: str):
 
 
 def update_graph_via_sql(slct_chrom, slct_goi, slct_start, slct_end):
-    conn = sqlite3.connect(df)
+    conn = sqlite3.connect(database)
     cur = conn.cursor()
     cur.execute("SELECT Distance_to_constraint, Accessibility_difference, Accessibility_no_constraint, "
                 "Accessibility_constraint FROM test WHERE Gene_of_interest=? AND Genomic_Start=? AND "
@@ -433,7 +407,7 @@ def update_graph_via_sql(slct_chrom, slct_goi, slct_start, slct_end):
 
 
 def update_graph_via_pandas(slct_chrom, slct_constraint):
-    dff = df.copy()
+    dff = database.copy()
     dff = dff[dff["Chr"] == slct_chrom]
     fig = go.Figure()
     if type(slct_constraint) == str:
@@ -543,7 +517,7 @@ def table_switch_callback(prev_clicks, next_clicks, inputs, search_input, search
         next_clicks = prev_clicks = page = 0
         sorting = trigger_dict["name"]
     search_settings = SearchSettings(search_input, search_chr_input, search_goi, search_span_start, search_span_end)
-    interesting = get_interesting(df, page, sorting, sorting_clicks, search_settings)
+    interesting = get_interesting(database, page, sorting, sorting_clicks, search_settings)
     if search_chr_input in ["ingo", "Ingo"] and search_goi in ["Flamingo", "flamingo"]:
         ingo = get_ingo()
     else:
@@ -553,9 +527,9 @@ def table_switch_callback(prev_clicks, next_clicks, inputs, search_input, search
 
 
 class SearchSettings:
-    def __init__(self, fold_constraint="", chr="", goi="", span_start=0, span_end="Infinity"):
+    def __init__(self, fold_constraint="", chromosome="", goi="", span_start=0, span_end="Infinity"):
         self.fold_constraint = fold_constraint if fold_constraint is not None else ""
-        self.chr = chr if chr is not None else ""
+        self.chr = chromosome if chromosome is not None else ""
         self.goi = goi if goi is not None else ""
         try:
             self.span_start = int(span_start)
@@ -571,13 +545,20 @@ class SearchSettings:
 
 
 if __name__ == '__main__':
-    from tempfile import TemporaryDirectory
-    with TemporaryDirectory() as handle:
-        testfile = os.path.join(FILEDIR, "testfile.bed")
-        csv_to_sqlite(testfile, os.path.join(handle, "test.db"))
-        global df
-        #df = read_data("testfile.bed")
-        df = os.path.join(handle, "test.db")
-        get_app_layout(app, df)
-        app.run_server(debug=True, port=8080, host="0.0.0.0")
+    args = visualiziation_parser()
+    bed_file = args.file
+    global database
+    if args.tmp is False:
+        database = args.database
+        tmpdir = None
+    else:
+        tmpdir = TemporaryDirectory()
+        database = os.path.join(tmpdir.name, "rissmed.db")
+
+    if not os.path.exists(database):
+        csv_to_sqlite(bed_file, database)
+    get_app_layout(app, database)
+    app.run_server(debug=True, port=8080, host="0.0.0.0")
+    if tmpdir:
+        tmpdir.cleanup()
 
