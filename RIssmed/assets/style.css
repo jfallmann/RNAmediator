@@ -61,6 +61,7 @@
 	margin-bottom: 5px;
 
 }
+
 #wrapper .databox {
 	background-color:  #323232;
 	width: 99%;
@@ -77,6 +78,10 @@
     max-height: 460px;
 
 
+}
+
+#wrapper #ingo-box{
+    max-height: 1000px;
 }
 
 #wrapper .page-header {

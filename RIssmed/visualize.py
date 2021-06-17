@@ -19,6 +19,7 @@ import plotly.io as pio
 from dash import callback_context
 from dash.dependencies import Input, Output, State, ALL
 from RNAtweaks.RIssmedArgparsers import visualiziation_parser
+import zipfile
 
 
 FILEDIR = os.path.dirname(os.path.abspath(__file__))
@@ -189,7 +190,7 @@ def interesting_table(interesting: List[sqlite3.Row], prev_clicks: int = 0, next
                       sorting: str = "Max_Value", sorting_clicks: int = 0):
     page = next_clicks - prev_clicks
     if len(interesting) == 0:
-        header = ["WARNING", "No matching entries found"]
+        header = ["WARNING", "No", "matching", "entries"]
         interesting = [(0, "-", "-", "-", "-")]
         clickable = False
     else:
@@ -298,15 +299,21 @@ def get_app_layout(dash_app: dash.Dash, df: Union[pd.DataFrame, str]):
     )
 
 
-def get_ingo():
-    img_path = os.path.join(ASSETS_DIR, "animation")
-    encoded_img = base64.b64encode(open(img_path, "rb").read())
-    svg = 'data:image/svg+xml;base64,{}'.format(encoded_img.decode())
-    ingo = html.Div(
-        [
-            html.H3("Say Hello to Ingo", style={"text-align": "center"}),
-            html.Img(src=svg)
-        ], style={"position": "relative", "height": "300"}, className="databox")
+def get_ingo(first_name, name):
+    if first_name in ["ingo", "Ingo"] and name in ["Flamingo", "flamingo"]:
+        img_path = os.path.join(ASSETS_DIR, "animation.zip")
+        with zipfile.ZipFile(img_path) as file:
+            img = file.read("animation_2.svg", pwd=b"ingo")
+        encoded_img = base64.b64encode(img)
+        svg = 'data:image/svg+xml;base64,{}'.format(encoded_img.decode())
+        ingo = html.Div(
+            [
+                html.H3("Say Hello to Ingo", style={"text-align": "center"}),
+                html.Div(html.Img(src=svg, style={"margin": "auto"}), style={"margin": "auto", "margin-top": "20px",
+                                                                             "text-align": "center"})
+            ], style={"position": "relative", "height": "300"}, className="databox", id="ingo-box")
+    else:
+        ingo = []
     return ingo
 
 
@@ -493,10 +500,7 @@ def table_switch_callback(prev_clicks, next_clicks, inputs, search_chr_input,
         sorting = trigger_dict["name"]
     search_settings = SearchSettings(search_chr_input, search_goi, search_span_start, search_span_end)
     interesting = get_interesting(database, page, sorting, sorting_clicks, search_settings)
-    if search_chr_input in ["ingo", "Ingo"] and search_goi in ["Flamingo", "flamingo"]:
-        ingo = get_ingo()
-    else:
-        ingo = []
+    ingo = get_ingo(search_chr_input, search_goi)
     html_table = interesting_table(interesting, prev_clicks, next_clicks, sorting, sorting_clicks=sorting_clicks)
     return [html_table, sorting, ingo]
 
