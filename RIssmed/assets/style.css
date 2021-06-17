@@ -75,7 +75,7 @@
 	margin: auto;
 	margin-top: 5px;
 	margin-bottom: 5px;
-    max-height: 460px;
+    max-height: 440px;
 
 
 }
@@ -188,19 +188,21 @@
 }
 
 #wrapper .search-input {
-    width: 10%;
+    width:70%;
     background: #f1fffe;
-    margin: 20px 20px 20px 0;
     padding: 10px;
     border: 1px solid #7bb6b3;
     border-radius: 0 5px 5px 0;
 
 }
+#wrapper nobr {
+    width: 100%;
+}
 #wrapper .search-label {
+    width: 30%;
     background: #7bb6b3;
     color: black;
     font-weight: bold;
-    margin: auto;
     padding: 10px;
     outline: 2px;
     border: 1px solid #7bb6b3;
@@ -268,18 +270,7 @@
         padding-right: 20px;
     }
 
-    #wrapper .search-label {
-        font-size: 12px;
-        font-weight: bold;
-    }
-    #wrapper .search-input {
-        font-size: 12px;
-    }
-    #wrapper .search-wrapper {
-        margin-left: 0;
-        margin-right: 0;
 
-    }
     #wrapper .interesting-table button {
         font-size: 12px;
     }

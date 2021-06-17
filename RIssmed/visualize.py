@@ -5,8 +5,10 @@ import csv
 import gzip
 import os
 import sqlite3
+import zipfile
 from tempfile import TemporaryDirectory
 from typing import List, Union
+
 import dash  # (version 1.12.0) pip install dash
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
@@ -18,9 +20,8 @@ import plotly.graph_objects as go
 import plotly.io as pio
 from dash import callback_context
 from dash.dependencies import Input, Output, State, ALL
-from RNAtweaks.RIssmedArgparsers import visualiziation_parser
-import zipfile
 
+from RNAtweaks.RIssmedArgparsers import visualiziation_parser
 
 FILEDIR = os.path.dirname(os.path.abspath(__file__))
 ASSETS_DIR = os.path.join(FILEDIR, "assets")
@@ -127,61 +128,65 @@ def main():
 
 
 def search_inputs():
+    columns = "p-1 col-md-3 col-sm-12 d-flex justify-content-center"
     menu = html.Div(
         [
-            html.Nobr([
-                html.Label(
-                    "Chr",
-                    htmlFor="search-chr-input",
-                    className="search-label"
+            html.Div([
+                html.Nobr([
+                    html.Label(
+                        "Chr",
+                        htmlFor="search-chr-input",
+                        className="search-label"
 
-                ),
-                dcc.Input(id="search-chr-input",
-                          className="search-input",
-                          placeholder="Search Chromosome",
-                          )
-            ]),
-            html.Nobr([
-                html.Label(
-                    "Gene of Interest",
-                    htmlFor="search-goi-input",
-                    className="search-label"
-                ),
-                dcc.Input(id="search-goi-input",
-                          placeholder="Search Gene",
-                          className="search-input",
-                          )
-            ]),
-            html.Nobr([
-                html.Label(
-                    "Span Start",
-                    htmlFor="search-span-start-input",
-                    className="search-label"
-                ),
-                dcc.Input(id="search-span-start-input",
-                          placeholder="Search Gene",
-                          className="search-input",
-                          )
-            ]),
-            html.Nobr([
-                html.Label(
-                    "Span End",
-                    htmlFor="search-span-end-input",
-                    className="search-label"
-                ),
-                dcc.Input(id="search-span-end-input",
-                          placeholder="Search Gene",
-                          className="search-input",
-                          )
-            ]),
+                    ),
+                    dcc.Input(id="search-chr-input",
+                              className="search-input",
+                              placeholder="Search Chromosome",
+                              )
+                ])
+            ], className=columns),
+            html.Div([
+                html.Nobr([
+                    html.Label(
+                        "GOI",
+                        htmlFor="search-goi-input",
+                        className="search-label"
+                    ),
+                    dcc.Input(id="search-goi-input",
+                              placeholder="Search Gene",
+                              className="search-input",
+                              )
+                ])
+            ], className=columns),
+            html.Div([
+                html.Nobr([
+                    html.Label(
+                        "Start",
+                        htmlFor="search-span-start-input",
+                        className="search-label"
+                    ),
+                    dcc.Input(id="search-span-start-input",
+                              placeholder="Search Gene",
+                              className="search-input",
+                              )
+                ])
+            ], className=columns),
+            html.Div([
+                html.Nobr([
+                    html.Label(
+                        "End",
+                        htmlFor="search-span-end-input",
+                        className="search-label"
+                    ),
+                    dcc.Input(id="search-span-end-input",
+                              placeholder="Search Gene",
+                              className="search-input",
+                              )
+                ])
+            ], className=columns),
         ],
-        className="search-wrapper",
-        style={
+        className="row justify-content-around align-items-center",
 
-            "display": "table",
-            'text-align': 'center'
-
-        }
     )
     return menu
 
@@ -196,7 +201,7 @@ def interesting_table(interesting: List[sqlite3.Row], prev_clicks: int = 0, next
     else:
         clickable = True
         header = interesting[0].keys()
-        interesting = [(x + page * NUMBER_OF_INTERESTING, *element) for x, element in enumerate(interesting)]
+        interesting = [(x + 1 + page * NUMBER_OF_INTERESTING, *element) for x, element in enumerate(interesting)]
     menu = [html.Div([html.Div(html.Button("", id="prev-button", n_clicks=prev_clicks, ),
                                style={"display": "table-cell", "margin": "auto", 'align-items': 'center',
                                       "justify-content": "center", "vertical-align": "middle"}),
@@ -292,9 +297,10 @@ def get_app_layout(dash_app: dash.Dash, df: Union[pd.DataFrame, str]):
         html.Div([html.H4(id='header', children=[], style={"text-align": "center"}),
                   dcc.Graph(id='plotly_graph', style={"height": "375px"})], className="databox", id="graph-box"),
         html.Div([search_inputs()] + interesting_table(interesting),
-                 className="databox", id="interesting-table-div"),
+                 className="databox container-fluid justify-content-center", id="interesting-table-div"),
         html.Div([],
-                 className="", id="ingo")],
+                 className="", id="ingo"),
+    ],
         id="wrapper"
     )
 
