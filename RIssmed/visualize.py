@@ -1,12 +1,12 @@
 from __future__ import annotations
-from tempfile import TemporaryDirectory
+
 import base64
 import csv
 import gzip
 import os
 import sqlite3
-from typing import Dict, List, Union
-from RNAtweaks.RIssmedArgparsers import visualiziation_parser
+from tempfile import TemporaryDirectory
+from typing import List, Union
 import dash  # (version 1.12.0) pip install dash
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
@@ -18,12 +18,12 @@ import plotly.graph_objects as go
 import plotly.io as pio
 from dash import callback_context
 from dash.dependencies import Input, Output, State, ALL
+from RNAtweaks.RIssmedArgparsers import visualiziation_parser
+
 
 FILEDIR = os.path.dirname(os.path.abspath(__file__))
 ASSETS_DIR = os.path.join(FILEDIR, "assets")
 app = dash.Dash("FOO", external_stylesheets=[dbc.themes.DARKLY], assets_folder=ASSETS_DIR)
-
-
 
 MODE = "db"
 NUMBER_OF_INTERESTING = 10
@@ -79,7 +79,7 @@ def csv_to_sqlite(file: str, db_path: str):
         gstart, gend = genomic_pos.split("-")
         row = row + [int(gstart), int(gend), goi]
         row.pop(3)
-        cur.execute("INSERT INTO test VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?);", row)
+        cur.execute('INSERT INTO test VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?);', row)
     file_handle.close()
     con.commit()
     con.close()
@@ -89,14 +89,14 @@ def csv_to_sqlite(file: str, db_path: str):
 def insert_interesting_table(db_path: str):
     con = sqlite3.connect(db_path)
     cur = con.cursor()
-    cur.execute(f'CREATE TABLE IF NOT EXISTS importance '
-                f'( Chr VARCHAR(5), '
-                f'Gene_of_interest VARCHAR(20), '
-                f'Genomic_Start INT,'
-                f'Genomic_End INT, '
-                f'Mean_Value REAL, '
-                f'Max_Value REAL, '
-                f' FOREIGN KEY (Gene_of_interest) REFERENCES test(Gene_of_interest)) ')
+    cur.execute(f"CREATE TABLE IF NOT EXISTS importance "
+                f"( Chr VARCHAR(5), "
+                f"Gene_of_interest VARCHAR(20), "
+                f"Genomic_Start INT,"
+                f"Genomic_End INT, "
+                f"Mean_Value REAL, "
+                f"Max_Value REAL, "
+                f" FOREIGN KEY (Gene_of_interest) REFERENCES test(Gene_of_interest)) ")
     cur.execute("SELECT DISTINCT Chr, Gene_of_interest, Genomic_Start, Genomic_End FROM test")
     constraints = cur.fetchall()
     for entry in constraints:
@@ -142,17 +142,6 @@ def search_inputs():
             ]),
             html.Nobr([
                 html.Label(
-                    "Fold Constraint",
-                    htmlFor="search-chr-input",
-                    className="search-label"
-                ),
-                dcc.Input(id="search-input",
-                          placeholder="Search Constraint",
-                          className="search-input",
-                          )
-            ]),
-            html.Nobr([
-                html.Label(
                     "Gene of Interest",
                     htmlFor="search-goi-input",
                     className="search-label"
@@ -184,7 +173,7 @@ def search_inputs():
                           className="search-input",
                           )
             ]),
-         ],
+        ],
         className="search-wrapper",
         style={
 
@@ -201,33 +190,35 @@ def interesting_table(interesting: List[sqlite3.Row], prev_clicks: int = 0, next
     page = next_clicks - prev_clicks
     if len(interesting) == 0:
         header = ["WARNING", "No matching entries found"]
-        interesting = [(0, "-", "-")]
+        interesting = [(0, "-", "-", "-", "-")]
         clickable = False
     else:
         clickable = True
         header = interesting[0].keys()
-        interesting = [(x + page*NUMBER_OF_INTERESTING, *element) for x, element in enumerate(interesting)]
-    menu = [html.Div([html.Div(html.Button("", id="prev-button", n_clicks=prev_clicks,),
-                              style={"display": "table-cell", "margin": "auto", 'align-items': 'center',
-                                     "justify-content": "center", "vertical-align": "middle"}),
-            html.Div(html.Table(
-                [html.Tr([html.Td(html.Button("#", style={"width": "100%", "pointer-events": "None"}), 
-                                  className="interesting-table-header")] +
-                         list(table_header_generator(header, sort=sorting, sorting_clicks=sorting_clicks,
-                                                     clickable=clickable))
-                         )] +
-                [html.Tr(
-                    list(tablerow_generator(entry))
-                ) for y, entry in enumerate(interesting)],
-                className="interesting-table-tablerows", style={"width": "100%", "margin": "auto", 'text-align': 'center'}
+        interesting = [(x + page * NUMBER_OF_INTERESTING, *element) for x, element in enumerate(interesting)]
+    menu = [html.Div([html.Div(html.Button("", id="prev-button", n_clicks=prev_clicks, ),
+                               style={"display": "table-cell", "margin": "auto", 'align-items': 'center',
+                                      "justify-content": "center", "vertical-align": "middle"}),
+                      html.Div(html.Table(
+                          [html.Tr([html.Td(html.Button("#", style={"width": "100%", "pointer-events": "None"}),
+                                            className="interesting-table-header")] +
+                                   list(table_header_generator(header, sort=sorting, sorting_clicks=sorting_clicks,
+                                                               clickable=clickable))
+                                   )] +
+                          [html.Tr(
+                              list(tablerow_generator(entry))
+                          ) for y, entry in enumerate(interesting)],
+                          className="interesting-table-tablerows",
+                          style={"width": "100%", "margin": "auto", 'text-align': 'center'}
 
-            ), style={"display": "table-cell", "width": "80%"}, className="interesting-table"),
-            html.Div(html.Button("", id="next-button", n_clicks=next_clicks,
-                                 style={"margin": "auto"}),
-                     style={"display": "table-cell", "margin": "auto", 'align-items': 'center',
-                            "justify-content": "center", "vertical-align": "middle"})
-            ], style={"display": "table", "width": "100%", 'text-align': 'center', "vertical-align": "middle"},
-                    className="interesting-table-all", id="interesting-table-all")]
+                      ), style={"display": "table-cell", "width": "80%"}, className="interesting-table"),
+                      html.Div(html.Button("", id="next-button", n_clicks=next_clicks,
+                                           style={"margin": "auto"}),
+                               style={"display": "table-cell", "margin": "auto", 'align-items': 'center',
+                                      "justify-content": "center", "vertical-align": "middle"})
+                      ],
+                     style={"display": "table", "width": "100%", 'text-align': 'center', "vertical-align": "middle"},
+                     className="interesting-table-all", id="interesting-table-all")]
     return menu
 
 
@@ -235,7 +226,7 @@ def table_header_generator(row, sort, sorting_clicks, clickable: bool = True):
     for element in row:
         if clickable:
             style = {"white-space": "nowrap", "margin": "auto", "width": "100%",
-                                            "font-weight": "bold"}
+                     "font-weight": "bold"}
         else:
             style = {"white-space": "nowrap", "margin": "auto", "width": "100%",
                      "font-weight": "bold", "pointer-events": "None", "color": "#FF7676"}
@@ -266,29 +257,34 @@ def tablerow_generator(row):
             style = {"width": "10%"}
             classname = "interesting-table-column"
         else:
-            style = {"width": f"{(100-17)/(len(row)-2)}%"}
+            style = {"width": f"{(100 - 17) / (len(row) - 2)}%"}
             classname = "interesting-table-column"
         if type(col) == float:
             col_to_show = round(col, 3)
         else:
             col_to_show = col
             col = ""
-        column = html.Td(html.Button(col_to_show, id={"index": f"{x}-{row[1]}-{row[2]}", "type": "interesting-table-button",
-                                              "chrom": f"{row[1]}", "goi": row[2], "start": row[3], "end": row[4]},
-                                     n_clicks=0, className="interesting-table-button", title=f"{col}",
+        column = html.Td(html.Button(col_to_show, id={"index": f"{x}-{row[1]}-{row[2]}",
+                                                      "type": "interesting-table-button",
+                                                      "chrom": f"{row[1]}", "goi": row[2],
+                                                      "start": row[3],
+                                                      "end": row[4]},
+                                     n_clicks=0,
+                                     className="interesting-table-button",
+                                     title=f"{col}",
                                      style={"white-space": "nowrap", "margin": "auto", "width": "100%"}),
 
                          className=classname, style=style)
         yield column
 
 
-def get_app_layout(app: dash.Dash, df: Union[pd.DataFrame, str]):
+def get_app_layout(dash_app: dash.Dash, df: Union[pd.DataFrame, str]):
     if MODE == "db":
         interesting = get_interesting(df)
     else:
         interesting = []
 
-    app.layout = html.Div([
+    dash_app.layout = html.Div([
         dcc.Location(id="url", refresh=False),
         html.Div(html.H3("RIssmed Dasboard"), className="page-header"),
 
@@ -297,7 +293,7 @@ def get_app_layout(app: dash.Dash, df: Union[pd.DataFrame, str]):
         html.Div([search_inputs()] + interesting_table(interesting),
                  className="databox", id="interesting-table-div"),
         html.Div([],
-                className="", id="ingo")],
+                 className="", id="ingo")],
         id="wrapper"
     )
 
@@ -310,7 +306,7 @@ def get_ingo():
         [
             html.H3("Say Hello to Ingo", style={"text-align": "center"}),
             html.Img(src=svg)
-            ], style={"position": "relative", "height": "300"}, className="databox")
+        ], style={"position": "relative", "height": "300"}, className="databox")
     return ingo
 
 
@@ -337,25 +333,6 @@ def get_interesting(db_path: str, page: int = 0, ordering: str = "Max_Value", so
     return_list = cur.fetchall()
     conn.close()
     return return_list
-
-
-def selectors_pandas(df: pd.DataFrame):
-    gene_id_opts = [{"label": entry, "value": entry} for entry in sorted(df["Chr"].unique())]
-    constraint_opts = [{"label": entry, "value": entry} for entry in sorted(df["Fold_Constraint"].unique())]
-    return gene_id_opts, constraint_opts
-
-
-def selectors_sql(db_path: str):
-    conn = sqlite3.connect(db_path)
-    cur = conn.cursor()
-    cur.execute("SELECT DISTINCT Fold_Constraint FROM test")
-    constraint_opts = cur.fetchall()
-    cur.execute("SELECT DISTINCT Chr FROM test")
-    gene_id_opts = cur.fetchall()
-    conn.close()
-    gene_id_opts = [{"label": entry[0], "value": entry[0]} for entry in gene_id_opts]
-    constraint_opts = [{"label": entry[0], "value": entry[0]} for entry in constraint_opts]
-    return gene_id_opts, constraint_opts
 
 
 def update_graph_via_sql(slct_chrom, slct_goi, slct_start, slct_end):
@@ -424,8 +401,8 @@ def update_graph_via_pandas(slct_chrom, slct_constraint):
 
 @app.callback(
     [
-     Output(component_id='plotly_graph', component_property='figure'),
-     ],
+        Output(component_id='plotly_graph', component_property='figure'),
+    ],
     [Input(component_id='header', component_property='children'),
      ]
 
@@ -444,18 +421,16 @@ def update_graph(header):
 
         Output(component_id="header", component_property="children"),
 
-
     ],
     [
         Input({"type": "interesting-table-button", "index": ALL, "goi": ALL, "chrom": ALL,
                "start": ALL, "end": ALL}, "n_clicks")
     ],
 
-
 )
-def table_click_callback(*args):
+def table_click_callback(*click_args):
+    assert click_args is not None
     callback_dict = callback_context.triggered[0]["prop_id"].split(".")[0]
-    x = callback_context
     if callback_dict != "":
         callback_dict = eval(callback_dict)
         chrom = callback_dict["chrom"]
@@ -465,7 +440,6 @@ def table_click_callback(*args):
     else:
         goi = start = end = chrom = ""
     return [f"{chrom} {goi} {start} {end}"]
-
 
 
 @app.callback(
@@ -478,7 +452,6 @@ def table_click_callback(*args):
         Input(component_id="prev-button", component_property="n_clicks"),
         Input(component_id="next-button", component_property="n_clicks"),
         Input({"type": "interesting-table-header-button", "index": ALL, "name": ALL}, "n_clicks"),
-        Input(component_id="search-input", component_property="value"),
         Input(component_id="search-chr-input", component_property="value"),
         Input(component_id="search-goi-input", component_property="value"),
         Input(component_id="search-span-start-input", component_property="value"),
@@ -490,8 +463,9 @@ def table_click_callback(*args):
     ]
 
 )
-def table_switch_callback(prev_clicks, next_clicks, inputs, search_input, search_chr_input,
-                          search_goi, search_span_start, search_span_end, url, last_sort): # inputs is necessary for callback_context
+def table_switch_callback(prev_clicks, next_clicks, inputs, search_chr_input,
+                          search_goi, search_span_start, search_span_end, url,
+                          last_sort):  # inputs is necessary for callback_context
     trigger = callback_context.triggered[0]["prop_id"].split(".")[0]
     if trigger in ["next-button", "prev-button", "", "url"]:
         page = next_clicks - prev_clicks
@@ -503,7 +477,8 @@ def table_switch_callback(prev_clicks, next_clicks, inputs, search_input, search
         else:
             sorting = url
         sorting_clicks = last_sort[0]
-    elif trigger in ["search-input", "search-chr-input", "search-goi-input", "search-span-start-input", "search-span-end-input"]:
+    elif trigger in ["search-input", "search-chr-input", "search-goi-input", "search-span-start-input",
+                     "search-span-end-input"]:
         if url == "" or url == "/":
             sorting = "Max_Value"
         else:
@@ -516,7 +491,7 @@ def table_switch_callback(prev_clicks, next_clicks, inputs, search_input, search
         trigger_dict = eval(trigger)
         next_clicks = prev_clicks = page = 0
         sorting = trigger_dict["name"]
-    search_settings = SearchSettings(search_input, search_chr_input, search_goi, search_span_start, search_span_end)
+    search_settings = SearchSettings(search_chr_input, search_goi, search_span_start, search_span_end)
     interesting = get_interesting(database, page, sorting, sorting_clicks, search_settings)
     if search_chr_input in ["ingo", "Ingo"] and search_goi in ["Flamingo", "flamingo"]:
         ingo = get_ingo()
@@ -527,8 +502,7 @@ def table_switch_callback(prev_clicks, next_clicks, inputs, search_input, search
 
 
 class SearchSettings:
-    def __init__(self, fold_constraint="", chromosome="", goi="", span_start=0, span_end="Infinity"):
-        self.fold_constraint = fold_constraint if fold_constraint is not None else ""
+    def __init__(self, chromosome="", goi="", span_start=0, span_end="Infinity"):
         self.chr = chromosome if chromosome is not None else ""
         self.goi = goi if goi is not None else ""
         try:
@@ -561,4 +535,3 @@ if __name__ == '__main__':
     app.run_server(debug=True, port=8080, host="0.0.0.0")
     if tmpdir:
         tmpdir.cleanup()
-
