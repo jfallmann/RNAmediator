@@ -46,16 +46,12 @@
 
 # Code:
 
-from random import choices, choice, shuffle
-import argparse
-import os, sys, inspect
-import time
+from random import choice, shuffle
 from io import StringIO
 import gzip
-import traceback as tb
 # own
-from Collection import *
-from logger import makelogdir, setup_logger
+from RIssmed.RNAtweaks.RIssmedArgparsers import *
+from RIssmed.RNAtweaks.logger import makelogdir, setup_logger
 # Create log dir
 makelogdir('LOGS')
 # Define loggers

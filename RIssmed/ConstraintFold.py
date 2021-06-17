@@ -67,40 +67,20 @@
 ##
 ### Code:
 ### IMPORTS
-import os
-import sys
-import inspect
 # other modules
-import argparse
-import pprint
-from io import StringIO
-import time
-import math
-import gzip
-import copy
 import importlib
 import multiprocessing
-from multiprocessing import get_context
-import traceback as tb
-import shutil
 import shlex
-from Randseq import createrandseq
 # Biopython stuff
 from Bio import SeqIO
-from Bio.Seq import Seq
 # numpy
-import numpy as np
-from random import choices, choice, shuffle  # need this if tempprobing was choosen
 # RNA
-import RNA
 # Logging
 import datetime
-import logging
-from lib.logger import makelogdir, makelogfile, listener_process, listener_configurer, worker_configurer
+from RIssmed.RNAtweaks.logger import makelogdir, makelogfile, listener_process, listener_configurer, worker_configurer
 # load own modules
-from lib.Collection import *
-from lib.FileProcessor import *
-from lib.RNAtweaks import *
+from RIssmed.RNAtweaks.FileProcessor import *
+from RIssmed.RNAtweaks.RNAtweaks import *
 from lib.NPtweaks import *
 
 
@@ -206,10 +186,10 @@ def fold(sequence, window, span, unconstraint, unpaired, paired, length, gc, num
                         f = open(constrain,'rt')
                     if any(x in constrain for x in ['paired','Paired']):
                         log.info(logid+'Reading paired constraints')
-                        constraintlist = readPairedConstraintsFromBed(f)
+                        constraintlist = read_paired_constraints_from_bed(f)
                     else:
                         log.info(logid+'Reading single constraints')
-                        constraintlist = readConstraintsFromBed(f)
+                        constraintlist = read_constraints_from_bed(f)
                 elif '.csv' in constrain:
                     if '.gz' in constrain:
                         f = gzip.open(constrain,'rt')
@@ -221,7 +201,7 @@ def fold(sequence, window, span, unconstraint, unpaired, paired, length, gc, num
                         f = gzip.open(constrain,'rt')
                     else:
                         f = open(constrain,'rt')
-                    constraintlist = readConstraintsFromGeneric(f)
+                    constraintlist = read_constraints_from_generic(f)
                 f.close()
 
             elif constrain == 'file' or constrain == 'paired':

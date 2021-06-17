@@ -67,31 +67,22 @@
 ##
 ### Code:
 ### IMPORTS
-import os, sys, inspect
+import os
 
 #other modules
-import argparse
-import pprint
 from io import StringIO
-import time
-import math
 import gzip
 import importlib
-import multiprocessing
 from multiprocessing import get_context
-import traceback as tb
 import shutil
 import shlex
 #Biopython stuff
 from Bio import SeqIO
-from Bio.Seq import Seq
 #numpy and matplolib and pyplot
-import numpy as np
-from random import choices, choice, shuffle # need this if tempprobing was choosen
 
 #Logging
 import datetime
-from lib.logger import makelogdir, setup_multiprocess_logger
+from RIssmed.RNAtweaks.logger import makelogdir, setup_multiprocess_logger
 
 scriptname = os.path.basename(__file__).replace('.py','')
 makelogdir('LOGS')
@@ -106,7 +97,7 @@ log = setup_multiprocess_logger(name=scriptname, log_file=logfile, filemode='a',
 log = setup_multiprocess_logger(name='', log_file='stderr', logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s', datefmt='%m-%d %H:%M')
 
 ##load own modules
-from lib.Collection import *
+from RIssmed.RNAtweaks.RIssmedArgparsers import *
 from lib.Randseq import createrandseq
 
 def parseargs():
