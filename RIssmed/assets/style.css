@@ -47,47 +47,23 @@
     margin: auto;
 }
 
-#wrapper .plotly-graph {
-	background-color:  #323232;
-	width: 99%;
-    height: 90%;
-	border-radius: 10px;
-	border-color: black;
-	padding: 20px;
-	border-width: 2px;
-	border-style: solid;
-	margin: auto;
-	margin-top: 5px;
-	margin-bottom: 5px;
 
-}
 
 #wrapper .databox {
 	background-color:  #323232;
-	width: 99%;
-    resize: vertical;
-    overflow-y: auto;
+    height: 100%;
 	border-radius: 10px;
 	border-color: black;
-	padding: 20px;
 	border-width: 2px;
 	border-style: solid;
-	margin: auto;
-	margin-top: 5px;
-	margin-bottom: 5px;
-    max-height: 440px;
 
 
-}
 
-#wrapper #ingo-box{
-    max-height: 1000px;
 }
 
 #wrapper .page-header {
     text-align: center;
 	background-color:  #323232;
-	width: 99%;
 	border-radius: 10px;
 	border-color: black;
 	padding: 5px;
@@ -123,6 +99,13 @@
 
 }
 
+#wrapper .interesting-table {
+    border: 2px solid black;
+    border-radius: 10px;
+    margin: 0;
+    width: 100%;
+}
+
 
 
 #wrapper .interesting-table-tablerows tr {
@@ -149,41 +132,44 @@
     border-radius: 10px;
     overflow: hidden;
     border-collapse: separate;
+    width: 100%;
 }
 
-#wrapper #next-button {
+#wrapper .next-button {
     width: 0;
 	height: 0;
     content: "";
     outline: none;
     background-color: Transparent;
-    border-top: 25px solid transparent;
-	border-left: 50px solid #7d7d7d;
+    border-top: 20px solid transparent;
+	border-left: 40px solid #7d7d7d;
     border-right: None;
-	border-bottom: 25px solid transparent;
+	border-bottom: 20px solid transparent;
     text-decoration: None;
     margin:inherit;
-
-}
-#wrapper #next-button:hover {
-    border-left: 50px solid #7bb6b3;
-
 }
 
-#wrapper #prev-button {
+#wrapper .next-button:hover {
+    border-left: 40px solid #7bb6b3;
+
+}
+
+
+#wrapper .prev-button {
     width: 0;
 	height: 0;
     content: "";
     outline: none;
+    margin: auto;
     background-color: Transparent;
-    border-top: 25px solid transparent;
-	border-right: 50px solid #7d7d7d;
+    border-top: 20px solid transparent;
+	border-right: 40px solid #7d7d7d;
     border-left: None;
-	border-bottom: 25px solid transparent;
+	border-bottom: 20px solid transparent;
     text-decoration: None;
 }
-#wrapper #prev-button:hover {
-    border-right: 50px solid #7bb6b3;
+#wrapper .prev-button:hover {
+    border-right: 40px solid #7bb6b3;
 
 }
 
@@ -200,6 +186,7 @@
 }
 #wrapper .search-label {
     width: 30%;
+    margin: 0;
     background: #7bb6b3;
     color: black;
     font-weight: bold;
@@ -221,30 +208,10 @@
     background: white;
 }
 
+@media screen and (min-width: 768px) {
 
-@media screen and (min-width:2000px) {
-
-    #wrapper .databox {
-        width: 49%;
-        float: right;
-        margin-right: 0.5%;
-        height: 600px;
-        max-height: None;
-
-
-
-    }
-    #wrapper #graph-box {
-        float: left;
-        margin-left: 0.5%;
-        width: 49%;
-
-    }
-    #wrapper .interesting-table-all {
-        display: table-cell;
-        vertical-align: middle;
-    }
 }
+
 
 @media screen and (max-width:1100px) {
     .selection-table table tr > *{
@@ -259,9 +226,7 @@
         height: 45px;
 
     }
-    .databox {
-        overflow-x: auto;
-    }
+
 
     #wrapper .interesting-table {
         margin-left: 20px;
