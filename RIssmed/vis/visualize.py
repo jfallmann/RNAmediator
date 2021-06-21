@@ -6,10 +6,9 @@ import gzip
 import os
 import sqlite3
 import zipfile
-from tempfile import TemporaryDirectory, NamedTemporaryFile
+from tempfile import TemporaryDirectory
 from typing import List, Union
-import binascii
-import io
+
 import dash  # (version 1.12.0) pip install dash
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
@@ -22,7 +21,7 @@ import plotly.io as pio
 from dash import callback_context
 from dash.dependencies import Input, Output, State, ALL
 
-from RNAtweaks.RIssmedArgparsers import visualiziation_parser
+from RIssmed.RNAtweaks.RIssmedArgparsers import visualiziation_parser
 
 FILEDIR = os.path.dirname(os.path.abspath(__file__))
 ASSETS_DIR = os.path.join(FILEDIR, "assets")
@@ -125,7 +124,7 @@ def main():
                 data.append(line)
             if x == 300000:
                 break
-    with open("testfile.bed", "w") as handle:
+    with open("../testfile.bed", "w") as handle:
         handle.write("".join(data))
 
 
@@ -277,23 +276,8 @@ def tablerow_generator(row):
         yield column
 
 
-def get_app_layout(dash_app: dash.Dash, df: Union[pd.DataFrame, str]):
-    if MODE == "db":
-        interesting = get_interesting(df)
-    else:
-        interesting = []
-
-    dash_app.layout = html.Div([
-        dcc.Location(id="url", refresh=False),
-
-        html.Div([
-            html.Div(html.Div(html.H3("RIssmed Dasboard"), className="databox", style={"text-align": "center"}), className="col-12 p-1 justify-content-center"),
-            html.Div([
-                html.Div([html.H4(id='header', children=[], style={"text-align": "center"}),
-                          dcc.Graph(id='plotly_graph', style={"height": "375px"}),
-                          html.Button("Download", id="download-btn"), dcc.Download(id="download-image"),
-                          html.Button("Download", type="button", id="open"),
-                          dbc.Modal([
+def modal_image_download():
+    modal = dbc.Modal([
                               dbc.ModalHeader("Select Format"),
                               dbc.ModalBody([
                                   html.Div([
@@ -307,18 +291,41 @@ def get_app_layout(dash_app: dash.Dash, df: Union[pd.DataFrame, str]):
                                   )
                               ),
                           ], id="modal")
+    return modal
 
 
-                          ], className="databox",
+def get_app_layout(dash_app: dash.Dash, df: Union[pd.DataFrame, str]):
+    if MODE == "db":
+        interesting = get_interesting(df)
+    else:
+        interesting = []
+
+    dash_app.layout = html.Div([
+        dcc.Location(id="url", refresh=False),
+
+        html.Div([
+            html.Div(html.Div(html.H3("RIssmed Dasboard"), className="databox", style={"text-align": "center"}),
+                     className="col-12 p-1 justify-content-center"),
+            html.Div([
+                html.Div([
+                    html.Div([
+                        html.H4(id='header', children=[], style={"text-align": "center"}),
+                        dcc.Graph(id='plotly_graph', style={"height": "375px"}, className="col-12"),
+                        dcc.Download(id="download-image"),
+                        html.Button("Download", type="button", id="open", className="btn btn-primary m-2 col-5"),
+                        modal_image_download(),
+                    ], className="row justify-content-center"),
+
+                ], className="databox",
                          id="graph-box"),
             ], className="col-12 p-1"),
 
             html.Div([
                 html.Div([search_inputs(), html.Div(interesting_table(interesting), id="interesting-table-all", className="row justify-content-center m-1")],
-                         className="databox", id="interesting-table-div"),
+                         className="databox", id="interesting-table-div",  style={"height": "100%"}),
 
-            ], className="col-12 p-1 justify-content-center"),
-        ], className="row justify-content-between"),
+            ], className="col-12 p-1 justify-content-center",  style={"max-height": "50%"}),
+        ], className="row justify-content-between", id="100-box"),
         html.Div([],
                  className="row", id="ingo"),
     ],

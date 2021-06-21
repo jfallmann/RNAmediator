@@ -41,4 +41,3 @@ jobs:
         source activate rissmed
         pytest
 
->>>>>>> rewrite-functions

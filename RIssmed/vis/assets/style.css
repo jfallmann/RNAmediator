@@ -82,6 +82,7 @@
     text-align: center;
 }
 
+
 #wrapper .interesting-table-tablerows button {
     background-color: Transparent;
     display: table-cell;
@@ -105,7 +106,6 @@
     margin: 0;
     width: 100%;
 }
-
 
 
 #wrapper .interesting-table-tablerows tr {
