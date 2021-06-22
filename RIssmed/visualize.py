@@ -38,7 +38,7 @@ pio.templates["plotly_white"].update({"layout": {
 
 def get_app_layout(dash_app: dash.Dash, df:  str):
     interesting = get_interesting(df, number_of_interesting=NUMBER_OF_INTERESTING)
-
+    print("get app layout")
     dash_app.layout = html.Div([
         dcc.Location(id="url", refresh=False),
 
@@ -272,7 +272,7 @@ def download_image(svg, pdf, fig, header):
     if image_format == "png":
         with TemporaryDirectory() as handle:
             file_name = os.path.join(handle, f"{header}.{image_format}")
-            fig.write_image(file_name, format="png")
+            fig.write_image(file_name, format="png", scale=3)
             return dcc.send_file(file_name)
     else:
         image = fig.to_image(format=image_format)
@@ -295,16 +295,20 @@ if __name__ == '__main__':
     args = visualiziation_parser()
     bed_file = args.file
     global database
-    if args.tmp is False:
+    if args.memory is True:
+        database = ":memory:"
+        tmpdir = None
+        raise NotImplementedError("Might be implemented in following versions")
+    elif args.tmp is True:
+        tmpdir = TemporaryDirectory(prefix="RIssmed_",)
+        database = os.path.join(tmpdir.name, "rissmed.db")
+    else:
         database = args.database
         tmpdir = None
-    else:
-        tmpdir = TemporaryDirectory()
-        database = os.path.join(tmpdir.name, "rissmed.db")
 
     if not os.path.exists(database):
         csv_to_sqlite(bed_file, database)
     get_app_layout(app, database)
-    app.run_server(debug=True, port=8080, host="0.0.0.0")
+    app.run_server(debug=False, port=8080, host="0.0.0.0")
     if tmpdir:
         tmpdir.cleanup()
