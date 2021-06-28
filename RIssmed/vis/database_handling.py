@@ -68,7 +68,6 @@ def get_interesting(db_path: str, page: int = 0, ordering: str = "Max_Value", so
     return return_list
 
 
-
 def csv_to_sqlite(file: str, db_path: str):
     assert not os.path.exists(db_path), "database already exists."
     con = sqlite3.connect(db_path)
