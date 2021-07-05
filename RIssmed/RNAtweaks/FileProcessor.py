@@ -106,7 +106,7 @@ def parseseq(sequence):
                 seq = open(sequence, 'rt')
         else:
             header = ">Seq1:default:nochrom:(.)"
-            s = sequence
+            s = sequence.upper()
             seq = StringIO("{header}\n{s}".format(header=header, s=s))
 
         return seq

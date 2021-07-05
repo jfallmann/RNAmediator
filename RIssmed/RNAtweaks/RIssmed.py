@@ -1,4 +1,4 @@
-from __future__ import annotations
+from __future__ import annotations  # It will become the default in Python 3.10.
 from typing import Iterable, Tuple, Union, Dict, List
 from dataclasses import dataclass
 import logging
@@ -21,7 +21,7 @@ SCRIPTNAME = os.path.basename(__file__).replace('.py', '')
 
 
 class SequenceSettings:
-    """ConstraintPLfold settings for a sequence object
+    """Constraint(PL)fold settings for a sequence object
         Attributes
        ----------
         sequence_record : SeqIO.SeqRecord
@@ -40,7 +40,7 @@ class SequenceSettings:
     def __init__(self, sequence_record: SeqIO.SeqRecord, gene: str = "nogene", chrom: str = "nochrom",
                  strand: str = "+",
                  constrainlist: Iterable[Tuple[Constraint]] = None, genomic_coords: Constraint = None):
-        self.sequence_record = sequence_record
+        self.sequence_record = sequence_record  #TODO Hier muessen wir sicher gehen das immer .upper() verwendet wird, also wahrscheilich am eifachsten hier abfangen oder dafuer sorgen das in jeder funktion in der auf sequence_record.seq zugegriffen wird immer .upper() verwendet wird
         self._constrainlist = list(constrainlist)
         if strand in ["+", "-"]:
             self.strand = strand
@@ -205,7 +205,7 @@ def add_rissmed_constraint(run_settings: Dict[str, SequenceSettings], constraint
                object.
            """
     cons_list = []
-    for constraint in constraints.split(":"):  # Should now work with paired constraints split via : seperator
+    for constraint in constraints.split(":"):  # Should now work with paired constraints split via : separator
         cons, cons_strand = constraint.split("|")
         cons_start, cons_end = cons.split("-")
         cons_list.append(Constraint(int(cons_start), int(cons_end), cons_strand))
@@ -221,7 +221,7 @@ def add_rissmed_constraint(run_settings: Dict[str, SequenceSettings], constraint
 
 # put this into Fileprocessing ?
 def read_constraints(constrain: str, linewise: bool = False) -> Dict[str, List[str]]:
-    """Reads constrains from the constraints file
+    """Reads constraints from the constraints file
 
            Parameters
            ----------
@@ -263,11 +263,29 @@ def read_constraints(constrain: str, linewise: bool = False) -> Dict[str, List[s
                 f = open(constrain, 'rt')
             constraintlist = read_constraints_from_generic(f, linewise)
         f.close()
+    elif constrain == 'file' or constrain == 'paired':
+        log.info(logid+'Calculating probs for constraint from file ' + str(goi + '_constraints'))
+        with open(goi+'_constraints','rt') as o:
+            for line in o:
+                conslist.append(line.rstrip())
+    elif constrain == 'none':
+        constraintlist = ['NOCONS']
+    elif constrain == 'sliding':
+        constraintlist = list()
+    elif '-' in constrain:
+        log.info(logid+'Calculating probs for constraint ' + constrain)
+        constraintlist = constrain.split(',')
+    elif constraint == 'temperature':
+        log.info(logid+'Calculating probs for temperature constraint'+temprange)
+        raise NotImplementedError("Temperature range folding needs to be reimplemented")
+    else:
+        log.error(logid+'Could not compute constraints from input '+str(constrain))
+        sys.exit()
     return constraintlist
 
 
 def preprocess(sequence: str, constrain: str, conslength: int, outdir: str, genes: str):
-    """builds the run settings dict and creates theoutput directory
+    """builds the run settings dict and creates the output directory
 
        Parameters
        ----------
@@ -301,7 +319,9 @@ def preprocess(sequence: str, constrain: str, conslength: int, outdir: str, gene
             outdir = os.path.abspath(os.getcwd())
 
         run_settings = get_run_settings_dict(sequence, constrain, conslength, genes)
+
         return run_settings, outdir
+
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
@@ -310,10 +330,26 @@ def preprocess(sequence: str, constrain: str, conslength: int, outdir: str, gene
         log.error(logid+''.join(tbe.format()))
 
 
-def rissmed_logging_setup(logdir: str, loglevel: str):
+def rissmed_logging_setup(logdir: str, loglevel: str, runscript: str):
+    """creates log dir and log file according to runscript
+
+       Parameters
+       ----------
+        logdir : str
+           The directory for log files
+        loglevel : str
+           The level for logging
+        runscript : str
+            Name of the script for which logging is set up
+
+       Returns
+       -------
+       Tuple[queue, listener, worker_configurer]
+           multiprocessing queue, listener process and settings for worker thread logging
+       """
 
     ts = str(datetime.datetime.now().strftime("%Y%m%d_%H_%M_%S_%f"))
-    logfile = str.join(os.sep, [os.path.abspath(logdir), SCRIPTNAME + '_' + ts + '.log'])
+    logfile = str.join(os.sep, [os.path.abspath(logdir), runscript + '_' + ts + '.log'])
     makelogdir(logdir)
     makelogfile(logfile)
     if multiprocessing.get_start_method(allow_none=True) != "spawn":
@@ -322,6 +358,7 @@ def rissmed_logging_setup(logdir: str, loglevel: str):
     listener = multiprocessing.Process(target=listener_process, args=(queue, listener_configurer, logfile, loglevel))
     listener.start()
     worker_configurer(queue, loglevel)
+
     return queue, listener, worker_configurer
 
 

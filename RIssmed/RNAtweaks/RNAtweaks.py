@@ -11,6 +11,18 @@ from collections import defaultdict
 from tempfile import NamedTemporaryFile, TemporaryDirectory
 from typing import Iterable, Tuple
 
+# set path for VRNA lib if necessary
+# not supported anymore needs to be added in the RNAtweaks file
+# if vrna:
+#     sys.path = [vrna] + sys.path
+#     global RNA
+#     RNA = importlib.import_module('RNA')
+#     globals().update(
+#         {n: getattr(RNA, n) for n in RNA.__all__}
+#         if hasattr(RNA, '__all__')
+#         else {k: v for (k, v) in RNA.__dict__.items() if not k.startswith('_')}
+#        )
+
 import RNA
 import numpy as np
 
@@ -141,8 +153,8 @@ def _calc_ddg(ddgs):
         both_cons_up = ddgs['bothconstraint_unpaired']
         uncons = ddgs['unconstraint']
         ddg = cons_up + sec_cons_up - both_cons_up - uncons
-        """Yi-Hsuan Lin, Ralf Bundschuh, RNA structure generates natural cooperativity between 
-        single-stranded RNA binding proteins targeting 5' and 3'UTRs, Nucleic Acids Research, 
+        """Yi-Hsuan Lin, Ralf Bundschuh, RNA structure generates natural cooperativity between
+        single-stranded RNA binding proteins targeting 5' and 3'UTRs, Nucleic Acids Research,
         Volume 43, Issue 2, 30 January 2015, Pages 1160-1169, https://doi.org/10.1093/nar/gku1320"""
 
         return ddg
