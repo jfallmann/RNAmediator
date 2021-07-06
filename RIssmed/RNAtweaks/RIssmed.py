@@ -7,6 +7,7 @@ import os
 import sys
 import traceback as tb
 from Bio import SeqIO
+from Bio.Seq import Seq
 from RIssmed.RNAtweaks.FileProcessor import parseseq, idfromfa, parse_annotation_bed, \
     read_constraints_from_bed, read_constraints_from_csv, read_constraints_from_generic, \
     read_paired_constraints_from_bed
@@ -40,7 +41,8 @@ class SequenceSettings:
     def __init__(self, sequence_record: SeqIO.SeqRecord, gene: str = "nogene", chrom: str = "nochrom",
                  strand: str = "+",
                  constrainlist: Iterable[Tuple[Constraint]] = None, genomic_coords: Constraint = None):
-        self.sequence_record = sequence_record  #TODO Hier muessen wir sicher gehen das immer .upper() verwendet wird, also wahrscheilich am eifachsten hier abfangen oder dafuer sorgen das in jeder funktion in der auf sequence_record.seq zugegriffen wird immer .upper() verwendet wird
+        sequence_record.seq = Seq(str(sequence_record.seq).upper().replace("T", "U"))
+        self.sequence_record = sequence_record
         self._constrainlist = list(constrainlist)
         if strand in ["+", "-"]:
             self.strand = strand
