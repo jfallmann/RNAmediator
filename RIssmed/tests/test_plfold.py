@@ -19,7 +19,7 @@ EXPECTED_RESULTS = os.path.join(TESTFOLDER, "Expected_Results")
 TESTDATAPATH = os.path.join(TESTFOLDER, "testdata")
 
 TMP_DIR = TemporaryDirectory()
-TMP_TEST_DIR = TMP_DIR.name
+TMP_TEST_DIR = "./"
 
 
 @pytest.fixture()
@@ -131,8 +131,8 @@ def paired_constraint_args(default_args):
     default_args.sequence = os.path.join(TESTDATAPATH, "test.fa.gz")
     default_args.constrain = os.path.join(TESTDATAPATH, "paired_constraints.bed")
     default_args.conslength = 7
-    default_args.window = 20
-    default_args.span = 20
+    default_args.window = 60
+    default_args.span = 60
     default_args.region = 7
     default_args.unpaired = "unpaired"
     default_args.paired = "paired"
@@ -201,6 +201,9 @@ def test_data_available():
 
 def test_paired_constraint(paired_constraint_args):
     pl_main(paired_constraint_args)
+    expected_path = os.path.join(EXPECTED_RESULTS, "paired_constraint_result")
+    test_path = paired_constraint_args.outdir
+    compare_output_folders(test_path=test_path, expected_path=expected_path)
     # TODO: Not done yet but settings for paired constraints work now
 
 
