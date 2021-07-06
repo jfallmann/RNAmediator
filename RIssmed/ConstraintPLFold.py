@@ -67,7 +67,7 @@
 
 ### Code:
 ## IMPORTS
-from __future__ import annotations
+from __future__ import annotations  # It will become the default in Python 3.10
 
 # numpy
 # RNA
@@ -99,18 +99,6 @@ def pl_fold(window, span, region, multi, unconstraint, unpaired, paired, save, p
     try:
         if queue and level:
             configurer(queue, level)
-
-        # set path for VRNA lib if necessary
-        # not supported anymore needs to be added in the RNAtweaks file
-        # if vrna:
-        #     sys.path = [vrna] + sys.path
-        #     global RNA
-        #     RNA = importlib.import_module('RNA')
-        #     globals().update(
-        #         {n: getattr(RNA, n) for n in RNA.__all__}
-        #         if hasattr(RNA, '__all__')
-        #         else {k: v for (k, v) in RNA.__dict__.items() if not k.startswith('_')}
-        #         )
 
         # Create process pool with processes
         num_processes = procs or 1
@@ -643,7 +631,7 @@ def main(args):
 
     logid = SCRIPTNAME + '.main: '
     try:
-        queue, listener, worker_configurer = rissmed_logging_setup(args.logdir, args.loglevel)
+        queue, listener, worker_configurer = rissmed_logging_setup(args.logdir, args.loglevel, SCRIPTNAME)
 
         log.info(logid + 'Running ' + SCRIPTNAME + ' on ' + str(args.procs) + ' cores.')
         log.info(logid+'CLI: '+sys.argv[0]+' '+'{}'.format(' '.join([shlex.quote(s) for s in sys.argv[1:]])))

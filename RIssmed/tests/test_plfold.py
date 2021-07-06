@@ -19,7 +19,7 @@ EXPECTED_RESULTS = os.path.join(TESTFOLDER, "Expected_Results")
 TESTDATAPATH = os.path.join(TESTFOLDER, "testdata")
 
 TMP_DIR = TemporaryDirectory()
-TMP_TEST_DIR = "./"
+TMP_TEST_DIR = TMP_DIR.name
 
 
 @pytest.fixture()

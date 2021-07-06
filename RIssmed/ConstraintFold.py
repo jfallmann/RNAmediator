@@ -88,156 +88,37 @@ log = logging.getLogger(__name__)  # use module name
 scriptname = os.path.basename(__file__).replace('.py', '')
 
 
-def preprocess(queue, configurer, level, sequence, window, span, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, save, procs, vrna, temprange, outdir, genes, verbosity=False, pattern=None, cutoff=None):
-
-    logid = scriptname+'.preprocess: '
-
-    try:
-        if queue and level:
-            configurer(queue, level)
-
-        #set path for output
-        if outdir:
-            if not os.path.isabs(outdir):
-                outdir = os.path.abspath(outdir)
-            if not os.path.exists(outdir):
-                os.makedirs(outdir)
-        else:
-            outdir = os.path.abspath(os.getcwd())
-
-        if genes is not '':
-            genecoords = parse_annotation_bed(genes) #get genomic coords to print to bed later, should always be just one set of coords per gene
-        else:
-            genecoords = None
-
-        fold(sequence, window, span, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, save, procs, vrna, temprange, outdir, genecoords, verbosity=verbosity, pattern=pattern, cutoff=cutoff, queue=queue, configurer=configurer, level=level)
-
-    except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
-        )
-        log.error(logid+''.join(tbe.format()))
-
-
-def fold(sequence, window, span, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, save, procs, vrna, temprange, outdir, genecoords, verbosity=False, pattern=None, cutoff=None, queue=None, configurer=None, level=None):
+def fold(sequence, window, span, unconstraint, unpaired, paired, constrain, conslength, save, procs, outdir, run_settings, pattern=None, cutoff=None, queue=None, configurer=None, level=None):
 
     logid = scriptname+'.fold: '
     try:
         if queue and level:
             configurer(queue, level)
-        seq = parseseq(sequence)
-
-        #set path for VRNA lib if necessary
-        if vrna:
-            sys.path=[vrna] + sys.path
-
-        global RNA
-        RNA = importlib.import_module('RNA')
-        globals().update(
-            {n: getattr(RNA, n) for n in RNA.__all__}
-            if hasattr(RNA, '__all__')
-            else {k: v for (k, v) in RNA.__dict__.items() if not k.startswith('_')
-            })
-        md = RNA.md()
-        md = None
 
         # Create process pool with processes
         num_processes = procs or 1
         #with get_context("spawn").Pool(processes=num_processes-1, maxtasksperchild=1) as pool:
         pool = multiprocessing.Pool(processes=num_processes, maxtasksperchild=1)
 
-        # constraints
-        if constrain == 'temperature':
-            log.info(logid+'Calculating probs for temperature constraint'+temprange)
+        # Start the work
+        for fasta in run_settings:
+            fasta_settings = run_settings[fasta]
+            goi = fasta_settings.gene
+            gs = fasta_settings.genomic_coords.start
+            ge = fasta_settings.genomic_coords.end
+            gstrand = fasta_settings.genomic_coords.strand
+            fa = fasta_settings.sequence_record
+            conslist = fasta_settings.constrainlist
+            log.debug(logid+str(conslist))
 
-            ts, te = map(int,temprange.split('-'))
-
-                for fa in SeqIO.parse(seq,'fasta'):
-                    fa.seq = str(fa.seq).upper()
-                    goi, chrom, strand = idfromfa(fa.id)
-
-                    if pattern and pattern not in goi:
-                        next
-                    else:
-                        log.info(logid+'Working on ' + goi)
-
-                    if not window:
-                        window = len(fa.seq)
-                    if not span:
-                        span = len(fa.seq)
-
-                    for temp in range(ts,te+1):
-                        an = [np.nan]
-                        # Create the process, and connect it to the worker function
-                        pool.apply_async(constrain_temp, args=(fa, temp, window, span, an, save, outdir), kwds={'queue':queue, 'configurer':configurer, 'level':level})
-                pool.close()
-                pool.join()
-
-        else:
-            conslist = list()
-
-            if (os.path.isfile(constrain)):
-                if '.bed' in constrain:
-                    log.info(logid+'Parsing constraints for fold from Bed '+constrain)
-                    if '.gz' in constrain:
-                        f = gzip.open(constrain,'rt')
-                    else:
-                        f = open(constrain,'rt')
-                    if any(x in constrain for x in ['paired','Paired']):
-                        log.info(logid+'Reading paired constraints')
-                        constraintlist = read_paired_constraints_from_bed(f)
-                    else:
-                        log.info(logid+'Reading single constraints')
-                        constraintlist = read_constraints_from_bed(f)
-                elif '.csv' in constrain:
-                    if '.gz' in constrain:
-                        f = gzip.open(constrain,'rt')
-                    else:
-                        f = open(constrain,'rt')
-                    constraintlist = readConstraintsCSV(f)
-                else:
-                    if '.gz' in constrain:
-                        f = gzip.open(constrain,'rt')
-                    else:
-                        f = open(constrain,'rt')
-                    constraintlist = read_constraints_from_generic(f)
-                f.close()
-
-            elif constrain == 'file' or constrain == 'paired':
-                log.info(logid+'Calculating probs for constraint from file ' + str(goi + '_constraints'))
-                with open(goi+'_constraints','rt') as o:
-                    for line in o:
-                        conslist.append(line.rstrip())
-            elif constrain == 'none':
-                constraintlist = ['NOCONS']
-            elif constrain == 'sliding':
-                constraintlist = list()
-            elif '-' in constrain:
-                log.info(logid+'Calculating probs for constraint ' + constrain)
-                constraintlist = constrain.split(',')
+            if pattern and pattern not in goi:
+                continue
             else:
-                log.error(logid+'Could not compute constraints from input')
-                sys.exit()
+                log.info(logid+'Working on ' + goi + "\t" + fa.id)
 
-            if not constraintlist:
-                raise Exception('No constraints available, exiting')
-
-            for fa in SeqIO.parse(seq,'fasta'):
-                fa.seq = str(fa.seq).upper()
-                goi, chrom, strand = idfromfa(fa.id)
-                if genecoords:
-                    if goi in genecoords:
-                        gs, ge, gstrand = get_location(genecoords[goi][0])
-                        if gstrand != strand:
-                            log.warning(logid+'Strand values differ between Gene annotation and FASTA file! Please check your input for '+str(goi))
-                    else:
-                        gs, ge, gstrand = 0, 0, '.'
-                        log.warning(logid+'No coords found for gene '+goi+'! Assuming coordinates are already local!')
-                else:
-                    gs = ge = 0
-                    gstrand = '.'
-                    log.warning(logid+'No coords found for gene '+goi+'! Assuming coordinates are already local!')
+            # constraints
+            for entry in conslist:
+                log.debug(logid + 'ENTRY: '+str(entry))
 
                 if not window:
                     window = len(fa.seq)
@@ -248,59 +129,35 @@ def fold(sequence, window, span, unconstraint, unpaired, paired, length, gc, num
                     log.warning('Sequence of '+goi+' to short, seqlenght '+str(len(fa.seq))+' with window size '+str(window))
                     continue
 
-                if pattern and pattern not in goi:
-                    continue
+                if entry == 'NOCONS': # in case we just want to fold the sequence without constraints at all
+                    gibbs_uc = [pool.apply_async(fold_unconstraint, args=(fa.seq), kwds={'queue':queue, 'configurer':configurer, 'level':level})]
+                    return (gibbs_uc)
+
                 else:
-                    log.info(logid+'Working on ' + goi)
-
-                if goi in constraintlist:
-                    conslist = constraintlist[goi]
-                elif 'generic' in constraintlist:
-                    conslist = constraintlist['generic']
-                elif 'NOCONS' in constraintlist:
-                    conslist = constraintlist
-                elif constrain == 'sliding':
-                    for start in range(1,len(fa.seq)-conslength+2):
-                        end = start+conslength-1
-                        conslist.append(str(start)+'-'+str(end)+'|'+str(gstrand))
-                elif '-' in constrain:
-                    conslist.extend([str(start)+'-'+str(end)+'|'+str(gstrand) for start,end in [str(x).split('-') for x in constrain.split(',')]])
-                else:
-                    log.info(logid+'Could not map constraints to sequence for '+goi)
-                    continue
-
-                for entry in conslist:
-                    log.debug(logid+'ENTRY: '+str(entry))
-
-                    if entry == 'NOCONS': # in case we just want to fold the sequence without constraints at all
-                        gibbs_uc = [pool.apply_async(fold_unconstraint, args=(fa.seq), kwds={'queue':queue, 'configurer':configurer, 'level':level})]
-                        return (gibbs_uc)
+                    # we now have a list of constraints and for the raw seq comparison we only need to fold windows around these constraints
+                    fstart, fend = [None,None]
+                    if any(x in constrain for x in ['paired','Paired']) or ':' in entry:  # Not strand dependend, still genomic coords
+                        if gstrand == '+' or gstrand == '.':
+                            [fstart, fend], [start, end] = [[x - gs for x in get_location(cn)[:2]] for cn in entry.split(':',1)]
+                        else:
+                            [fstart, fend], [start, end] = [[ge - x for x in get_location(cn)[:2][::-1]] for cn in entry.split(':',1)]
+                        cons = str(fstart)+'-'+str(fend)+':'+str(start)+'-'+str(end)
+                        const = np.array([fstart, fend, start, end])
+                        if start < 0 or fstart < 0 or end > len(fa.seq) or fend > len(fa.seq):
+                            log.warning(logid+'Constraint out of sequence bounds! skipping! '+','.join(map(str,[goi,len(fa.seq),str(start)+'-'+str(end),str(fstart)+'-'+str(fend)])))
+                            continue
 
                     else:
-                        # we now have a list of constraints and for the raw seq comparison we only need to fold windows around these constraints
-                        fstart, fend = [None,None]
-                        if any(x in constrain for x in ['paired','Paired']) or ':' in entry:  # Not strand dependend, still genomic coords
-                            if gstrand == '+' or gstrand == '.':
-                                [fstart, fend], [start, end] = [[x - gs for x in get_location(cn)[:2]] for cn in entry.split(':',1)]
-                            else:
-                                [fstart, fend], [start, end] = [[ge - x for x in get_location(cn)[:2][::-1]] for cn in entry.split(':',1)]
-                            cons = str(fstart)+'-'+str(fend)+':'+str(start)+'-'+str(end)
-                            const = np.array([fstart, fend, start, end])
-                            if start < 0 or fstart < 0 or end > len(fa.seq) or fend > len(fa.seq):
-                                log.warning(logid+'Constraint out of sequence bounds! skipping! '+','.join(map(str,[goi,len(fa.seq),str(start)+'-'+str(end),str(fstart)+'-'+str(fend)])))
-                                continue
-
+                        if gstrand == '+' or gstrand == '.':
+                            start, end = [x - gs for x in get_location(entry)[:2]]
                         else:
-                            if gstrand == '+' or gstrand == '.':
-                                start, end = [x - gs for x in get_location(entry)[:2]]
-                            else:
-                                start, end = [ge - x for x in get_location(entry)[:2][::-1]]
+                            start, end = [ge - x for x in get_location(entry)[:2][::-1]]
 
-                            cons = str(start)+'-'+str(end)
-                            log.debug(logid+str.join(' ',[goi,cons,gstrand]))
-                            const = np.array([start, end])
+                        cons = str(start)+'-'+str(end)
+                        log.debug(logid+str.join(' ',[goi,cons,gstrand]))
+                        const = np.array([start, end])
 
-                        pool.apply_async(constrain_seq, args=(fa, start, end, conslength, const, cons, window, span, unconstraint, paired, unpaired, save, outdir, genecoords), kwds={'queue':queue, 'configurer':configurer, 'level':level})
+                    pool.apply_async(constrain_seq, args=(fa, start, end, conslength, const, cons, window, span, unconstraint, paired, unpaired, save, outdir, genecoords), kwds={'queue':queue, 'configurer':configurer, 'level':level})
 
             pool.close()
             pool.join()
@@ -669,26 +526,15 @@ def main(args):
 
     logid = scriptname+'.main: '
     try:
-        #  Logging configuration
-        logdir = args.logdir
-        ts = str(datetime.datetime.now().strftime("%Y%m%d_%H_%M_%S_%f"))
-        logfile = str.join(os.sep, [os.path.abspath(logdir), scriptname+'_'+ts+'.log'])
-        loglevel = args.loglevel
+        queue, listener, worker_configurer = rissmed_logging_setup(args.logdir, args.loglevel, SCRIPTNAME)
 
-        makelogdir(logdir)
-        makelogfile(logfile)
+        log.info(logid + 'Running ' + SCRIPTNAME + ' on ' + str(args.procs) + ' cores.')
+        log.info(logid+'CLI: '+sys.argv[0]+' '+'{}'.format(' '.join([shlex.quote(s) for s in sys.argv[1:]])))
 
-        set_start_method('spawn')  # multiprocessing spawn set
-        queue = multiprocessing.Manager().Queue(-1)
-        listener = multiprocessing.Process(target=listener_process, args=(queue, listener_configurer, logfile, loglevel))
-        listener.start()
-
-        worker_configurer(queue, loglevel)
-
-        log.info(logid+'Running '+scriptname+' on '+str(args.procs)+' cores.')
-        log.info(logid+'CLI: '+sys.argv[0]+' '+'{}'.format(' '.join( [shlex.quote(s) for s in sys.argv[1:]] )))
-
-        preprocess(queue, worker_configurer, loglevel, args.sequence, args.window, args.span, args.unconstraint, args.unpaired, args.paired, args.length, args.gc, args.number, args.constrain, args.conslength, args.alphabet, args.save, args.procs, args.vrna, args.temprange, args.outdir, args.genes, args.verbosity, args.pattern, args.cutoff)
+        run_settings, outdir = preprocess(args.sequence, args.constrain, args.conslength, args.outdir, args.genes)
+        fold(args.sequence, args.window, args.span, args.unconstraint, args.unpaired, args.paired, args.length, args.gc, args.number, args.constrain, args.conslength, args.alphabet, args.save, args.procs, args.vrna, args.temprange, args.genecoords, outdir, run_settings, queue=queue, configurer=worker_configurer, level=args.loglevel)
+                # def preprocess(queue, configurer, level, sequence, window, span, unconstraint, unpaired, paired, length, gc, number, constrain, conslength, alphabet, save, procs, vrna, temprange, outdir, genes, verbosity=False, pattern=None, cutoff=None):
+                #preprocess(queue, worker_configurer, loglevel, args.sequence, args.window, args.span, args.unconstraint, args.unpaired, args.paired, args.length, args.gc, args.number, args.constrain, args.conslength, args.alphabet, args.save, args.procs, args.vrna, args.temprange, args.outdir, args.genes, args.verbosity, args.pattern, args.cutoff)
 
         queue.put_nowait(None)
         listener.join()

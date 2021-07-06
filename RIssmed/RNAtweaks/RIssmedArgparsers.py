@@ -164,8 +164,7 @@ def parseargs_collectpl():
     parser.add_argument("-g", "--genes", type=str,
                         help='Genomic coordinates bed for genes, either standard bed format or AnnotateBed.pl format')
     parser.add_argument("-z", "--procs", type=int, default=1,
-                        help='Number of parallel processes to run this job with,'
-                             ' only important of no border is given and we need to fold')
+                        help='Number of parallel processes to run this job with')
     parser.add_argument("--loglevel", type=str, default='WARNING', choices=['WARNING','ERROR','INFO','DEBUG'],
                         help="Set log level")
     parser.add_argument("--logdir", type=str, default='LOGS', help="Set log directory")
@@ -214,7 +213,7 @@ def parseargs_foldcons():
     # These images can later on be animated with ImageMagick like `convert -delay 120 -loop 0 *.svg animated.gif`.')
     parser.add_argument("--save", type=int, default=1, help='Save the output as gz files')
     parser.add_argument("-o", "--outdir", type=str, default='', help='Directory to write to')
-    parser.add_argument("-z", "--procs", type=int, default=1, help='Number of parallel processed to run this job with')
+    parser.add_argument("-z", "--procs", type=int, default=1, help='Number of parallel processes to run this job with')
     parser.add_argument("--vrna", type=str, default='', help="Append path to vrna RNA module to sys.path")
     parser.add_argument("--pattern", type=str, default='',
                         help="Helper var, only used if called from other prog where a pattern for files is defined")
