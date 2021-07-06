@@ -151,8 +151,6 @@ def pl_fold(window, span, region, multi, unconstraint, unpaired, paired, save, p
                         # data['up'] = res.get()
 
                     else:
-                        # TODO: Currently not working. To make it work the run settings dict needs a
-                        #  possibility to read paired constraints
                         if len(cons_tuple) > 1:  # Then paired constraints should be used
                             cons_tuple = [str(cons) for cons in cons_tuple]
                             cons = ":".join(cons_tuple)
@@ -174,13 +172,11 @@ def pl_fold(window, span, region, multi, unconstraint, unpaired, paired, save, p
 
                             log.info(logid + 'Constraining to ' + str(fstart) + ' and ' + str(fend))
                             goi, chrom, strand = idfromfa(seq_record.id)
-                            raise NotImplementedError("Should have been implemented")
-                            # Doesnt work anymore
-                            # pool.apply_async(constrain_seq_paired,
-                            #                  args=(seq_record.id, str(seq_record.seq), fstart, fend, start, end,
-                            #                        conslength, const, cons, window, span, region, multi, paired,
-                            #                        unpaired, save, outdir, data, an, unconstraint),
-                            #                  kwds={'queue': queue, 'configurer': configurer, 'level': level})
+                            pool.apply_async(constrain_seq_paired,
+                                             args=(seq_record.id, str(seq_record.seq), fstart, fend, start, end,
+                                                   window, span, region, multi, paired,
+                                                   unpaired, save, outdir, data, an, unconstraint),
+                                             kwds={'queue': queue, 'configurer': configurer, 'level': level})
 
                         else:
                             # indexing because conslist is a list of tuples for multi constraints
@@ -341,110 +337,84 @@ def constrain_seq(sid, seq, start, end, window, span, region, multi, paired, unp
         log.error(logid+''.join(tbe.format()))
 
 
-# def constrain_seq_paired(sid, seq, fstart, fend, start, end, conslength, const, cons, window, span, region, multi, paired, unpaired, save, outdir, data, an, unconstraint, queue=None, configurer=None, level=None):
-#     seq = seq.upper().replace("T", "U")
-#     logid = SCRIPTNAME + '.constrain_seq_paired: '
-#     try:
-#         if queue and level:
-#             configurer(queue, level)
-#
-#         #we no longer fold the whole sequence but only the constraint region +- window size
-#         tostart, toend = expand_window(start, fend, window, multi, len(seq))
-#         seqtofold = str(seq[tostart-1:toend])
-#
-#         # get local window of interest 0 based closed, we do not need to store the whole seqtofold
-#         locws, locwe = localize_window(start, fend, window, len(seq))
-#         cons = str('-'.join([str(start), str(end)+':'+str(fstart), str(fend)])+'_'+'-'.join([str(locws), str(locwe)]))
-#
-#         if len(seqtofold) < (toend-tostart):
-#             log.warning(logid+'Sequence to small, skipping '+str(sid)+'\t'+str(len(seqtofold))+'\t'+str(cons))
-#             return
-#
-#         if start < 1 or end > len(seq) or fstart < 1 or fend > len(seq):
-#             log.warning(logid+'Constraint out of sequence bounds! skipping! '+','.join([len(seq), str(start)+'-'+str(end), str(fstart)+'-'+str(fend)]) )
-#             return
-#
-#         if checkexisting(sid, paired, unpaired, cons, region, window, span, outdir):
-#             log.warning(logid+str(cons)+' Existst for '+str(sid)+'! Skipping!')
-#             return
-#
-#         # refresh model details
-#         # RNA = importlib.import_module('RNA')
-#         md = RNA.md()
-#         md.max_bp_span = span
-#         md.window_size = window
-#
-#         # create new fold_compound objects
-#         fc_p = RNA.fold_compound(seqtofold, md, RNA.OPTION_WINDOW)
-#         fc_u = RNA.fold_compound(seqtofold, md, RNA.OPTION_WINDOW)
-#
-#         # get local start,ends 0 based closed
-#         locstart = start - tostart
-#         locend = end - tostart
-#         flocstart = fstart - tostart
-#         flocend = fend - tostart
-#
-#         log.debug(' '.join(map(str, [logid, sid, region, str(len(seq)), str(len(seqtofold)), cons, tostart, locstart, locend, toend])))
-#
-#         # enforce paired constraint 1
-#         fc_p = constrain_paired(fc_p, locstart, locend+1)
-#         #   fc_p.hc_add_bp_nonspecific(x,0) #0 means without direction  ( $ d < 0 $: pairs upstream, $ d > 0 $: pairs downstream, $ d == 0 $: no direction)
-#         # enforce paired constraint 2
-#         fc_p = constrain_paired(fc_p, flocstart, flocend+1)
-#
-#         #enforce unpaired constraint 1
-#         fc_u = constrain_unpaired(fc_u, locstart, locend+1)
-#         #enforce unpaired constraint 2
-#         fc_u = constrain_unpaired(fc_u, flocstart, flocend+1)
-#
-#         #new data struct
-#         data_p = {'up': []}
-#         data_u = {'up': []}
-#
-#         fc_p.probs_window(region, RNA.PROBS_WINDOW_UP, up_callback, data_p)
-#         fc_u.probs_window(region, RNA.PROBS_WINDOW_UP, up_callback, data_u)
-#
-#         # Cut sequence of interest from data, we no longer need the window extension as no effect outside of window is visible with plfold anyways
-#         # get local start,ends 0 based closed
-#         locws = locws - tostart
-#         locwe = locwe - tostart
-#
-#         data_u['up'] = [data_u['up'][x] for x in range(locws, locwe+1)]
-#         data_p['up'] = [data_p['up'][x] for x in range(locws, locwe+1)]
-#
-#         au = up_to_array(data_u['up'],region,len(seqtofold))
-#         ap = up_to_array(data_p['up'],region,len(seqtofold))
-#
-#         # Calculating accessibility difference between unconstraint and constraint fold, <0 means less accessible with constraint, >0 means more accessible upon constraint
-#         if not an or len(an) < 1 or len(data['up']) < 1:
-#             data['up'] = fold_unconstraint(str(seqtofold), sid, region, window, span, unconstraint, save, outdir, cons, locws, locwe)
-#             an = up_to_array(data['up'])  # create numpy array from output
-#
-#         else:
-#             if len(an) > len(au):
-#                 an = an[locws:locwe, :]
-#
-#         if not np.array_equal(an, au):
-#             diff_nu = au - an
-#         else:
-#             log.info(logid+'No influence on Structure with unpaired constraint at ' + cons)
-#             diff_nu = None
-#         if not np.array_equal(an, ap):
-#             diff_np = ap - an
-#         else:
-#             log.info(logid+'No influence on Structure with paired constraint at ' + cons)
-#             diff_np = None
-#
-#         write_constraint(save, str(sid), seqtofold, paired, unpaired, data_u, data_p, cons, int(region), diff_nu, diff_np, str(window), str(span), outdir)
-#
-#     except Exception:
-#         exc_type, exc_value, exc_tb = sys.exc_info()
-#         tbe = tb.TracebackException(
-#             exc_type, exc_value, exc_tb,
-#         )
-#         log.error(logid+''.join(tbe.format()))
-#
-#     return 1
+def constrain_seq_paired(sid, seq, fstart, fend, start, end, window, span, region, multi, paired, unpaired, save, outdir, data, an, unconstraint, queue=None, configurer=None, level=None):
+    seq = seq.upper().replace("T", "U")
+    logid = SCRIPTNAME + '.constrain_seq_paired: '
+    try:
+        if queue and level:
+            configurer(queue, level)
+
+        #we no longer fold the whole sequence but only the constraint region +- window size
+        tostart, toend = expand_window(start, fend, window, multi, len(seq))
+        seqtofold = str(seq[tostart-1:toend])
+
+        # get local window of interest 0 based closed, we do not need to store the whole seqtofold
+        locws, locwe = localize_window(start, fend, window, len(seq))
+        cons = str('-'.join([str(start), str(end)+':'+str(fstart), str(fend)])+'_'+'-'.join([str(locws), str(locwe)]))
+
+        if len(seqtofold) < (toend-tostart):
+            log.warning(logid+'Sequence to small, skipping '+str(sid)+'\t'+str(len(seqtofold))+'\t'+str(cons))
+            return
+
+        if start < 1 or end > len(seq) or fstart < 1 or fend > len(seq):
+            log.warning(logid+'Constraint out of sequence bounds! skipping! '+','.join([len(seq), str(start)+'-'+str(end), str(fstart)+'-'+str(fend)]) )
+            return
+
+        if checkexisting(sid, paired, unpaired, cons, region, window, span, outdir):
+            log.warning(logid+str(cons)+' Existst for '+str(sid)+'! Skipping!')
+            return
+
+        # refresh model details
+        # RNA = importlib.import_module('RNA')
+        # get local start,ends 0 based closed
+        locstart = start - tostart
+        locend = end - tostart
+        flocstart = fstart - tostart
+        flocend = fend - tostart
+
+        log.debug(' '.join(map(str, [logid, sid, region, str(len(seq)), str(len(seqtofold)), cons, tostart, locstart, locend, toend])))
+
+        # enforce paired constraint 1
+        plfold_paired = api_rnaplfold(seqtofold, window, span, region,
+                                      constraint=[("paired", flocstart, flocend + 1),
+                                                  ("paired", locstart, locend + 1)])
+        plfold_unpaired = api_rnaplfold(seqtofold, window, span, region,
+                                        constraint=[("unpaired", flocstart, flocend + 1),
+                                                    ("unpaired", locstart, locend + 1)])
+        locws = locws - tostart
+        locwe = locwe - tostart
+        plfold_paired.localize(locws, locwe+1)
+        plfold_unpaired.localize(locws, locwe+1)
+        ap = plfold_paired.get_rissmed_np_array()
+        au = plfold_unpaired.get_rissmed_np_array()
+
+        # Calculating accessibility difference between unconstraint and constraint fold, <0 means less accessible with constraint, >0 means more accessible upon constraint
+        plfold_unconstraint = fold_unconstraint(str(seqtofold), sid, region, window, span, unconstraint,
+                                                save, outdir, cons, locws, locwe)
+        an = plfold_unconstraint.get_rissmed_np_array()
+
+        if not np.array_equal(an, au):
+            diff_nu = au - an
+        else:
+            log.info(logid+'No influence on Structure with unpaired constraint at ' + cons)
+            diff_nu = None
+        if not np.array_equal(an, ap):
+            diff_np = ap - an
+        else:
+            log.info(logid+'No influence on Structure with paired constraint at ' + cons)
+            diff_np = None
+
+        write_constraint(save, str(sid), seqtofold, paired, unpaired, plfold_unpaired, plfold_paired, cons,
+                         int(region), diff_nu, diff_np, str(window), str(span), outdir)
+
+    except Exception:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+            exc_type, exc_value, exc_tb,
+        )
+        log.error(logid+''.join(tbe.format()))
+
+    return 1
 
 
 # def constrain_temp(sid, seq, temp, window, span, region, multi, an, save, outdir, queue=None, configurer=None, level=None):
