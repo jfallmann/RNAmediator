@@ -563,6 +563,6 @@ if __name__ == '__main__':
         tbe = tb.TracebackException(
             exc_type, exc_value, exc_tb,
         )
-        print(logid+''.join(tbe.format()),file=sys.stderr)
+        log.error(logid+''.join(tbe.format()))
 
 # ConstraintFold.py ends here

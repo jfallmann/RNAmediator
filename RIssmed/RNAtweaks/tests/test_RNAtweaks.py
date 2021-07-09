@@ -22,7 +22,7 @@ def random_sequence(seed: int = 1):
         (random_sequence(), 70, 70, [("p", 20, 30), ("u", 70, 90)]),
         (random_sequence(), 70, 70, [("u", 20, 30)]),
         (random_sequence(), 70, 70, []),
-    ]
+    ],
 )
 def test_api_and_cmd_plfold(seq, window, span, constraint):
     cmd_result = cmd_rnaplfold(seq, window, span, constraint=constraint)
@@ -34,7 +34,7 @@ def test_api_and_cmd_plfold(seq, window, span, constraint):
     "seq,window,span,constraint",
     [
         (random_sequence(5), 70, 70, [("nonesense", 3, 5)]),
-    ]
+    ],
 )
 def test_constraint_error(seq, window, span, constraint):
     with pytest.raises(ValueError):
@@ -56,7 +56,7 @@ def test_localization():
     [
         (random_sequence(4), 50, 50, ("p", 200, 207)),
         (random_sequence(4), 50, 50, ("u", 200, 207)),
-    ]
+    ],
 )
 def test_constraint(seq, window, span, constraint):
     mode = constraint[0]

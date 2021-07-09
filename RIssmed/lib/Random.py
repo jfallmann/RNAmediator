@@ -56,20 +56,23 @@ import traceback as tb
 try:
     log = logging.getLogger(__name__)  # use module name
     scriptn = os.path.basename(inspect.stack()[-1].filename).replace('.py', '')
-    log.debug('LOGGING IN Random'+str(scriptn)+str(log)+str(log.handlers))
+    log.debug('LOGGING IN Random' + str(scriptn) + str(log) + str(log.handlers))
 except Exception:
     exc_type, exc_value, exc_tb = sys.exc_info()
     tbe = tb.TracebackException(
-        exc_type, exc_value, exc_tb,
+        exc_type,
+        exc_value,
+        exc_tb,
     )
-    print(''.join(tbe.format()),file=sys.stderr)
+    print(''.join(tbe.format()), file=sys.stderr)
 
 ################
 # Random Seqs  #
 ################
 
+
 def create_kmers(choices, length):
-    logid = scriptn+'.create_kmers: '
+    logid = scriptn + '.create_kmers: '
     try:
         #     choices=['A','T','G','C']
         bases = list(choices)
@@ -80,35 +83,41 @@ def create_kmers(choices, length):
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
+            exc_type,
+            exc_value,
+            exc_tb,
         )
-        log.error(logid+''.join(tbe.format()))
+        log.error(logid + ''.join(tbe.format()))
+
 
 def randseq(alphabet, length):
-    logid = scriptn+'.randseq: '
+    logid = scriptn + '.randseq: '
     try:
-        l=''
+        l = ''
         for i in range(length):
             l += str(''.join(choice(alphabet)))
             return str(l)
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
+            exc_type,
+            exc_value,
+            exc_tb,
         )
-        log.error(logid+''.join(tbe.format()))
+        log.error(logid + ''.join(tbe.format()))
 
-def weightedrandseq(alphabet, probs , length):
-    logid = scriptn+'.weightedrandseq: '
+
+def weightedrandseq(alphabet, probs, length):
+    logid = scriptn + '.weightedrandseq: '
     try:
-        seq=[]
+        seq = []
         for i in alphabet:
-            weight=int(next(probs))
+            weight = int(next(probs))
             for a in range(weight):
-                seq+=i
+                seq += i
 
         if len(seq) < length:
-            for i in range(length-len(seq)):
+            for i in range(length - len(seq)):
                 seq += str(''.join(choice(alphabet)))
 
         shuffle(seq)
@@ -116,9 +125,11 @@ def weightedrandseq(alphabet, probs , length):
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
+            exc_type,
+            exc_value,
+            exc_tb,
         )
-        log.error(logid+''.join(tbe.format()))
+        log.error(logid + ''.join(tbe.format()))
 
 
 #

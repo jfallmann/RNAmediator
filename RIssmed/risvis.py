@@ -49,57 +49,93 @@
 from flask import Flask, render_template, request, jsonify
 import pandas as pd
 import json
-import sys,os
+import sys, os
 import traceback as tb
 import argparse
 import shlex
 
 from RIssmed.RNAtweaks.logger import makelogdir, setup_logger
+
 # Create log dir
 makelogdir('LOGS')
-scriptname=os.path.basename(__file__)
+scriptname = os.path.basename(__file__)
 logname = scriptname
-log = setup_logger(name=logname, log_file='stderr', logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M')
+log = setup_logger(
+    name=logname,
+    log_file='stderr',
+    logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+    datefmt='%m-%d %H:%M',
+)
 
-class DataStore():
-    GeneID=None
-    Constraint=None
-    Zscore=None
-    data=None
+
+class DataStore:
+    GeneID = None
+    Constraint = None
+    Zscore = None
+    data = None
+
 
 def parseargs():
-    parser = argparse.ArgumentParser(description='Visualize base pairing probabilties before and after constraining.')
+    parser = argparse.ArgumentParser(
+        description='Visualize base pairing probabilties before and after constraining.'
+    )
     parser.add_argument("-f", "--file", type=str, help='Result file to visualize')
-    parser.add_argument("--loglevel", type=str, default='INFO', choices=['WARNING','ERROR','INFO','DEBUG'], help="Set log level")
+    parser.add_argument(
+        "--loglevel",
+        type=str,
+        default='INFO',
+        choices=['WARNING', 'ERROR', 'INFO', 'DEBUG'],
+        help="Set log level",
+    )
 
-    if len(sys.argv)==1:
+    if len(sys.argv) == 1:
         parser.print_help(sys.stderr)
         sys.exit(1)
 
     return parser.parse_args()
 
+
 def readData(file):
     try:
-        logid = scriptname+'.readData: '
+        logid = scriptname + '.readData: '
         log.info('READING INPUT FILE')
-        return pd.read_csv(file, delimiter='\t', names=['Chr','Start','End','Constraint','Accessibility_difference','Strand','Distance_to_constraint','Accessibility_no_constraint','Accessibility_constraint','Energy_Difference','Kd_change','Zscore'])#,'ChrBS','StartBS','EndBS','NameBS','ScoreBS','StrandBS'])
+        return pd.read_csv(
+            file,
+            delimiter='\t',
+            names=[
+                'Chr',
+                'Start',
+                'End',
+                'Constraint',
+                'Accessibility_difference',
+                'Strand',
+                'Distance_to_constraint',
+                'Accessibility_no_constraint',
+                'Accessibility_constraint',
+                'Energy_Difference',
+                'Kd_change',
+                'Zscore',
+            ],
+        )  # ,'ChrBS','StartBS','EndBS','NameBS','ScoreBS','StrandBS'])
 
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
+            exc_type,
+            exc_value,
+            exc_tb,
         )
-        log.error(logid+''.join(tbe.format()))
+        log.error(logid + ''.join(tbe.format()))
 
 
 def serve(file, app):
     try:
-        logid = scriptname+'.serve: '
+        logid = scriptname + '.serve: '
         df = readData(file)
         log.info(df)
-        data=DataStore()
+        data = DataStore()
 
-        @app.route('/',methods=['GET','POST'])
+        @app.route('/', methods=['GET', 'POST'])
         def prep_json():
             # Get values from form
             data.GeneID = request.form.get('GeneID', None)
@@ -107,17 +143,39 @@ def serve(file, app):
             data.Zscore = request.form.get('Zscore', '0')
 
             # Filter
-            GeneID = data.GeneID if hasattr(data, 'GeneID') and data.GeneID is not None and data.GeneID != 'GeneID' and data.GeneID != '' else str(df.loc[0,'Constraint']).split('|')[0]
-            Constraint = data.Constraint if hasattr(data, 'Constraint') and data.Constraint is not None and data.Constraint != 'GeneID' and data.Constraint != '' else str(df.loc[0,'Constraint']).split('|')[2]
+            GeneID = (
+                data.GeneID
+                if hasattr(data, 'GeneID')
+                and data.GeneID is not None
+                and data.GeneID != 'GeneID'
+                and data.GeneID != ''
+                else str(df.loc[0, 'Constraint']).split('|')[0]
+            )
+            Constraint = (
+                data.Constraint
+                if hasattr(data, 'Constraint')
+                and data.Constraint is not None
+                and data.Constraint != 'GeneID'
+                and data.Constraint != ''
+                else str(df.loc[0, 'Constraint']).split('|')[2]
+            )
             Zscore = data.Zscore if hasattr(data, 'Zscore') else 0
 
             log.info(str([GeneID, Constraint, Zscore]))
-            plotdata=None
+            plotdata = None
 
             if GeneID is not None and GeneID != 'GeneID' and GeneID != '':
                 # Filter the data frame (df)
                 subdf = df[df['Constraint'].str.contains(GeneID) & df['Constraint'].str.contains(Constraint)]
-                subdf = df[['Start', 'Accessibility_difference', 'Accessibility_no_constraint', 'Accessibility_constraint', 'Zscore']]
+                subdf = df[
+                    [
+                        'Start',
+                        'Accessibility_difference',
+                        'Accessibility_no_constraint',
+                        'Accessibility_constraint',
+                        'Zscore',
+                    ]
+                ]
 
                 d = {"name": GeneID, "values": []}
 
@@ -130,26 +188,31 @@ def serve(file, app):
 
                     d['values'].append([pos, diff, prob_no, prob_cons, zscore])
 
-                #Dump data to json
-                dump = json.dumps(d)#Save to datastore
-                with open(GeneID+'.json','w') as f:
+                # Dump data to json
+                dump = json.dumps(d)  # Save to datastore
+                with open(GeneID + '.json', 'w') as f:
                     f.write(dump)
-                data.data = json.loads(dump)#Save to temporary variable
+                data.data = json.loads(dump)  # Save to temporary variable
                 plotdata = data.data
 
-            return render_template("stats.html",GeneID=GeneID,Constraint=Constraint,Zscore=Zscore,data=plotdata)
+            return render_template(
+                "stats.html", GeneID=GeneID, Constraint=Constraint, Zscore=Zscore, data=plotdata
+            )
 
-        @app.route('/get-data',methods=['GET','POST'])
+        @app.route('/get-data', methods=['GET', 'POST'])
         def returnData():
-            log.info('get: '+str(data.data))
+            log.info('get: ' + str(data.data))
             return jsonify(data.data)
 
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
+            exc_type,
+            exc_value,
+            exc_tb,
         )
-        log.error(logid+''.join(tbe.format()))
+        log.error(logid + ''.join(tbe.format()))
+
 
 ####################
 ####    MAIN    ####
@@ -157,14 +220,22 @@ def serve(file, app):
 
 if __name__ == '__main__':
 
-    logid = scriptname+'.main: '
+    logid = scriptname + '.main: '
     try:
-        args=parseargs()
-        log = setup_logger(name=logname, log_file='LOGS/'+logname, logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', level=args.loglevel)
+        args = parseargs()
+        log = setup_logger(
+            name=logname,
+            log_file='LOGS/' + logname,
+            logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+            datefmt='%m-%d %H:%M',
+            level=args.loglevel,
+        )
         log.setLevel(args.loglevel)
 
-        log.info(logid+'Running '+scriptname)
-        log.info(logid+'CLI: '+sys.argv[0]+'{}'.format(' '.join( [shlex.quote(s) for s in sys.argv[1:]] )))
+        log.info(logid + 'Running ' + scriptname)
+        log.info(
+            logid + 'CLI: ' + sys.argv[0] + '{}'.format(' '.join([shlex.quote(s) for s in sys.argv[1:]]))
+        )
 
         log.info('STARTING FLASK SERVICE')
 
@@ -175,9 +246,11 @@ if __name__ == '__main__':
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
+            exc_type,
+            exc_value,
+            exc_tb,
         )
-        log.error(logid+''.join(tbe.format()))
+        log.error(logid + ''.join(tbe.format()))
 
 
 #

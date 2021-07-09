@@ -21,72 +21,114 @@ from vis.html_templates import get_ingo, interesting_table, search_inputs, modal
 
 FILEDIR = os.path.dirname(os.path.abspath(__file__))
 ASSETS_DIR = os.path.join(FILEDIR, "vis/assets")
-app = dash.Dash("FOO", external_stylesheets=[dbc.themes.DARKLY], assets_folder=ASSETS_DIR,
-                index_string=open(os.path.join(ASSETS_DIR, "index.html")).read())
+app = dash.Dash(
+    "FOO",
+    external_stylesheets=[dbc.themes.DARKLY],
+    assets_folder=ASSETS_DIR,
+    index_string=open(os.path.join(ASSETS_DIR, "index.html")).read(),
+)
 
 MODE = "db"
 NUMBER_OF_INTERESTING = 10
 PLOTLY_COLORS = px.colors.qualitative.Light24
 
-pio.templates["plotly_white"].update({"layout": {
-    # e.g. you want to change the background to transparent
-    'paper_bgcolor': 'rgba(0,0,0,0)',
-    'plot_bgcolor': ' rgba(0,0,0,0)',
-    "font": dict(color="white")
-}})
+pio.templates["plotly_white"].update(
+    {
+        "layout": {
+            # e.g. you want to change the background to transparent
+            'paper_bgcolor': 'rgba(0,0,0,0)',
+            'plot_bgcolor': ' rgba(0,0,0,0)',
+            "font": dict(color="white"),
+        }
+    }
+)
 
 
-def get_app_layout(dash_app: dash.Dash, df:  str):
+def get_app_layout(dash_app: dash.Dash, df: str):
     interesting = get_interesting(df, number_of_interesting=NUMBER_OF_INTERESTING)
     print("get app layout")
-    dash_app.layout = html.Div([
-        dcc.Location(id="url", refresh=False),
-
-        html.Div([
-
+    dash_app.layout = html.Div(
+        [
+            dcc.Location(id="url", refresh=False),
             html.Div(
-                html.Div(
-                    html.H3("RIssmed Dasboard"), className="databox", style={"text-align": "center"}),
-                className="col-12 p-1 justify-content-center"),
-
-            html.Div([
-                html.Div([
-                    html.Div([
-                        html.H4(id='header', children=[], style={"text-align": "center"}),
-                        dcc.Graph(id='plotly_graph', style={"height": "375px"}, className="col-12"),
-                        dcc.Download(id="download-image"),
-                        html.Button("Download", type="button", id="open", className="btn btn-primary m-2 col-5"),
-                        modal_image_download(),
-                    ], className="row justify-content-center"),
-
-                ], className="databox", id="graph-box"),
-            ], className="col-12 p-1"),
-
-            html.Div([
-                html.Div(
-                    [
-                        search_inputs(),
-                        html.Div(interesting_table(interesting, number_of_interesting=NUMBER_OF_INTERESTING),
-                                 id="interesting-table-all", className="row justify-content-center m-1")
-                    ], className="databox", id="interesting-table-div",  style={"height": "100%"}),
-
-            ], className="col-12 p-1 justify-content-center",  style={"max-height": "50%"}),
-        ], className="row justify-content-between", id="100-box"),
-
-        html.Div([],
-                 className="row", id="ingo"),
-    ],
-        id="wrapper", className="container-fluid"
+                [
+                    html.Div(
+                        html.Div(
+                            html.H3("RIssmed Dasboard"), className="databox", style={"text-align": "center"}
+                        ),
+                        className="col-12 p-1 justify-content-center",
+                    ),
+                    html.Div(
+                        [
+                            html.Div(
+                                [
+                                    html.Div(
+                                        [
+                                            html.H4(id='header', children=[], style={"text-align": "center"}),
+                                            dcc.Graph(
+                                                id='plotly_graph',
+                                                style={"height": "375px"},
+                                                className="col-12",
+                                            ),
+                                            dcc.Download(id="download-image"),
+                                            html.Button(
+                                                "Download",
+                                                type="button",
+                                                id="open",
+                                                className="btn btn-primary m-2 col-5",
+                                            ),
+                                            modal_image_download(),
+                                        ],
+                                        className="row justify-content-center",
+                                    ),
+                                ],
+                                className="databox",
+                                id="graph-box",
+                            ),
+                        ],
+                        className="col-12 p-1",
+                    ),
+                    html.Div(
+                        [
+                            html.Div(
+                                [
+                                    search_inputs(),
+                                    html.Div(
+                                        interesting_table(
+                                            interesting, number_of_interesting=NUMBER_OF_INTERESTING
+                                        ),
+                                        id="interesting-table-all",
+                                        className="row justify-content-center m-1",
+                                    ),
+                                ],
+                                className="databox",
+                                id="interesting-table-div",
+                                style={"height": "100%"},
+                            ),
+                        ],
+                        className="col-12 p-1 justify-content-center",
+                        style={"max-height": "50%"},
+                    ),
+                ],
+                className="row justify-content-between",
+                id="100-box",
+            ),
+            html.Div([], className="row", id="ingo"),
+        ],
+        id="wrapper",
+        className="container-fluid",
     )
 
 
 def update_graph_via_sql(slct_chrom, slct_goi, slct_start, slct_end):
     conn = sqlite3.connect(database)
     cur = conn.cursor()
-    cur.execute("SELECT Distance_to_constraint, Accessibility_difference, Accessibility_no_constraint, "
-                "Accessibility_constraint FROM test WHERE Gene_of_interest=? AND Genomic_Start=? AND "
-                "Genomic_End=? AND Chr=?",
-                (slct_goi, slct_start, slct_end, slct_chrom))
+    cur.execute(
+        "SELECT Distance_to_constraint, Accessibility_difference, Accessibility_no_constraint, "
+        "Accessibility_constraint FROM test WHERE Gene_of_interest=? AND Genomic_Start=? AND "
+        "Genomic_End=? AND Chr=?",
+        (slct_goi, slct_start, slct_end, slct_chrom),
+    )
     rows = cur.fetchall()
     if len(rows) > 0:
         distance, acc_diff, acc_no_const, acc_cons = zip(*rows)
@@ -114,24 +156,40 @@ def update_graph_via_sql(slct_chrom, slct_goi, slct_start, slct_end):
         sorted_data = sorted(zip(distance, acc_diff, acc_no_const, acc_cons))
         distance, acc_diff, acc_no_const, acc_cons = zip(*sorted_data)
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=distance, y=acc_diff, line={"width": 4, "color": PLOTLY_COLORS[7]},
-                             name="Accessibility Difference", visible="legendonly", connectgaps=False))
-    fig.add_trace(go.Scatter(x=distance, y=acc_no_const, line={"width": 4, "color": PLOTLY_COLORS[1]},
-                             name="Accessibility no constraint", connectgaps=False))
-    fig.add_trace(go.Scatter(x=distance, y=acc_cons, line={"width": 4, "color": PLOTLY_COLORS[0]},
-                             name="Accessibility with constraint", connectgaps=False))
+    fig.add_trace(
+        go.Scatter(
+            x=distance,
+            y=acc_diff,
+            line={"width": 4, "color": PLOTLY_COLORS[7]},
+            name="Accessibility Difference",
+            visible="legendonly",
+            connectgaps=False,
+        )
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=distance,
+            y=acc_no_const,
+            line={"width": 4, "color": PLOTLY_COLORS[1]},
+            name="Accessibility no constraint",
+            connectgaps=False,
+        )
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=distance,
+            y=acc_cons,
+            line={"width": 4, "color": PLOTLY_COLORS[0]},
+            name="Accessibility with constraint",
+            connectgaps=False,
+        )
+    )
     fig.layout.template = "plotly_white"
     fig.update_yaxes(range=[-1, 1], title="Probability of being unpaired")
     x_range = np.max(np.abs(distance)) if len(distance) > 0 else 120
     fig.update_xaxes(range=[-x_range, x_range], title="Distance to constraint")
 
-    fig.update_layout(legend=dict(
-        orientation="h",
-        yanchor="bottom",
-        y=1.02,
-        xanchor="right",
-        x=1
-    ))
+    fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
     conn.close()
     return fig
 
@@ -156,9 +214,9 @@ def update_graph_via_pandas(slct_chrom, slct_constraint):
     [
         Output(component_id='plotly_graph', component_property='figure'),
     ],
-    [Input(component_id='header', component_property='children'),
-     ]
-
+    [
+        Input(component_id='header', component_property='children'),
+    ],
 )
 def update_graph(header):
     slct_chrom, slct_goi, slct_start, slct_end = header.split(" ")
@@ -171,15 +229,21 @@ def update_graph(header):
 
 @app.callback(
     [
-
         Output(component_id="header", component_property="children"),
-
     ],
     [
-        Input({"type": "interesting-table-button", "index": ALL, "goi": ALL, "chrom": ALL,
-               "start": ALL, "end": ALL}, "n_clicks")
+        Input(
+            {
+                "type": "interesting-table-button",
+                "index": ALL,
+                "goi": ALL,
+                "chrom": ALL,
+                "start": ALL,
+                "end": ALL,
+            },
+            "n_clicks",
+        )
     ],
-
 )
 def table_click_callback(*click_args):
     assert click_args is not None
@@ -215,12 +279,19 @@ def table_click_callback(*click_args):
     [
         State(component_id="url", component_property="pathname"),
         State(component_id={"index": "sorting", "name": ALL, "type": ALL}, component_property="n_clicks"),
-    ]
-
+    ],
 )
-def table_switch_callback(prev_clicks, next_clicks, inputs, search_chr_input,
-                          search_goi, search_span_start, search_span_end, url,
-                          last_sort):  # inputs is necessary for callback_context
+def table_switch_callback(
+    prev_clicks,
+    next_clicks,
+    inputs,
+    search_chr_input,
+    search_goi,
+    search_span_start,
+    search_span_end,
+    url,
+    last_sort,
+):  # inputs is necessary for callback_context
     trigger = callback_context.triggered[0]["prop_id"].split(".")[0]
     if trigger in ["next-button", "prev-button", "", "url"]:
         page = next_clicks - prev_clicks
@@ -232,8 +303,13 @@ def table_switch_callback(prev_clicks, next_clicks, inputs, search_chr_input,
         else:
             sorting = url
         sorting_clicks = last_sort[0]
-    elif trigger in ["search-input", "search-chr-input", "search-goi-input", "search-span-start-input",
-                     "search-span-end-input"]:
+    elif trigger in [
+        "search-input",
+        "search-chr-input",
+        "search-goi-input",
+        "search-span-start-input",
+        "search-span-end-input",
+    ]:
         if url == "" or url == "/":
             sorting = "Max_Value"
         else:
@@ -247,21 +323,29 @@ def table_switch_callback(prev_clicks, next_clicks, inputs, search_chr_input,
         next_clicks = prev_clicks = page = 0
         sorting = trigger_dict["name"]
     search_settings = SearchSettings(search_chr_input, search_goi, search_span_start, search_span_end)
-    interesting = get_interesting(database, page, sorting, sorting_clicks, search_settings,
-                                  number_of_interesting=NUMBER_OF_INTERESTING)
+    interesting = get_interesting(
+        database, page, sorting, sorting_clicks, search_settings, number_of_interesting=NUMBER_OF_INTERESTING
+    )
     ingo = get_ingo(search_chr_input, search_goi, ASSETS_DIR)
-    html_table = interesting_table(interesting, prev_clicks, next_clicks, sorting,
-                                   sorting_clicks=sorting_clicks, number_of_interesting=NUMBER_OF_INTERESTING)
+    html_table = interesting_table(
+        interesting,
+        prev_clicks,
+        next_clicks,
+        sorting,
+        sorting_clicks=sorting_clicks,
+        number_of_interesting=NUMBER_OF_INTERESTING,
+    )
     return [html_table, sorting, ingo, prev_clicks, next_clicks]
 
 
 @app.callback(
     Output("download-image", "data"),
-    [Input("svg-download", "n_clicks"),
-     Input("png-download", "n_clicks")],
-    [State(component_id='plotly_graph', component_property='figure'),
-     State(component_id="header", component_property="children")],
-    prevent_initial_call=True
+    [Input("svg-download", "n_clicks"), Input("png-download", "n_clicks")],
+    [
+        State(component_id='plotly_graph', component_property='figure'),
+        State(component_id="header", component_property="children"),
+    ],
+    prevent_initial_call=True,
 )
 def download_image(svg, pdf, fig, header):
     trigger = callback_context.triggered[0]["prop_id"].split(".")[0]
@@ -300,7 +384,9 @@ if __name__ == '__main__':
         tmpdir = None
         raise NotImplementedError("Might be implemented in following versions")
     elif args.tmp is True:
-        tmpdir = TemporaryDirectory(prefix="RIssmed_",)
+        tmpdir = TemporaryDirectory(
+            prefix="RIssmed_",
+        )
         database = os.path.join(tmpdir.name, "rissmed.db")
     else:
         database = args.database

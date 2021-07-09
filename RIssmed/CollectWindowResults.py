@@ -63,12 +63,21 @@
 ### Code:
 ### IMPORTS
 import glob
+
 # collections
 # multiprocessing
 import multiprocessing
+
 # Logging
 import datetime
-from RIssmed.RNAtweaks.logger import makelogdir, makelogfile, listener_process, listener_configurer, worker_configurer
+from RIssmed.RNAtweaks.logger import (
+    makelogdir,
+    makelogfile,
+    listener_process,
+    listener_configurer,
+    worker_configurer,
+)
+
 # load own modules
 from RIssmed.RNAtweaks.FileProcessor import *
 from RIssmed.RNAtweaks.RNAtweaks import *
@@ -80,13 +89,13 @@ scriptname = os.path.basename(__file__).replace('.py', '')
 
 def screen_genes(queue, configurer, level, pat, border, procs, outdir, genes):
 
-    logid = scriptname+'.screen_genes: '
+    logid = scriptname + '.screen_genes: '
     try:
-        #set path for output
+        # set path for output
         if outdir:
-            log.info(logid+'Printing to ' + outdir)
+            log.info(logid + 'Printing to ' + outdir)
             if not os.path.isabs(outdir):
-                outdir =  os.path.abspath(outdir)
+                outdir = os.path.abspath(outdir)
             if not os.path.exists(outdir):
                 os.makedirs(outdir)
         else:
@@ -96,7 +105,9 @@ def screen_genes(queue, configurer, level, pat, border, procs, outdir, genes):
         window = int(pattern[0])
         span = int(pattern[1])
 
-        genecoords = parse_annotation_bed(genes) #get genomic coords to print to bed later, should always be just one set of coords per gene
+        genecoords = parse_annotation_bed(
+            genes
+        )  # get genomic coords to print to bed later, should always be just one set of coords per gene
 
         # Create process pool with processes
         num_processes = procs or 1
@@ -104,35 +115,43 @@ def screen_genes(queue, configurer, level, pat, border, procs, outdir, genes):
 
         for goi in genecoords:
 
-            log.info(logid+'Working on ' + goi)
+            log.info(logid + 'Working on ' + goi)
             gs, ge, gstrand = get_location(genecoords[goi][0])
 
-            #get files with specified pattern
-            paired = os.path.abspath(os.path.join(goi, goi + '*_pairedconstraint_*' + str(window) + '_' + str(span) + '.gz'))
+            # get files with specified pattern
+            paired = os.path.abspath(
+                os.path.join(goi, goi + '*_pairedconstraint_*' + str(window) + '_' + str(span) + '.gz')
+            )
 
-            #search for files
+            # search for files
             p = natsorted(glob.glob(paired), key=lambda y: y.lower())
-            log.debug(logid+'Files found: ' + str(p))
+            log.debug(logid + 'Files found: ' + str(p))
 
-            #get absolute path for files
+            # get absolute path for files
             nocons = []
 
             paired = [os.path.abspath(i) for i in p]
 
             if not paired:
-                log.warning(logid+'No output for gene '+str(goi)+' found, will skip!')
+                log.warning(logid + 'No output for gene ' + str(goi) + ' found, will skip!')
                 continue
 
             try:
                 for i in range(len(p)):
-                    log.debug(logid+'Calculating file ' + str(p[i]))
-                    pool.apply_async(calc, args=(p[i], gs, ge, border, outdir), kwds={'queue':queue, 'configurer':configurer, 'level':level})
+                    log.debug(logid + 'Calculating file ' + str(p[i]))
+                    pool.apply_async(
+                        calc,
+                        args=(p[i], gs, ge, border, outdir),
+                        kwds={'queue': queue, 'configurer': configurer, 'level': level},
+                    )
             except Exception:
                 exc_type, exc_value, exc_tb = sys.exc_info()
                 tbe = tb.TracebackException(
-                    exc_type, exc_value, exc_tb,
+                    exc_type,
+                    exc_value,
+                    exc_tb,
                 )
-                log.error(logid+''.join(tbe.format()))
+                log.error(logid + ''.join(tbe.format()))
 
         pool.close()
         pool.join()
@@ -140,92 +159,121 @@ def screen_genes(queue, configurer, level, pat, border, procs, outdir, genes):
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
-            )
-        log.error(logid+''.join(tbe.format()))
+            exc_type,
+            exc_value,
+            exc_tb,
+        )
+        log.error(logid + ''.join(tbe.format()))
+
 
 def calc(p, gs, ge, border, outdir, queue=None, configurer=None, level=None):
 
-    logid = scriptname+'.calc_ddg: '
+    logid = scriptname + '.calc_ddg: '
     try:
         if queue and level:
             configurer(queue, level)
 
-        goi, chrom, strand, cons, reg, window, span = map(str,os.path.basename(p).split(sep='_'))
-        border1, border2 = map(float,border.split(',')) #defines how big a diff has to be to be of importance
+        goi, chrom, strand, cons, reg, window, span = map(str, os.path.basename(p).split(sep='_'))
+        border1, border2 = map(
+            float, border.split(',')
+        )  # defines how big a diff has to be to be of importance
 
-        log.info(logid+'Continuing calculation with borders: ' + str(border1) + ' and ' + str(border2))
+        log.info(logid + 'Continuing calculation with borders: ' + str(border1) + ' and ' + str(border2))
 
         out = defaultdict()
         ddgs = get_ddg(p)
-        log.debug(logid+str(ddgs))
+        log.debug(logid + str(ddgs))
 
-        RT = (-1.9872041*10**(-3))*(37+273.15)
-        log.debug(logid+'RT is '+str(RT))
+        RT = (-1.9872041 * 10 ** (-3)) * (37 + 273.15)
+        log.debug(logid + 'RT is ' + str(RT))
 
         for cons in ddgs:
             if not cons in out:
                 out[cons] = list()
-            ddg=calc_ddg(ddgs[cons])
+            ddg = calc_ddg(ddgs[cons])
             if ddg is not None:
                 if ddg > border1 and ddg < border2:
-                    dkd = math.exp(ddg/RT)
-                    out[cons].append('\t'.join([str(chrom), str(gs), str(ge),  str(goi), str(ddg), str(strand), str(cons),str(dkd)+'\n']))
+                    dkd = math.exp(ddg / RT)
+                    out[cons].append(
+                        '\t'.join(
+                            [
+                                str(chrom),
+                                str(gs),
+                                str(ge),
+                                str(goi),
+                                str(ddg),
+                                str(strand),
+                                str(cons),
+                                str(dkd) + '\n',
+                            ]
+                        )
+                    )
         if out:
             write_out(out, outdir)
         else:
-            log.warning(logid+'No ddg above cutoffs for gene '+str(goi))
+            log.warning(logid + 'No ddg above cutoffs for gene ' + str(goi))
         return
 
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
-            )
-        log.error(logid+''.join(tbe.format()))
+            exc_type,
+            exc_value,
+            exc_tb,
+        )
+        log.error(logid + ''.join(tbe.format()))
+
 
 def write_out(out, outdir):
 
-    logid = scriptname+'.savelist: '
+    logid = scriptname + '.savelist: '
     try:
         for cons in out:
             if not os.path.exists(outdir):
                 os.makedirs(outdir)
             if not os.path.exists(os.path.abspath(os.path.join(outdir, 'Collection_window.bed.gz'))):
                 with gzip.open(os.path.abspath(os.path.join(outdir, 'Collection_window.bed.gz')), 'wb') as o:
-                    o.write(bytes('\n'.join(out[cons]),encoding='UTF-8'))
+                    o.write(bytes('\n'.join(out[cons]), encoding='UTF-8'))
             else:
                 with gzip.open(os.path.abspath(os.path.join(outdir, 'Collection_window.bed.gz')), 'ab') as o:
-                    o.write(bytes('\n'.join(out[cons]),encoding='UTF-8'))
+                    o.write(bytes('\n'.join(out[cons]), encoding='UTF-8'))
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
-            )
-        log.error(logid+''.join(tbe.format()))
+            exc_type,
+            exc_value,
+            exc_tb,
+        )
+        log.error(logid + ''.join(tbe.format()))
 
 
 def main(args):
 
-        #  Logging configuration
-        logdir = args.logdir
-        ts = str(datetime.datetime.now().strftime("%Y%m%d_%H_%M_%S_%f"))
-        logfile = str.join(os.sep,[os.path.abspath(logdir),scriptname+'_'+ts+'.log'])
-        loglevel = args.loglevel
+    #  Logging configuration
+    logdir = args.logdir
+    ts = str(datetime.datetime.now().strftime("%Y%m%d_%H_%M_%S_%f"))
+    logfile = str.join(os.sep, [os.path.abspath(logdir), scriptname + '_' + ts + '.log'])
+    loglevel = args.loglevel
 
-        makelogdir(logdir)
-        makelogfile(logfile)
+    makelogdir(logdir)
+    makelogfile(logfile)
 
-        queue = multiprocessing.Manager().Queue(-1)
-        listener = multiprocessing.Process(target=listener_process, args=(queue, listener_configurer, logfile, loglevel))
-        listener.start()
+    queue = multiprocessing.Manager().Queue(-1)
+    listener = multiprocessing.Process(
+        target=listener_process, args=(queue, listener_configurer, logfile, loglevel)
+    )
+    listener.start()
 
-        worker_configurer(queue, loglevel)
+    worker_configurer(queue, loglevel)
 
-        log.info(logid+'Running '+scriptname+' on '+str(args.procs)+' cores.')
-        log.info(logid+'CLI: '+sys.argv[0]+' '+'{}'.format(' '.join( [shlex.quote(s) for s in sys.argv[1:]] )))
+    log.info(logid + 'Running ' + scriptname + ' on ' + str(args.procs) + ' cores.')
+    log.info(
+        logid + 'CLI: ' + sys.argv[0] + ' ' + '{}'.format(' '.join([shlex.quote(s) for s in sys.argv[1:]]))
+    )
 
-        screen_genes(queue, worker_configurer, loglevel, args.pattern, args.border, args.procs, args.outdir, args.genes)
+    screen_genes(
+        queue, worker_configurer, loglevel, args.pattern, args.border, args.procs, args.outdir, args.genes
+    )
 
 
 ####################
@@ -234,17 +282,19 @@ def main(args):
 
 if __name__ == '__main__':
 
-    logid = scriptname+'.main: '
+    logid = scriptname + '.main: '
     try:
-        args=parseargs_collect_window()
+        args = parseargs_collect_window()
         main(args)
 
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
+            exc_type,
+            exc_value,
+            exc_tb,
         )
-        log.error(logid+''.join(tbe.format()))
+        log.error(logid + ''.join(tbe.format()))
 
 ######################################################################
 #

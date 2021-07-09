@@ -24,32 +24,33 @@ TMP_TEST_DIR = TMP_DIR.name
 
 @pytest.fixture()
 def default_args():
-    args = Namespace(sequence=os.path.join(TESTDATAPATH, "test_single.fa"),
-                     window=240,
-                     span=60,
-                     region=1,
-                     multi=2,
-                     cutoff=0.01,
-                     unconstraint="STDOUT",
-                     unpaired="STDOUT",
-                     paired="STDOUT",
-                     length=100,
-                     gc=0,
-                     number=1,
-                     constrain="sliding",
-                     conslength=1,
-                     temprange="",
-                     alphabet="AUCG",
-                     save=0,
-                     outdir="",
-                     procs=1,
-                     vrna="",
-                     pattern="",
-                     genes="",
-                     verbosity=0,
-                     loglevel="DEBUG",
-                     logdir="LOGS"
-                     )
+    args = Namespace(
+        sequence=os.path.join(TESTDATAPATH, "test_single.fa"),
+        window=240,
+        span=60,
+        region=1,
+        multi=2,
+        cutoff=0.01,
+        unconstraint="STDOUT",
+        unpaired="STDOUT",
+        paired="STDOUT",
+        length=100,
+        gc=0,
+        number=1,
+        constrain="sliding",
+        conslength=1,
+        temprange="",
+        alphabet="AUCG",
+        save=0,
+        outdir="",
+        procs=1,
+        vrna="",
+        pattern="",
+        genes="",
+        verbosity=0,
+        loglevel="DEBUG",
+        logdir="LOGS",
+    )
 
     return args
 
@@ -80,7 +81,9 @@ def compare_output_folders(test_path: str, expected_path: str):
                             if expected_num != "nan" and test_num != "nan":
                                 expected_num = float(expected_num)
                                 test_num = float(test_num)
-                                assert np.allclose(expected_num, test_num, atol=0.0000001), f"files are different at {x}, {y}"
+                                assert np.allclose(
+                                    expected_num, test_num, atol=0.0000001
+                                ), f"files are different at {x}, {y}"
             elif test_file.endswith(".npy"):
                 test_file = np.load(test_file)
                 expected_file = np.load(expected_file)
@@ -89,7 +92,13 @@ def compare_output_folders(test_path: str, expected_path: str):
 
 def compare_logs(test_log: str, expected_log: str):
     test_lines = set()
-    substrings = ["CLI:", "JetBrains", "Running ConstraintPLFold on", "/home/rabsch/Documents/RIssmed/", "/tmp/"]
+    substrings = [
+        "CLI:",
+        "JetBrains",
+        "Running ConstraintPLFold on",
+        "/home/rabsch/Documents/RIssmed/",
+        "/tmp/",
+    ]
     with open(test_log) as test_file:
         for line in test_file:
             test_line = " ".join(line.split(" ")[4:])
@@ -105,9 +114,10 @@ def compare_arrays(test_array: np.ndarray, expected_array: np.ndarray):
     array_difference = test_array - expected_array
     max_difference = np.max(np.abs(array_difference), where=~np.isnan(array_difference), initial=-1)
     max_diff_idx = np.unravel_index(np.nanargmax(array_difference), array_difference.shape)
-    assert np.allclose(test_array, expected_array, equal_nan=True, atol=0.000001), \
-        f"detected high difference between RIssmed and command line result " \
+    assert np.allclose(test_array, expected_array, equal_nan=True, atol=0.000001), (
+        f"detected high difference between RIssmed and command line result "
         f"with a max of {max_difference} at index: {max_diff_idx}"
+    )
 
 
 @pytest.fixture()
@@ -244,8 +254,10 @@ def test_multi_constraint(multi_constraint_args):
 
 @pytest.mark.parametrize(
     "seq_id,region,window,span,unconstraint,save,outdir,seq",
-    [("onlyA", 7, 100, 60, "raw", 1, "onlyA", "A" * 500),
-     ("testseq2", 7, 100, 60, "raw", 2, "testseq2", os.path.join(TESTDATAPATH, "test_single.fa"))]
+    [
+        ("onlyA", 7, 100, 60, "raw", 1, "onlyA", "A" * 500),
+        ("testseq2", 7, 100, 60, "raw", 2, "testseq2", os.path.join(TESTDATAPATH, "test_single.fa")),
+    ],
 )
 def test_fold_unconstraint(seq_id, region, window, span, unconstraint, save, outdir, seq):
     if os.path.isfile(seq):
@@ -275,38 +287,82 @@ def test_fold_unconstraint(seq_id, region, window, span, unconstraint, save, out
 
 @pytest.mark.parametrize(
     "seq_id,start,end,window,span,region,multi,paired,unpaired,save,outdir,unconstraint,seq",
-    [("onlyA", 200, 207, 100, 60, 7, 1, "paired", "unpaired", 1, "onlyA", "raw", "A" * 500),
-     ("testseq2", 200, 207, 100, 60, 7, 1, "paired", "unpaired", 1, "testseq2", "raw",
-      os.path.join(TESTDATAPATH, "test_single.fa")),
-     ("testseq3", 200, 207, 100, 60, 7, 2, "paired", "unpaired", 1, "testseq3", "raw",
-      os.path.join(TESTDATAPATH, "test_single.fa"))
-
-     ]
+    [
+        ("onlyA", 200, 207, 100, 60, 7, 1, "paired", "unpaired", 1, "onlyA", "raw", "A" * 500),
+        (
+            "testseq2",
+            200,
+            207,
+            100,
+            60,
+            7,
+            1,
+            "paired",
+            "unpaired",
+            1,
+            "testseq2",
+            "raw",
+            os.path.join(TESTDATAPATH, "test_single.fa"),
+        ),
+        (
+            "testseq3",
+            200,
+            207,
+            100,
+            60,
+            7,
+            2,
+            "paired",
+            "unpaired",
+            1,
+            "testseq3",
+            "raw",
+            os.path.join(TESTDATAPATH, "test_single.fa"),
+        ),
+    ],
 )
-def test_fold_constraint(seq_id, start, end, window, span, region, multi, paired, unpaired, save, outdir,
-                         unconstraint, seq):
+def test_fold_constraint(
+    seq_id, start, end, window, span, region, multi, paired, unpaired, save, outdir, unconstraint, seq
+):
     if os.path.isfile(seq):
         seq = str(SeqIO.read(seq, format="fasta").seq)
     seq = seq.upper().replace("T", "U")
     outdir = os.path.join(TMP_TEST_DIR, outdir)
     # TODO: Maybe rewrite this part in the ConstraintPLfold and just import the function
     tostart, toend = expand_window(start, end, window, multi, len(seq))
-    seqtofold = str(seq[tostart - 1:toend])
+    seqtofold = str(seq[tostart - 1 : toend])
     locws, locwe = localize_window(start, end, window, len(seq))
     locws = locws - tostart
     locwe = locwe - tostart
     locstart = start - tostart
     locend = end - tostart
 
-    cmd_unpaired = cmd_rnaplfold(seqtofold, window, span, region=region, constraint=[("unpaired", locstart, locend + 1)])
-    cmd_unpaired.localize(locws, locwe+1)
+    cmd_unpaired = cmd_rnaplfold(
+        seqtofold, window, span, region=region, constraint=[("unpaired", locstart, locend + 1)]
+    )
+    cmd_unpaired.localize(locws, locwe + 1)
     cmd_unpaired_array = cmd_unpaired.numpy_array
-    cmd_paired = cmd_rnaplfold(seqtofold, window, span, region=region, constraint=[("paired", locstart, locend + 1)])
-    cmd_paired.localize(locws, locwe+1)
+    cmd_paired = cmd_rnaplfold(
+        seqtofold, window, span, region=region, constraint=[("paired", locstart, locend + 1)]
+    )
+    cmd_paired.localize(locws, locwe + 1)
     cmd_paired_array = cmd_paired.numpy_array
 
-    constrain_seq(seq_id, seq, start, end, window, span, region, multi, paired, unpaired, save, outdir,
-                  unconstraint=unconstraint)
+    constrain_seq(
+        seq_id,
+        seq,
+        start,
+        end,
+        window,
+        span,
+        region,
+        multi,
+        paired,
+        unpaired,
+        save,
+        outdir,
+        unconstraint=unconstraint,
+    )
     test_file_path = os.path.join(outdir, seq_id)
     test_files = os.listdir(test_file_path)
     assert len(test_files) >= 3, "constrain seq went wrong"
@@ -322,8 +378,3 @@ def test_fold_constraint(seq_id, start, end, window, span, region, multi, paired
                 test_array = test_result.numpy_array
                 # TODO: seems like the API produces nan at paired constraint positions instead of 0.
                 compare_arrays(test_array, cmd_paired_array)
-
-
-
-
-
