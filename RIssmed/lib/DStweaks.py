@@ -49,14 +49,17 @@
 import os
 import sys
 import inspect
+
 ##other modules
 import traceback as tb
 import numpy as np
 import heapq
 from operator import itemgetter
+
 # own
 import logging
-from lib.Collection import *
+
+# from lib.Collection import *
 
 ################
 #  DS tweaker  #
@@ -65,16 +68,19 @@ from lib.Collection import *
 try:
     log = logging.getLogger(__name__)  # use module name
     scriptn = os.path.basename(inspect.stack()[-1].filename).replace('.py', '')
-    log.debug('LOGGING IN DStweaks'+str(scriptn)+str(log)+str(log.handlers))
+    log.debug('LOGGING IN DStweaks' + str(scriptn) + str(log) + str(log.handlers))
 except Exception:
     exc_type, exc_value, exc_tb = sys.exc_info()
     tbe = tb.TracebackException(
-        exc_type, exc_value, exc_tb,
+        exc_type,
+        exc_value,
+        exc_tb,
     )
-    print(''.join(tbe.format()),file=sys.stderr)
+    print(''.join(tbe.format()), file=sys.stderr)
+
 
 def removekey(d, key):
-    logid = scriptn+'.removekey: '
+    logid = scriptn + '.removekey: '
     try:
         r = dict(d)
         del r[key]
@@ -82,12 +88,15 @@ def removekey(d, key):
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
+            exc_type,
+            exc_value,
+            exc_tb,
         )
-        log.error(logid+''.join(tbe.format()))
+        log.error(logid + ''.join(tbe.format()))
+
 
 def getlowest_list(a, n):
-    logid = scriptn+'.getlowest_list: '
+    logid = scriptn + '.getlowest_list: '
     try:
         if n > len(a) - 1:
             b = len(a) - 1
@@ -100,17 +109,20 @@ def getlowest_list(a, n):
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
+            exc_type,
+            exc_value,
+            exc_tb,
         )
-        log.error(logid+''.join(tbe.format()))
+        log.error(logid + ''.join(tbe.format()))
+
 
 def gethighest_list(a, n):
-    logid = scriptn+'.gethighest_list: '
+    logid = scriptn + '.gethighest_list: '
     try:
-        if len(a)-n < 0:
-            b = len(a)-1
+        if len(a) - n < 0:
+            b = len(a) - 1
         else:
-            b = len(a)-n
+            b = len(a) - n
         if len(a) > 0 and n > 0:
             return list(np.partition(a, b)[-n:])
         else:
@@ -118,45 +130,53 @@ def gethighest_list(a, n):
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
+            exc_type,
+            exc_value,
+            exc_tb,
         )
-        log.error(logid+''.join(tbe.format()))
+        log.error(logid + ''.join(tbe.format()))
+
 
 def getlowest_dict(a, n):
-    logid = scriptn+'.getlowest_dict: '
+    logid = scriptn + '.getlowest_dict: '
     try:
         if n > len(a):
             b = len(a)
         else:
             b = n
         if len(a) > 0:
-            return dict(heapq.nsmallest(b,a.items(), key=itemgetter(1)))
+            return dict(heapq.nsmallest(b, a.items(), key=itemgetter(1)))
         else:
-            return dict({i:None for i in range(n)})
+            return dict({i: None for i in range(n)})
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
+            exc_type,
+            exc_value,
+            exc_tb,
         )
-        log.error(logid+''.join(tbe.format()))
+        log.error(logid + ''.join(tbe.format()))
+
 
 def gethighest_dict(a, n):
-    logid = scriptn+'.gethighest_dict: '
+    logid = scriptn + '.gethighest_dict: '
     try:
         if n > len(a):
             b = len(a)
         else:
             b = n
         if len(a) > 0:
-            return dict(heapq.nlargest(b,a.items(), key=itemgetter(1)))
+            return dict(heapq.nlargest(b, a.items(), key=itemgetter(1)))
         else:
-            return dict({i:None for i in range(n)})
+            return dict({i: None for i in range(n)})
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
+            exc_type,
+            exc_value,
+            exc_tb,
         )
-        log.error(logid+''.join(tbe.format()))
+        log.error(logid + ''.join(tbe.format()))
 
 
 #

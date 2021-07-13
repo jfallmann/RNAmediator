@@ -13,7 +13,7 @@ import shutil
 
 # Because you'll want to define the logging configurations for listener and workers, the
 # listener and worker process functions take a configurer parameter which is a callable
-# for configuring logging for that process. These functions are also passed the queue,
+# for configuring logging for that process. These functions are also passed to the queue,
 # which they use for communication.
 #
 # In practice, you can configure the listener however you want
@@ -21,7 +21,7 @@ import shutil
 
 def listener_configurer(logfile, loglevel):
     root = logging.getLogger()
-    if (root.hasHandlers()):
+    if root.hasHandlers():
         root.handlers.clear()
     file_handler = logging.FileHandler(logfile, 'a')
     console_handler = logging.StreamHandler()
@@ -49,7 +49,9 @@ def listener_process(queue, configurer, logfile, loglevel):
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
+            exc_type,
+            exc_value,
+            exc_tb,
         )
         print('LOGGING ERROR'.join(tbe.format()), file=sys.stderr)
 
@@ -59,7 +61,7 @@ def listener_process(queue, configurer, logfile, loglevel):
 def worker_configurer(queue, loglevel):
     h = logging.handlers.QueueHandler(queue)  # Just the one handler needed
     root = logging.getLogger()
-    if (root.hasHandlers()):
+    if root.hasHandlers():
         root.handlers.clear()
     root.addHandler(h)
     root.setLevel(loglevel)
@@ -71,7 +73,7 @@ def worker(args, todolist, whattodo):
     #  Logging configuration
     scriptname = 'Example_worker'
     logdir = args.logdir
-    logfile = str.join(os.sep, [os.path.abspath(logdir), scriptname+'.log'])
+    logfile = str.join(os.sep, [os.path.abspath(logdir), scriptname + '.log'])
 
     makelogdir(logdir)
     makelogfile(logfile)
@@ -82,7 +84,9 @@ def worker(args, todolist, whattodo):
     pool = multiprocessing.Pool(processes=nthreads, maxtasksperchild=1)
 
     queue = multiprocessing.Manager().Queue(-1)
-    listener = multiprocessing.Process(target=listener_process, args=(queue, listener_configurer, logfile, args.loglevel))
+    listener = multiprocessing.Process(
+        target=listener_process, args=(queue, listener_configurer, logfile, args.loglevel)
+    )
     listener.start()
 
     worker_configurer(queue, args.loglevel)
@@ -118,15 +122,19 @@ def makelogdir(logdir):
         except OSError:
             # If directory has already been created or is inaccessible
             if not os.path.exists(logdir):
-                sys.exit('Problem creating directory '+logdir)
+                sys.exit('Problem creating directory ' + logdir)
 
 
 def makelogfile(logfile):
     if not os.path.isfile(os.path.abspath(logfile)) or os.stat(logfile).st_size == 0:
         open(logfile, 'a').close()
     else:
-        ts = str(datetime.datetime.fromtimestamp(os.path.getmtime(os.path.abspath(logfile))).strftime("%Y%m%d_%H_%M_%S_%f"))
-        shutil.move(logfile,logfile.replace('.log', '')+'_'+ts+'.log')
+        ts = str(
+            datetime.datetime.fromtimestamp(os.path.getmtime(os.path.abspath(logfile))).strftime(
+                "%Y%m%d_%H_%M_%S_%f"
+            )
+        )
+        shutil.move(logfile, logfile.replace('.log', '') + '_' + ts + '.log')
 
 
 def setup_logger(name, log_file, filemode='a', logformat=None, datefmt=None, level='WARNING'):
@@ -138,7 +146,7 @@ def setup_logger(name, log_file, filemode='a', logformat=None, datefmt=None, lev
     else:
         handler = logging.StreamHandler(sys.stderr)
 
-    handler.setFormatter(logging.Formatter(fmt=logformat,datefmt=datefmt))
+    handler.setFormatter(logging.Formatter(fmt=logformat, datefmt=datefmt))
 
     log.setLevel(level)
     log.addHandler(handler)

@@ -47,6 +47,7 @@
 
 import gzip
 import inspect
+
 # own
 import logging
 import os
@@ -68,7 +69,9 @@ try:
 except Exception:
     EXC_TYPE, EXC_VALUE, EXC_TB = sys.exc_info()
     TBE = tb.TracebackException(
-        EXC_TYPE, EXC_VALUE, EXC_TB,
+        EXC_TYPE,
+        EXC_VALUE,
+        EXC_TB,
     )
     print(''.join(TBE.format()), file=sys.stderr)
 
@@ -81,7 +84,9 @@ def backup(file):
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
+            exc_type,
+            exc_value,
+            exc_tb,
         )
         log.error(logid + ''.join(tbe.format()))
 
@@ -106,7 +111,7 @@ def parseseq(sequence):
                 seq = open(sequence, 'rt')
         else:
             header = ">Seq1:default:nochrom:(.)"
-            s = sequence
+            s = sequence.upper()
             seq = StringIO("{header}\n{s}".format(header=header, s=s))
 
         return seq
@@ -114,7 +119,9 @@ def parseseq(sequence):
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
+            exc_type,
+            exc_value,
+            exc_tb,
         )
         log.error(logid + ''.join(tbe.format()))
 
@@ -127,7 +134,10 @@ def idfromfa(fa_id):
         goi, chrom = fa_id.split(':')[::2]
         strand = str(fa_id.split(':')[3].split('(')[1][0])
     except (IndexError, ValueError):
-        log.error(logid + 'Fasta header is not in expected format, you will loose information on strand and chromosome')
+        log.error(
+            logid
+            + 'Fasta header is not in expected format, you will loose information on strand and chromosome'
+        )
         goi = fa_id
         chrom, strand = ['na', 'na']
 
@@ -160,12 +170,16 @@ def parse_annotation_bed(bed, annotated=None):
             else:
                 start = int(entries[1]) + 1
                 end = int(entries[2])
-            anno[str(goi)].append('|'.join(['-'.join([str(start), str(end)]), strand]))  # Need strand info here!
+            anno[str(goi)].append(
+                '|'.join(['-'.join([str(start), str(end)]), strand])
+            )  # Need strand info here!
         return anno
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
+            exc_type,
+            exc_value,
+            exc_tb,
         )
         log.error(logid + ''.join(tbe.format()))
 
@@ -188,7 +202,9 @@ def read_constraints_from_bed(bed, linewise=None):
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
+            exc_type,
+            exc_value,
+            exc_tb,
         )
         log.error(logid + ''.join(tbe.format()))
 
@@ -200,8 +216,10 @@ def read_paired_constraints_from_bed(bed, linewise=None):
         for line in bed:
             entries = line.rstrip().split('\t')
             if len(entries) % 2:
-                raise Exception('Unbalanced paired bed, please make sure the paired bed consists of equal number of '
-                                'fields for both constraint entries')
+                raise Exception(
+                    'Unbalanced paired bed, please make sure the paired bed consists of equal number of '
+                    'fields for both constraint entries'
+                )
             else:
                 second = int((len(entries) / 2) + 1)
             if int(entries[1]) > -1 and int(entries[second]) > -1:
@@ -212,16 +230,30 @@ def read_paired_constraints_from_bed(bed, linewise=None):
                 start_two = int(entries[second]) + 1
                 end_two = int(entries[second + 1])
                 if linewise:
-                    cons['lw'].append(':'.join(['|'.join(['-'.join([str(start_one), str(end_one)]), strand]),
-                                                '|'.join(['-'.join([str(start_two), str(end_two)]), strand])]))
+                    cons['lw'].append(
+                        ':'.join(
+                            [
+                                '|'.join(['-'.join([str(start_one), str(end_one)]), strand]),
+                                '|'.join(['-'.join([str(start_two), str(end_two)]), strand]),
+                            ]
+                        )
+                    )
                 else:
-                    cons[str(goi)].append(':'.join(['|'.join(['-'.join([str(start_one), str(end_one)]), strand]),
-                                                    '|'.join(['-'.join([str(start_two), str(end_two)]), strand])]))
+                    cons[str(goi)].append(
+                        ':'.join(
+                            [
+                                '|'.join(['-'.join([str(start_one), str(end_one)]), strand]),
+                                '|'.join(['-'.join([str(start_two), str(end_two)]), strand]),
+                            ]
+                        )
+                    )
         return cons
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
+            exc_type,
+            exc_value,
+            exc_tb,
         )
         log.error(logid + ''.join(tbe.format()))
 
@@ -243,7 +275,9 @@ def read_constraints_from_csv(csv, linewise=None):
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
+            exc_type,
+            exc_value,
+            exc_tb,
         )
         log.error(logid + ''.join(tbe.format()))
 
@@ -275,13 +309,15 @@ def read_constraints_from_generic(generic, linewise=None):
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
+            exc_type,
+            exc_value,
+            exc_tb,
         )
         log.error(logid + ''.join(tbe.format()))
 
 
 def make_outdir(outdir):
-    logid = SCRIPTN+'.makeoutdir: '
+    logid = SCRIPTN + '.makeoutdir: '
     try:
         if not os.path.isabs(outdir):
             outdir = os.path.abspath(outdir)
@@ -291,9 +327,12 @@ def make_outdir(outdir):
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
+            exc_type,
+            exc_value,
+            exc_tb,
         )
-        log.error(logid+''.join(tbe.format()))
+        log.error(logid + ''.join(tbe.format()))
+
 
 # TODO: This is in the ConstraintPLFold File isnt it?
 # Write results
