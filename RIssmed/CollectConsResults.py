@@ -85,6 +85,7 @@ from RIssmed.RNAtweaks.logger import (
 # load own modules
 from RIssmed.RNAtweaks.FileProcessor import *
 from RIssmed.RNAtweaks.RNAtweaks import *
+from RIssmed.RNAtweaks.RNAtweaks import _pl_to_array
 from lib.NPtweaks import *
 
 log = logging.getLogger(__name__)  # use module name
@@ -273,12 +274,12 @@ def judge_diff(
         RT = (-1.9872041 * 10 ** (-3)) * (37 + 273.15)
         log.debug(logid + 'RT is ' + str(RT))
 
-        noc = pl_to_array(raw, ulim)
+        noc = _pl_to_array(raw, ulim)
         log.debug(logid + 'RAW: ' + str(raw) + '\t' + str(noc))
 
         if abs(noc[ce]) > cutoff:
-            uc = pl_to_array(u, ulim)  # This is the diffacc for unpaired constraint
-            pc = pl_to_array(p, ulim)  # This is the diffacc for paired constraint
+            uc = _pl_to_array(u, ulim)  # This is the diffacc for unpaired constraint
+            pc = _pl_to_array(p, ulim)  # This is the diffacc for paired constraint
 
             log.debug(
                 logid
