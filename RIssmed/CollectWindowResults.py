@@ -249,6 +249,7 @@ def write_out(out, outdir):
 
 def main(args):
 
+    args = parseargs_collect_window()
     #  Logging configuration
     logdir = args.logdir
     ts = str(datetime.datetime.now().strftime("%Y%m%d_%H_%M_%S_%f"))
@@ -284,8 +285,7 @@ if __name__ == '__main__':
 
     logid = scriptname + '.main: '
     try:
-        args = parseargs_collect_window()
-        main(args)
+        main()
 
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()

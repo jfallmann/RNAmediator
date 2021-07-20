@@ -526,6 +526,7 @@ def main(args):
 
     logid = scriptname+'.main: '
     try:
+        args = parseargs_foldcons()
         queue, listener, worker_configurer = rissmed_logging_setup(args.logdir, args.loglevel, SCRIPTNAME)
 
         log.info(logid + 'Running ' + SCRIPTNAME + ' on ' + str(args.procs) + ' cores.')
@@ -555,8 +556,7 @@ if __name__ == '__main__':
     scriptname = os.path.basename(__file__).replace('.py', '')
     logid = scriptname+'.main: '
     try:
-        args = parseargs_foldcons()
-        main(args)
+        main()
 
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
