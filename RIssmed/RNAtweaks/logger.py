@@ -71,9 +71,9 @@ def worker_configurer(queue, loglevel):
 def worker(args, todolist, whattodo):
 
     #  Logging configuration
-    scriptname = 'Example_worker'
+    SCRIPTNAME = 'Example_worker'
     logdir = args.logdir
-    logfile = str.join(os.sep, [os.path.abspath(logdir), scriptname + '.log'])
+    logfile = str.join(os.sep, [os.path.abspath(logdir), SCRIPTNAME + '.log'])
 
     makelogdir(logdir)
     makelogfile(logfile)
@@ -91,7 +91,7 @@ def worker(args, todolist, whattodo):
 
     worker_configurer(queue, args.loglevel)
 
-    # log.info(logid+'Running '+scriptname+' on '+str(args.cores)+' cores.')
+    # log.info(logid+'Running '+SCRIPTNAME+' on '+str(args.cores)+' cores.')
     # log.info(logid+'CLI: '+sys.argv[0]+' '+'{}'.format(' '.join( [shlex.quote(s) for s in sys.argv[1:]] )))
 
     for todo in todolist:

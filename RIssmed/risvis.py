@@ -60,8 +60,8 @@ from RIssmed.RNAtweaks.logger import makelogdir, setup_logger
 
 # Create log dir
 makelogdir('LOGS')
-scriptname = os.path.basename(__file__)
-logname = scriptname
+SCRIPTNAME = os.path.basename(__file__)
+logname = SCRIPTNAME
 log = setup_logger(
     name=logname,
     log_file='stderr',
@@ -99,7 +99,7 @@ def parseargs():
 
 def readData(file):
     try:
-        logid = scriptname + '.readData: '
+        logid = SCRIPTNAME + '.readData: '
         log.info('READING INPUT FILE')
         return pd.read_csv(
             file,
@@ -132,7 +132,7 @@ def readData(file):
 
 def serve(file, app):
     try:
-        logid = scriptname + '.serve: '
+        logid = SCRIPTNAME + '.serve: '
         df = readData(file)
         log.info(df)
         data = DataStore()
@@ -222,7 +222,7 @@ def serve(file, app):
 
 if __name__ == '__main__':
 
-    logid = scriptname + '.main: '
+    logid = SCRIPTNAME + '.main: '
     try:
         args = parseargs()
         log = setup_logger(
@@ -234,7 +234,7 @@ if __name__ == '__main__':
         )
         log.setLevel(args.loglevel)
 
-        log.info(logid + 'Running ' + scriptname)
+        log.info(logid + 'Running ' + SCRIPTNAME)
         log.info(
             logid + 'CLI: ' + sys.argv[0] + '{}'.format(' '.join([shlex.quote(s) for s in sys.argv[1:]]))
         )

@@ -85,12 +85,12 @@ from lib.NPtweaks import *
 
 
 log = logging.getLogger(__name__)  # use module name
-scriptname = os.path.basename(__file__).replace('.py', '')
+SCRIPTNAME = os.path.basename(__file__).replace('.py', '')
 
 
 def fold(sequence, window, span, unconstraint, unpaired, paired, constrain, conslength, save, procs, outdir, run_settings, pattern=None, cutoff=None, queue=None, configurer=None, level=None):
 
-    logid = scriptname+'.fold: '
+    logid = SCRIPTNAME+'.fold: '
     try:
         if queue and level:
             configurer(queue, level)
@@ -179,7 +179,7 @@ def constrain_seq(fa, start, end, conslength, const, cons, window, span, unconst
     #   DEBUGGING
     #   pp = pprint.PrettyPrinter(indent=4)#use with pp.pprint(datastructure)
 
-    logid = scriptname+'.constrain_seq: '
+    logid = SCRIPTNAME+'.constrain_seq: '
     try:
         if queue and level:
             configurer(queue, level)
@@ -390,7 +390,7 @@ def constrain_seq(fa, start, end, conslength, const, cons, window, span, unconst
 
 def constrain_temp(fa, temp, window, span, an, save, outdir, queue=None, configurer=None, level=None):
     # refresh model details
-    logid = scriptname+'.constrain_temp: '
+    logid = SCRIPTNAME+'.constrain_temp: '
     log.info(logid+'Constraining Temp to ' + temp)
     try:
         if queue and level:
@@ -442,7 +442,7 @@ def constrain_temp(fa, temp, window, span, an, save, outdir, queue=None, configu
 def foldaround(seq, fc, pos, clength, gibbs, nrg, queue=None, configurer=None, level=None):
     # here we take the already constraint fc and constrain regions of length clength around it to see what happens at the original binding site
 
-    logid = scriptname+'.foldaround: '
+    logid = SCRIPTNAME+'.foldaround: '
     try:
         if queue and level:
             configurer(queue, level)
@@ -469,7 +469,7 @@ def foldaround(seq, fc, pos, clength, gibbs, nrg, queue=None, configurer=None, l
 
 def fold_unconstraint(seq, queue=None, configurer=None, level=None):
 
-    logid = scriptname+'.fold_unconstraint: '
+    logid = SCRIPTNAME+'.fold_unconstraint: '
     try:
         if queue and level:
             configurer(queue, level)
@@ -495,7 +495,7 @@ def write_out(resultlist):
     try:
         for result in resultlist:
             fa, fname, gibbs, ddg, nrg, const, window, span, outdir, condition = result
-            logid = scriptname+'.write_out: '
+            logid = SCRIPTNAME+'.write_out: '
             goi, chrom, strand = idfromfa(fa.id)
             temp_outdir = os.path.join(outdir,goi)
 
@@ -524,7 +524,7 @@ def write_out(resultlist):
 
 def main(args):
 
-    logid = scriptname+'.main: '
+    logid = SCRIPTNAME+'.main: '
     try:
         args = parseargs_foldcons()
         queue, listener, worker_configurer = rissmed_logging_setup(args.logdir, args.loglevel, SCRIPTNAME)
@@ -553,8 +553,8 @@ def main(args):
 ####################
 
 if __name__ == '__main__':
-    scriptname = os.path.basename(__file__).replace('.py', '')
-    logid = scriptname+'.main: '
+    SCRIPTNAME = os.path.basename(__file__).replace('.py', '')
+    logid = SCRIPTNAME+'.main: '
     try:
         main()
 

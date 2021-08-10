@@ -86,21 +86,21 @@ from Bio import SeqIO
 import datetime
 from RIssmed.RNAtweaks.logger import makelogdir, setup_multiprocess_logger
 
-scriptname = os.path.basename(__file__).replace('.py', '')
+SCRIPTNAME = os.path.basename(__file__).replace('.py', '')
 makelogdir('LOGS')
-if not os.path.isfile(os.path.abspath('LOGS/' + scriptname + '.log')):
-    open('LOGS/' + scriptname + '.log', 'a').close()
+if not os.path.isfile(os.path.abspath('LOGS/' + SCRIPTNAME + '.log')):
+    open('LOGS/' + SCRIPTNAME + '.log', 'a').close()
 else:
     ts = str(
         datetime.datetime.fromtimestamp(
-            os.path.getmtime(os.path.abspath('LOGS/' + scriptname + '.log'))
+            os.path.getmtime(os.path.abspath('LOGS/' + SCRIPTNAME + '.log'))
         ).strftime("%Y%m%d_%H_%M_%S")
     )
-    shutil.copy2('LOGS/' + scriptname + '.log', 'LOGS/' + scriptname + '_' + ts + '.log')
+    shutil.copy2('LOGS/' + SCRIPTNAME + '.log', 'LOGS/' + SCRIPTNAME + '_' + ts + '.log')
 
-logfile = 'LOGS/' + scriptname + '.log'
+logfile = 'LOGS/' + SCRIPTNAME + '.log'
 log = setup_multiprocess_logger(
-    name=scriptname,
+    name=SCRIPTNAME,
     log_file=logfile,
     filemode='a',
     logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s',
@@ -173,7 +173,7 @@ def fold(
     pattern=None,
 ):
 
-    logid = scriptname + '.fold: '
+    logid = SCRIPTNAME + '.fold: '
     # set path for output
     if outdir:
         printlog(outdir)
@@ -273,7 +273,7 @@ def fold(
 def fold_windows(fa, seq, reg, window, span, region, save, printto, outdir):
     #   DEBUGGING
     #   pp = pprint.PrettyPrinter(indent=4)#use with pp.pprint(datastructure)
-    logid = scriptname + '.fold_windows: '
+    logid = SCRIPTNAME + '.fold_windows: '
     try:
         goi, chrom = fa.id.split(':')[::2]
         strand = str(fa.id.split(':')[3].split('(')[1][0])
@@ -306,7 +306,7 @@ def fold_windows(fa, seq, reg, window, span, region, save, printto, outdir):
 
 
 def up_callback(v, v_size, i, maxsize, what, data):
-    logid = scriptname + '.up_callback: '
+    logid = SCRIPTNAME + '.up_callback: '
     try:
         if what & RNA.PROBS_WINDOW_UP:
             #        data['up'].extend([{ 'i': i, 'up': v}])
@@ -324,7 +324,7 @@ def up_callback(v, v_size, i, maxsize, what, data):
 def print_region_up(data=None, seqlength=None, region=None, winnr=None):
     #   pp = pprint.PrettyPrinter(indent=4)#use with pp.pprint(datastructure)
     #   pp.pprint(data)
-    logid = scriptname + '.print_region_up: '
+    logid = SCRIPTNAME + '.print_region_up: '
     try:
         ups = ''
         x = int(region)
@@ -349,7 +349,7 @@ def print_region_up(data=None, seqlength=None, region=None, winnr=None):
 def print_up(data=None, seqlength=None, region=None, winnr=None):
     #   pp = pprint.PrettyPrinter(indent=4)#use with pp.pprint(datastructure)
     #   pp.pprint(data)
-    logid = scriptname + '.print_up: '
+    logid = SCRIPTNAME + '.print_up: '
     try:
         ups = ''
         for i in range(int(seqlength)):
@@ -373,7 +373,7 @@ def print_up(data=None, seqlength=None, region=None, winnr=None):
 def up_to_array(data=None, region=None, seqlength=None):
     #   pp = pprint.PrettyPrinter(indent=4)#use with pp.pprint(datastructure)
     #   pp.pprint(data[165553:165588])
-    logid = scriptname + '.up_to_array: '
+    logid = SCRIPTNAME + '.up_to_array: '
     try:
         entries = []
         if not seqlength:
@@ -398,7 +398,7 @@ def up_to_array(data=None, region=None, seqlength=None):
 
 
 def npprint(a, o=None):  # , format_string ='{0:.2f}'):
-    logid = scriptname + '.npprint: '
+    logid = SCRIPTNAME + '.npprint: '
     try:
         out = ''
         it = np.nditer(a, flags=['f_index'])
@@ -420,7 +420,7 @@ def npprint(a, o=None):  # , format_string ='{0:.2f}'):
 
 
 def write_out(fa, printto, winnr, seqlen, data, region, window, span, outdir):
-    logid = scriptname + '.write_out: '
+    logid = SCRIPTNAME + '.write_out: '
     try:
         goi, chrom = fa.id.split(':')[::2]
         strand = str(fa.id.split(':')[3].split('(')[1][0])
@@ -483,7 +483,7 @@ def write_out(fa, printto, winnr, seqlen, data, region, window, span, outdir):
 
 
 def read_precalc_fold(data, name, fa):
-    logid = scriptname + '.read_precalc_fold: '
+    logid = SCRIPTNAME + '.read_precalc_fold: '
     try:
         for i in range(len(fa.seq)):
             data.append([])
@@ -508,7 +508,7 @@ def read_precalc_fold(data, name, fa):
 
 
 def checkexisting(fa, region, winnr, window, span, outdir):
-    logid = scriptname + '.checkexisting: '
+    logid = SCRIPTNAME + '.checkexisting: '
     try:
         goi, chrom = fa.id.split(':')[::2]
         strand = str(fa.id.split(':')[3].split('(')[1][0])
@@ -551,12 +551,12 @@ def checkexisting(fa, region, winnr, window, span, outdir):
 if __name__ == '__main__':
 
     try:
-        scriptname = os.path.basename(__file__).replace('.py', '')
+        SCRIPTNAME = os.path.basename(__file__).replace('.py', '')
         args = parseargs()
-        logid = scriptname + '.main: '
+        logid = SCRIPTNAME + '.main: '
 
         log.setLevel(args.loglevel)
-        log.info(logid + 'Running ' + scriptname + ' on ' + str(args.procs) + ' cores.')
+        log.info(logid + 'Running ' + SCRIPTNAME + ' on ' + str(args.procs) + ' cores.')
         log.info(
             logid + 'CLI: ' + sys.argv[0] + '{}'.format(' '.join([shlex.quote(s) for s in sys.argv[1:]]))
         )

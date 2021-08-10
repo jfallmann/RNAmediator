@@ -84,12 +84,12 @@ from RIssmed.RNAtweaks.RNAtweaks import *
 from lib.NPtweaks import *
 
 log = logging.getLogger(__name__)  # use module name
-scriptname = os.path.basename(__file__).replace('.py', '')
+SCRIPTNAME = os.path.basename(__file__).replace('.py', '')
 
 
 def screen_genes(queue, configurer, level, pat, border, procs, outdir, genes):
 
-    logid = scriptname + '.screen_genes: '
+    logid = SCRIPTNAME + '.screen_genes: '
     try:
         # set path for output
         if outdir:
@@ -168,7 +168,7 @@ def screen_genes(queue, configurer, level, pat, border, procs, outdir, genes):
 
 def calc(p, gs, ge, border, outdir, queue=None, configurer=None, level=None):
 
-    logid = scriptname + '.calc_ddg: '
+    logid = SCRIPTNAME + '.calc_ddg: '
     try:
         if queue and level:
             configurer(queue, level)
@@ -226,7 +226,7 @@ def calc(p, gs, ge, border, outdir, queue=None, configurer=None, level=None):
 
 def write_out(out, outdir):
 
-    logid = scriptname + '.savelist: '
+    logid = SCRIPTNAME + '.savelist: '
     try:
         for cons in out:
             if not os.path.exists(outdir):
@@ -253,7 +253,7 @@ def main(args):
     #  Logging configuration
     logdir = args.logdir
     ts = str(datetime.datetime.now().strftime("%Y%m%d_%H_%M_%S_%f"))
-    logfile = str.join(os.sep, [os.path.abspath(logdir), scriptname + '_' + ts + '.log'])
+    logfile = str.join(os.sep, [os.path.abspath(logdir), SCRIPTNAME + '_' + ts + '.log'])
     loglevel = args.loglevel
 
     makelogdir(logdir)
@@ -267,7 +267,7 @@ def main(args):
 
     worker_configurer(queue, loglevel)
 
-    log.info(logid + 'Running ' + scriptname + ' on ' + str(args.procs) + ' cores.')
+    log.info(logid + 'Running ' + SCRIPTNAME + ' on ' + str(args.procs) + ' cores.')
     log.info(
         logid + 'CLI: ' + sys.argv[0] + ' ' + '{}'.format(' '.join([shlex.quote(s) for s in sys.argv[1:]]))
     )
@@ -283,7 +283,7 @@ def main(args):
 
 if __name__ == '__main__':
 
-    logid = scriptname + '.main: '
+    logid = SCRIPTNAME + '.main: '
     try:
         main()
 

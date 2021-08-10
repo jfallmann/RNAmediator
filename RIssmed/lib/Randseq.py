@@ -58,7 +58,7 @@ from RIssmed.RNAtweaks.logger import makelogdir, setup_logger
 # Create log dir
 makelogdir('LOGS')
 # Define loggers
-scriptname = os.path.basename(__file__)
+SCRIPTNAME = os.path.basename(__file__)
 
 
 def parseargs():

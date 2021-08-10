@@ -89,14 +89,14 @@ from RIssmed.RNAtweaks.RNAtweaks import _pl_to_array
 from lib.NPtweaks import *
 
 log = logging.getLogger(__name__)  # use module name
-scriptname = os.path.basename(__file__).replace('.py', '')
+SCRIPTNAME = os.path.basename(__file__).replace('.py', '')
 
 
 def screen_genes(
     queue, configurer, level, pat, cutoff, border, ulim, procs, roi, outdir, dir, genes, padding
 ):
 
-    logid = scriptname + '.screen_genes: '
+    logid = SCRIPTNAME + '.screen_genes: '
     try:
         # set path for output
         if outdir:
@@ -218,7 +218,7 @@ def judge_diff(
     raw, u, p, gs, ge, gstrand, ulim, cutoff, border, outdir, padding, queue=None, configurer=None, level=None
 ):
 
-    logid = scriptname + '.judge_diff: '
+    logid = SCRIPTNAME + '.judge_diff: '
     try:
         if queue and level:
             configurer(queue, level)
@@ -421,7 +421,7 @@ def judge_diff(
 
 def savelists(out, outdir):
 
-    logid = scriptname + '.savelist: '
+    logid = SCRIPTNAME + '.savelist: '
     try:
         if len(out['u']) > 0:
             with gzip.open(os.path.abspath(os.path.join(outdir, 'Collection_unpaired.bed.gz')), 'ab') as o:
@@ -447,7 +447,7 @@ def main(args):
         #  Logging configuration
         logdir = args.logdir
         ts = str(datetime.datetime.now().strftime("%Y%m%d_%H_%M_%S_%f"))
-        logfile = str.join(os.sep, [os.path.abspath(logdir), scriptname + '_' + ts + '.log'])
+        logfile = str.join(os.sep, [os.path.abspath(logdir), SCRIPTNAME + '_' + ts + '.log'])
         loglevel = args.loglevel
 
         makelogdir(logdir)
@@ -461,7 +461,7 @@ def main(args):
 
         worker_configurer(queue, loglevel)
 
-        log.info(logid + 'Running ' + scriptname + ' on ' + str(args.procs) + ' cores.')
+        log.info(logid + 'Running ' + SCRIPTNAME + ' on ' + str(args.procs) + ' cores.')
         log.info(
             logid
             + 'CLI: '
@@ -504,7 +504,7 @@ def main(args):
 ####################
 if __name__ == '__main__':
 
-    logid = scriptname + '.main: '
+    logid = SCRIPTNAME + '.main: '
     try:
         main()
 
