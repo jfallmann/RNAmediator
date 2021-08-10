@@ -22,7 +22,7 @@ def random_sequence(seed: int = 1):
         (random_sequence(), 70, 70, [("p", 20, 30), ("u", 70, 90)]),
         (random_sequence(), 70, 70, [("u", 20, 30)]),
         (random_sequence(), 70, 70, []),
-    ]
+    ],
 )
 def test_api_and_cmd_plfold(seq, window, span, constraint):
     cmd_result = cmd_rnaplfold(seq, window, span, constraint=constraint)
@@ -31,10 +31,32 @@ def test_api_and_cmd_plfold(seq, window, span, constraint):
 
 
 @pytest.mark.parametrize(
+    "seq,window,span,constraint,regions",
+    [
+        ("A" * 500, 70, 70, [], (3, 5)),
+        ("A" * 500, 70, 70, [("p", 20, 30)], (11, 5)),
+        (random_sequence(), 70, 70, [("p", 20, 30), ("u", 70, 90)], (3, 5)),
+        (random_sequence(), 70, 70, [("p", 20, 30), ("u", 70, 90)], (11, 5)),
+        (random_sequence(), 70, 70, [("p", 20, 30), ("u", 70, 90)], (20, 7)),
+        (random_sequence(), 70, 70, [("u", 20, 30)], (3, 5)),
+        (random_sequence(), 70, 70, [], (3, 5)),
+    ],
+)
+def test_region_param(seq, window, span, constraint, regions):
+    api_result_r1 = api_rnaplfold(seq, window, span, constraint=constraint, region=regions[0])
+    api_result_r2 = api_rnaplfold(seq, window, span, constraint=constraint, region=regions[1])
+    idx = min(regions)
+    api_r1_array = api_result_r1.numpy_array[:, 0:idx]
+    api_r2_array = api_result_r2.numpy_array[:, 0:idx]
+    assert np.allclose(api_r1_array, api_r2_array, equal_nan=True)
+
+
+
+@pytest.mark.parametrize(
     "seq,window,span,constraint",
     [
         (random_sequence(5), 70, 70, [("nonesense", 3, 5)]),
-    ]
+    ],
 )
 def test_constraint_error(seq, window, span, constraint):
     with pytest.raises(ValueError):
@@ -56,7 +78,7 @@ def test_localization():
     [
         (random_sequence(4), 50, 50, ("p", 200, 207)),
         (random_sequence(4), 50, 50, ("u", 200, 207)),
-    ]
+    ],
 )
 def test_constraint(seq, window, span, constraint):
     mode = constraint[0]

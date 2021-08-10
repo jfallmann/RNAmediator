@@ -48,9 +48,11 @@
 import os
 import sys
 import inspect
+
 ## other modules
 import traceback as tb
 import numpy as np
+
 # own
 import logging
 from RIssmed.RNAtweaks.RIssmedArgparsers import *
@@ -62,43 +64,56 @@ from RIssmed.RNAtweaks.RIssmedArgparsers import *
 try:
     log = logging.getLogger(__name__)  # use module name
     scriptn = os.path.basename(inspect.stack()[-1].filename).replace('.py', '')
-    log.debug('LOGGING IN NPtweaks'+str(scriptn)+str(log)+str(log.handlers))
+    log.debug('LOGGING IN NPtweaks' + str(scriptn) + str(log) + str(log.handlers))
 except Exception:
     exc_type, exc_value, exc_tb = sys.exc_info()
     tbe = tb.TracebackException(
-        exc_type, exc_value, exc_tb,
+        exc_type,
+        exc_value,
+        exc_tb,
     )
-    print(''.join(tbe.format()),file=sys.stderr)
+    print(''.join(tbe.format()), file=sys.stderr)
 
 
 def toarray(file, ulim=None):
-    logid = scriptn+'.toarray: '
+    logid = scriptn + '.toarray: '
     try:
         if not ulim:
             ulim = 1
-        x = np.loadtxt(str(file), usecols = (ulim), delimiter = '\t', unpack = True, converters = {ulim: lambda s: convertcol(s.decode("utf-8"))})
+        x = np.loadtxt(
+            str(file),
+            usecols=(ulim),
+            delimiter='\t',
+            unpack=True,
+            converters={ulim: lambda s: convertcol(s.decode("utf-8"))},
+        )
         return x
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
+            exc_type,
+            exc_value,
+            exc_tb,
         )
-        log.error(logid+''.join(tbe.format()))
+        log.error(logid + ''.join(tbe.format()))
+
 
 def convertcol(entry):
-    logid = scriptn+'.convertcol: '
+    logid = scriptn + '.convertcol: '
     try:
         if isinvalid(entry):
-#       if entry is None or entry == 'NA' or entry == 'nan' or entry is np.nan:
+            #       if entry is None or entry == 'NA' or entry == 'nan' or entry is np.nan:
             return np.nan
         else:
             return float(entry)
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
-            exc_type, exc_value, exc_tb,
+            exc_type,
+            exc_value,
+            exc_tb,
         )
-        log.error(logid+''.join(tbe.format()))
+        log.error(logid + ''.join(tbe.format()))
 
 
 #
