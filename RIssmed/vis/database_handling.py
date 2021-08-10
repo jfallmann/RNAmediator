@@ -64,6 +64,7 @@ def get_interesting(db_path: str, page: int = 0, ordering: str = "Max_Value", so
     return_list = cur.fetchall()
     e = time.time()
     print(f"query took: {e-s} seconds")
+    print(return_list)
     conn.close()
     return return_list
 
@@ -113,6 +114,7 @@ def insert_interesting_table(db_path: str):
                 f"Genomic_End INT, "
                 f"Mean_Value REAL, "
                 f"Max_Value REAL, "
+                f"Max_Zscore REAL, "
                 f" FOREIGN KEY (Gene_of_interest) REFERENCES test(Gene_of_interest)) ")
     cur.execute("SELECT DISTINCT Chr, Gene_of_interest, Genomic_Start, Genomic_End FROM test")
     start = time.time()
@@ -121,16 +123,17 @@ def insert_interesting_table(db_path: str):
     print(f"fetching distinct took {end - start} seconds")
 
     for entry in constraints:
-        cur.execute("SELECT Distance_to_constraint, Accessibility_difference, Chr FROM test "
+        cur.execute("SELECT Distance_to_constraint, Accessibility_difference, Chr, Zscore FROM test "
                     "WHERE Chr=? AND Gene_of_interest=? AND Genomic_Start=? AND Genomic_End=?",
                     entry)
         values = cur.fetchall()
         constraint_max = np.max([abs(diff[1]) for diff in values])
         constraint_mean = np.mean([abs(diff[1]) for diff in values])
-        cur.execute("INSERT INTO importance VALUES (?, ?, ?, ?, ?, ?)", [entry[0], entry[1], entry[2], entry[3],
-                                                                         constraint_mean, constraint_max])
+        zscore_max = np.max([abs(score[3]) for score in values])
+        cur.execute("INSERT INTO importance VALUES (?, ?, ?, ?, ?, ?, ?)", [entry[0], entry[1], entry[2], entry[3],
+                                                                         constraint_mean, constraint_max, zscore_max])
     cur.execute("CREATE INDEX interesting_idx "
-                "ON importance (Chr, Gene_of_interest, Genomic_Start, Genomic_End, Max_Value, Mean_Value)")
+                "ON importance (Chr, Gene_of_interest, Genomic_Start, Genomic_End, Max_Value, Mean_Value, Max_Zscore)")
 
     con.commit()
     con.close()
