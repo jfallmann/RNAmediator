@@ -59,7 +59,7 @@ from operator import itemgetter
 # own
 import logging
 
-# from lib.Collection import *
+# from Tweaks.Collection import *
 
 ################
 #  DS tweaker  #

@@ -51,8 +51,8 @@ from io import StringIO
 import gzip
 
 # own
-from RIssmed.RNAtweaks.RIssmedArgparsers import *
-from RIssmed.RNAtweaks.logger import makelogdir, setup_logger
+from Tweaks.RIssmedArgparsers import *
+from Tweaks.logger import makelogdir, setup_logger
 
 
 # Create log dir

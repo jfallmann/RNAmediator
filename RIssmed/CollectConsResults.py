@@ -75,18 +75,19 @@ from natsort import natsorted
 # Logging
 import datetime
 
-from RIssmed.RNAtweaks.logger import (
+from Tweaks.logger import (
     makelogdir,
     makelogfile,
     listener_process,
     listener_configurer,
     worker_configurer,
 )
+
 # load own modules
-from RIssmed.RNAtweaks.FileProcessor import *
-from RIssmed.RNAtweaks.RNAtweaks import *
-from RIssmed.RNAtweaks.RNAtweaks import _pl_to_array
-from lib.NPtweaks import *
+from Tweaks.FileProcessor import *
+from Tweaks.RNAtweaks import *
+from Tweaks.RNAtweaks import _pl_to_array
+from Tweaks.NPtweaks import *
 
 log = logging.getLogger(__name__)  # use module name
 SCRIPTNAME = os.path.basename(__file__).replace('.py', '')
@@ -223,7 +224,7 @@ def judge_diff(
         if queue and level:
             configurer(queue, level)
 
-        goi, chrom, strand, cons, reg, f, window, span = map(str,os.path.basename(raw).split(sep='_'))
+        goi, chrom, strand, cons, reg, f, window, span = map(str, os.path.basename(raw).split(sep='_'))
         span = span.split(sep='.')[0]
         cs, ce = map(int, cons.split(sep='-'))
         ws, we = map(int, reg.split(sep='-'))
@@ -306,11 +307,23 @@ def judge_diff(
             nrgdiffu[np.isneginf(nrgdiffu)] = np.nan
             nrgdiffp[np.isneginf(nrgdiffp)] = np.nan
 
-            kdu = np.exp(nrgdiffu/RT)  # math.exp(np.array(nrgdiffu//RT))) ### THIS IS BASICALLY ACCESSIBILITY AGAIN
-            kdp = np.exp(nrgdiffp/RT)  # math.exp(np.array(nrgdiffp//RT))) ### THIS IS BASICALLY ACCESSIBILITY AGAIN
+            kdu = np.exp(
+                nrgdiffu / RT
+            )  # math.exp(np.array(nrgdiffu//RT))) ### THIS IS BASICALLY ACCESSIBILITY AGAIN
+            kdp = np.exp(
+                nrgdiffp / RT
+            )  # math.exp(np.array(nrgdiffp//RT))) ### THIS IS BASICALLY ACCESSIBILITY AGAIN
 
-            log.debug(logid+'NRG: '+str(nrgdiffu[:10]))
-            log.debug(logid+'KD: '+str(kdu[:10])+' mean: '+str(np.nanmean(kdu))+' std: '+str(np.nanstd(kdu)))
+            log.debug(logid + 'NRG: ' + str(nrgdiffu[:10]))
+            log.debug(
+                logid
+                + 'KD: '
+                + str(kdu[:10])
+                + ' mean: '
+                + str(np.nanmean(kdu))
+                + ' std: '
+                + str(np.nanstd(kdu))
+            )
 
             np.seterr(divide='ignore')  # ignore 0 for LOGS
             zscoresu = np.array(
@@ -391,7 +404,25 @@ def judge_diff(
                         zscore = zscoresu[pos]
 
                         if not any([x is np.nan for x in [preacc, nrgdiff, kd, zscore]]):
-                            out['u'].append('\t'.join([str(chrom), str(gpos), str(gend), str(goi) + '|' + str(cons) + '|' + str(gcons), str(uc[pos]), str(strand), str(dist), str(noc[pos]), str(preacc), str(nrgdiff), str(kd), str(zscore), str(accprecons)]))
+                            out['u'].append(
+                                '\t'.join(
+                                    [
+                                        str(chrom),
+                                        str(gpos),
+                                        str(gend),
+                                        str(goi) + '|' + str(cons) + '|' + str(gcons),
+                                        str(uc[pos]),
+                                        str(strand),
+                                        str(dist),
+                                        str(noc[pos]),
+                                        str(preacc),
+                                        str(nrgdiff),
+                                        str(kd),
+                                        str(zscore),
+                                        str(accprecons),
+                                    ]
+                                )
+                            )
 
                     if border < abs(pc[pos]):
                         if ce < pos:  # get distance up or downstream
@@ -405,7 +436,25 @@ def judge_diff(
                         zscore = zscoresu[pos]
 
                         if not any([x is np.nan for x in [preacc, nrgdiff, kd, zscore]]):
-                            out['p'].append('\t'.join([str(chrom), str(gpos), str(gend), str(goi) + '|' + str(cons) + '|' + str(gcons), str(pc[pos]), str(strand), str(dist), str(noc[pos]), str(preacc), str(nrgdiff), str(kd), str(zscore), str(accprecons)]))
+                            out['p'].append(
+                                '\t'.join(
+                                    [
+                                        str(chrom),
+                                        str(gpos),
+                                        str(gend),
+                                        str(goi) + '|' + str(cons) + '|' + str(gcons),
+                                        str(pc[pos]),
+                                        str(strand),
+                                        str(dist),
+                                        str(noc[pos]),
+                                        str(preacc),
+                                        str(nrgdiff),
+                                        str(kd),
+                                        str(zscore),
+                                        str(accprecons),
+                                    ]
+                                )
+                            )
 
         savelists(out, outdir)
 
@@ -441,7 +490,7 @@ def savelists(out, outdir):
         log.error(logid + ''.join(tbe.format()))
 
 
-def main(args):
+def main():
     try:
         args = parseargs_collectpl()
         #  Logging configuration

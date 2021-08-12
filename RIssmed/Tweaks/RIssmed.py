@@ -8,7 +8,7 @@ import sys
 import traceback as tb
 from Bio import SeqIO
 from Bio.Seq import Seq
-from RIssmed.RNAtweaks.FileProcessor import (
+from Tweaks.FileProcessor import (
     parseseq,
     idfromfa,
     parse_annotation_bed,
@@ -18,8 +18,8 @@ from RIssmed.RNAtweaks.FileProcessor import (
     read_paired_constraints_from_bed,
 )
 import gzip
-from RIssmed.RNAtweaks.RNAtweaks import get_location
-from RIssmed.RNAtweaks.logger import (
+from Tweaks.RNAtweaks import get_location
+from Tweaks.logger import (
     makelogdir,
     makelogfile,
     listener_process,
@@ -404,6 +404,50 @@ def rissmed_logging_setup(logdir: str, loglevel: str, runscript: str):
     worker_configurer(queue, loglevel)
 
     return queue, listener, worker_configurer
+
+
+def expand_pl_window(start, end, window, multiplyer, seqlen):
+    logid = SCRIPTNAME + '.expand_window: '
+    try:
+        tostart = start - multiplyer * window
+        if tostart < 1:
+            tostart = 1
+        toend = end + multiplyer * window
+        if toend > seqlen:
+            toend = seqlen
+        return [tostart, toend]
+    except Exception:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+            exc_type,
+            exc_value,
+            exc_tb,
+        )
+        log.error(logid + ''.join(tbe.format()))
+
+
+def localize_pl_window(start, end, window, seqlen):
+    logid = SCRIPTNAME + '.localize_window: '
+    try:
+        diff = start - window
+        if diff < 1:
+            locws = 1
+        else:
+            locws = diff
+        # this makes sure that if the start was trimmed, we do not just extend too much
+        locwe = diff + 2 * window + (end - start)
+
+        if locwe > seqlen:
+            locwe = seqlen
+        return [locws, locwe]
+    except Exception:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+            exc_type,
+            exc_value,
+            exc_tb,
+        )
+        log.error(logid + ''.join(tbe.format()))
 
 
 def expand_window(start, end, window, multiplyer, seqlen):

@@ -70,7 +70,7 @@ import multiprocessing
 
 # Logging
 import datetime
-from RIssmed.RNAtweaks.logger import (
+from Tweaks.logger import (
     makelogdir,
     makelogfile,
     listener_process,
@@ -79,9 +79,9 @@ from RIssmed.RNAtweaks.logger import (
 )
 
 # load own modules
-from RIssmed.RNAtweaks.FileProcessor import *
-from RIssmed.RNAtweaks.RNAtweaks import *
-from lib.NPtweaks import *
+from Tweaks.FileProcessor import *
+from Tweaks.RNAtweaks import *
+from Tweaks.NPtweaks import *
 
 log = logging.getLogger(__name__)  # use module name
 SCRIPTNAME = os.path.basename(__file__).replace('.py', '')
@@ -247,7 +247,7 @@ def write_out(out, outdir):
         log.error(logid + ''.join(tbe.format()))
 
 
-def main(args):
+def main():
 
     args = parseargs_collect_window()
     #  Logging configuration

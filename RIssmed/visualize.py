@@ -15,7 +15,7 @@ import plotly.io as pio
 from dash import callback_context
 from dash.dependencies import Input, Output, State, ALL
 
-from RNAtweaks.RIssmedArgparsers import visualiziation_parser
+from Tweaks.RIssmedArgparsers import visualiziation_parser
 from vis.database_handling import get_interesting, SearchSettings, csv_to_sqlite
 from vis.html_templates import get_ingo, interesting_table, search_inputs, modal_image_download
 
