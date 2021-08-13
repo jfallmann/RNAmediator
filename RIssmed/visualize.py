@@ -125,33 +125,36 @@ def update_graph_via_sql(slct_chrom, slct_goi, slct_start, slct_end):
     cur = conn.cursor()
     cur.execute(
         "SELECT Distance_to_constraint, Accessibility_difference, Accessibility_no_constraint, "
-        "Accessibility_constraint FROM test WHERE Gene_of_interest=? AND Genomic_Start=? AND "
+        "Accessibility_constraint, Zscore FROM test WHERE Gene_of_interest=? AND Genomic_Start=? AND "
         "Genomic_End=? AND Chr=?",
         (slct_goi, slct_start, slct_end, slct_chrom),
     )
     rows = cur.fetchall()
     if len(rows) > 0:
-        distance, acc_diff, acc_no_const, acc_cons = zip(*rows)
+        distance, acc_diff, acc_no_const, acc_cons, zscores = zip(*rows)
+
     else:
-        distance = acc_diff = acc_no_const = acc_cons = []
+        distance = acc_diff = acc_no_const = acc_cons = zscores = []
     test = set(distance)
     distance = list(distance)
     acc_diff = list(acc_diff)
     acc_no_const = list(acc_no_const)
     acc_cons = list(acc_cons)
-    for x in range(len(test)):
-        if x not in test:
-            distance.append(x)
+    zscores = list(zscores)
+    for nuc in range(0, np.max(distance)+1):
+        if nuc not in test:
+            distance.append(nuc)
             acc_diff.append("")
             acc_no_const.append("")
             acc_cons.append("")
-        if -x not in test:
-            distance.append(-x)
+            zscores.append(0)
+    for nuc in range(np.min(distance), 0):
+        if nuc not in test:
+            distance.append(nuc)
             acc_diff.append("")
             acc_no_const.append("")
             acc_cons.append("")
-        if x in test and -x in test:
-            break
+            zscores.append(0)
     if len(test) > 0:
         sorted_data = sorted(zip(distance, acc_diff, acc_no_const, acc_cons))
         distance, acc_diff, acc_no_const, acc_cons = zip(*sorted_data)
@@ -164,6 +167,11 @@ def update_graph_via_sql(slct_chrom, slct_goi, slct_start, slct_end):
             name="Accessibility Difference",
             visible="legendonly",
             connectgaps=False,
+            hovertext=zscores,
+            hovertemplate='<i>Distance</i>: %{x}' +
+            '<br><b>Accessibility difference</b>: %{x:.2f}<br>' +
+            '<b>Z-score</b>%{hovertext:.2f}',
+
         )
     )
     fig.add_trace(
@@ -173,6 +181,10 @@ def update_graph_via_sql(slct_chrom, slct_goi, slct_start, slct_end):
             line={"width": 4, "color": PLOTLY_COLORS[1]},
             name="Accessibility no constraint",
             connectgaps=False,
+            hovertext=zscores,
+            hovertemplate='<i>Distance</i>: %{x}' +
+                          '<br><b>Accessibility</b>: %{x:.2f}<br>' +
+                          '<b>Z-score</b>%{hovertext:.2f}',
         )
     )
     fig.add_trace(
@@ -182,6 +194,10 @@ def update_graph_via_sql(slct_chrom, slct_goi, slct_start, slct_end):
             line={"width": 4, "color": PLOTLY_COLORS[0]},
             name="Accessibility with constraint",
             connectgaps=False,
+            hovertext=zscores,
+            hovertemplate='<i>Distance</i>: %{x}' +
+                          '<br><b>Accessibility</b>: %{y:.2f}<br>' +
+                          '<b>Z-score</b>%{hovertext:.2f}',
         )
     )
     fig.layout.template = "plotly_white"
