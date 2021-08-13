@@ -19,7 +19,7 @@ from dash.dependencies import Input, Output, State, ALL
 
 from RNAtweaks.RIssmedArgparsers import visualiziation_parser
 from vis.database_handling import get_interesting, SearchSettings, csv_to_sqlite, insert_intersect, get_intersects
-from vis.html_templates import get_ingo, interesting_table, search_inputs, modal_image_download, data_upload
+from vis.html_templates import get_ingo, interesting_table, search_inputs, modal_image_download, data_upload, tables_table
 
 FILEDIR = os.path.dirname(os.path.abspath(__file__))
 ASSETS_DIR = os.path.join(FILEDIR, "vis/assets")
@@ -80,6 +80,9 @@ def get_app_layout(dash_app: dash.Dash, df: str):
                                                 className="btn btn-primary m-2 col-5",
                                             ),
                                             modal_image_download(),
+                                            html.Div(tables_table(),
+                                                     className="col-10 m-2",
+                                                     id="select-table-dropdown"),
                                             data_upload(),
                                         ],
                                         className="row justify-content-center",
@@ -420,6 +423,18 @@ def update_output(list_of_contents, list_of_names, list_of_dates):
             insert_intersect(element, list_of_names[x], list_of_dates[x], database)
         return 0
 
+@app.callback(
+    Output("select-table-dropdown", "children"),
+    Input("output-data-upload", "children")
+)
+def change_dropdown(output_data_upload):
+    con = sqlite3.connect(database)
+    cursor = con.cursor()
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+    names = [name[0] for name in cursor.fetchall()]
+    names.remove("test")
+    names.remove("importance")
+    return tables_table(names)
 
 
 
