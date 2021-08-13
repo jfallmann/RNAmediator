@@ -239,19 +239,19 @@ def data_upload():
             ]),
             style={
                 'width': '100%',
-                'height': '60px',
-                'lineHeight': '60px',
+                'height': '100px',
+                'lineHeight': '100px',
                 'borderWidth': '1px',
                 'borderStyle': 'dashed',
                 'borderRadius': '5px',
                 'textAlign': 'center',
-                'margin': '10px'
+                'margin': '10px',
             },
             # Allow multiple files to be uploaded
             multiple=True
         ),
-        html.Div(id='output-data-upload'),
-    ])
+        html.Div(id='output-data-upload', style={"display": "none"}),
+    ], className="col-10")
     return html_upload
 
 
