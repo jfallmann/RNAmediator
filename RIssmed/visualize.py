@@ -3,7 +3,8 @@ from __future__ import annotations
 import os
 import sqlite3
 from tempfile import TemporaryDirectory
-
+import pandas as pd
+import io
 import dash  # (version 1.12.0) pip install dash
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
@@ -15,9 +16,10 @@ import plotly.io as pio
 from dash import callback_context
 from dash.dependencies import Input, Output, State, ALL
 
+
 from RNAtweaks.RIssmedArgparsers import visualiziation_parser
-from vis.database_handling import get_interesting, SearchSettings, csv_to_sqlite
-from vis.html_templates import get_ingo, interesting_table, search_inputs, modal_image_download
+from vis.database_handling import get_interesting, SearchSettings, csv_to_sqlite, insert_intersect, get_intersects
+from vis.html_templates import get_ingo, interesting_table, search_inputs, modal_image_download, data_upload
 
 FILEDIR = os.path.dirname(os.path.abspath(__file__))
 ASSETS_DIR = os.path.join(FILEDIR, "vis/assets")
@@ -78,6 +80,7 @@ def get_app_layout(dash_app: dash.Dash, df: str):
                                                 className="btn btn-primary m-2 col-5",
                                             ),
                                             modal_image_download(),
+                                            data_upload(),
                                         ],
                                         className="row justify-content-center",
                                     ),
@@ -125,16 +128,16 @@ def update_graph_via_sql(slct_chrom, slct_goi, slct_start, slct_end):
     cur = conn.cursor()
     cur.execute(
         "SELECT Distance_to_constraint, Accessibility_difference, Accessibility_no_constraint, "
-        "Accessibility_constraint, Zscore FROM test WHERE Gene_of_interest=? AND Genomic_Start=? AND "
+        "Accessibility_constraint, Zscore, Start, End, Strand FROM test WHERE Gene_of_interest=? AND Genomic_Start=? AND "
         "Genomic_End=? AND Chr=?",
         (slct_goi, slct_start, slct_end, slct_chrom),
     )
     rows = cur.fetchall()
     if len(rows) > 0:
-        distance, acc_diff, acc_no_const, acc_cons, zscores = zip(*rows)
+        distance, acc_diff, acc_no_const, acc_cons, zscores, start, end, strand = zip(*rows)
 
     else:
-        distance = acc_diff = acc_no_const = acc_cons = zscores = []
+        distance = acc_diff = acc_no_const = acc_cons = zscores = start = end = strand = []
     test = set(distance)
     distance = list(distance)
     acc_diff = list(acc_diff)
@@ -159,6 +162,21 @@ def update_graph_via_sql(slct_chrom, slct_goi, slct_start, slct_end):
         sorted_data = sorted(zip(distance, acc_diff, acc_no_const, acc_cons))
         distance, acc_diff, acc_no_const, acc_cons = zip(*sorted_data)
     fig = go.Figure()
+    if len(strand) > 0:
+        start = min(start)
+        end = max(end)
+        strand = strand[0]
+        tuples = get_intersects(database, start, end, strand)
+        for entry in tuples:
+            name, binding_sites = entry
+            for bs in binding_sites:
+                fig.add_trace(go.Scatter(
+                    x=[bs[0], bs[0],
+                       bs[-1], bs[-1]],
+                    y=[2, -2, -2, 2], fill="toself", fillcolor="lightblue",
+                    opacity=0.2, line={"width": 0},
+                    mode="lines",
+                    name=f"{name}-binding site"))
     fig.add_trace(
         go.Scatter(
             x=distance,
@@ -200,6 +218,7 @@ def update_graph_via_sql(slct_chrom, slct_goi, slct_start, slct_end):
                           '<b>Z-score</b>%{hovertext:.2f}',
         )
     )
+
     fig.layout.template = "plotly_white"
     fig.update_yaxes(range=[-1, 1], title="Probability of being unpaired")
     x_range = np.max(np.abs(distance)) if len(distance) > 0 else 120
@@ -391,6 +410,19 @@ def toggle_modal(n1, n2, n3, is_open):
     return is_open
 
 
+@app.callback(Output('output-data-upload', 'children'),
+              Input('upload-data', 'contents'),
+              State('upload-data', 'filename'),
+              State('upload-data', 'last_modified'))
+def update_output(list_of_contents, list_of_names, list_of_dates):
+    if list_of_contents is not None:
+        for x, element in enumerate(list_of_contents):
+            insert_intersect(element, list_of_names[x], list_of_dates[x], database)
+        return 0
+
+
+
+
 if __name__ == '__main__':
     args = visualiziation_parser()
     bed_file = args.file
@@ -411,6 +443,6 @@ if __name__ == '__main__':
     if not os.path.exists(database):
         csv_to_sqlite(bed_file, database)
     get_app_layout(app, database)
-    app.run_server(debug=False, port=8080, host="0.0.0.0")
+    app.run_server(debug=True, port=8080, host="0.0.0.0")
     if tmpdir:
         tmpdir.cleanup()

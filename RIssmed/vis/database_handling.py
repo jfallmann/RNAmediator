@@ -5,6 +5,10 @@ import csv
 import pandas as pd
 import os
 import time
+import base64
+import io
+from itertools import groupby
+from operator import itemgetter
 
 COLUMN_NAMES = {
     'Chr': "VARCHAR(10)",
@@ -103,6 +107,66 @@ def csv_to_sqlite(file: str, db_path: str):
     insert_interesting_table(db_path)
 
 
+def insert_intersect(contents, filename, date, db_path):
+    conn = sqlite3.connect(db_path)
+    table = filename.replace(".", "_")
+    cur = conn.cursor()
+    cur.execute(''' SELECT count(name) FROM sqlite_master WHERE type='table' AND name=? ''', [table])
+    if not cur.fetchone()[0] == 1:
+        print(db_path)
+        cur.execute(f'CREATE TABLE IF NOT EXISTS {table} '
+                    f'( Chr VARCHAR(5), '
+                    f'Genomic_Start INT, '
+                    f'Genomic_End INT, '
+                    f'Distance INT, '
+                    f'Strand VARCHAR(2)) ')
+        cur.executemany(
+            f'INSERT INTO {table} VALUES (?,?,?,?,?);',
+            intersect_generator(contents))
+    conn.commit()
+    conn.close()
+
+
+def intersect_generator(contents):
+    content_type, content_string = contents.split(',')
+    decoded = base64.b64decode(content_string)
+    csv_reader = csv.reader(
+        io.StringIO(decoded.decode('utf-8')),
+        delimiter="\t",
+    )
+    for row in csv_reader:
+        chrom, start, stop, _, _, strand, distance = row[0:7]
+        yield [chrom, start, stop, distance, strand]
+
+
+def get_intersects(database, genomic_start, genomic_end, strand):
+    con = sqlite3.connect(database)
+    cursor = con.cursor()
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+    names = [name[0] for name in cursor.fetchall()]
+    names.remove("test")
+    names.remove("importance")
+    tuples = []
+    for name in names:
+        cursor.execute(
+            f"SELECT Distance FROM {name} "
+            "WHERE Genomic_Start >= ? "
+            "AND Genomic_End <=? "
+            "AND Strand = ?",
+            (genomic_start, genomic_end, strand)
+        )
+        print(genomic_start, genomic_end, strand)
+        distances = list(set([x[0] for x in cursor.fetchall()]))
+        distances.sort()
+        output = []
+        for k, g in groupby(enumerate(distances), lambda ix : ix[0] - ix[1] ):
+            output.append([*map(itemgetter(1), g)])
+        tuples.append((name, output))
+        print(output)
+    return tuples
+
+
+
 def insert_generator(file_handle):
     csv_reader = csv.reader(
         file_handle,
@@ -111,6 +175,7 @@ def insert_generator(file_handle):
     for x, row in enumerate(csv_reader):
         goi, pos, genomic_pos = row[3].split("|")
         gstart, gend = genomic_pos.split("-")
+        row = row[:-1]
         row = row + [int(gstart), int(gend), goi]
         row.pop(3)
         yield row
