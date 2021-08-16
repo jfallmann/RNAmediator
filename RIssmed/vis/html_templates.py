@@ -189,6 +189,8 @@ def tables_table(tablenames=None):
     dropdown = dcc.Dropdown(
         multi=True,
         id="intersect-dropdown",
+        placeholder="Select Intersect Filters",
+        search_value="foo",
         options=[
             {"label": x, "value": x} for x in tablenames
         ],
@@ -262,13 +264,36 @@ def modal_image_download():
     return modal
 
 
+def error_modal():
+    modal = dbc.Modal(
+        [
+            dbc.ModalHeader("ERROR"),
+            dbc.ModalBody(
+                [
+                    html.Div(
+                        [
+                            html.P("")
+                        ],
+                        className="row justify-content-around",
+                    )
+                ]
+            ),
+            dbc.ModalFooter(
+                dbc.Button("Close", id="error-close", className="ml-auto",
+                           n_clicks=0)),
+        ],
+        id="error-modal",
+    )
+    return modal
+
+
 def data_upload():
     html_upload = html.Div([
         dcc.Upload(
             id='upload-data',
             children=html.Div([
                 'Drag and Drop or ',
-                html.A('Select Files')
+                html.A('Select Intersect Files')
             ]),
             style={
                 'width': '100%',
@@ -283,7 +308,7 @@ def data_upload():
             # Allow multiple files to be uploaded
             multiple=True
         ),
-        html.Div(id='output-data-upload', style={"display": "none"}),
+        html.P(1, id='output-data-upload', style={"display": "none"}),
     ], className="col-10 p-2")
     return html_upload
 

@@ -3,8 +3,7 @@ from __future__ import annotations
 import os
 import sqlite3
 from tempfile import TemporaryDirectory
-import pandas as pd
-import io
+
 import dash  # (version 1.12.0) pip install dash
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
@@ -16,10 +15,11 @@ import plotly.io as pio
 from dash import callback_context
 from dash.dependencies import Input, Output, State, ALL
 
-
 from RNAtweaks.RIssmedArgparsers import visualiziation_parser
-from vis.database_handling import get_interesting, SearchSettings, csv_to_sqlite, insert_intersect, get_intersects
-from vis.html_templates import get_ingo, interesting_table, search_inputs, modal_image_download, data_upload, tables_table
+from vis.database_handling import get_interesting, SearchSettings, \
+    csv_to_sqlite, insert_intersect, get_intersects
+from vis.html_templates import get_ingo, interesting_table, search_inputs, \
+    modal_image_download, data_upload, tables_table
 
 FILEDIR = os.path.dirname(os.path.abspath(__file__))
 ASSETS_DIR = os.path.join(FILEDIR, "vis/assets")
@@ -48,10 +48,10 @@ pio.templates["plotly_white"].update(
 
 def get_app_layout(dash_app: dash.Dash, df: str):
     interesting = get_interesting(df, number_of_interesting=NUMBER_OF_INTERESTING)
-    print("get app layout")
     dash_app.layout = html.Div(
         [
             dcc.Location(id="url", refresh=False),
+
             html.Div(
                 [
                     html.Div(
@@ -66,7 +66,7 @@ def get_app_layout(dash_app: dash.Dash, df: str):
                                 [
                                     html.Div(
                                         [
-                                            html.H4(id='header', children=[], style={"text-align": "center"}),
+                                            html.H4(id='header', children=[], style={"text-align": "center"}, className="p-2"),
                                             dcc.Graph(
                                                 id='plotly_graph',
                                                 style={"height": "375px"},
@@ -80,10 +80,14 @@ def get_app_layout(dash_app: dash.Dash, df: str):
                                                 className="btn btn-primary m-2 col-5",
                                             ),
                                             modal_image_download(),
-                                            html.Div(tables_table(),
-                                                     className="col-10 m-2 dash-bootstrap",
-                                                     id="select-table-dropdown"),
+
                                             data_upload(),
+                                            dbc.Alert("The File is not in the expected format. Please use RIssmed output format",
+                                                      id="upload-alert-fade",
+                                                      dismissable=True,
+                                                      is_open=False,
+                                                      color="danger"),
+
                                         ],
                                         className="row justify-content-center",
                                     ),
@@ -97,7 +101,12 @@ def get_app_layout(dash_app: dash.Dash, df: str):
                     html.Div(
                         [
                             html.Div(
-                                [
+                                [   html.Div(
+                                    html.Div(tables_table(),
+                                             className="col-10 m-2 dash-bootstrap",
+                                             id="select-table-dropdown"),
+                                    className="row justify-content-center"
+                                ),
                                     search_inputs(),
                                     html.Div(
                                         interesting_table(
@@ -365,7 +374,6 @@ def table_switch_callback(
         next_clicks = prev_clicks = page = 0
         sorting = trigger_dict["name"]
     search_settings = SearchSettings(search_chr_input, search_goi, search_span_start, search_span_end)
-    print("Hello", intersect_dropdown)
     interesting = get_interesting(
         database, page, sorting, sorting_clicks, search_settings, number_of_interesting=NUMBER_OF_INTERESTING, intersect_filter=intersect_dropdown
     )
@@ -423,10 +431,25 @@ def toggle_modal(n1, n2, n3, is_open):
               State('upload-data', 'filename'),
               State('upload-data', 'last_modified'))
 def update_output(list_of_contents, list_of_names, list_of_dates):
-    if list_of_contents is not None:
-        for x, element in enumerate(list_of_contents):
-            insert_intersect(element, list_of_names[x], list_of_dates[x], database)
+    try:
+        if list_of_contents is not None:
+            for x, element in enumerate(list_of_contents):
+                insert_intersect(element, list_of_names[x], list_of_dates[x], database)
+        return 1
+    except sqlite3.DatabaseError:
         return 0
+
+
+@app.callback(
+    Output("upload-alert-fade", "is_open"),
+    [Input("output-data-upload", "children")],
+    [State("upload-alert-fade", "is_open")],
+)
+def toggle_alert(n, is_open):
+    if not n and not is_open:
+        return not is_open
+    return is_open
+
 
 @app.callback(
     Output("select-table-dropdown", "children"),

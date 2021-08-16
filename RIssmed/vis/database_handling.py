@@ -82,7 +82,6 @@ def get_interesting(
             )
             return_list += cur.fetchall()
     else:
-        s = time.time()
         cur.execute(
             f"SELECT * FROM importance "
             f"WHERE Chr like '{substrings.chr}%' "
@@ -94,9 +93,6 @@ def get_interesting(
             (substrings.span_start, substrings.span_end),
         )
         return_list = cur.fetchall()
-        e = time.time()
-        print(f"query took: {e - s} seconds")
-    print(return_list)
     conn.close()
     return return_list
 
@@ -110,7 +106,6 @@ def csv_to_sqlite(file: str, db_path: str):
     columns = ", ".join(names)
     call = f'CREATE TABLE IF NOT EXISTS test ( {columns} ) '
     cur.execute(call)
-    start = time.time()
     if ".gz" in file:
         file_handle = gzip.open(file, "rt")
     else:
@@ -120,8 +115,6 @@ def csv_to_sqlite(file: str, db_path: str):
     file_handle.close()
     cur.execute(
         "CREATE INDEX test_idx ON test (Chr, Gene_of_interest, Genomic_Start, Genomic_End)")
-    end = time.time()
-    print(f"db creation took {end - start} seconds")
     file_handle.close()
     con.commit()
     con.close()
@@ -136,7 +129,6 @@ def insert_intersect(contents, filename, date, db_path):
         ''' SELECT count(name) FROM sqlite_master WHERE type='table' AND name=? ''',
         [table])
     if not cur.fetchone()[0] == 1:
-        print(db_path)
         cur.execute(f'CREATE TABLE IF NOT EXISTS {table} '
                     f'( Chr VARCHAR(5), '
                     f'Genomic_Start INT, '
@@ -144,23 +136,35 @@ def insert_intersect(contents, filename, date, db_path):
                     f'Gene_of_Interest VARCHAR(20), '
                     f'Distance INT, '
                     f'Strand VARCHAR(2)) ')
+    try:
         cur.executemany(
             f'INSERT INTO {table} VALUES (?,?,?,?,?,?);',
             intersect_generator(contents))
-    conn.commit()
-    conn.close()
+    except (AssertionError, ValueError):
+        cur.execute(
+            f"DROP TABLE IF EXISTS {table};"
+        )
+        raise(sqlite3.DatabaseError)
+    finally:
+        conn.commit()
+        conn.close()
 
 
 def intersect_generator(contents):
     content_type, content_string = contents.split(',')
     decoded = base64.b64decode(content_string)
+    assert len(decoded) > 0
+    datastream = io.StringIO(decoded.decode('utf-8'))
     csv_reader = csv.reader(
-        io.StringIO(decoded.decode('utf-8')),
+        datastream,
         delimiter="\t",
     )
     for row in csv_reader:
         chrom, start, stop, gene_name, _, strand, distance = row[0:7]
         gene_name = gene_name.split("|")[0]
+        assert strand in ["+", "-"]
+        assert int(distance)
+
         yield [chrom, start, stop, gene_name, distance, strand]
 
 
@@ -180,14 +184,12 @@ def get_intersects(database, genomic_start, genomic_end, strand):
             "AND Strand = ?",
             (genomic_start, genomic_end, strand)
         )
-        print(genomic_start, genomic_end, strand)
         distances = list(set([x[0] for x in cursor.fetchall()]))
         distances.sort()
         output = []
         for k, g in groupby(enumerate(distances), lambda ix: ix[0] - ix[1]):
             output.append([*map(itemgetter(1), g)])
         tuples.append((name, output))
-        print(output)
     return tuples
 
 
@@ -220,10 +222,7 @@ def insert_interesting_table(db_path: str):
 
     cur.execute(
         "SELECT DISTINCT Chr, Gene_of_interest, Genomic_Start, Genomic_End FROM test")
-    start = time.time()
     constraints = cur.fetchall()
-    end = time.time()
-    print(f"fetching distinct took {end - start} seconds")
 
     for entry in constraints:
         cur.execute(
