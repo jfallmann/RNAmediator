@@ -73,23 +73,8 @@ import sys
 import importlib
 import multiprocessing
 import shlex
+import errno
 
-# Biopython stuff
-from Bio import SeqIO
-
-# numpy
-import RNA
-
-# Logging
-import datetime
-
-# from Tweaks.logger import (
-# makelogdir,
-# makelogfile,
-# listener_process,
-# listener_configurer,
-# worker_configurer,
-# )
 
 # load own modules
 from Tweaks.FileProcessor import *
@@ -1016,6 +1001,7 @@ def main(args=None):
             args = parseargs_foldcons()
 
         queue, listener, worker_configurer = rissmed_logging_setup(args.logdir, args.loglevel, SCRIPTNAME)
+        print(str(queue), str(listener))
 
         log.info(logid + 'Running ' + SCRIPTNAME + ' on ' + str(args.procs) + ' cores.')
         log.info(
@@ -1025,7 +1011,7 @@ def main(args=None):
             + ' '
             + '{}'.format(' '.join([shlex.quote(s) for s in sys.argv[1:]]))
         )
-        print('TEST')
+
         run_settings, outdir = preprocess(
             args.sequence, args.constrain, args.conslength, args.outdir, args.genes
         )
