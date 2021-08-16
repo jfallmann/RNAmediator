@@ -2,7 +2,7 @@ import os
 import pytest
 import random
 import numpy as np
-from RIssmed.RNAtweaks.RNAtweaks import api_rnaplfold, cmd_rnaplfold
+from Tweaks.RNAtweaks import api_rnaplfold, cmd_rnaplfold
 
 TESTFOLDER = os.path.dirname(os.path.abspath(__file__))
 PARPATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

@@ -55,7 +55,7 @@ import traceback as tb
 import argparse
 import shlex
 
-from RIssmed.RNAtweaks.logger import makelogdir, setup_logger
+from Tweaks.logger import makelogdir, setup_logger
 
 
 # Create log dir

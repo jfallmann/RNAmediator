@@ -16,7 +16,7 @@ from typing import Iterable, Tuple
 # if vrna:
 #     sys.path = [vrna] + sys.path
 #     global RNA
-#     RNA = importlib.import_module('RNA')
+#     RNA = importTweaks.import_module('RNA')
 #     globals().update(
 #         {n: getattr(RNA, n) for n in RNA.__all__}
 #         if hasattr(RNA, '__all__')
@@ -815,4 +815,4 @@ def api_rnaplfold(
 
 
 #
-# RNAtweaks.py ends here
+# Tweaks.py ends here

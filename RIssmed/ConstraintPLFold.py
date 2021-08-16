@@ -40,7 +40,7 @@
 # import shutil
 # plt.rcParams['animation.ffmpeg_path'] = shutil.which("ffmpeg")
 # plt.rc('verbose', level='debug-annoying', fileo=sys.stdout)
-# matplotlib.verbose.set_level("helpful")
+# matplotTweaks.verbose.set_level("helpful")
 # plt.rc('animation', html='html5')
 ##
 ######################################################################
@@ -78,17 +78,17 @@ import shlex
 from typing import Dict
 
 # load own modules
-from RIssmed.RNAtweaks.FileProcessor import *
-from RIssmed.RNAtweaks.RIssmed import (
+from Tweaks.FileProcessor import *
+from Tweaks.RIssmed import (
     preprocess,
     SequenceSettings,
     rissmed_logging_setup,
-    expand_window,
-    localize_window,
+    expand_pl_window,
+    localize_pl_window,
 )
-from RIssmed.RNAtweaks.RNAtweaks import *
-from RIssmed.RNAtweaks.RNAtweaks import _npprint
-from RIssmed.lib.NPtweaks import *
+from Tweaks.RNAtweaks import *
+from Tweaks.RNAtweaks import _npprint
+from Tweaks.NPtweaks import *
 
 # Biopython stuff
 
@@ -123,6 +123,8 @@ def pl_fold(
         num_processes = procs or 1
         # with get_context("spawn").Pool(processes=num_processes-1, maxtasksperchild=1) as pool:
         pool = multiprocessing.Pool(processes=num_processes, maxtasksperchild=1)
+
+        # Start the work
         for fasta in run_settings:
             fasta_settings = run_settings[fasta]
             goi = fasta_settings.gene
@@ -130,6 +132,9 @@ def pl_fold(
             ge = fasta_settings.genomic_coords.end
             gstrand = fasta_settings.genomic_coords.strand
             seq_record = fasta_settings.sequence_record
+            conslist = fasta_settings.constrainlist
+            log.debug(logid + str(conslist))
+
             if len(seq_record.seq) < window * multi:
                 log.warning(
                     str(
@@ -147,149 +152,145 @@ def pl_fold(
 
             if pattern and pattern not in goi:
                 continue
-            else:
-                log.info(logid + 'Working on ' + goi + "\t" + seq_record.id)
 
-                # define data structures
-                data = {'up': []}
-                an = [np.nan]
-                # We check if we need to fold the whole seq or just a region around the constraints
-                conslist = fasta_settings.constrainlist
-                log.debug(logid + str(conslist))
-                for cons_tuple in conslist:
-                    log.debug(logid + 'ENTRY: ' + str(cons_tuple))
-                    if (
-                        cons_tuple == 'NOCONS'
-                    ):  # in case we just want to fold the sequence without constraints at all
-                        raise NotImplementedError("Needs to be reimplemented")
-                        # res = pool.apply_async(fold_unconstraint,
-                        #                        args=(str(seq_record.seq), str(seq_record.id),
-                        #                              region, window, span, unconstraint, save,
-                        #                              outdir),
-                        #                        kwds={'queue': queue, 'configurer': configurer, 'level': level})
-                        # data['up'] = res.get()
+            log.info(logid + 'Working on ' + goi + "\t" + seq_record.id)
+
+            # define data structures
+            data = {'up': []}
+            an = [np.nan]
+            # We check if we need to fold the whole seq or just a region around the constraints
+            conslist = fasta_settings.constrainlist
+            log.debug(logid + str(conslist))
+            for cons_tuple in conslist:
+                log.debug(logid + 'ENTRY: ' + str(cons_tuple))
+                if (
+                    cons_tuple == 'NOCONS'
+                ):  # in case we just want to fold the sequence without constraints at all
+                    raise NotImplementedError("Needs to be reimplemented")
+                    # res = pool.apply_async(fold_unconstraint,
+                    #                        args=(str(seq_record.seq), str(seq_record.id),
+                    #                              region, window, span, unconstraint, save,
+                    #                              outdir),
+                    #                        kwds={'queue': queue, 'configurer': configurer, 'level': level})
+                    # data['up'] = res.get()
+
+                else:
+                    if len(cons_tuple) > 1:  # Then paired constraints should be used
+                        cons_tuple = [str(cons) for cons in cons_tuple]
+                        cons = ":".join(cons_tuple)
+                        fstart, fend = [None, None]
+                        start, end = [None, None]
+
+                        if gstrand == '+' or gstrand == '.':
+                            [fstart, fend], [start, end] = [
+                                [x - gs for x in get_location(cn)[:2]] for cn in cons.split(':', 1)
+                            ]
+                        else:
+                            [fstart, fend], [start, end] = [
+                                [ge - x for x in get_location(cn)[:2][::-1]] for cn in cons.split(':', 1)
+                            ]
+                        cons = str(fstart) + '-' + str(fend) + ':' + str(start) + '-' + str(end)
+                        if start < 0 or fstart < 0 or end > len(seq_record.seq) or fend > len(seq_record.seq):
+                            log.warning(
+                                logid
+                                + 'Constraint out of sequence bounds! skipping! '
+                                + ','.join(
+                                    map(
+                                        str,
+                                        [
+                                            goi,
+                                            len(seq_record.seq),
+                                            str(start) + '-' + str(end),
+                                            str(fstart) + '-' + str(fend),
+                                        ],
+                                    )
+                                )
+                            )
+                            continue
+                        if checkexisting(
+                            str(seq_record.id), paired, unpaired, cons, region, window, span, outdir
+                        ):
+                            log.warning(
+                                logid + str(cons) + ' Exists for ' + str(seq_record.id) + '! Skipping!'
+                            )
+                            continue
+
+                        log.info(logid + 'Constraining to ' + str(fstart) + ' and ' + str(fend))
+                        goi, chrom, strand = idfromfa(seq_record.id)
+                        pool.apply_async(
+                            constrain_seq_paired,
+                            args=(
+                                seq_record.id,
+                                str(seq_record.seq),
+                                fstart,
+                                fend,
+                                start,
+                                end,
+                                window,
+                                span,
+                                region,
+                                multi,
+                                paired,
+                                unpaired,
+                                save,
+                                outdir,
+                                data,
+                                an,
+                                unconstraint,
+                            ),
+                            kwds={'queue': queue, 'configurer': configurer, 'level': level},
+                        )
 
                     else:
-                        if len(cons_tuple) > 1:  # Then paired constraints should be used
-                            cons_tuple = [str(cons) for cons in cons_tuple]
-                            cons = ":".join(cons_tuple)
-                            if gstrand == '+' or gstrand == '.':
-                                [fstart, fend], [start, end] = [
-                                    [x - gs for x in get_location(cn)[:2]] for cn in cons.split(':', 1)
-                                ]
-                            else:
-                                [fstart, fend], [start, end] = [
-                                    [ge - x for x in get_location(cn)[:2][::-1]] for cn in cons.split(':', 1)
-                                ]
-                            cons = str(fstart) + '-' + str(fend) + ':' + str(start) + '-' + str(end)
-                            if (
-                                start < 0
-                                or fstart < 0
-                                or end > len(seq_record.seq)
-                                or fend > len(seq_record.seq)
-                            ):
-                                log.warning(
-                                    logid
-                                    + 'Constraint out of sequence bounds! skipping! '
-                                    + ','.join(
-                                        map(
-                                            str,
-                                            [
-                                                goi,
-                                                len(seq_record.seq),
-                                                str(start) + '-' + str(end),
-                                                str(fstart) + '-' + str(fend),
-                                            ],
-                                        )
-                                    )
-                                )
-                                continue
-                            if checkexisting(
-                                str(seq_record.id), paired, unpaired, cons, region, window, span, outdir
-                            ):
-                                log.warning(
-                                    logid + str(cons) + ' Exists for ' + str(seq_record.id) + '! Skipping!'
-                                )
-                                continue
-
-                            log.info(logid + 'Constraining to ' + str(fstart) + ' and ' + str(fend))
-                            goi, chrom, strand = idfromfa(seq_record.id)
-                            pool.apply_async(
-                                constrain_seq_paired,
-                                args=(
-                                    seq_record.id,
-                                    str(seq_record.seq),
-                                    fstart,
-                                    fend,
-                                    start,
-                                    end,
-                                    window,
-                                    span,
-                                    region,
-                                    multi,
-                                    paired,
-                                    unpaired,
-                                    save,
-                                    outdir,
-                                    data,
-                                    an,
-                                    unconstraint,
-                                ),
-                                kwds={'queue': queue, 'configurer': configurer, 'level': level},
-                            )
-
+                        # indexing because conslist is a list of tuples for multi constraints
+                        cons = str(cons_tuple[0])
+                        log.info(logid + 'Calculating constraint\t' + cons)
+                        if gstrand == '+' or gstrand == '.':
+                            start, end = [x - gs for x in get_location(cons)[:2]]
                         else:
-                            # indexing because conslist is a list of tuples for multi constraints
-                            cons = str(cons_tuple[0])
-                            log.info(logid + 'Calculating constraint\t' + cons)
-                            if gstrand == '+' or gstrand == '.':
-                                start, end = [x - gs for x in get_location(cons)[:2]]
-                            else:
-                                start, end = [ge - x for x in get_location(cons)[:2][::-1]]
+                            start, end = [ge - x for x in get_location(cons)[:2][::-1]]
 
-                            tostart, toend = expand_window(start, end, window, multi, len(seq_record.seq))
-                            cons = str(start) + '-' + str(end) + '_' + str(tostart) + '-' + str(toend)
-                            log.debug(logid + str.join(' ', [goi, cons, gstrand]))
+                        tostart, toend = expand_pl_window(start, end, window, multi, len(seq_record.seq))
+                        cons = str(start) + '-' + str(end) + '_' + str(tostart) + '-' + str(toend)
+                        log.debug(logid + str.join(' ', [goi, cons, gstrand]))
 
-                            if start < 0 or end > len(seq_record.seq):
-                                log.warning(
-                                    logid
-                                    + 'Constraint out of sequence bounds! skipping! '
-                                    + ','.join(
-                                        map(str, [goi, len(seq_record.seq), str(start) + '-' + str(end)])
-                                    )
-                                )
-                                continue
-                            if checkexisting(
-                                str(seq_record.id), paired, unpaired, cons, region, window, span, outdir
-                            ):
-                                log.warning(
-                                    logid + str(cons) + ' Exists for ' + str(seq_record.id) + '! Skipping!'
-                                )
-                                continue
-                            pool.apply_async(
-                                constrain_seq,
-                                args=(
-                                    str(seq_record.id),
-                                    str(seq_record.seq),
-                                    start,
-                                    end,
-                                    window,
-                                    span,
-                                    region,
-                                    multi,
-                                    paired,
-                                    unpaired,
-                                    save,
-                                    outdir,
-                                ),
-                                kwds={
-                                    'unconstraint': unconstraint,
-                                    'queue': queue,
-                                    'configurer': configurer,
-                                    'level': level,
-                                },
+                        if start < 0 or end > len(seq_record.seq):
+                            log.warning(
+                                logid
+                                + 'Constraint out of sequence bounds! skipping! '
+                                + ','.join(map(str, [goi, len(seq_record.seq), str(start) + '-' + str(end)]))
                             )
+                            continue
+                        if checkexisting(
+                            str(seq_record.id), paired, unpaired, cons, region, window, span, outdir
+                        ):
+                            log.warning(
+                                logid + str(cons) + ' Exists for ' + str(seq_record.id) + '! Skipping!'
+                            )
+                            continue
+                        pool.apply_async(
+                            constrain_seq,
+                            args=(
+                                str(seq_record.id),
+                                str(seq_record.seq),
+                                start,
+                                end,
+                                window,
+                                span,
+                                region,
+                                multi,
+                                paired,
+                                unpaired,
+                                save,
+                                outdir,
+                            ),
+                            kwds={
+                                'unconstraint': unconstraint,
+                                'queue': queue,
+                                'configurer': configurer,
+                                'level': level,
+                            },
+                        )
 
         pool.close()
         pool.join()  # timeout
@@ -393,11 +394,11 @@ def constrain_seq(
         # for all constraints we now extract subsequences to compare against
         # we no longer fold the whole raw sequence but only the constraint region +- window size
         # Yes this is a duplicate but not if used in other context as standalone function
-        tostart, toend = expand_window(start, end, window, multi, len(seq))
+        tostart, toend = expand_pl_window(start, end, window, multi, len(seq))
         seqtofold = str(seq[tostart - 1 : toend])
 
         # get local window of interest 0 based closed, we do not need to store the whole seqtofold
-        locws, locwe = localize_window(start, end, window, len(seq))
+        locws, locwe = localize_pl_window(start, end, window, len(seq))
         cons = str('-'.join([str(start), str(end)]) + '_' + '-'.join([str(locws), str(locwe)]))
 
         if len(seqtofold) < (toend - tostart):
@@ -546,11 +547,11 @@ def constrain_seq_paired(
             configurer(queue, level)
 
         # we no longer fold the whole sequence but only the constraint region +- window size
-        tostart, toend = expand_window(start, fend, window, multi, len(seq))
+        tostart, toend = expand_pl_window(start, fend, window, multi, len(seq))
         seqtofold = str(seq[tostart - 1 : toend])
 
         # get local window of interest 0 based closed, we do not need to store the whole seqtofold
-        locws, locwe = localize_window(start, fend, window, len(seq))
+        locws, locwe = localize_pl_window(start, fend, window, len(seq))
         cons = str(
             '-'.join([str(start), str(end) + ':' + str(fstart), str(fend)])
             + '_'
@@ -582,7 +583,7 @@ def constrain_seq_paired(
             return
 
         # refresh model details
-        # RNA = importlib.import_module('RNA')
+        # RNA = importTweaks.import_module('RNA')
         # get local start,ends 0 based closed
         locstart = start - tostart
         locend = end - tostart
@@ -689,7 +690,7 @@ def constrain_seq_paired(
 #             return
 #
 #         #refresh model details
-#         #RNA = importlib.import_module('RNA')
+#         #RNA = importTweaks.import_module('RNA')
 #         md = RNA.md()
 #         md.max_bp_span = span
 #         md.window_size = window
@@ -954,7 +955,7 @@ def checkexisting(sid, paired, unpaired, cons, region, window, span, outdir):
     return 1
 
 
-def main(args):
+def main():
 
     logid = SCRIPTNAME + '.main: '
     try:

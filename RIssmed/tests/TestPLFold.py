@@ -73,14 +73,14 @@ from Bio.Seq import Seq
 import numpy as np
 import matplotlib
 from matplotlib import animation  # , rc
-import matplotlib.pyplot as plt
+import matplotTweaks.pyplot as plt
 from random import choices, choice, shuffle  # need this if tempprobing was choosen
 
 # find ffmpeg executable
 # import shutil
 # plt.rcParams['animation.ffmpeg_path'] = shutil.which("ffmpeg")
 # plt.rc('verbose', level='debug-annoying', fileo=sys.stdout)
-# matplotlib.verbose.set_level("helpful")
+# matplotTweaks.verbose.set_level("helpful")
 # plt.rc('animation', html='html5')
 
 
@@ -203,7 +203,7 @@ def fold(
         sys.path = ["/scratch/fall/VRNA/243_alpha2/lib/python3.6/site-packages"] + sys.path
     try:
         global RNA
-        RNA = importlib.import_module('RNA')
+        RNA = importTweaks.import_module('RNA')
         globals().update(
             {n: getattr(RNA, n) for n in RNA.__all__}
             if hasattr(RNA, '__all__')

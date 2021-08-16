@@ -40,7 +40,7 @@
 # import shutil
 # plt.rcParams['animation.ffmpeg_path'] = shutil.which("ffmpeg")
 # plt.rc('verbose', level='debug-annoying', fileo=sys.stdout)
-# matplotlib.verbose.set_level("helpful")
+# matplotTweaks.verbose.set_level("helpful")
 # plt.rc('animation', html='html5')
 ##
 ######################################################################
@@ -84,7 +84,7 @@ from Bio import SeqIO
 
 # Logging
 import datetime
-from RIssmed.RNAtweaks.logger import makelogdir, setup_multiprocess_logger
+from Tweaks.logger import makelogdir, setup_multiprocess_logger
 
 SCRIPTNAME = os.path.basename(__file__).replace('.py', '')
 makelogdir('LOGS')
@@ -114,8 +114,8 @@ log = setup_multiprocess_logger(
 )
 
 ##load own modules
-from RIssmed.RNAtweaks.RIssmedArgparsers import *
-from lib.Randseq import createrandseq
+from Tweaks.RIssmedArgparsers import *
+from Tweaks.Randseq import createrandseq
 
 
 def parseargs():
@@ -190,7 +190,7 @@ def fold(
         sys.path = ["/scratch/fall/VRNA/249/lib/python3.6/site-packages"] + sys.path
     try:
         global RNA
-        RNA = importlib.import_module('RNA')
+        RNA = importTweaks.import_module('RNA')
         globals().update(
             {n: getattr(RNA, n) for n in RNA.__all__}
             if hasattr(RNA, '__all__')

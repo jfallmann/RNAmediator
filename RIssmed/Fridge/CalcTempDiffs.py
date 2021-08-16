@@ -56,7 +56,7 @@ from natsort import natsorted
 # Biopython stuff
 from Bio import SeqIO
 
-from RIssmed.RNAtweaks.RIssmedArgparsers import *
+from Tweaks.RIssmedArgparsers import *
 
 # from ConstraintPLfold.py import
 

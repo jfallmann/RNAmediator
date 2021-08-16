@@ -55,7 +55,7 @@ import numpy as np
 
 # own
 import logging
-from RIssmed.RNAtweaks.RIssmedArgparsers import *
+from Tweaks.RIssmedArgparsers import *
 
 ####################
 # Numpy processing #

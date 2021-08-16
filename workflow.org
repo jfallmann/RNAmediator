@@ -258,4 +258,7 @@ rm -f Dist_acc.tsv.gz; for a in 20 40 60 80;do for i in 5 7 9 11;do zcat $a\_$i\
 Accessibility_difference, Distance_to_constraint, Accessibility_no_constraint, Zscore
 **** Plot
 Stats.R
-
+* TODOS
+** Soft-constraints
+Add factor variable and model variable to define soft-constraints factor specific and binding motif specific
+e.g. 'TTP,-0.02,WTTTW;HuR,+0.2,UUUUU' as command-line or file, then --factors TTP,HuR,... and foreach factor in factors run folding and apply soft constraint if motif regex fits or everywhere, needs smart regex to work with IUPAC, see AREsite motif regex builder
