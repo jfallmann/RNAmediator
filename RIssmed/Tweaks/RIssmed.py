@@ -64,7 +64,7 @@ class SequenceSettings:
         sequence_record.seq = Seq(str(sequence_record.seq).upper().replace("T", "U"))
         self.sequence_record = sequence_record
         self._constrainlist = list(constrainlist)
-        if strand in ["+", "-"]:
+        if strand in ["+", "-", "na"]:
             self.strand = strand
         else:
             self.strand = "+"
@@ -245,7 +245,9 @@ def add_rissmed_constraint(
 
     cons_list = []
     for constraint in constraints.split(":"):  # Should now work with paired constraints split via : separator
-        cons, cons_strand = constraint.split("|")
+        cons = constraint.split("|")
+        cons_strand = cons[1] if len(cons) > 1 else sequence_strand
+        cons = cons[0]
         cons_start, cons_end = cons.split("-")
         cons_list.append(Constraint(int(cons_start), int(cons_end), cons_strand))
     cons_tuple = tuple(cons_list)
@@ -316,7 +318,8 @@ def read_constraints(constrain: str, linewise: bool = False) -> Dict[str, List[s
         constraintlist = list()
     elif '-' in constrain:
         log.info(logid + 'Calculating probs for constraint ' + constrain)
-        constraintlist = constrain.split(',')
+        constraintlist = constrain.split(',') if linewise is False else {"lw": constrain.split(";")}
+
     elif constraint == 'temperature':
         log.info(logid + 'Calculating probs for temperature constraint' + temprange)
         raise NotImplementedError("Temperature range folding needs to be reimplemented")

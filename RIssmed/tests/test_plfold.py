@@ -5,11 +5,11 @@ from argparse import Namespace
 from tempfile import TemporaryDirectory
 import numpy as np
 import pytest
-from ConstraintPLFold import main as pl_main
-from ConstraintPLFold import fold_unconstraint, constrain_seq
+from RIssmed.ConstraintPLFold import main as pl_main
+from RIssmed.ConstraintPLFold import fold_unconstraint, constrain_seq
 from Bio import SeqIO
-from Tweaks.RNAtweaks import PLFoldOutput, cmd_rnaplfold
-from Tweaks.RIssmed import expand_window, localize_window
+from RIssmed.Tweaks.RNAtweaks import PLFoldOutput, cmd_rnaplfold
+from RIssmed.Tweaks.RIssmed import expand_window, localize_window
 
 
 TESTFOLDER = os.path.dirname(os.path.abspath(__file__))
