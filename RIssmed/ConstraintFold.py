@@ -104,7 +104,8 @@ SCRIPTNAME = os.path.basename(__file__).replace('.py', '')
 
 
 def fold(
-    sequence,
+    run_settings,
+    outdir,
     window,
     span,
     unconstraint,
@@ -114,14 +115,37 @@ def fold(
     conslength,
     save,
     procs,
-    outdir,
-    run_settings,
     pattern=None,
     cutoff=None,
     queue=None,
     configurer=None,
     level=None,
 ):
+    """fold prepares and submitts sequenced to be folded constrained and unconstrained
+
+    Parameters
+    ----------
+    run_settings: Dict[str, SequenceSettings] RIssmed run settings dictionary using fasta ids as keys and Sequence Settings as values
+    outdir : str Location of the Outpu directory. If it is an empty string os.cwd() is used
+    window: int Size of window to fold
+    span: int Maximum base-pair span to be evaluated
+    unconstraint: str Suffix for unconstraint output files
+    unpaired: str Suffix for ouput files of unpaired constraint
+    paired: str Suffix for output files of paired constraint
+    constrain : str The file location of constrain file
+    conslength : int Length of the constraint, only used if constrain is sliding
+    save: bool If output files should be saved
+    procs: int Number of processes to run in parallel
+    pattern: str String pattern for gene of interest
+    cutoff: float Cutoff for raw accessibility, regions below this propability of being unpaired will not be folded
+    queue: multiprocessing_queue Logging process queue
+    configurer: multiprocessing_config for Logging processes
+    level: logging.level Level for log process
+
+    Returns
+    -------
+    Call to constrain_seq
+    """
 
     logid = SCRIPTNAME + '.fold: '
     try:
@@ -236,6 +260,7 @@ def fold(
 
                         log.debug(logid + str.join(' ', [goi, cons, gstrand]))
 
+                    genecoords = list(gs, ge, gstrand)
                     const = list(start, end, fstart, fend)
                     pool.apply_async(
                         constrain_seq,
@@ -291,6 +316,31 @@ def constrain_seq(
     configurer=None,
     level=None,
 ):
+    """takes input of fold and folds constrained and unconstrained sequences
+
+    Parameters
+    ----------
+    seq_record : SeqIO.SeqRecord Sequence record of the sequence to which the constraint should be added
+    const : list The constraint position(s) as list
+    conslength : int Length of the constraint, only used if constrain is sliding
+    cons : str The constraint annotation
+    window: int Size of window to fold
+    span: int Maximum base-pair span to be evaluated
+    unconstraint: str Suffix for unconstraint output files
+    unpaired: str Suffix for ouput files of unpaired constraint
+    paired: str Suffix for output files of paired constraint
+    save: bool If output files should be saved
+    outdir : str Location for the output directory
+    genecoords: list Genomic coordinates of gene of interest
+    procs: int Number of processes to run in parallel
+    queue: multiprocessing_queue Logging process queue
+    configurer: multiprocessing_config for Logging processes
+    level: logging.level Level for log process
+
+    Returns
+    -------
+    Call to writeout which prints results to file
+    """
 
     logid = SCRIPTNAME + '.constrain_seq: '
     try:
@@ -660,6 +710,26 @@ def constrain_seq(
 
 
 def constrain_temp(fa, temp, window, span, an, save, outdir, queue=None, configurer=None, level=None):
+    """Takes Sequence and fold under temperature constraint
+    Currently not implemented
+
+    Parameters
+    ----------
+    fa: SeqIO.SeqRecord Sequence record of the sequence to which the constraint should be added
+    temp : int Temperature[K]
+    window: int Size of window to fold
+    span: int Maximum base-pair span to be evaluated
+    an: str Name for outfile
+    outdir : str Location of the Outpu directory. If it is an empty string os.cwd() is used
+    queue: multiprocessing_queue Logging process queue
+    configurer: multiprocessing_config for Logging processes
+    level: logging.level Level for log process
+
+    Returns
+    -------
+    NotImplementedError()
+    """
+
     # refresh model details
     raise NotImplementedError("Needs to be reimplemented")
 
@@ -715,7 +785,24 @@ def constrain_temp(fa, temp, window, span, an, save, outdir, queue=None, configu
 
 
 def foldaround(seq, fc, pos, clength, gibbs, nrg, queue=None, configurer=None, level=None):
-    # here we take the already constraint fc and constrain regions of length clength around it to see what happens at the original binding site
+    """here we take the sequence and the RNA.fold_compound and constrain regions of length clength around it to see what happens at the original binding site
+
+    Parameters
+    ----------
+    seq: SeqIO.SeqRecord Sequence record of the sequence to which the constraint should be added
+    fc : RNA.fold_compound
+    pos : int constraint start
+    clength : int The constraint length
+    gibbs: float ddG
+    nrg: float Folding energy
+    queue: multiprocessing_queue Logging process queue
+    configurer: multiprocessing_config for Logging processes
+    level: logging.level Level for log process
+
+    Returns
+    -------
+    Gibbs constraint
+    """
 
     logid = SCRIPTNAME + '.foldaround: '
     try:
@@ -745,6 +832,19 @@ def foldaround(seq, fc, pos, clength, gibbs, nrg, queue=None, configurer=None, l
 
 
 def fold_unconstraint(seq, queue=None, configurer=None, level=None):
+    """here we take the sequence and the RNA.fold_compound and fold without constraint
+
+    Parameters
+    ----------
+    seq: SeqIO.SeqRecord Sequence record of the sequence to which the constraint should be added
+    queue: multiprocessing_queue Logging process queue
+    configurer: multiprocessing_config for Logging processes
+    level: logging.level Level for log process
+
+    Returns
+    -------
+    Gibbs unconstraint
+    """
 
     logid = SCRIPTNAME + '.fold_unconstraint: '
     try:
@@ -770,6 +870,16 @@ def fold_unconstraint(seq, queue=None, configurer=None, level=None):
 
 
 def write_out(resultlist):
+    """Print results to file
+
+    Parameters
+    ----------
+    resultlist: List[str] Contains all results generated by constrain
+
+    Returns
+    -------
+    Print results to file or STDOUT
+    """
 
     try:
         for result in resultlist:
@@ -840,7 +950,26 @@ def write_out(resultlist):
         log.error(logid + ''.join(tbe.format()))
 
 
-def checkexisting(sid, paired, unpaired, cons, region, window, span, outdir):
+def checkexisting(sid, paired, unpaired, cons, window, span, outdir, queue=None, configurer=None, level=None):
+    """Validates if output file already exists
+
+    Parameters
+    ----------
+    sid: SeqIO.SeqID Sequence ID of the sequence to which the constraint should be added
+    unpaired: str Suffix for ouput files of unpaired constraint
+    paired: str Suffix for output files of paired constraint
+    cons : str The annoation for the constraint
+    window: int Size of window to fold
+    span: int Maximum base-pair span to be evaluated
+    outdir : str Location of the Outpu directory. If it is an empty string os.cwd() is used
+    queue: multiprocessing_queue Logging process queue
+    configurer: multiprocessing_config for Logging processes
+    level: logging.level Level for log process
+
+    Returns
+    -------
+    True/False if file exists
+    """
 
     logid = SCRIPTNAME + '.checkexisting: '
     try:
@@ -865,6 +994,15 @@ def checkexisting(sid, paired, unpaired, cons, region, window, span, outdir):
 
 
 def main():
+    """Main process, prepares run_settings dict, creates logging process queue and worker processes for folding, calls fold
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+    Call to fold
+    """
 
     logid = SCRIPTNAME + '.main: '
     try:
@@ -884,7 +1022,8 @@ def main():
             args.sequence, args.constrain, args.conslength, args.outdir, args.genes
         )
         fold(
-            args.sequence,
+            run_settings,
+            outdir,
             args.window,
             args.span,
             args.unconstraint,
@@ -894,8 +1033,6 @@ def main():
             args.conslength,
             args.save,
             args.procs,
-            outdir,
-            run_settings,
             args.pattern,
             args.cutoff,
             queue=queue,
