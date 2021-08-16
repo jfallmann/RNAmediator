@@ -1,10 +1,10 @@
-import dash_html_components as html
-import dash_core_components as dcc
-import dash_bootstrap_components as dbc
-from typing import List, Union
-import os
 import base64
+import os
 import zipfile
+
+import dash_bootstrap_components as dbc
+import dash_core_components as dcc
+import dash_html_components as html
 
 
 def search_inputs():
@@ -12,7 +12,8 @@ def search_inputs():
     menu = html.Div(
         [
             html.Div(
-                html.Button("", className="prev-button", id="prev-button", n_clicks=0),
+                html.Button("", className="prev-button", id="prev-button",
+                            n_clicks=0),
                 className="col-2 col-md-1 text-center order-2 order-md-1 m-1 m-md-0",
             ),
             html.Div(
@@ -20,7 +21,8 @@ def search_inputs():
                     [
                         html.Nobr(
                             [
-                                html.Label("Chr", htmlFor="search-chr-input", className="search-label"),
+                                html.Label("Chr", htmlFor="search-chr-input",
+                                           className="search-label"),
                                 dcc.Input(
                                     id="search-chr-input",
                                     className="search-input",
@@ -31,7 +33,8 @@ def search_inputs():
                         ),
                         html.Nobr(
                             [
-                                html.Label("GOI", htmlFor="search-goi-input", className="search-label"),
+                                html.Label("GOI", htmlFor="search-goi-input",
+                                           className="search-label"),
                                 dcc.Input(
                                     id="search-goi-input",
                                     placeholder="Search Gene",
@@ -43,7 +46,8 @@ def search_inputs():
                         html.Nobr(
                             [
                                 html.Label(
-                                    "Start", htmlFor="search-span-start-input", className="search-label"
+                                    "Start", htmlFor="search-span-start-input",
+                                    className="search-label"
                                 ),
                                 dcc.Input(
                                     id="search-span-start-input",
@@ -55,7 +59,9 @@ def search_inputs():
                         ),
                         html.Nobr(
                             [
-                                html.Label("End", htmlFor="search-span-end-input", className="search-label"),
+                                html.Label("End",
+                                           htmlFor="search-span-end-input",
+                                           className="search-label"),
                                 dcc.Input(
                                     id="search-span-end-input",
                                     placeholder="End",
@@ -70,7 +76,8 @@ def search_inputs():
                 className="col-12 col-md-10 order-md-2 order-1",
             ),
             html.Div(
-                html.Button("", className="next-button", id="next-button", n_clicks=0),
+                html.Button("", className="next-button", id="next-button",
+                            n_clicks=0),
                 className="col-2 col-md-1 text-center order-3 order-md-3 m-1 m-md-0",
             ),
         ],
@@ -80,12 +87,12 @@ def search_inputs():
 
 
 def interesting_table(
-    interesting,
-    prev_clicks: int = 0,
-    next_clicks: int = 0,
-    sorting: str = "Max_Value",
-    sorting_clicks: int = 0,
-    number_of_interesting: int = 10,
+        interesting,
+        prev_clicks: int = 0,
+        next_clicks: int = 0,
+        sorting: str = "Max_Value",
+        sorting_clicks: int = 0,
+        number_of_interesting: int = 10,
 ):
     page = next_clicks - prev_clicks
     if len(interesting) == 0:
@@ -96,7 +103,8 @@ def interesting_table(
         clickable = True
         header = interesting[0].keys()
         interesting = [
-            (x + 1 + page * number_of_interesting, *element) for x, element in enumerate(interesting)
+            (x + 1 + page * number_of_interesting, *element) for x, element in
+            enumerate(interesting)
         ]
     menu = [
         html.Div(
@@ -107,7 +115,9 @@ def interesting_table(
                             html.Tr(
                                 [
                                     html.Td(
-                                        html.Button("#", style={"width": "100%", "pointer-events": "None"}),
+                                        html.Button("#",
+                                                    style={"width": "100%",
+                                                           "pointer-events": "None"}),
                                         className="interesting-table-header",
                                     )
                                 ]
@@ -121,9 +131,11 @@ def interesting_table(
                                 )
                             )
                         ]
-                        + [html.Tr(list(tablerow_generator(entry))) for y, entry in enumerate(interesting)],
+                        + [html.Tr(list(tablerow_generator(entry))) for
+                           y, entry in enumerate(interesting)],
                         className="interesting-table-tablerows",
-                        style={"width": "100%", "margin": "auto", 'text-align': 'center'},
+                        style={"width": "100%", "margin": "auto",
+                               'text-align': 'center'},
                     ),
                     style={"width": "100%", "overflow": "auto"},
                     className="interesting-table col-12 m-0 p-0",
@@ -138,7 +150,8 @@ def interesting_table(
 def table_header_generator(row, sort, sorting_clicks, clickable: bool = True):
     for element in row:
         if clickable:
-            style = {"white-space": "nowrap", "margin": "auto", "width": "100%", "font-weight": "bold"}
+            style = {"white-space": "nowrap", "margin": "auto",
+                     "width": "100%", "font-weight": "bold"}
         else:
             style = {
                 "white-space": "nowrap",
@@ -160,13 +173,30 @@ def table_header_generator(row, sort, sorting_clicks, clickable: bool = True):
             html.Button(
                 f"{element.replace('_', ' ')}{order}",
                 n_clicks=sorting_clicks,
-                id={"index": "sorting", "type": "interesting-table-header-button", "name": f"{element}"},
+                id={"index": "sorting",
+                    "type": "interesting-table-header-button",
+                    "name": f"{element}"},
                 style=style,
             ),
             className="interesting-table-header",
             style={"font-weight": "bold"},
         )
         yield column
+
+
+def tables_table(tablenames=None):
+    tablenames = [] if tablenames is None else tablenames
+    dropdown = dcc.Dropdown(
+        multi=True,
+        id="intersect-dropdown",
+        placeholder="Select Intersect Filters",
+        search_value="foo",
+        options=[
+            {"label": x, "value": x} for x in tablenames
+        ],
+    )
+
+    return dropdown
 
 
 def tablerow_generator(row):
@@ -199,7 +229,8 @@ def tablerow_generator(row):
                 n_clicks=0,
                 className="interesting-table-button",
                 title=f"{col}",
-                style={"white-space": "nowrap", "margin": "auto", "width": "100%"},
+                style={"white-space": "nowrap", "margin": "auto",
+                       "width": "100%"},
             ),
             className=classname,
             style=style,
@@ -215,18 +246,71 @@ def modal_image_download():
                 [
                     html.Div(
                         [
-                            html.Button("SVG", id="svg-download", className="btn btn-primary col-3"),
-                            html.Button("PNG", id="png-download", className="btn btn-primary col-3"),
+                            html.Button("SVG", id="svg-download",
+                                        className="btn btn-primary col-3"),
+                            html.Button("PNG", id="png-download",
+                                        className="btn btn-primary col-3"),
                         ],
                         className="row justify-content-around",
                     )
                 ]
             ),
-            dbc.ModalFooter(dbc.Button("Close", id="close", className="ml-auto", n_clicks=0)),
+            dbc.ModalFooter(
+                dbc.Button("Close", id="close", className="ml-auto",
+                           n_clicks=0)),
         ],
         id="modal",
     )
     return modal
+
+
+def error_modal():
+    modal = dbc.Modal(
+        [
+            dbc.ModalHeader("ERROR"),
+            dbc.ModalBody(
+                [
+                    html.Div(
+                        [
+                            html.P("")
+                        ],
+                        className="row justify-content-around",
+                    )
+                ]
+            ),
+            dbc.ModalFooter(
+                dbc.Button("Close", id="error-close", className="ml-auto",
+                           n_clicks=0)),
+        ],
+        id="error-modal",
+    )
+    return modal
+
+
+def data_upload():
+    html_upload = html.Div([
+        dcc.Upload(
+            id='upload-data',
+            children=html.Div([
+                'Drag and Drop or ',
+                html.A('Select Intersect Files')
+            ]),
+            style={
+                'width': '100%',
+                'height': '100px',
+                'lineHeight': '100px',
+                'borderWidth': '1px',
+                'borderStyle': 'dashed',
+                'borderRadius': '5px',
+                'textAlign': 'center',
+                'margin': 'auto',
+            },
+            # Allow multiple files to be uploaded
+            multiple=True
+        ),
+        html.P(1, id='output-data-upload', style={"display": "none"}),
+    ], className="col-10 p-2")
+    return html_upload
 
 
 def get_ingo(first_name, name, assets_dir):
@@ -239,10 +323,12 @@ def get_ingo(first_name, name, assets_dir):
         ingo = html.Div(
             html.Div(
                 [
-                    html.H3("Say Hello to Ingo", style={"text-align": "center"}),
+                    html.H3("Say Hello to Ingo",
+                            style={"text-align": "center"}),
                     html.Div(
                         html.Img(src=svg, style={"margin": "auto"}),
-                        style={"margin": "auto", "margin-top": "20px", "text-align": "center"},
+                        style={"margin": "auto", "margin-top": "20px",
+                               "text-align": "center"},
                     ),
                 ],
                 className="databox",
