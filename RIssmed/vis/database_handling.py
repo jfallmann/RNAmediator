@@ -1,14 +1,16 @@
-import sqlite3
-import numpy as np
-import gzip
-import csv
-import pandas as pd
-import os
-import time
 import base64
+import csv
+import gzip
 import io
+import os
+import sqlite3
+import time
 from itertools import groupby
 from operator import itemgetter
+from typing import List
+
+import numpy as np
+import pandas as pd
 
 COLUMN_NAMES = {
     'Chr': "VARCHAR(10)",
@@ -29,7 +31,8 @@ COLUMN_NAMES = {
 
 
 class SearchSettings:
-    def __init__(self, chromosome="", goi="", span_start=0, span_end="Infinity"):
+    def __init__(self, chromosome="", goi="", span_start=0,
+                 span_end="Infinity"):
         self.chr = chromosome if chromosome is not None else ""
         self.goi = goi if goi is not None else ""
         try:
@@ -46,14 +49,14 @@ class SearchSettings:
 
 
 def get_interesting(
-    db_path: str,
-    page: int = 0,
-    ordering: str = "Max_Value",
-    sorting_clicks: int = 0,
-    substrings: SearchSettings = None,
-    number_of_interesting: int = 10,
+        db_path: str,
+        page: int = 0,
+        ordering: str = "Max_Value",
+        sorting_clicks: int = 0,
+        substrings: SearchSettings = None,
+        number_of_interesting: int = 10,
+        intersect_filter: List[str] = None
 ):
-
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     if sorting_clicks % 2:
@@ -63,20 +66,36 @@ def get_interesting(
     if substrings is None:
         substrings = SearchSettings()
     cur = conn.cursor()
-    s = time.time()
-    cur.execute(
-        f"SELECT * FROM importance "
-        f"WHERE Chr like '{substrings.chr}%' "
-        f"AND Gene_of_interest like '{substrings.goi}%' "
-        f"AND Genomic_Start >= ? "
-        f"AND Genomic_End <= ? "
-        f"ORDER BY {ordering} {deasc} "
-        f"LIMIT {number_of_interesting} OFFSET {number_of_interesting * page}",
-        (substrings.span_start, substrings.span_end),
-    )
-    return_list = cur.fetchall()
-    e = time.time()
-    print(f"query took: {e-s} seconds")
+    return_list = []
+    if intersect_filter is not None and "ALL" not in intersect_filter and len(intersect_filter) > 0:
+        for entry in intersect_filter:
+            cur.execute(
+                f"SELECT * FROM importance "
+                f"WHERE Chr like '{substrings.chr}%' "
+                f"AND Gene_of_interest like '{substrings.goi}%' "
+                f"AND Genomic_Start >= ? "
+                f"AND Genomic_End <= ? "
+                f"AND Gene_of_interest IN (SELECT Gene_of_Interest FROM {entry})"
+                f"ORDER BY {ordering} {deasc} "
+                f"LIMIT {number_of_interesting} OFFSET {number_of_interesting * page}",
+                (substrings.span_start, substrings.span_end),
+            )
+            return_list += cur.fetchall()
+    else:
+        s = time.time()
+        cur.execute(
+            f"SELECT * FROM importance "
+            f"WHERE Chr like '{substrings.chr}%' "
+            f"AND Gene_of_interest like '{substrings.goi}%' "
+            f"AND Genomic_Start >= ? "
+            f"AND Genomic_End <= ? "
+            f"ORDER BY {ordering} {deasc} "
+            f"LIMIT {number_of_interesting} OFFSET {number_of_interesting * page}",
+            (substrings.span_start, substrings.span_end),
+        )
+        return_list = cur.fetchall()
+        e = time.time()
+        print(f"query took: {e - s} seconds")
     print(return_list)
     conn.close()
     return return_list
@@ -96,9 +115,11 @@ def csv_to_sqlite(file: str, db_path: str):
         file_handle = gzip.open(file, "rt")
     else:
         file_handle = open(file)
-    cur.executemany('INSERT INTO test VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?);', insert_generator(file_handle))
+    cur.executemany('INSERT INTO test VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?);',
+                    insert_generator(file_handle))
     file_handle.close()
-    cur.execute("CREATE INDEX test_idx ON test (Chr, Gene_of_interest, Genomic_Start, Genomic_End)")
+    cur.execute(
+        "CREATE INDEX test_idx ON test (Chr, Gene_of_interest, Genomic_Start, Genomic_End)")
     end = time.time()
     print(f"db creation took {end - start} seconds")
     file_handle.close()
@@ -109,19 +130,22 @@ def csv_to_sqlite(file: str, db_path: str):
 
 def insert_intersect(contents, filename, date, db_path):
     conn = sqlite3.connect(db_path)
-    table = filename.replace(".", "_")
+    table = filename.split(".")[0]
     cur = conn.cursor()
-    cur.execute(''' SELECT count(name) FROM sqlite_master WHERE type='table' AND name=? ''', [table])
+    cur.execute(
+        ''' SELECT count(name) FROM sqlite_master WHERE type='table' AND name=? ''',
+        [table])
     if not cur.fetchone()[0] == 1:
         print(db_path)
         cur.execute(f'CREATE TABLE IF NOT EXISTS {table} '
                     f'( Chr VARCHAR(5), '
                     f'Genomic_Start INT, '
                     f'Genomic_End INT, '
+                    f'Gene_of_Interest VARCHAR(20), '
                     f'Distance INT, '
                     f'Strand VARCHAR(2)) ')
         cur.executemany(
-            f'INSERT INTO {table} VALUES (?,?,?,?,?);',
+            f'INSERT INTO {table} VALUES (?,?,?,?,?,?);',
             intersect_generator(contents))
     conn.commit()
     conn.close()
@@ -135,8 +159,9 @@ def intersect_generator(contents):
         delimiter="\t",
     )
     for row in csv_reader:
-        chrom, start, stop, _, _, strand, distance = row[0:7]
-        yield [chrom, start, stop, distance, strand]
+        chrom, start, stop, gene_name, _, strand, distance = row[0:7]
+        gene_name = gene_name.split("|")[0]
+        yield [chrom, start, stop, gene_name, distance, strand]
 
 
 def get_intersects(database, genomic_start, genomic_end, strand):
@@ -159,12 +184,11 @@ def get_intersects(database, genomic_start, genomic_end, strand):
         distances = list(set([x[0] for x in cursor.fetchall()]))
         distances.sort()
         output = []
-        for k, g in groupby(enumerate(distances), lambda ix : ix[0] - ix[1] ):
+        for k, g in groupby(enumerate(distances), lambda ix: ix[0] - ix[1]):
             output.append([*map(itemgetter(1), g)])
         tuples.append((name, output))
         print(output)
     return tuples
-
 
 
 def insert_generator(file_handle):
@@ -194,22 +218,25 @@ def insert_interesting_table(db_path: str):
                 f"Max_Zscore REAL, "
                 f" FOREIGN KEY (Gene_of_interest) REFERENCES test(Gene_of_interest)) ")
 
-    cur.execute("SELECT DISTINCT Chr, Gene_of_interest, Genomic_Start, Genomic_End FROM test")
+    cur.execute(
+        "SELECT DISTINCT Chr, Gene_of_interest, Genomic_Start, Genomic_End FROM test")
     start = time.time()
     constraints = cur.fetchall()
     end = time.time()
     print(f"fetching distinct took {end - start} seconds")
 
     for entry in constraints:
-        cur.execute("SELECT Distance_to_constraint, Accessibility_difference, Chr, Zscore FROM test "
-                    "WHERE Chr=? AND Gene_of_interest=? AND Genomic_Start=? AND Genomic_End=?",
-                    entry)
+        cur.execute(
+            "SELECT Distance_to_constraint, Accessibility_difference, Chr, Zscore FROM test "
+            "WHERE Chr=? AND Gene_of_interest=? AND Genomic_Start=? AND Genomic_End=?",
+            entry)
         values = cur.fetchall()
         constraint_max = np.max([abs(diff[1]) for diff in values])
         constraint_mean = np.mean([abs(diff[1]) for diff in values])
         zscore_max = np.max([abs(score[3]) for score in values])
-        cur.execute("INSERT INTO importance VALUES (?, ?, ?, ?, ?, ?, ?)", [entry[0], entry[1], entry[2], entry[3],
-                                                                         constraint_mean, constraint_max, zscore_max])
+        cur.execute("INSERT INTO importance VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    [entry[0], entry[1], entry[2], entry[3],
+                     constraint_mean, constraint_max, zscore_max])
     cur.execute("CREATE INDEX interesting_idx "
                 "ON importance (Chr, Gene_of_interest, Genomic_Start, Genomic_End, Max_Value, Mean_Value, Max_Zscore)")
     con.commit()

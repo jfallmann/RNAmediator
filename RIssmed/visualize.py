@@ -81,7 +81,7 @@ def get_app_layout(dash_app: dash.Dash, df: str):
                                             ),
                                             modal_image_download(),
                                             html.Div(tables_table(),
-                                                     className="col-10 m-2",
+                                                     className="col-10 m-2 dash-bootstrap",
                                                      id="select-table-dropdown"),
                                             data_upload(),
                                         ],
@@ -147,20 +147,21 @@ def update_graph_via_sql(slct_chrom, slct_goi, slct_start, slct_end):
     acc_no_const = list(acc_no_const)
     acc_cons = list(acc_cons)
     zscores = list(zscores)
-    for nuc in range(0, np.max(distance)+1):
-        if nuc not in test:
-            distance.append(nuc)
-            acc_diff.append("")
-            acc_no_const.append("")
-            acc_cons.append("")
-            zscores.append(0)
-    for nuc in range(np.min(distance), 0):
-        if nuc not in test:
-            distance.append(nuc)
-            acc_diff.append("")
-            acc_no_const.append("")
-            acc_cons.append("")
-            zscores.append(0)
+    if len(distance) > 0:
+        for nuc in range(0, np.max(distance)+1):
+            if nuc not in test:
+                distance.append(nuc)
+                acc_diff.append("")
+                acc_no_const.append("")
+                acc_cons.append("")
+                zscores.append(0)
+        for nuc in range(np.min(distance), 0):
+            if nuc not in test:
+                distance.append(nuc)
+                acc_diff.append("")
+                acc_no_const.append("")
+                acc_cons.append("")
+                zscores.append(0)
     if len(test) > 0:
         sorted_data = sorted(zip(distance, acc_diff, acc_no_const, acc_cons))
         distance, acc_diff, acc_no_const, acc_cons = zip(*sorted_data)
@@ -313,10 +314,13 @@ def table_click_callback(*click_args):
         Input(component_id="search-goi-input", component_property="value"),
         Input(component_id="search-span-start-input", component_property="value"),
         Input(component_id="search-span-end-input", component_property="value"),
+        Input(component_id="intersect-dropdown", component_property="value"),
     ],
     [
         State(component_id="url", component_property="pathname"),
         State(component_id={"index": "sorting", "name": ALL, "type": ALL}, component_property="n_clicks"),
+        State(component_id="intersect-dropdown", component_property="value"),
+
     ],
 )
 def table_switch_callback(
@@ -327,19 +331,17 @@ def table_switch_callback(
     search_goi,
     search_span_start,
     search_span_end,
+    intersect_dropdown,
     url,
     last_sort,
+        isd2
 ):  # inputs is necessary for callback_context
     trigger = callback_context.triggered[0]["prop_id"].split(".")[0]
+    sorting = "Max_Value" if len(os.path.basename(url)) == 0 else os.path.basename(url)
     if trigger in ["next-button", "prev-button", "", "url"]:
         page = next_clicks - prev_clicks
-        url = url[1:] if url.startswith("/") else url
         if page < 0:
             next_clicks = prev_clicks = page = 0
-        if url == "" or url == "/":
-            sorting = "Max_Value"
-        else:
-            sorting = url
         sorting_clicks = last_sort[0]
     elif trigger in [
         "search-input",
@@ -348,12 +350,14 @@ def table_switch_callback(
         "search-span-start-input",
         "search-span-end-input",
     ]:
-        if url == "" or url == "/":
-            sorting = "Max_Value"
-        else:
-            sorting = url
+
         next_clicks = prev_clicks = page = 0
         sorting_clicks = 0
+
+    elif trigger == "intersect-dropdown":
+        sorting_clicks = 0
+        next_clicks = prev_clicks = page = 0
+
 
     else:
         sorting_clicks = callback_context.triggered[0]["value"]
@@ -361,8 +365,9 @@ def table_switch_callback(
         next_clicks = prev_clicks = page = 0
         sorting = trigger_dict["name"]
     search_settings = SearchSettings(search_chr_input, search_goi, search_span_start, search_span_end)
+    print("Hello", intersect_dropdown)
     interesting = get_interesting(
-        database, page, sorting, sorting_clicks, search_settings, number_of_interesting=NUMBER_OF_INTERESTING
+        database, page, sorting, sorting_clicks, search_settings, number_of_interesting=NUMBER_OF_INTERESTING, intersect_filter=intersect_dropdown
     )
     ingo = get_ingo(search_chr_input, search_goi, ASSETS_DIR)
     html_table = interesting_table(

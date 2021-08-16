@@ -184,10 +184,11 @@ def table_header_generator(row, sort, sorting_clicks, clickable: bool = True):
         yield column
 
 
-def tables_table(tablenames=["Foo", "foo2", "foo3"]):
-    tablenames.insert(0, "ALL")
+def tables_table(tablenames=None):
+    tablenames = [] if tablenames is None else tablenames
     dropdown = dcc.Dropdown(
-        multi=False,
+        multi=True,
+        id="intersect-dropdown",
         options=[
             {"label": x, "value": x} for x in tablenames
         ],

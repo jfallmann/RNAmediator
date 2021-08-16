@@ -1,32 +1,4 @@
 
-#wrapper .Select-value {
-  color: black;
-  border-radius: 5px;
-  margin: auto;
-  width: 100%;
-}
-
-#wrapper .Select-multi-value-wrapper{
-}
-
-#wrapper .Select-input {
-  width: 100%;
-}
-#wrapper .Select-value-label {
-}
-
-#wrapper .Select-control {
-    width: 100% !important;
-}
-#wrapper .VirtualizedSelectFocusedOption {
-  background-color: #ffeedd;
-  color: black;
-}
-
-.VirtualizedSelectOption {
-    background-color: primary;
-    color: black;
-}
 
 #test {
     color: red;
