@@ -68,6 +68,8 @@
 ### Code:
 ### IMPORTS
 # other modules
+import os
+import sys
 import importlib
 import multiprocessing
 import shlex
@@ -76,7 +78,8 @@ import shlex
 from Bio import SeqIO
 
 # numpy
-# RNA
+import RNA
+
 # Logging
 import datetime
 from Tweaks.logger import (
@@ -164,17 +167,19 @@ def fold(
             gs = fasta_settings.genomic_coords.start
             ge = fasta_settings.genomic_coords.end
             gstrand = fasta_settings.genomic_coords.strand
-            fa = fasta_settings.sequence_record
+            sr = fasta_settings.sequence_record
             conslist = fasta_settings.constrainlist
             log.debug(logid + str(conslist))
 
-            if len(seq_record.seq) < window:
+            fa = sr.seq
+
+            if len(fa) < window:
                 log.warning(
                     str(
                         'Sequence of '
                         + goi
                         + ' too short, seqlenght '
-                        + str(len(seq_record.seq))
+                        + str(len(fa))
                         + ' with window size '
                         + str(window)
                     )
@@ -184,22 +189,24 @@ def fold(
             if pattern and pattern not in goi:
                 continue
 
-            log.info(logid + 'Working on ' + goi + "\t" + seq_record.id)
+            log.info(logid + 'Working on ' + goi + "\t" + sr.id)
 
             # constraints
             for cons_tuple in conslist:
                 log.debug(logid + 'ENTRY: ' + str(cons_tuple))
+                cons_tuple = [str(cons) for cons in cons_tuple]
+                cons = ":".join(cons_tuple)
 
                 if not window:
-                    window = len(seq_record.seq)
+                    window = len(fa)
                 if not span:
-                    span = len(seq_record.seq)
+                    span = len(fa)
 
-                if entry == 'NOCONS':  # in case we just want to fold the sequence without constraints at all
+                if cons == 'NOCONS':  # in case we just want to fold the sequence without constraints at all
                     gibbs_uc = [
                         pool.apply_async(
                             fold_unconstraint,
-                            args=(seq_record.seq),
+                            args=(fa),
                             kwds={'queue': queue, 'configurer': configurer, 'level': level},
                         )
                     ]
@@ -211,10 +218,8 @@ def fold(
                     start, end = [None, None]
 
                     if len(cons_tuple) > 1 or (
-                        any(x in constrain for x in ['paired', 'Paired']) or ':' in cons_tuple
+                        any(x in cons for x in ['paired', 'Paired']) or ':' in cons
                     ):  # Not strand dependend, still genomic coords; Paired constraints should be used
-                        cons_tuple = [str(cons) for cons in cons_tuple]
-                        cons = ":".join(cons_tuple)
 
                         if gstrand == '+' or gstrand == '.':
                             [fstart, fend], [start, end] = [
@@ -225,7 +230,7 @@ def fold(
                                 [ge - x for x in get_location(cn)[:2][::-1]] for cn in cons.split(':', 1)
                             ]
                         cons = str(fstart) + '-' + str(fend) + ':' + str(start) + '-' + str(end)
-                        if start < 0 or fstart < 0 or end > len(seq_record.seq) or fend > len(seq_record.seq):
+                        if start < 0 or fstart < 0 or end > len(fa) or fend > len(fa):
                             log.warning(
                                 logid
                                 + 'Constraint out of sequence bounds! skipping! '
@@ -234,7 +239,7 @@ def fold(
                                         str,
                                         [
                                             goi,
-                                            len(seq_record.seq),
+                                            len(fa),
                                             str(start) + '-' + str(end),
                                             str(fstart) + '-' + str(fend),
                                         ],
@@ -252,23 +257,24 @@ def fold(
                         #    continue
                     else:
                         if gstrand == '+' or gstrand == '.':
-                            start, end = [x - gs for x in get_location(entry)[:2]]
+                            start, end = [x - gs for x in get_location(cons)[:2]]
                         else:
-                            start, end = [ge - x for x in get_location(entry)[:2][::-1]]
+                            start, end = [ge - x for x in get_location(cons)[:2][::-1]]
 
-                        cons = str(start) + '-' + str(end)
+                        consstr = str(start) + '-' + str(end)
 
-                        log.debug(logid + str.join(' ', [goi, cons, gstrand]))
+                        log.debug(logid + str.join(' ', [goi, consdtr, gstrand]))
 
                     genecoords = list(gs, ge, gstrand)
                     const = list(start, end, fstart, fend)
+
                     pool.apply_async(
                         constrain_seq,
                         args=(
                             seq_record,
                             const,
                             conslength,
-                            cons,
+                            consstr,
                             window,
                             span,
                             unconstraint,
@@ -357,14 +363,14 @@ def constrain_seq(
             span = window
 
         dist = None
+        start, end, fstart, fend = const
+
         if fend:
             dist = abs(start - fend)
             if dist > window:
                 return log.warning(
                     logid + 'Window ' + str(window) + ' too small for constraint distance ' + str(dist)
                 )
-
-        start, end, fstart, fend = const
 
         # we no longer fold the whole sequence but only the constraint region +- window size
         if window is not None:
@@ -537,7 +543,6 @@ def constrain_seq(
 
             if bppm is None:
                 log.error(logid + 'Empty bpp matrix returned, stopping here!')
-                #                sys.exit(logid+'Empty bpp matrix returned, stopping here!')
                 return
 
             # enforce paired

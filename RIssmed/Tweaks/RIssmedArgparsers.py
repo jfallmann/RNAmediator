@@ -297,9 +297,9 @@ def parseargs_foldcons():
         default='STDOUT',
         help='Print output of paired folding to file with this name',
     )
-    parser.add_argument("-e", "--length", type=int, default=100, help='Length of randseq')
-    parser.add_argument("--gc", type=int, default=0, help='GC content, needs to be %%2==0 or will be rounded')
-    parser.add_argument("-b", "--number", type=int, default=1, help='Number of random seqs to generate')
+    # parser.add_argument("-e", "--length", type=int, default=100, help='Length of randseq')
+    # parser.add_argument("--gc", type=int, default=0, help='GC content, needs to be %%2==0 or will be rounded')
+    # parser.add_argument("-b", "--number", type=int, default=1, help='Number of random seqs to generate')
     parser.add_argument(
         "-x",
         "--constrain",
@@ -315,13 +315,13 @@ def parseargs_foldcons():
     parser.add_argument(
         "-y", "--conslength", type=int, default=0, help='Length of region to constrain for slidingwindow'
     )
-    parser.add_argument(
-        "-t",
-        "--temprange",
-        type=str,
-        default='',
-        help='Temperature range for structure prediction (e.g. 37-60)',
-    )
+    # parser.add_argument(
+    #    "-t",
+    #    "--temprange",
+    #    type=str,
+    #    default='',
+    #    help='Temperature range for structure prediction (e.g. 37-60)',
+    # )
     parser.add_argument("-a", "--alphabet", type=str, default='AUCG', help='alphabet for random seqs')
     # parser.add_argument("--plot", type=str, default='0', choices=['0','svg', 'png'],
     # help='Create image of the (un-)constraint sequence, you can select the file format here (svg,png).
@@ -331,7 +331,7 @@ def parseargs_foldcons():
     parser.add_argument(
         "-z", "--procs", type=int, default=1, help='Number of parallel processes to run this job with'
     )
-    parser.add_argument("--vrna", type=str, default='', help="Append path to vrna RNA module to sys.path")
+    # parser.add_argument("--vrna", type=str, default='', help="Append path to vrna RNA module to sys.path")
     parser.add_argument(
         "--pattern",
         type=str,
@@ -355,6 +355,7 @@ def parseargs_foldcons():
         choices=['WARNING', 'ERROR', 'INFO', 'DEBUG'],
         help="Set log level",
     )
+    parser.add_argument("--logdir", type=str, default='LOGS', help="Set log directory")
 
     if len(sys.argv) == 1:
         parser.print_help(sys.stderr)
@@ -402,6 +403,7 @@ def parseargs_collect_window():
         choices=['WARNING', 'ERROR', 'INFO', 'DEBUG'],
         help="Set log level",
     )
+    parser.add_argument("--logdir", type=str, default='LOGS', help="Set log directory")
 
     if len(sys.argv) == 1:
         parser.print_help(sys.stderr)

@@ -34,7 +34,8 @@ SCRIPTNAME = os.path.basename(__file__).replace('.py', '')
 
 
 class SequenceSettings:
-    """Constraint(PL)fold settings for a sequence object
+    """Constraint(PL)fold settings for a sequence object.
+
      Attributes
     ----------
      sequence_record : SeqIO.SeqRecord
@@ -151,10 +152,10 @@ def get_gene_coords(genecoords: Union[None, Dict], goi: str, strand: str) -> Tup
     return gs, ge, gstrand
 
 
-def get_run_settings_dict(
+def set_run_settings_dict(
     sequence, constrain: str, conslength: int, genes: str
 ) -> Dict[str, SequenceSettings]:
-    """Uses command line parameters to build the run settings dictionary.
+    """Use command line parameters to build the run settings dictionary.
 
     Parameters
     ----------
@@ -241,6 +242,7 @@ def add_rissmed_constraint(
         a dictionary using the fasta sequence id as key and stores corresponding settings in an SequenceSettings
         object.
     """
+
     cons_list = []
     for constraint in constraints.split(":"):  # Should now work with paired constraints split via : separator
         cons, cons_strand = constraint.split("|")
@@ -358,7 +360,7 @@ def preprocess(sequence: str, constrain: str, conslength: int, outdir: str, gene
         else:
             outdir = os.path.abspath(os.getcwd())
 
-        run_settings = get_run_settings_dict(sequence, constrain, conslength, genes)
+        run_settings = set_run_settings_dict(sequence, constrain, conslength, genes)
 
         return run_settings, outdir
 
@@ -373,7 +375,7 @@ def preprocess(sequence: str, constrain: str, conslength: int, outdir: str, gene
 
 
 def rissmed_logging_setup(logdir: str, loglevel: str, runscript: str):
-    """creates log dir and log file according to runscript
+    """creates log process, queue, config, dir and file according to runscript
 
     Parameters
     ----------
@@ -426,7 +428,7 @@ def expand_pl_window(start, end, window, multiplyer, seqlen):
         log.error(logid + ''.join(tbe.format()))
 
 
-def localize_pl_window(start, end, window, seqlen):
+def localize_pl_window(start, end, window, seqlen, multiplyer=2):
     logid = SCRIPTNAME + '.localize_window: '
     try:
         diff = start - window
@@ -435,7 +437,7 @@ def localize_pl_window(start, end, window, seqlen):
         else:
             locws = diff
         # this makes sure that if the start was trimmed, we do not just extend too much
-        locwe = diff + 2 * window + (end - start)
+        locwe = diff + multiplyer * window + (end - start)
 
         if locwe > seqlen:
             locwe = seqlen
@@ -470,7 +472,7 @@ def expand_window(start, end, window, multiplyer, seqlen):
         log.error(logid + ''.join(tbe.format()))
 
 
-def localize_window(start, end, window, seqlen):
+def localize_window(start, end, window, seqlen, multiplyer=2):
     logid = SCRIPTNAME + '.localize_window: '
     try:
         diff = start - window
@@ -479,7 +481,7 @@ def localize_window(start, end, window, seqlen):
         else:
             locws = diff
         # this makes sure that if the start was trimmed, we do not just extend too much
-        locwe = diff + 2 * window + (end - start)
+        locwe = diff + multiplyer * window + (end - start)
 
         if locwe > seqlen:
             locwe = seqlen
