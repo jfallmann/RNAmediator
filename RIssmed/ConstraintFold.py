@@ -82,13 +82,14 @@ import RNA
 
 # Logging
 import datetime
-from Tweaks.logger import (
-    makelogdir,
-    makelogfile,
-    listener_process,
-    listener_configurer,
-    worker_configurer,
-)
+
+# from Tweaks.logger import (
+# makelogdir,
+# makelogfile,
+# listener_process,
+# listener_configurer,
+# worker_configurer,
+# )
 
 # load own modules
 from Tweaks.FileProcessor import *
@@ -998,7 +999,7 @@ def checkexisting(sid, paired, unpaired, cons, window, span, outdir, queue=None,
     return 1
 
 
-def main():
+def main(args=None):
     """Main process, prepares run_settings dict, creates logging process queue and worker processes for folding, calls fold
 
     Parameters
@@ -1011,7 +1012,9 @@ def main():
 
     logid = SCRIPTNAME + '.main: '
     try:
-        args = parseargs_foldcons()
+        if not args:
+            args = parseargs_foldcons()
+
         queue, listener, worker_configurer = rissmed_logging_setup(args.logdir, args.loglevel, SCRIPTNAME)
 
         log.info(logid + 'Running ' + SCRIPTNAME + ' on ' + str(args.procs) + ' cores.')
@@ -1022,10 +1025,11 @@ def main():
             + ' '
             + '{}'.format(' '.join([shlex.quote(s) for s in sys.argv[1:]]))
         )
-
+        print('TEST')
         run_settings, outdir = preprocess(
             args.sequence, args.constrain, args.conslength, args.outdir, args.genes
         )
+
         fold(
             run_settings,
             outdir,
