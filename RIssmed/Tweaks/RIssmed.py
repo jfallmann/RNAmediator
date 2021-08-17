@@ -193,9 +193,9 @@ def set_run_settings_dict(
                 run_settings = add_rissmed_constraint(run_settings, cons, record, goi, chrom, strand)
     else:
         constraintlist = read_constraints(constrain=constrain)
-        for record in SeqIO.parse(sequence, "fasta"):
+        for x, record in enumerate(SeqIO.parse(sequence, "fasta")):
             goi, chrom, strand = idfromfa(record.id)
-            cons = constraintlist[goi]
+            cons = constraintlist[goi] if type(constraintlist) == dict else constraintlist
             for entry in cons:
                 run_settings = add_rissmed_constraint(run_settings, entry, record, goi, chrom, strand)
     if genes != '':
