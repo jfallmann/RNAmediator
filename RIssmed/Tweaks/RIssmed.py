@@ -64,7 +64,7 @@ class SequenceSettings:
         sequence_record.seq = Seq(str(sequence_record.seq).upper().replace("T", "U"))
         self.sequence_record = sequence_record
         self._constrainlist = list(constrainlist)
-        if strand in ["+", "-", "na"]:
+        if strand in ["+", "-", "na", "."]:
             self.strand = strand
         else:
             self.strand = "+"
