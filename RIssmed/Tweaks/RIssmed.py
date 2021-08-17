@@ -8,7 +8,7 @@ import sys
 import traceback as tb
 from Bio import SeqIO
 from Bio.Seq import Seq
-from Tweaks.FileProcessor import (
+from RIssmed.Tweaks.FileProcessor import (
     parseseq,
     idfromfa,
     parse_annotation_bed,
@@ -18,8 +18,8 @@ from Tweaks.FileProcessor import (
     read_paired_constraints_from_bed,
 )
 import gzip
-from Tweaks.RNAtweaks import get_location
-from Tweaks.logger import (
+from RIssmed.Tweaks.RNAtweaks import get_location
+from RIssmed.Tweaks.logger import (
     makelogdir,
     makelogfile,
     listener_process,
@@ -79,9 +79,10 @@ class SequenceSettings:
         if self._constrainlist is not None:
             for constraint_tuple in self._constrainlist:
                 for entry in constraint_tuple:
-                    assert (
-                        entry.strand == self.strand
-                    ), "strand values of constraint does not match the strand from the sequence"
+                    if self.strand in ["+", "-"]:
+                        assert (
+                            entry.strand == self.strand
+                        ), "strand values of constraint does not match the strand from the sequence"
                     assert (
                         entry.__class__ == Constraint
                     ), "can only add Contraint objects to the constraintlist"
