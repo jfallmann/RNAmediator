@@ -81,9 +81,10 @@ class SequenceSettings:
         if self._constrainlist is not None:
             for constraint_tuple in self._constrainlist:
                 for entry in constraint_tuple:
-                    assert (
-                        entry.strand == self.strand
-                    ), "strand values of constraint does not match the strand from the sequence"
+                    if self.strand in ["+", "-"]:
+                        assert (
+                            entry.strand == self.strand
+                        ), "strand values of constraint does not match the strand from the sequence"
                     assert (
                         entry.__class__ == Constraint
                     ), "can only add Contraint objects to the constraintlist"
