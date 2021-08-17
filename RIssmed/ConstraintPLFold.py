@@ -78,17 +78,17 @@ import shlex
 from typing import Dict
 
 # load own modules
-from Tweaks.FileProcessor import *
-from Tweaks.RIssmed import (
+from RIssmed.Tweaks.FileProcessor import *
+from RIssmed.Tweaks.RIssmed import (
     preprocess,
     SequenceSettings,
     rissmed_logging_setup,
     expand_pl_window,
     localize_pl_window,
 )
-from Tweaks.RNAtweaks import *
-from Tweaks.RNAtweaks import _npprint
-from Tweaks.NPtweaks import *
+from RIssmed.Tweaks.RNAtweaks import *
+from RIssmed.Tweaks.RNAtweaks import _npprint
+from RIssmed.Tweaks.NPtweaks import *
 
 # Biopython stuff
 
