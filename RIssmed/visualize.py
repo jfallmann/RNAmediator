@@ -16,14 +16,14 @@ from dash import callback_context
 from dash.dependencies import Input, Output, State, ALL
 
 from RIssmed.Tweaks.RIssmedArgparsers import visualiziation_parser
-from vis.database_handling import (
+from RIssmed.vis.database_handling import (
     get_interesting,
     SearchSettings,
     csv_to_sqlite,
     insert_intersect,
     get_intersects,
 )
-from vis.html_templates import (
+from RIssmed.vis.html_templates import (
     get_ingo,
     interesting_table,
     search_inputs,
