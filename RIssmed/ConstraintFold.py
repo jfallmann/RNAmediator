@@ -77,10 +77,10 @@ import errno
 
 
 # load own modules
-from Tweaks.FileProcessor import *
-from Tweaks.RNAtweaks import *
-from Tweaks.NPtweaks import *
-from Tweaks.RIssmed import (
+from RIssmed.Tweaks.FileProcessor import *
+from RIssmed.Tweaks.RNAtweaks import *
+from RIssmed.Tweaks.NPtweaks import *
+from RIssmed.Tweaks.RIssmed import (
     preprocess,
     SequenceSettings,
     rissmed_logging_setup,

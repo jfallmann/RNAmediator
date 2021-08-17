@@ -79,9 +79,9 @@ from Tweaks.logger import (
 )
 
 # load own modules
-from Tweaks.FileProcessor import *
-from Tweaks.RNAtweaks import *
-from Tweaks.NPtweaks import *
+from RIssmed.Tweaks.FileProcessor import *
+from RIssmed.Tweaks.RNAtweaks import *
+from RIssmed.Tweaks.NPtweaks import *
 
 log = logging.getLogger(__name__)  # use module name
 SCRIPTNAME = os.path.basename(__file__).replace('.py', '')

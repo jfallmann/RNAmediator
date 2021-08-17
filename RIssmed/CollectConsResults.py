@@ -75,7 +75,7 @@ from natsort import natsorted
 # Logging
 import datetime
 
-from Tweaks.logger import (
+from RIssmed.Tweaks.logger import (
     makelogdir,
     makelogfile,
     listener_process,
@@ -84,10 +84,10 @@ from Tweaks.logger import (
 )
 
 # load own modules
-from Tweaks.FileProcessor import *
-from Tweaks.RNAtweaks import *
-from Tweaks.RNAtweaks import _pl_to_array
-from Tweaks.NPtweaks import *
+from RIssmed.Tweaks.FileProcessor import *
+from RIssmed.Tweaks.RNAtweaks import *
+from RIssmed.Tweaks.RNAtweaks import _pl_to_array
+from RIssmed.Tweaks.NPtweaks import *
 
 log = logging.getLogger(__name__)  # use module name
 SCRIPTNAME = os.path.basename(__file__).replace('.py', '')
