@@ -137,7 +137,7 @@ def get_gene_coords(
     Tuple[int, int, str]
         genomic start, end, strand retrieved from genecoords dict or a default value (0, 0, '.')
     """
-    logid = f"{SCRIPTNAME}.read_constraints"
+    logid = f"{SCRIPTNAME}.read_constraints "
     if genecoords:
         if goi in genecoords:
             gs, ge, gstrand = get_location(genecoords[goi][0])
@@ -213,7 +213,9 @@ def set_run_settings_dict(
         constraintlist = read_constraints(constrain=constrain)
         for x, record in enumerate(SeqIO.parse(sequence, "fasta")):
             goi, chrom, strand = idfromfa(record.id)
-            cons = constraintlist[goi] if type(constraintlist) == dict else constraintlist
+            cons = (
+                constraintlist[goi] if type(constraintlist) == dict else constraintlist
+            )
             for entry in cons:
                 run_settings = add_rissmed_constraint(
                     run_settings, entry, record, goi, chrom, strand
@@ -356,8 +358,7 @@ def read_constraints(constrain: str, linewise: bool = False) -> Dict[str, List[s
         constraintlist = (
             constrain.split(",") if linewise is False else {"lw": constrain.split(";")}
         )
-
-    elif constraint == "temperature":
+    elif constrain == "temperature":
         log.info(logid + "Calculating probs for temperature constraint" + temprange)
         raise NotImplementedError("Temperature range folding needs to be reimplemented")
     else:

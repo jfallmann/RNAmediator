@@ -11,10 +11,31 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "args": [
-                "-s test.fa",
-                "-w 250",
-                "-x 120-125"
+                "-h"
             ]
+        },
+        {
+            "name": "Rissmed single",
+            "type": "python",
+            "cwd": "~/Work/Tests/RIssmed",
+            "request": "attach",
+            "connect": {
+                "host": "localhost",
+                "port": 5678
+              }
+        },
+        {
+            "name": "Rissmed sliding",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "-s test.fa",
+                "-x sliding",
+                "-y 10"
+            ],
+            "cwd": "~/Work/Tests/RIssmed"
         }
     ]
 }

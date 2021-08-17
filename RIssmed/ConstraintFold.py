@@ -75,10 +75,22 @@ import multiprocessing
 import shlex
 import errno
 
+# ViennaRNA
+import RNA
 
 # load own modules
 from RIssmed.Tweaks.FileProcessor import *
-from RIssmed.Tweaks.RNAtweaks import *
+from RIssmed.Tweaks.RNAtweaks import (
+    _get_bppm as get_bppm,
+    _get_ddg as get_ddg,
+    _calc_gibbs as calc_gibbs,
+    _calc_ddg as calc_ddg,
+    _calc_bpp as calc_bpp,
+    _calc_nrg as calc_nrg,
+    _constrain_paired as constrain_paired,
+    _constrain_unpaired as constrain_unpaired,
+    get_location,
+)
 from RIssmed.Tweaks.NPtweaks import *
 from RIssmed.Tweaks.RIssmed import (
     preprocess,
@@ -158,8 +170,14 @@ def fold(
             seq_record = fasta_settings.sequence_record
             conslist = fasta_settings.constrainlist
 
+            log.debug(
+                logid
+                + "Constraints: "
+                + str(conslist)
+                + " Seq_record: "
+                + str(seq_record.seq)
+            )
             fa = str(seq_record.seq)
-            log.debug(logid + "Constraints: " + str(conslist) + " Seq_record: " + fa)
 
             if len(fa) < window:
                 log.warning(
@@ -234,6 +252,7 @@ def fold(
                             + "-"
                             + str(end)
                         )
+                        consstr = str(f"{start}-{end}:{fstart}-{fend}")
                         if start < 0 or fstart < 0 or end > len(fa) or fend > len(fa):
                             log.warning(
                                 logid
@@ -360,9 +379,11 @@ def constrain_seq(
         outlist = list()
         goi, chrom, strand = idfromfa(seq_record.id)
         seq = str(seq_record.seq.upper())
-        seq = seq.replace(
-            "T", "U"
+        seq = str(
+            seq.replace("T", "U")
         )  # Already taken care of by RIssmed, but we need to make sure this happens also for Sequences from outside
+
+        log.debug(logid + " Sequence to fold: " + str(seq))
 
         if not window:
             window = len(seq)
@@ -404,7 +425,7 @@ def constrain_seq(
                 toend = end + window + 1
 
             if tostart < 0:
-                tostart = 0
+                tostart = 1
             if toend > len(seq):
                 toend = len(seq)
             if fend is not None and toend < fend:
@@ -634,7 +655,7 @@ def constrain_seq(
 
             outlist.append(
                 [
-                    fa,
+                    seq_record,
                     fn,
                     gibbs,
                     "0",
@@ -648,7 +669,7 @@ def constrain_seq(
             )  # unconstraint
             outlist.append(
                 [
-                    fa,
+                    seq_record,
                     fn,
                     gibbs_u,
                     dg_u,
@@ -662,7 +683,7 @@ def constrain_seq(
             )  # constraint_paired
             outlist.append(
                 [
-                    fa,
+                    seq_record,
                     fn,
                     gibbs_p,
                     dg_p,
@@ -708,7 +729,7 @@ def constrain_seq(
 
                 outlist.append(
                     [
-                        fa,
+                        seq_record,
                         fn,
                         gibbs_u,
                         dg_u,
@@ -722,7 +743,7 @@ def constrain_seq(
                 )  # bothconstraint_unpaired
                 outlist.append(
                     [
-                        fa,
+                        seq_record,
                         fn,
                         gibbs_p,
                         dg_p,
@@ -761,7 +782,7 @@ def constrain_seq(
 
                 outlist.append(
                     [
-                        fa,
+                        seq_record,
                         fn,
                         gibbs_u,
                         dg_u,
@@ -775,7 +796,7 @@ def constrain_seq(
                 )  # secondconstraint_unpaired
                 outlist.append(
                     [
-                        fa,
+                        seq_record,
                         fn,
                         gibbs_p,
                         dg_p,
@@ -978,7 +999,18 @@ def write_out(resultlist):
 
     try:
         for result in resultlist:
-            fa, fname, gibbs, ddg, nrg, const, window, span, outdir, condition = result
+            (
+                seq_record,
+                fname,
+                gibbs,
+                ddg,
+                nrg,
+                const,
+                window,
+                span,
+                outdir,
+                condition,
+            ) = result
             logid = SCRIPTNAME + ".write_out: "
             goi, chrom, strand = idfromfa(seq_record.id)
             temp_outdir = os.path.join(outdir, goi)

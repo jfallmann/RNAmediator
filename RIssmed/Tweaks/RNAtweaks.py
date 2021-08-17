@@ -32,8 +32,10 @@ import numpy as np
 
 try:
     log = logging.getLogger(__name__)  # use module name
-    scriptn = __name__  # os.path.basename(inspect.stack()[-1].filename).replace('.py', '')
-    log.debug('LOGGING IN RNAtweaks' + str(scriptn) + str(log) + str(log.handlers))
+    scriptn = (
+        __name__  # os.path.basename(inspect.stack()[-1].filename).replace('.py', '')
+    )
+    log.debug("LOGGING IN RNAtweaks" + str(scriptn) + str(log) + str(log.handlers))
 except Exception:
     EXC_TYPE, EXC_VALUE, EXC_TB = sys.exc_info()
     TBE = tb.TracebackException(
@@ -41,14 +43,14 @@ except Exception:
         EXC_VALUE,
         EXC_TB,
     )
-    print(''.join(TBE.format()), file=sys.stderr)
+    print("".join(TBE.format()), file=sys.stderr)
 
 
 def _isvalid(x=None):
-    logid = scriptn + '.isvalid: '
+    logid = scriptn + ".isvalid: "
     try:
         if x or x == 0:
-            if x in ('None', 'nan', 'none', 'NA', 'NAN') or x is None or x is np.nan:
+            if x in ("None", "nan", "none", "NA", "NAN") or x is None or x is np.nan:
                 return False
             else:
                 return True
@@ -61,14 +63,14 @@ def _isvalid(x=None):
             exc_value,
             exc_tb,
         )
-        log.error(logid + ''.join(tbe.format()))
+        log.error(logid + "".join(tbe.format()))
 
 
 def _isinvalid(x=None):
-    logid = scriptn + '.isinvalid: '
+    logid = scriptn + ".isinvalid: "
     try:
         if x or x == 0:
-            if x in ('None', 'nan', 'none', 'NA', 'NAN') or x is None or x is np.nan:
+            if x in ("None", "nan", "none", "NA", "NAN") or x is None or x is np.nan:
                 return True
             else:
                 return False
@@ -81,14 +83,14 @@ def _isinvalid(x=None):
             exc_value,
             exc_tb,
         )
-        log.error(logid + ''.join(tbe.format()))
+        log.error(logid + "".join(tbe.format()))
 
 
 # Calculate nrg/prob/bppm/ddg
 
 
 def _calc_gibbs(fc):
-    logid = scriptn + '.calc_gibbs: '
+    logid = scriptn + ".calc_gibbs: "
     try:
         return fc.pf()[1]
     except Exception:
@@ -98,11 +100,11 @@ def _calc_gibbs(fc):
             exc_value,
             exc_tb,
         )
-        log.error(logid + ''.join(tbe.format()))
+        log.error(logid + "".join(tbe.format()))
 
 
 def _get_bppm(tmp, start, end):
-    logid = scriptn + '.get_bppm: '
+    logid = scriptn + ".get_bppm: "
     bppm = []
     try:
         if start < 0 or end > len(tmp):
@@ -115,7 +117,9 @@ def _get_bppm(tmp, start, end):
         for item in tmp:
             for i in range(int(start), int(end) + 1):
                 if item[i] > 0.0:
-                    bppm.append(str.join('\t', [str(tmp.index(item)), str(i), str(item[i])]))
+                    bppm.append(
+                        str.join("\t", [str(tmp.index(item)), str(i), str(item[i])])
+                    )
         return bppm
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -124,25 +128,25 @@ def _get_bppm(tmp, start, end):
             exc_value,
             exc_tb,
         )
-        log.error(logid + ''.join(tbe.format()))
+        log.error(logid + "".join(tbe.format()))
 
 
 def _get_ddg(file):
-    logid = scriptn + '.get_ddg: '
+    logid = scriptn + ".get_ddg: "
     try:
         ret = defaultdict()
         if isinstance(file, str) and os.path.isfile(file):
-            if '.gz' in file:
-                res = gzip.open(file, 'rt')
+            if ".gz" in file:
+                res = gzip.open(file, "rt")
             else:
-                res = open(file, 'rt')
+                res = open(file, "rt")
 
             for line in res:
                 log.debug(logid + line)
-                if 'Condition' in line[0:15]:
+                if "Condition" in line[0:15]:
                     continue
                 else:
-                    cond, gibbs, dg, nrg, cons = line.rstrip().split('\t')
+                    cond, gibbs, dg, nrg, cons = line.rstrip().split("\t")
                     if not str(cons) in ret:
                         ret[str(cons)] = defaultdict()
                     ret[str(cons)][cond] = float(dg)
@@ -155,18 +159,18 @@ def _get_ddg(file):
             exc_value,
             exc_tb,
         )
-        log.error(logid + ''.join(tbe.format()))
+        log.error(logid + "".join(tbe.format()))
 
 
 def _calc_ddg(ddgs):
-    logid = scriptn + '.calc_ddg: '
+    logid = scriptn + ".calc_ddg: "
 
     try:
         log.debug(logid + str(ddgs))
-        cons_up = ddgs['constraint_unpaired']
-        sec_cons_up = ddgs['secondconstraint_unpaired']
-        both_cons_up = ddgs['bothconstraint_unpaired']
-        uncons = ddgs['unconstraint']
+        cons_up = ddgs["constraint_unpaired"]
+        sec_cons_up = ddgs["secondconstraint_unpaired"]
+        both_cons_up = ddgs["bothconstraint_unpaired"]
+        uncons = ddgs["unconstraint"]
         ddg = cons_up + sec_cons_up - both_cons_up - uncons
         """Yi-Hsuan Lin, Ralf Bundschuh, RNA structure generates natural cooperativity between
         single-stranded RNA binding proteins targeting 5' and 3'UTRs, Nucleic Acids Research,
@@ -181,15 +185,15 @@ def _calc_ddg(ddgs):
             exc_value,
             exc_tb,
         )
-        log.error(logid + ''.join(tbe.format()))
+        log.error(logid + "".join(tbe.format()))
 
 
 def _calc_bpp(bppm):
-    logid = scriptn + '.calc_bpp: '
+    logid = scriptn + ".calc_bpp: "
     bpp = 0.0
     try:
         for entry in bppm:
-            base, mate, prob = map(float, entry.split('\t'))
+            base, mate, prob = map(float, entry.split("\t"))
             bpp += prob
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -198,13 +202,13 @@ def _calc_bpp(bppm):
             exc_value,
             exc_tb,
         )
-        log.error(logid + ''.join(tbe.format()))
+        log.error(logid + "".join(tbe.format()))
 
     return bpp
 
 
 def _calc_nrg(bpp):
-    logid = scriptn + '.calc_nrg: '
+    logid = scriptn + ".calc_nrg: "
     # set k_t for nrg2prob and vice versa calcs
     k_t = 0.61632077549999997
     nrg = 0.0
@@ -219,14 +223,14 @@ def _calc_nrg(bpp):
             exc_value,
             exc_tb,
         )
-        log.error(logid + ''.join(tbe.format()))
+        log.error(logid + "".join(tbe.format()))
 
 
 def _print_region_up(data, seqlength=None, region=None):
-    logid = scriptn + '.print_region_up: '
+    logid = scriptn + ".print_region_up: "
     try:
         if data:
-            ups = ''
+            ups = ""
             x = int(region)
             for i in range(int(seqlength)):
                 if _isinvalid(data[i][x]):
@@ -236,7 +240,7 @@ def _print_region_up(data, seqlength=None, region=None):
                 ups += str(i + 1) + "\t" + str(data[i][x]) + "\n"
             return ups
         else:
-            log.error(logid + 'No up data to print')
+            log.error(logid + "No up data to print")
             raise NameError("name 'ups' is not defined")
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -245,37 +249,42 @@ def _print_region_up(data, seqlength=None, region=None):
             exc_value,
             exc_tb,
         )
-        log.error(logid + ''.join(tbe.format()))
+        log.error(logid + "".join(tbe.format()))
 
 
 def _print_up(data=None, seqlength=None, region=None):
-    logid = scriptn + '.print_up: '
-    log.debug(logid + str(len(data)) + ' ' + str(seqlength) + ' ' + str(region))
+    logid = scriptn + ".print_up: "
+    log.debug(logid + str(len(data)) + " " + str(seqlength) + " " + str(region))
     try:
         if data:
-            ups = ''
+            ups = ""
             if seqlength and seqlength != len(data):
                 log.error(
                     logid
-                    + 'Lengths of sequence and array do not match: '
+                    + "Lengths of sequence and array do not match: "
                     + str(seqlength)
-                    + ' and '
+                    + " and "
                     + str(len(data))
                 )
             for i in range(len(data)):
                 if i >= len(data):
-                    log.error(logid + 'i larger than size of array')
+                    log.error(logid + "i larger than size of array")
                 for x in range(1, region + 1):
                     if x >= len(data[i]):
-                        log.error(logid + 'x larger than size of subarray')
+                        log.error(logid + "x larger than size of subarray")
                     if _isinvalid(data[i][x]):
                         data[i][x] = np.nan
                     else:
                         data[i][x] = round(data[i][x], 7)
-                ups += str(i + 1) + "\t" + "\t".join(map(str, data[i][1 : region + 1])) + "\n"
+                ups += (
+                    str(i + 1)
+                    + "\t"
+                    + "\t".join(map(str, data[i][1 : region + 1]))
+                    + "\n"
+                )
             return ups
         else:
-            log.error(logid + 'No up data to print')
+            log.error(logid + "No up data to print")
             raise NameError("name 'ups' is not defined")
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -284,11 +293,11 @@ def _print_up(data=None, seqlength=None, region=None):
             exc_value,
             exc_tb,
         )
-        log.error(logid + ''.join(tbe.format()))
+        log.error(logid + "".join(tbe.format()))
 
 
 def _up_to_array(data=None, region=None, seqlength=None):
-    logid = scriptn + '.up_to_array: '
+    logid = scriptn + ".up_to_array: "
     entries = []
     try:
         if data:
@@ -306,7 +315,7 @@ def _up_to_array(data=None, region=None, seqlength=None):
                 entries[i].append(data[i][region])
             return np.array(entries)
         else:
-            log.error(logid + 'No up data to print')
+            log.error(logid + "No up data to print")
             return np.empty(region)
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -316,20 +325,27 @@ def _up_to_array(data=None, region=None, seqlength=None):
             exc_tb,
         )
         log.error(
-            logid + ''.join(tbe.format()) + '\t' + str(entries) + '\t' + str(region) + '\t' + str(seqlength)
+            logid
+            + "".join(tbe.format())
+            + "\t"
+            + str(entries)
+            + "\t"
+            + str(region)
+            + "\t"
+            + str(seqlength)
         )
 
 
 def _npprint(a, o=None):  # format_string ='{0:.2f}'):
-    logid = scriptn + '.npprint: '
+    logid = scriptn + ".npprint: "
     try:
-        out = ''
-        it = np.nditer(a, flags=['f_index'])
+        out = ""
+        it = np.nditer(a, flags=["f_index"])
         while not it.finished:
             out += "%d\t%0.7f" % (it.index + 1, it[0]) + "\n"
             it.iternext()
         if o:
-            o.write(bytes(out, encoding='UTF-8'))
+            o.write(bytes(out, encoding="UTF-8"))
         else:
             print(out)
     except Exception:
@@ -339,11 +355,11 @@ def _npprint(a, o=None):  # format_string ='{0:.2f}'):
             exc_value,
             exc_tb,
         )
-        log.error(logid + ''.join(tbe.format()))
+        log.error(logid + "".join(tbe.format()))
 
 
 def printdiff(a, o=None):
-    logid = scriptn + '.printdiff: '
+    logid = scriptn + ".printdiff: "
     try:
         np.save(o, a)
     except Exception:
@@ -353,18 +369,18 @@ def printdiff(a, o=None):
             exc_value,
             exc_tb,
         )
-        log.error(logid + ''.join(tbe.format()))
+        log.error(logid + "".join(tbe.format()))
 
 
 def _read_precalc_plfold(data, name, seq):
-    logid = scriptn + '.read_precalc_plfold: '
+    logid = scriptn + ".read_precalc_plfold: "
     try:
         for i in range(len(seq)):
             data.append([])
             data[i] = []
-        with gzip.open(name, 'rt') as o:
+        with gzip.open(name, "rt") as o:
             for line in o:
-                cells = line.rstrip().split('\t')
+                cells = line.rstrip().split("\t")
                 data[int(cells[0]) - 1].append([])
                 data[int(cells[0]) - 1][0] = None
                 for a in range(1, len(cells)):
@@ -378,16 +394,20 @@ def _read_precalc_plfold(data, name, seq):
             exc_value,
             exc_tb,
         )
-        log.error(logid + ''.join(tbe.format()))
+        log.error(logid + "".join(tbe.format()))
 
 
-def _pl_to_array(name, ulim, fmt='npy'):
-    logid = scriptn + '.pl_to_array: '
+def _pl_to_array(name, ulim, fmt="npy"):
+    logid = scriptn + ".pl_to_array: "
     try:
-        log.debug('\t'.join([logid, name, str(ulim), fmt]))
-        if fmt == 'txt':
-            return np.array(np.loadtxt(name, usecols=ulim, unpack=True, delimiter='\t', encoding='bytes'))
-        elif fmt == 'npy':
+        log.debug("\t".join([logid, name, str(ulim), fmt]))
+        if fmt == "txt":
+            return np.array(
+                np.loadtxt(
+                    name, usecols=ulim, unpack=True, delimiter="\t", encoding="bytes"
+                )
+            )
+        elif fmt == "npy":
             # log.debug(np.load(name)[:,0][:,0])
             return np.array(np.load(name)[:, 0][:, ulim - 1])
     except Exception:
@@ -397,22 +417,22 @@ def _pl_to_array(name, ulim, fmt='npy'):
             exc_value,
             exc_tb,
         )
-        log.error(logid + ' ' + name + ': '.join(tbe.format()))
+        log.error(logid + " " + name + ": ".join(tbe.format()))
 
 
 def get_location(entry):
-    logid = scriptn + '.get_location: '
+    logid = scriptn + ".get_location: "
     try:
         ret = list()
         start = end = strand = None
-        start, end = map(int, entry.split(sep='|')[0].split(sep='-'))
-        strand = str(entry.split(sep='|')[1])
+        start, end = map(int, entry.split(sep="|")[0].split(sep="-"))
+        strand = str(entry.split(sep="|")[1])
         ret.extend([start, end, strand])
 
         if any([x == None for x in ret]):
-            log.warning(logid + 'Undefined variable: ' + str(ret))
+            log.warning(logid + "Undefined variable: " + str(ret))
 
-        log.debug(logid + str.join(' ', [str(entry), str(ret)]))
+        log.debug(logid + str.join(" ", [str(entry), str(ret)]))
         return ret
 
     except Exception:
@@ -422,14 +442,14 @@ def get_location(entry):
             exc_value,
             exc_tb,
         )
-        log.error(logid + ''.join(tbe.format()))
+        log.error(logid + "".join(tbe.format()))
 
 
 # Constraints
 
 
 def _constrain_paired(fc, start, end):
-    logid = scriptn + '.constrain_paired: '
+    logid = scriptn + ".constrain_paired: "
     try:
         for x in range(start + 1, end + 1):
             # 0 means without direction
@@ -443,11 +463,11 @@ def _constrain_paired(fc, start, end):
             exc_value,
             exc_tb,
         )
-        log.error(logid + ''.join(tbe.format()))
+        log.error(logid + "".join(tbe.format()))
 
 
 def _constrain_unpaired(fc, start, end):
-    logid = scriptn + '.constrain_unpaired: '
+    logid = scriptn + ".constrain_unpaired: "
     try:
         for x in range(start + 1, end + 1):
             fc.hc_add_up(x)
@@ -459,16 +479,16 @@ def _constrain_unpaired(fc, start, end):
             exc_value,
             exc_tb,
         )
-        log.error(logid + ''.join(tbe.format()))
+        log.error(logid + "".join(tbe.format()))
 
 
 def bpp_callback(v, v_size, i, maxsize, what, data):
 
-    logid = scriptn + '.bpp_callback: '
+    logid = scriptn + ".bpp_callback: "
     try:
         if what:
-            data['bpp'].extend(
-                [{'i': i, 'j': j, 'p': p} for j, p in enumerate(v) if (p is not None)]
+            data["bpp"].extend(
+                [{"i": i, "j": j, "p": p} for j, p in enumerate(v) if (p is not None)]
             )  # and (p >= 0.01)])
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -477,15 +497,15 @@ def bpp_callback(v, v_size, i, maxsize, what, data):
             exc_value,
             exc_tb,
         )
-        log.error(logid + ''.join(tbe.format()))
+        log.error(logid + "".join(tbe.format()))
 
 
 def _up_callback(v, v_size, i, maxsize, what, data):
 
-    logid = scriptn + '.up_callback: '
+    logid = scriptn + ".up_callback: "
     try:
         if what:
-            data['up'].extend([v])
+            data["up"].extend([v])
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
@@ -493,7 +513,7 @@ def _up_callback(v, v_size, i, maxsize, what, data):
             exc_value,
             exc_tb,
         )
-        log.error(logid + ''.join(tbe.format()))
+        log.error(logid + "".join(tbe.format()))
 
 
 class PLFoldOutput:
@@ -516,7 +536,9 @@ class PLFoldOutput:
     def __eq__(self, other: PLFoldOutput):
         if self.__class__ != other.__class__:
             raise NotImplementedError
-        return np.allclose(self.numpy_array, other.numpy_array, equal_nan=True, atol=0.0000001, rtol=0)
+        return np.allclose(
+            self.numpy_array, other.numpy_array, equal_nan=True, atol=0.0000001, rtol=0
+        )
 
     @classmethod
     def from_file(cls, file_path: str):
@@ -586,7 +608,10 @@ class PLFoldOutput:
         if list_text[0].startswith("1\t"):
             length = len(list_text[0].split("\t")) - 1
             part = [str(x + 1) for x in range(length)]
-            list_text = ["#unpaired probabilities", " #$i\tl=" + "\t".join(part)] + list_text
+            list_text = [
+                "#unpaired probabilities",
+                " #$i\tl=" + "\t".join(part),
+            ] + list_text
             text = "\n".join(list_text)
         elif list_text[0].startswith("#") and list_text[1].startswith(" #"):
             pass
@@ -599,7 +624,10 @@ class PLFoldOutput:
     def __array_to_string(array):
         array = np.array(array, dtype=float).round(7)
         array_string = "\n".join(
-            ['\t'.join([str(x + 1)] + [str(num) for num in array[x]]) for x in range(len(array))]
+            [
+                "\t".join([str(x + 1)] + [str(num) for num in array[x]])
+                for x in range(len(array))
+            ]
         )
         return array_string
 
@@ -614,7 +642,11 @@ class PLFoldOutput:
         if self._numpy_array is None:
             array = []
             for line in self.text.split("\n"):
-                if not line.startswith("#") and not line.startswith(" #") and not line == "":
+                if (
+                    not line.startswith("#")
+                    and not line.startswith(" #")
+                    and not line == ""
+                ):
                     data = line.split("\t")[1:]
                     data = [float(x) if x != "NA" else np.nan for x in data]
                     array.append(data)
@@ -698,7 +730,9 @@ def cmd_rnaplfold(
     PLFoldOutput
         PLFoldOutput object
     """
-    with TemporaryDirectory() as tmp_dir, NamedTemporaryFile(mode="r+") as constraint_file:
+    with TemporaryDirectory() as tmp_dir, NamedTemporaryFile(
+        mode="r+"
+    ) as constraint_file:
         constraint_string = ""
         if constraint is not None:
             for entry in constraint:
@@ -775,7 +809,7 @@ def api_rnaplfold(
         PLFoldOutput object
     """
     sequence = sequence.upper().replace("T", "U")
-    data = {'up': []}
+    data = {"up": []}
     md = RNA.md()
     md.max_bp_span = span
     md.window_size = window
