@@ -5,23 +5,15 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Current File",
-            "type": "python",
-            "request": "launch",
-            "program": "${file}",
-            "console": "externalTerminal",
-            "args": [
-                "-s test.fa -w 250 -x sliding -y 5"
-            ]
-        },
-        {
-            "name": "Python: Current File",
+            "name": "Python: Current File internal",
             "type": "python",
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
             "args": [
-                "-s test.fa -w 250 -x sliding -y 5"
+                "-s test.fa",
+                "-w 250",
+                "-x 120-125"
             ]
         }
     ]

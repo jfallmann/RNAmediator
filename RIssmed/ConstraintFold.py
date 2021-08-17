@@ -158,7 +158,7 @@ def fold(
             seq_record = fasta_settings.sequence_record
             conslist = fasta_settings.constrainlist
 
-            fa = seq_record.seq
+            fa = str(seq_record.seq)
             log.debug(logid + "Constraints: " + str(conslist) + " Seq_record: " + fa)
 
             if len(fa) < window:
@@ -269,8 +269,8 @@ def fold(
 
                         log.debug(logid + str.join(" ", [goi, consstr, gstrand]))
 
-                    genecoords = list(gs, ge, gstrand)
-                    const = list(start, end, fstart, fend)
+                    genecoords = list([gs, ge, gstrand])
+                    const = list([start, end, fstart, fend])
 
                     pool.apply_async(
                         constrain_seq,
@@ -359,7 +359,10 @@ def constrain_seq(
 
         outlist = list()
         goi, chrom, strand = idfromfa(seq_record.id)
-        seq = seq_record.seq.upper().replace("T", "U")
+        seq = str(seq_record.seq.upper())
+        seq = seq.replace(
+            "T", "U"
+        )  # Already taken care of by RIssmed, but we need to make sure this happens also for Sequences from outside
 
         if not window:
             window = len(seq)
