@@ -59,7 +59,7 @@ from operator import itemgetter
 # own
 import logging
 
-# from Tweaks.Collection import *
+# from RIssmed.Tweaks.Collection import *
 
 ################
 #  DS tweaker  #
@@ -67,8 +67,8 @@ import logging
 
 try:
     log = logging.getLogger(__name__)  # use module name
-    scriptn = os.path.basename(inspect.stack()[-1].filename).replace('.py', '')
-    log.debug('LOGGING IN DStweaks' + str(scriptn) + str(log) + str(log.handlers))
+    scriptn = os.path.basename(inspect.stack()[-1].filename).replace(".py", "")
+    log.debug("LOGGING IN DStweaks" + str(scriptn) + str(log) + str(log.handlers))
 except Exception:
     exc_type, exc_value, exc_tb = sys.exc_info()
     tbe = tb.TracebackException(
@@ -76,11 +76,11 @@ except Exception:
         exc_value,
         exc_tb,
     )
-    print(''.join(tbe.format()), file=sys.stderr)
+    print("".join(tbe.format()), file=sys.stderr)
 
 
 def removekey(d, key):
-    logid = scriptn + '.removekey: '
+    logid = scriptn + ".removekey: "
     try:
         r = dict(d)
         del r[key]
@@ -92,11 +92,11 @@ def removekey(d, key):
             exc_value,
             exc_tb,
         )
-        log.error(logid + ''.join(tbe.format()))
+        log.error(logid + "".join(tbe.format()))
 
 
 def getlowest_list(a, n):
-    logid = scriptn + '.getlowest_list: '
+    logid = scriptn + ".getlowest_list: "
     try:
         if n > len(a) - 1:
             b = len(a) - 1
@@ -113,11 +113,11 @@ def getlowest_list(a, n):
             exc_value,
             exc_tb,
         )
-        log.error(logid + ''.join(tbe.format()))
+        log.error(logid + "".join(tbe.format()))
 
 
 def gethighest_list(a, n):
-    logid = scriptn + '.gethighest_list: '
+    logid = scriptn + ".gethighest_list: "
     try:
         if len(a) - n < 0:
             b = len(a) - 1
@@ -134,11 +134,11 @@ def gethighest_list(a, n):
             exc_value,
             exc_tb,
         )
-        log.error(logid + ''.join(tbe.format()))
+        log.error(logid + "".join(tbe.format()))
 
 
 def getlowest_dict(a, n):
-    logid = scriptn + '.getlowest_dict: '
+    logid = scriptn + ".getlowest_dict: "
     try:
         if n > len(a):
             b = len(a)
@@ -155,11 +155,11 @@ def getlowest_dict(a, n):
             exc_value,
             exc_tb,
         )
-        log.error(logid + ''.join(tbe.format()))
+        log.error(logid + "".join(tbe.format()))
 
 
 def gethighest_dict(a, n):
-    logid = scriptn + '.gethighest_dict: '
+    logid = scriptn + ".gethighest_dict: "
     try:
         if n > len(a):
             b = len(a)
@@ -176,7 +176,7 @@ def gethighest_dict(a, n):
             exc_value,
             exc_tb,
         )
-        log.error(logid + ''.join(tbe.format()))
+        log.error(logid + "".join(tbe.format()))
 
 
 #
