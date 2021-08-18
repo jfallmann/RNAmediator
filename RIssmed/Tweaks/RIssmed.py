@@ -8,6 +8,7 @@ import sys
 import traceback as tb
 from Bio import SeqIO
 from Bio.Seq import Seq
+from collections import defaultdict
 from RIssmed.Tweaks.FileProcessor import (
     parseseq,
     idfromfa,
@@ -214,7 +215,7 @@ def set_run_settings_dict(
         for x, record in enumerate(SeqIO.parse(sequence, "fasta")):
             goi, chrom, strand = idfromfa(record.id)
             cons = (
-                constraintlist[goi] if type(constraintlist) == dict else constraintlist
+                constraintlist[goi] if type(constraintlist) == defaultdict else constraintlist
             )
             for entry in cons:
                 run_settings = add_rissmed_constraint(
