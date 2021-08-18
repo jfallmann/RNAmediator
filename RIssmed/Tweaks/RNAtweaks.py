@@ -47,6 +47,19 @@ except Exception:
 
 
 def _isvalid(x=None):
+    """Checks if x is a valid value
+
+    Parameters
+    ----------
+     x: any
+        The value to check
+
+    Returns
+    -------
+    bool
+        True/False
+    """
+
     logid = scriptn + ".isvalid: "
     try:
         if x or x == 0:
@@ -67,6 +80,19 @@ def _isvalid(x=None):
 
 
 def _isinvalid(x=None):
+    """Checks if x is invalid
+
+    Parameters
+    ----------
+     x: any
+        The value to check
+
+    Returns
+    -------
+    bool
+        True/False
+    """
+
     logid = scriptn + ".isinvalid: "
     try:
         if x or x == 0:
@@ -90,6 +116,19 @@ def _isinvalid(x=None):
 
 
 def _calc_gibbs(fc):
+    """Calcuates Gibbs Free Energy for sequence
+
+    Parameters
+    ----------
+     fc: object
+        RNA.fold_compound object of ViennaRNA API with or without added constraints
+
+    Returns
+    -------
+    fc.pf()[1]: float
+        Partition Function free energy value
+    """
+
     logid = scriptn + ".calc_gibbs: "
     try:
         return fc.pf()[1]
@@ -103,7 +142,22 @@ def _calc_gibbs(fc):
         log.error(logid + "".join(tbe.format()))
 
 
-def _get_bppm(tmp, start, end):
+def _get_bppm(matrix, start, end):
+    """Extracts base pair probability matrix for sequence from start to end
+
+    Parameters
+    ----------
+    matrix: object
+        RNA.fold_compound, BPPM of structure calculated by ViennaRNA
+    start: int
+    end: int
+
+    Returns
+    -------
+    bppm: object
+        RNA.fold_compound subset of original bppm
+    """
+
     logid = scriptn + ".get_bppm: "
     bppm = []
     try:
@@ -132,6 +186,19 @@ def _get_bppm(tmp, start, end):
 
 
 def _get_ddg(file):
+    """Calcuates Delta-Delta Gibbs Free Energy for sequence
+
+    Parameters
+    ----------
+     file: str
+        filename
+
+    Returns
+    -------
+    ret: defaultdict[str, defaultdict[str, float]]
+        Partition Function free energy value
+    """
+
     logid = scriptn + ".get_ddg: "
     try:
         ret = defaultdict()
@@ -163,6 +230,20 @@ def _get_ddg(file):
 
 
 def _calc_ddg(ddgs):
+    """Calculates Delta-Delta-Gibbs Free Energy
+
+    Args:
+    ddgs: dict
+        Dictionary containing relevant information for ddg calculation, produced by _get_ddgs
+
+    Returns:
+    ddg: float
+        Delta-Delta-Gibbs Free Energy after binding of two antagonistic/cooperative binding factors
+
+    Reference:
+        Yi-Hsuan Lin, Ralf Bundschuh, RNA structure generates natural cooperativity between single-stranded RNA binding proteins targeting 5' and 3'UTRs, Nucleic Acids Research, Volume 43, Issue 2, 30 January 2015, Pages 1160-1169, https://doi.org/10.1093/nar/gku1320
+    """
+
     logid = scriptn + ".calc_ddg: "
 
     try:
@@ -172,9 +253,6 @@ def _calc_ddg(ddgs):
         both_cons_up = ddgs["bothconstraint_unpaired"]
         uncons = ddgs["unconstraint"]
         ddg = cons_up + sec_cons_up - both_cons_up - uncons
-        """Yi-Hsuan Lin, Ralf Bundschuh, RNA structure generates natural cooperativity between
-        single-stranded RNA binding proteins targeting 5' and 3'UTRs, Nucleic Acids Research,
-        Volume 43, Issue 2, 30 January 2015, Pages 1160-1169, https://doi.org/10.1093/nar/gku1320"""
 
         return ddg
 
@@ -189,6 +267,19 @@ def _calc_ddg(ddgs):
 
 
 def _calc_bpp(bppm):
+    """Calculate base-pair probability
+
+    Parameters
+    ----------
+    bppm : list
+        Base-pair probability matrix derived from ViennaRNA-API
+
+    Returns
+    -------
+    bpp: float
+        base-pair probability
+    """
+
     logid = scriptn + ".calc_bpp: "
     bpp = 0.0
     try:
@@ -208,6 +299,19 @@ def _calc_bpp(bppm):
 
 
 def _calc_nrg(bpp):
+    """Calculate pseudo opening energy from base-pair probability
+
+    Parameters
+    ----------
+    bpp : float
+        Base-pair probabilit, derived from e.g. _calc_bpp
+
+    Returns
+    -------
+    nrg: float
+        Pseudo opening energy
+    """
+
     logid = scriptn + ".calc_nrg: "
     # set k_t for nrg2prob and vice versa calcs
     k_t = 0.61632077549999997
@@ -227,6 +331,28 @@ def _calc_nrg(bpp):
 
 
 def _print_region_up(data, seqlength=None, region=None):
+    """Print pairing probability of region
+
+    Parameters
+    ----------
+    data : dict[int, dict[int]]
+        Output of ViennaRNA fold_compound folding
+    seqlength : int, optional
+        Length of sequence to print, by default None
+    region : int, optional
+        Position in data dict, corressponds to -u parameter of RNAplfold, by default None
+
+    Returns
+    -------
+    ups: str
+        String of propabilities of being unpaired for given region
+
+    Raises
+    ------
+    NameError
+        If no data dict was found
+    """
+
     logid = scriptn + ".print_region_up: "
     try:
         if data:
@@ -253,6 +379,28 @@ def _print_region_up(data, seqlength=None, region=None):
 
 
 def _print_up(data=None, seqlength=None, region=None):
+    """Print pairing probability
+
+    Parameters
+    ----------
+    data : dict[int, dict[int]]
+        Output of ViennaRNA fold_compound folding
+    seqlength : int, optional
+        Length of sequence to print, by default None
+    region : int, optional
+        Position in data dict, corressponds to -u parameter of RNAplfold, by default None
+
+    Returns
+    -------
+    ups: str
+        String of propabilities of being unpaired for sequence
+
+    Raises
+    ------
+    NameError
+        If no data dict was found
+    """
+
     logid = scriptn + ".print_up: "
     log.debug(logid + str(len(data)) + " " + str(seqlength) + " " + str(region))
     try:
@@ -297,6 +445,23 @@ def _print_up(data=None, seqlength=None, region=None):
 
 
 def _up_to_array(data=None, region=None, seqlength=None):
+    """Converts output of ViennaRNA folc_compound.probs_window to numpy array
+
+    Parameters
+    ----------
+    data : dict[int,dict[int]], optional
+        Dictionary holding return value of robs_window, by default None
+    region : int, optional
+        Region of interest, corresponding to -u parameter or RNAPLfold, by default None
+    seqlength : int, optional
+        Length of sequence that was folded, by default None
+
+    Returns
+    -------
+    numpy.array
+        Numpy array holding probabilities of being unpaired for region of interest
+    """
+
     logid = scriptn + ".up_to_array: "
     entries = []
     try:
@@ -337,6 +502,8 @@ def _up_to_array(data=None, region=None, seqlength=None):
 
 
 def _npprint(a, o=None):  # format_string ='{0:.2f}'):
+    """Pretty print of numpy array"""
+
     logid = scriptn + ".npprint: "
     try:
         out = ""
@@ -359,6 +526,16 @@ def _npprint(a, o=None):  # format_string ='{0:.2f}'):
 
 
 def printdiff(a, o=None):
+    """Print difference between numpy arrays
+
+    Parameters
+    ----------
+    a : array
+        Array to print
+    o : str, optional
+        where to save the diff to, by default None
+    """
+
     logid = scriptn + ".printdiff: "
     try:
         np.save(o, a)
@@ -373,6 +550,23 @@ def printdiff(a, o=None):
 
 
 def _read_precalc_plfold(data, name, seq):
+    """Reads in plfold output of previous run
+
+    Parameters
+    ----------
+    data : list
+        Where to store the data to
+    name : str
+        Name of file to read from
+    seq : str
+        Sequence that was folded
+
+    Returns
+    -------
+    data: list[int, list[int]]
+        List containing precalculated results
+    """
+
     logid = scriptn + ".read_precalc_plfold: "
     try:
         for i in range(len(seq)):
@@ -398,6 +592,23 @@ def _read_precalc_plfold(data, name, seq):
 
 
 def _pl_to_array(name, ulim, fmt="npy"):
+    """Tranforms RNAPLFold output to numpy array
+
+    Parameters
+    ----------
+    name : str
+        Name of file to read in
+    ulim : int
+        Region of interest, corresponds to -u parameter of RNAPLfold
+    fmt : str, optional
+        Format of input file, by default "npy"
+
+    Returns
+    -------
+    numpy.array
+        Numpy array containing data from read in file
+    """
+
     logid = scriptn + ".pl_to_array: "
     try:
         log.debug("\t".join([logid, name, str(ulim), fmt]))
@@ -421,6 +632,19 @@ def _pl_to_array(name, ulim, fmt="npy"):
 
 
 def get_location(entry):
+    """Returns location of folding window in genomic or local coordinates
+
+    Parameters
+    ----------
+    entry : str
+        String containing start, end and strand of folding window
+
+    Returns
+    -------
+    ret: list(list(int,int,str))
+        List of start, end and strand for folding window
+    """
+
     logid = scriptn + ".get_location: "
     try:
         ret = list()
@@ -449,6 +673,23 @@ def get_location(entry):
 
 
 def _constrain_paired(fc, start, end):
+    """Adds hard constraint paired to region
+
+    Parameters
+    ----------
+    fc : RNA.fold_compound object
+        ViennaRNA fold_compound object
+    start : int
+        Start of constraint
+    end : int
+        End of constraint
+
+    Returns
+    -------
+    fc: RNA.fold_compound object
+        ViennaRNA fold_compound object with constraint
+    """
+
     logid = scriptn + ".constrain_paired: "
     try:
         for x in range(start + 1, end + 1):
@@ -467,6 +708,23 @@ def _constrain_paired(fc, start, end):
 
 
 def _constrain_unpaired(fc, start, end):
+    """Adds hard constraint unpaired to region
+
+        Parameters
+        ----------
+        fc : RNA.fold_compound object
+            ViennaRNA fold_compound object
+        start : int
+            Start of constraint
+        end : int
+            End of constraint
+
+        Returns
+        -------
+        fc: RNA.fold_compound object
+            ViennaRNA fold_compound object with constraint
+        """
+
     logid = scriptn + ".constrain_unpaired: "
     try:
         for x in range(start + 1, end + 1):
@@ -483,6 +741,23 @@ def _constrain_unpaired(fc, start, end):
 
 
 def bpp_callback(v, v_size, i, maxsize, what, data):
+    """Callback function for ViennaRNA API base-pair probability calculation
+
+    Parameters
+    ----------
+    v : ViennaRNA fold_compound object
+        The fold compound to use
+    v_size : int
+        size of the compound
+    i : int
+        From
+    maxsize : int
+        To
+    what : str
+        Which type of fold_compound
+    data : dict[list(int, int, int)]
+        Datastructure to fill and return
+    """
 
     logid = scriptn + ".bpp_callback: "
     try:
@@ -501,6 +776,23 @@ def bpp_callback(v, v_size, i, maxsize, what, data):
 
 
 def _up_callback(v, v_size, i, maxsize, what, data):
+    """Callback function for ViennaRNA API probability of being unpaired calculation
+
+    Parameters
+    ----------
+    v : ViennaRNA fold_compound object
+        The fold compound to use
+    v_size : int
+        size of the compound
+    i : int
+        From
+    maxsize : int
+        To
+    what : str
+        Which type of fold_compound
+    data : dict[list(int, int, int)]
+        Datastructure to fill and return
+    """
 
     logid = scriptn + ".up_callback: "
     try:
@@ -518,12 +810,12 @@ def _up_callback(v, v_size, i, maxsize, what, data):
 
 class PLFoldOutput:
     """Output wrapper for unpaired probability files of RNAplfold
+
      Attributes
     ----------
      text : str
         string representation of an RNAplfold punpaired output file.
         Missing the lines starting with # is supported
-
     """
 
     def __init__(self, text: str):
