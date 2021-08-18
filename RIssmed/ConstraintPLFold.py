@@ -963,7 +963,7 @@ def main(args=None):
             args = parseargs_plcons()
 
         queue, listener, worker_configurer = rissmed_logging_setup(args.logdir, args.loglevel, SCRIPTNAME)
-
+        worker_configurer(queue, args.loglevel)
         log.info(logid + 'Running ' + SCRIPTNAME + ' on ' + str(args.procs) + ' cores.')
         log.info(
             logid
