@@ -51,34 +51,51 @@ from io import StringIO
 import gzip
 
 # own
-from Tweaks.RIssmedArgparsers import *
-from Tweaks.logger import makelogdir, setup_logger
+from RIssmed.Tweaks.RIssmedArgparsers import *
+from RIssmed.Tweaks.logger import makelogdir, setup_logger
 
 
 # Create log dir
-makelogdir('LOGS')
+makelogdir("LOGS")
 # Define loggers
 SCRIPTNAME = os.path.basename(__file__)
 
 
 def parseargs():
     parser = argparse.ArgumentParser(
-        description='Generate random sequences of length l, if needed with gc content of g.'
+        description="Generate random sequences of length l, if needed with gc content of g."
     )
-    parser.add_argument("-l", "--length", type=int, default=100, help='Length of randseq')
-    parser.add_argument("-g", "--gc", type=int, help='GC content, needs to be %2==0 or will be rounded')
-    parser.add_argument("-n", "--number", type=int, default=1, help='Number of random seqs to generate')
     parser.add_argument(
-        "-o", "--outfile", type=str, default='Random', help='Name of output file for random sequences'
+        "-l", "--length", type=int, default=100, help="Length of randseq"
     )
-    parser.add_argument("-a", "--alphabet", type=str, default='AUCG', help='alphabet for random seqs')
     parser.add_argument(
-        "-v", "--verbosity", type=int, default=0, choices=[0, 1, 2], help="increase output verbosity"
+        "-g", "--gc", type=int, help="GC content, needs to be %2==0 or will be rounded"
+    )
+    parser.add_argument(
+        "-n", "--number", type=int, default=1, help="Number of random seqs to generate"
+    )
+    parser.add_argument(
+        "-o",
+        "--outfile",
+        type=str,
+        default="Random",
+        help="Name of output file for random sequences",
+    )
+    parser.add_argument(
+        "-a", "--alphabet", type=str, default="AUCG", help="alphabet for random seqs"
+    )
+    parser.add_argument(
+        "-v",
+        "--verbosity",
+        type=int,
+        default=0,
+        choices=[0, 1, 2],
+        help="increase output verbosity",
     )
     return parser.parse_args()
 
 
-def createrandseq(length, gc, number, alphabet, outfile='Random', verbosity=False):
+def createrandseq(length, gc, number, alphabet, outfile="Random", verbosity=False):
     try:
         nucs = list(alphabet)
         seqs = []
@@ -88,7 +105,7 @@ def createrandseq(length, gc, number, alphabet, outfile='Random', verbosity=Fals
                 rest = (100 - 2 * content) / 2
                 occ = []
                 for x in nucs:
-                    if x == 'C' or x == 'G':
+                    if x == "C" or x == "G":
                         occ.append(content * length / 100)
                     else:
                         occ.append(rest * length / 100)
@@ -100,7 +117,7 @@ def createrandseq(length, gc, number, alphabet, outfile='Random', verbosity=Fals
                 seq = randseq(alphabet, length)
                 header = ">Seq{i}:random:nochrom:(.)\n".format(i=i + 1)
 
-            final = ''.join(seq)
+            final = "".join(seq)
             seqs.append(str("{header}{final}".format(header=header, final=final)))
         return seqs
     except Exception:
@@ -110,14 +127,14 @@ def createrandseq(length, gc, number, alphabet, outfile='Random', verbosity=Fals
             exc_value,
             exc_tb,
         )
-        log.error(''.join(tbe.format()))
+        log.error("".join(tbe.format()))
 
 
 def randseq(items, length):
     try:
-        l = ''
+        l = ""
         for i in range(length):
-            l += str(''.join(choice(items)))
+            l += str("".join(choice(items)))
         return str(l)
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -126,7 +143,7 @@ def randseq(items, length):
             exc_value,
             exc_tb,
         )
-        log.error(''.join(tbe.format()))
+        log.error("".join(tbe.format()))
 
 
 def weightedrandseq(items, probs, length):
@@ -139,7 +156,7 @@ def weightedrandseq(items, probs, length):
 
         if len(seq) < length:
             for i in range(length - len(seq)):
-                seq += str(''.join(choice(items)))
+                seq += str("".join(choice(items)))
 
         shuffle(seq)
         return seq
@@ -150,27 +167,34 @@ def weightedrandseq(items, probs, length):
             exc_value,
             exc_tb,
         )
-        log.error(''.join(tbe.format()))
+        log.error("".join(tbe.format()))
 
 
 # choices(items,weights=w,k=nr)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     try:
         args = parseargs()
         log = setup_logger(
-            name='',
-            log_file='stderr',
-            logformat='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
-            datefmt='%m-%d %H:%M',
-            level='WARNING',
+            name="",
+            log_file="stderr",
+            logformat="%(asctime)s %(name)-12s %(levelname)-8s %(message)s",
+            datefmt="%m-%d %H:%M",
+            level="WARNING",
         )
         rand = "\n".join(
-            createrandseq(args.length, args.gc, args.number, args.alphabet, args.outfile, args.verbosity)
+            createrandseq(
+                args.length,
+                args.gc,
+                args.number,
+                args.alphabet,
+                args.outfile,
+                args.verbosity,
+            )
         )
         seq = StringIO(rand)
-        o = gzip.open(args.outfile + '.fa.gz', 'wb')
-        o.write(bytes(rand, encoding='UTF-8'))
+        o = gzip.open(args.outfile + ".fa.gz", "wb")
+        o.write(bytes(rand, encoding="UTF-8"))
         o.close()
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -179,6 +203,6 @@ if __name__ == '__main__':
             exc_value,
             exc_tb,
         )
-        log.error(''.join(tbe.format()))
+        log.error("".join(tbe.format()))
 #
 # Randseq.py ends here

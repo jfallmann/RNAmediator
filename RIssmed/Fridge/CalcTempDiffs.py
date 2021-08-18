@@ -56,58 +56,68 @@ from natsort import natsorted
 # Biopython stuff
 from Bio import SeqIO
 
-from Tweaks.RIssmedArgparsers import *
+from RIssmed.Tweaks.RIssmedArgparsers import *
 
 # from ConstraintPLfold.py import
 
 # parse args
 def parseargs():
     parser = argparse.ArgumentParser(
-        description='Calculate the regions with highest accessibility diff for given Sequence Pattern'
+        description="Calculate the regions with highest accessibility diff for given Sequence Pattern"
     )
     parser.add_argument(
-        "-p", "--pattern", type=str, default='*,*.svg', help='Pattern for files and window, e.g. Seq1_30,250'
+        "-p",
+        "--pattern",
+        type=str,
+        default="*,*.svg",
+        help="Pattern for files and window, e.g. Seq1_30,250",
     )
     parser.add_argument(
         "-c",
         "--cutoff",
         type=int,
         default=0.4,
-        help='Cutoff for the definition of pairedness, if set to e.g. 0.2 it will mark all regions with probability of being unpaired > cutoff as paired',
+        help="Cutoff for the definition of pairedness, if set to e.g. 0.2 it will mark all regions with probability of being unpaired > cutoff as paired",
     )
     parser.add_argument(
         "-u",
         "--ulimit",
         type=int,
         default=1,
-        help='Stretch of nucleotides used during plfold run (-u option)',
+        help="Stretch of nucleotides used during plfold run (-u option)",
     )
     parser.add_argument(
-        "-z", "--procs", type=int, default=1, help='Number of parallel processed to run this job with'
+        "-z",
+        "--procs",
+        type=int,
+        default=1,
+        help="Number of parallel processed to run this job with",
     )
-    parser.add_argument("-s", "--sequence", type=str, default='', help='Folded Sequence in FASTA format')
+    parser.add_argument(
+        "-s", "--sequence", type=str, default="", help="Folded Sequence in FASTA format"
+    )
     parser.add_argument(
         "--plot",
         type=int,
         default=1,
-        help='Plot the distribution of probability differences at each nucleotide over the given temperature range',
+        help="Plot the distribution of probability differences at each nucleotide over the given temperature range",
     )
     return parser.parse_args()
 
 
 def calctdiff(pat, cutoff, ulim, sequence, plot=None, procs=None):
 
-    pattern = pat.split(sep=',')
+    pattern = pat.split(sep=",")
     window = int(pattern[1])
     # get files with specified pattern
-    raw = pattern[0] + '*_raw_' + pattern[1] + '.gz'
-    temp = 'TempCons_' + pattern[0] + '*_temp_' + pattern[1] + '.gz'
+    raw = pattern[0] + "*_raw_" + pattern[1] + ".gz"
+    temp = "TempCons_" + pattern[0] + "*_temp_" + pattern[1] + ".gz"
     # search for files
     r = natsorted(glob.glob(raw), key=lambda y: y.lower())
     t = natsorted(glob.glob(temp), key=lambda y: y.lower())
     # 37 degree is default, we use this as raw in case that probtemp folding was used
     for f in t:
-        if '37_temp' in f:
+        if "37_temp" in f:
             p = f
             t.remove(f)
     # get absolute path for files
@@ -121,25 +131,27 @@ def calctdiff(pat, cutoff, ulim, sequence, plot=None, procs=None):
         raw = os.path.abspath(p)
     # Now we check if nocons and tcons have the same length, if not most likely from probcons folding, then we use the 37 degree folding
     else:
-        print('There is no raw file and no 37 folding temp file to compensate, this will fail')
+        print(
+            "There is no raw file and no 37 folding temp file to compensate, this will fail"
+        )
         return 0
 
     nocons = toarray(raw, ulim)
 
     # get Sequences matching pattern
     nucs = []
-    seq = ''
+    seq = ""
 
     if os.path.isfile(sequence):
-        if '.gz' in sequence:
-            seq = gzip.open(sequence, 'rt')
+        if ".gz" in sequence:
+            seq = gzip.open(sequence, "rt")
         else:
-            seq = open(sequence, 'rt')
-        for fa in SeqIO.parse(seq, 'fasta'):
+            seq = open(sequence, "rt")
+        for fa in SeqIO.parse(seq, "fasta"):
             if pattern[0] in fa.id:
                 nucs = fa.seq
     else:
-        print('No sequence information available, will not add 2nd x axis to plot')
+        print("No sequence information available, will not add 2nd x axis to plot")
 
     # read in the files, define pairedness and calculate statistics for distance to constraint vs diff in pairedness
 
@@ -170,8 +182,14 @@ def calctdiff(pat, cutoff, ulim, sequence, plot=None, procs=None):
     # Transpose rows to columns for boxplot and analysis later
     difftcons = difftcons.transpose()
     meanofmeans, meanofstds = analyze(difftcons)
-    with open('Cutoffs_' + pattern[0] + '_' + pattern[1] + '_' + mint + '_' + maxt + '.txt', 'w') as handle:
-        print('MEAN:\t' + str(meanofmeans) + '\n' + 'STD:\t' + str(meanofstds), file=handle)
+    with open(
+        "Cutoffs_" + pattern[0] + "_" + pattern[1] + "_" + mint + "_" + maxt + ".txt",
+        "w",
+    ) as handle:
+        print(
+            "MEAN:\t" + str(meanofmeans) + "\n" + "STD:\t" + str(meanofstds),
+            file=handle,
+        )
 
     if plot:
         plottempfig(nocons, difftcons, nucs, pattern[0], pattern[1], mint, maxt)
@@ -181,7 +199,7 @@ def calctdiff(pat, cutoff, ulim, sequence, plot=None, procs=None):
 
 ###### SUBS
 def calcdiff(file, nocons, trange, difftcons, ulim):
-    trange.append(file.split(sep='/')[-1].split(sep='_')[4])
+    trange.append(file.split(sep="/")[-1].split(sep="_")[4])
     tcons = toarray(file, ulim)
     # calc diff between raw and constraint
     td = nocons - tcons
@@ -202,7 +220,7 @@ def plottempfig(nocons, difftcons, nucs, p1, p2, mint, maxt):
     height = 9
     fig = plt.figure(figsize=(width, height), dpi=100)
     ax = plt.subplot(111)
-    ax.plot(range(1, len(nocons) + 1), nocons, 'b-')
+    ax.plot(range(1, len(nocons) + 1), nocons, "b-")
     # Add boxplot of changes
     for i in range(len(difftcons)):
         ax.boxplot(
@@ -222,11 +240,11 @@ def plottempfig(nocons, difftcons, nucs, p1, p2, mint, maxt):
     if nucs:
         ax2.set_xlim(ax.get_xlim())
         ax2.set_xticks(range(0, len(nocons) + 1))
-        ax2.set_xticklabels((' ' + nucs), ha="center", fontsize=6)
+        ax2.set_xticklabels((" " + nucs), ha="center", fontsize=6)
     # Add ticks and labels
     plt.xlabel("Nucleotide", fontsize=16)
     plt.ylabel("Prob of being unpaired and changes", fontsize=16)
-    fig.savefig('DiffTemp_' + p1 + '_' + p2 + '_' + mint + '_' + maxt + '.svg')
+    fig.savefig("DiffTemp_" + p1 + "_" + p2 + "_" + mint + "_" + maxt + ".svg")
 
 
 def getdist(a, conss, conse):
@@ -242,7 +260,7 @@ def getdist(a, conss, conse):
 
 def probbin(a, cutoff):
     b = a
-    for i in np.nditer(b, op_flags=['readwrite'], casting='no', op_dtypes=float):
+    for i in np.nditer(b, op_flags=["readwrite"], casting="no", op_dtypes=float):
         if i[...] >= cutoff:
             i[...] = 1
         else:
@@ -264,7 +282,7 @@ def maxchange(raw, constraint):
     diff = raw - constraint
     for i in range(len(diff)):
         if diff[i] <= border * (-1) or diff[i] >= border:
-            txt = str(i) + '\t' + str(diff[i])
+            txt = str(i) + "\t" + str(diff[i])
             bigdiff.append(txt)
     return bigdiff
 
@@ -272,20 +290,20 @@ def maxchange(raw, constraint):
 def savelist(gothrough, what, const):
     out = []
     for x, y in gothrough.items():
-        out.append(str(const + '\t' + str(x) + '\t' + str(y)))
-    o = gzip.open('Impact_of_constraints_on_' + what + '.gz', 'ab')
-    o.write(bytes('\n'.join(out), encoding='UTF-8'))
+        out.append(str(const + "\t" + str(x) + "\t" + str(y)))
+    o = gzip.open("Impact_of_constraints_on_" + what + ".gz", "ab")
+    o.write(bytes("\n".join(out), encoding="UTF-8"))
 
 
 def savemax(gothrough, which, what):
     tempdict = defaultdict(list)
     templist = []
-    for z in ['lowest', 'highest']:
+    for z in ["lowest", "highest"]:
         for x, y in gothrough[what][z].items():
             for a, b in y.items():
                 templist.append(b)
-                tempdict[b].append(str(str(x) + '\t' + str(a)))
-        call = {getlowest_list: 'lowest', gethighest_list: 'highest'}
+                tempdict[b].append(str(str(x) + "\t" + str(a)))
+        call = {getlowest_list: "lowest", gethighest_list: "highest"}
         printlist = []
         for key, val in call.items():
             if val == z:
@@ -293,17 +311,19 @@ def savemax(gothrough, which, what):
 
         out = []
         for x in printlist:
-            out.append(str(''.join(tempdict[x]) + '\t' + str(x)))
-        o = gzip.open('Impact' + z + '_' + what + '.gz', 'wb+')
-        o.write(bytes('\n'.join(out), encoding='UTF-8'))
+            out.append(str("".join(tempdict[x]) + "\t" + str(x)))
+        o = gzip.open("Impact" + z + "_" + what + ".gz", "wb+")
+        o.write(bytes("\n".join(out), encoding="UTF-8"))
 
 
 ####################
 ####    MAIN    ####
 ####################
-if __name__ == '__main__':
+if __name__ == "__main__":
     args = parseargs()
-    calctdiff(args.pattern, args.cutoff, args.ulimit, args.sequence, args.plot, args.procs)
+    calctdiff(
+        args.pattern, args.cutoff, args.ulimit, args.sequence, args.plot, args.procs
+    )
 
 #
 # CalcTempDiffs.py ends here

@@ -84,72 +84,106 @@ from Bio import SeqIO
 
 # Logging
 import datetime
-from Tweaks.logger import makelogdir, setup_multiprocess_logger
+from RIssmed.Tweaks.logger import makelogdir, setup_multiprocess_logger
 
-SCRIPTNAME = os.path.basename(__file__).replace('.py', '')
-makelogdir('LOGS')
-if not os.path.isfile(os.path.abspath('LOGS/' + SCRIPTNAME + '.log')):
-    open('LOGS/' + SCRIPTNAME + '.log', 'a').close()
+SCRIPTNAME = os.path.basename(__file__).replace(".py", "")
+makelogdir("LOGS")
+if not os.path.isfile(os.path.abspath("LOGS/" + SCRIPTNAME + ".log")):
+    open("LOGS/" + SCRIPTNAME + ".log", "a").close()
 else:
     ts = str(
         datetime.datetime.fromtimestamp(
-            os.path.getmtime(os.path.abspath('LOGS/' + SCRIPTNAME + '.log'))
+            os.path.getmtime(os.path.abspath("LOGS/" + SCRIPTNAME + ".log"))
         ).strftime("%Y%m%d_%H_%M_%S")
     )
-    shutil.copy2('LOGS/' + SCRIPTNAME + '.log', 'LOGS/' + SCRIPTNAME + '_' + ts + '.log')
+    shutil.copy2(
+        "LOGS/" + SCRIPTNAME + ".log", "LOGS/" + SCRIPTNAME + "_" + ts + ".log"
+    )
 
-logfile = 'LOGS/' + SCRIPTNAME + '.log'
+logfile = "LOGS/" + SCRIPTNAME + ".log"
 log = setup_multiprocess_logger(
     name=SCRIPTNAME,
     log_file=logfile,
-    filemode='a',
-    logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s',
-    datefmt='%m-%d %H:%M',
+    filemode="a",
+    logformat="%(asctime)s %(levelname)-8s %(name)-12s %(message)s",
+    datefmt="%m-%d %H:%M",
 )
 log = setup_multiprocess_logger(
-    name='',
-    log_file='stderr',
-    logformat='%(asctime)s %(levelname)-8s %(name)-12s %(message)s',
-    datefmt='%m-%d %H:%M',
+    name="",
+    log_file="stderr",
+    logformat="%(asctime)s %(levelname)-8s %(name)-12s %(message)s",
+    datefmt="%m-%d %H:%M",
 )
 
 ##load own modules
-from Tweaks.RIssmedArgparsers import *
-from Tweaks.Randseq import createrandseq
+from RIssmed.Tweaks.RIssmedArgparsers import *
+from RIssmed.Tweaks.Randseq import createrandseq
 
 
 def parseargs():
     parser = argparse.ArgumentParser(
-        description='Calculate base pairing probs of given seqs or random seqs for given window size, span and region.'
+        description="Calculate base pairing probs of given seqs or random seqs for given window size, span and region."
     )
-    parser.add_argument("-s", "--sequence", type=str, help='Sequence to fold')
-    parser.add_argument("-w", "--window", type=int, default=240, help='Size of window')
-    parser.add_argument("-l", "--span", type=int, default=60, help='Length of bp span')
-    parser.add_argument("-u", "--region", type=int, default=1, help='Length of region')
+    parser.add_argument("-s", "--sequence", type=str, help="Sequence to fold")
+    parser.add_argument("-w", "--window", type=int, default=240, help="Size of window")
+    parser.add_argument("-l", "--span", type=int, default=60, help="Length of bp span")
+    parser.add_argument("-u", "--region", type=int, default=1, help="Length of region")
     parser.add_argument(
-        "-t", "--printto", type=str, default='STDOUT', help='Print output of folding to file with this name'
+        "-t",
+        "--printto",
+        type=str,
+        default="STDOUT",
+        help="Print output of folding to file with this name",
     )
-    parser.add_argument("-e", "--length", type=int, default=100, help='Length of randseq')
     parser.add_argument(
-        "-g", "--gc", type=int, default=0, help='GC content, needs to be %2==0 or will be rounded'
+        "-e", "--length", type=int, default=100, help="Length of randseq"
     )
-    parser.add_argument("-b", "--number", type=int, default=1, help='Number of random seqs to generate')
-    parser.add_argument("-a", "--alphabet", type=str, default='AUCG', help='alphabet for random seqs')
+    parser.add_argument(
+        "-g",
+        "--gc",
+        type=int,
+        default=0,
+        help="GC content, needs to be %2==0 or will be rounded",
+    )
+    parser.add_argument(
+        "-b", "--number", type=int, default=1, help="Number of random seqs to generate"
+    )
+    parser.add_argument(
+        "-a", "--alphabet", type=str, default="AUCG", help="alphabet for random seqs"
+    )
     # parser.add_argument("--plot", type=str, default='0', choices=['0','svg', 'png'], help='Create image of the (un-)constraint sequence, you can select the file format here (svg,png). These images can later on be animated with ImageMagick like `convert -delay 120 -loop 0 *.svg animated.gif`.')
-    parser.add_argument("--save", type=int, default=1, help='Save the output as gz files')
-    parser.add_argument("-o", "--outdir", type=str, default='', help='Directory to write to')
     parser.add_argument(
-        "-z", "--procs", type=int, default=1, help='Number of parallel processed to run this job with'
+        "--save", type=int, default=1, help="Save the output as gz files"
     )
-    parser.add_argument("--vrna", type=str, default='', help="Append path to vrna RNA module to sys.path")
+    parser.add_argument(
+        "-o", "--outdir", type=str, default="", help="Directory to write to"
+    )
+    parser.add_argument(
+        "-z",
+        "--procs",
+        type=int,
+        default=1,
+        help="Number of parallel processed to run this job with",
+    )
+    parser.add_argument(
+        "--vrna",
+        type=str,
+        default="",
+        help="Append path to vrna RNA module to sys.path",
+    )
     parser.add_argument(
         "--pattern",
         type=str,
-        default='',
+        default="",
         help="Helper var, only used if called from other prog where a pattern for files is defined",
     )
     parser.add_argument(
-        "-v", "--verbosity", type=int, default=0, choices=[0, 1], help="increase output verbosity"
+        "-v",
+        "--verbosity",
+        type=int,
+        default=0,
+        choices=[0, 1],
+        help="increase output verbosity",
     )
 
     return parser.parse_args()
@@ -173,7 +207,7 @@ def fold(
     pattern=None,
 ):
 
-    logid = SCRIPTNAME + '.fold: '
+    logid = SCRIPTNAME + ".fold: "
     # set path for output
     if outdir:
         printlog(outdir)
@@ -190,11 +224,11 @@ def fold(
         sys.path = ["/scratch/fall/VRNA/249/lib/python3.6/site-packages"] + sys.path
     try:
         global RNA
-        RNA = importTweaks.import_module('RNA')
+        RNA = importTweaks.import_module("RNA")
         globals().update(
             {n: getattr(RNA, n) for n in RNA.__all__}
-            if hasattr(RNA, '__all__')
-            else {k: v for (k, v) in RNA.__dict__.items() if not k.startswith('_')}
+            if hasattr(RNA, "__all__")
+            else {k: v for (k, v) in RNA.__dict__.items() if not k.startswith("_")}
         )
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -203,48 +237,52 @@ def fold(
             exc_value,
             exc_tb,
         )
-        log.error(logid + ''.join(tbe.format()))
+        log.error(logid + "".join(tbe.format()))
 
-    if sequence == 'random':
+    if sequence == "random":
         rand = "\n".join(createrandseq(length, gc, number, alphabet))
         seq = StringIO(rand)
-        o = gzip.open('Random.fa.gz', 'wb')
-        o.write(bytes(rand, encoding='UTF-8'))
+        o = gzip.open("Random.fa.gz", "wb")
+        o.write(bytes(rand, encoding="UTF-8"))
         o.close()
 
     elif os.path.isfile(sequence):
-        if '.gz' in sequence:
-            seq = gzip.open(sequence, 'rt')
+        if ".gz" in sequence:
+            seq = gzip.open(sequence, "rt")
         else:
-            seq = open(sequence, 'rt')
+            seq = open(sequence, "rt")
     else:
         header = ">Seq1:default:nochrom:(.)"
         s = sequence
         seq = StringIO("{header}\n{s}".format(header=header, s=s))
 
-    for fa in SeqIO.parse(seq, 'fasta'):
+    for fa in SeqIO.parse(seq, "fasta"):
         try:
-            goi, chrom = fa.id.split(':')[::2]
-            strand = str(fa.id.split(':')[3].split('(')[1][0])
+            goi, chrom = fa.id.split(":")[::2]
+            strand = str(fa.id.split(":")[3].split("(")[1][0])
         except:
             printlog(
-                'Fasta header is not in expected format, you will loose information on strand and chromosome'
+                "Fasta header is not in expected format, you will loose information on strand and chromosome"
             )
             try:
                 goi = fa.id
-                chrom, strand = ['na', 'na']
+                chrom, strand = ["na", "na"]
             except:
-                printlog('Could not assign any value from fasta header, please check your fasta files')
+                printlog(
+                    "Could not assign any value from fasta header, please check your fasta files"
+                )
 
         if pattern and pattern not in goi:
             next
         else:
-            printlog('Working on ' + goi)
+            printlog("Working on " + goi)
             # set kT for nrg2prob and vice versa calcs
             kT = 0.61632077549999997
             # Create process pool with processes
             num_processes = procs or 1
-            with get_context("spawn").Pool(processes=num_processes - 1, maxtasksperchild=1) as pool:
+            with get_context("spawn").Pool(
+                processes=num_processes - 1, maxtasksperchild=1
+            ) as pool:
 
                 try:
                     for reg in range(0, len(fa.seq) - window + 1):
@@ -252,7 +290,17 @@ def fold(
                         seqtofold = str(fa.seq[reg : reg + window])
                         pool.apply_async(
                             fold_windows,
-                            args=(fa, seqtofold, reg, window, span, region, save, printto, outdir),
+                            args=(
+                                fa,
+                                seqtofold,
+                                reg,
+                                window,
+                                span,
+                                region,
+                                save,
+                                printto,
+                                outdir,
+                            ),
                         )
                 except Exception:
                     exc_type, exc_value, exc_tb = sys.exc_info()
@@ -261,7 +309,7 @@ def fold(
                         exc_value,
                         exc_tb,
                     )
-                    log.error(logid + ''.join(tbe.format()))
+                    log.error(logid + "".join(tbe.format()))
 
                 pool.close()
                 pool.join()
@@ -273,13 +321,13 @@ def fold(
 def fold_windows(fa, seq, reg, window, span, region, save, printto, outdir):
     #   DEBUGGING
     #   pp = pprint.PrettyPrinter(indent=4)#use with pp.pprint(datastructure)
-    logid = SCRIPTNAME + '.fold_windows: '
+    logid = SCRIPTNAME + ".fold_windows: "
     try:
-        goi, chrom = fa.id.split(':')[::2]
-        strand = str(fa.id.split(':')[3].split('(')[1][0])
+        goi, chrom = fa.id.split(":")[::2]
+        strand = str(fa.id.split(":")[3].split("(")[1][0])
     except:
         goi = fa.id
-        chrom, strand = ['na', 'na']
+        chrom, strand = ["na", "na"]
 
     try:
         # model details
@@ -290,10 +338,20 @@ def fold_windows(fa, seq, reg, window, span, region, save, printto, outdir):
         # create new fold_compound object
         fc = RNA.fold_compound(seq, md, RNA.OPTION_WINDOW)
         # call prop window calculation
-        data = {'up': []}
+        data = {"up": []}
         fc.probs_window(region, RNA.PROBS_WINDOW_UP, up_callback, data)
         if save:
-            write_out(fa, printto, str(reg), len(seq), data, int(region), str(window), str(span), outdir)
+            write_out(
+                fa,
+                printto,
+                str(reg),
+                len(seq),
+                data,
+                int(region),
+                str(window),
+                str(span),
+                outdir,
+            )
 
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -302,15 +360,15 @@ def fold_windows(fa, seq, reg, window, span, region, save, printto, outdir):
             exc_value,
             exc_tb,
         )
-        log.error(logid + ''.join(tbe.format()))
+        log.error(logid + "".join(tbe.format()))
 
 
 def up_callback(v, v_size, i, maxsize, what, data):
-    logid = SCRIPTNAME + '.up_callback: '
+    logid = SCRIPTNAME + ".up_callback: "
     try:
         if what & RNA.PROBS_WINDOW_UP:
             #        data['up'].extend([{ 'i': i, 'up': v}])
-            data['up'].extend([v])
+            data["up"].extend([v])
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
@@ -318,20 +376,20 @@ def up_callback(v, v_size, i, maxsize, what, data):
             exc_value,
             exc_tb,
         )
-        log.error(logid + ''.join(tbe.format()))
+        log.error(logid + "".join(tbe.format()))
 
 
 def print_region_up(data=None, seqlength=None, region=None, winnr=None):
     #   pp = pprint.PrettyPrinter(indent=4)#use with pp.pprint(datastructure)
     #   pp.pprint(data)
-    logid = SCRIPTNAME + '.print_region_up: '
+    logid = SCRIPTNAME + ".print_region_up: "
     try:
-        ups = ''
+        ups = ""
         x = int(region)
-        print('Printing region ' + str(region) + ' of data ' + str(data[0]))
+        print("Printing region " + str(region) + " of data " + str(data[0]))
         for i in range(int(seqlength)):
-            if data[i][x] is None or data[i][x] is np.nan or data[i][x] is 'nan':
-                data[i][x] = 'NA'
+            if data[i][x] is None or data[i][x] is np.nan or data[i][x] is "nan":
+                data[i][x] = "NA"
             else:
                 data[i][x] = round(data[i][x], 7)
             ups += str(i + 1 + winnr) + "\t" + str(data[i][x]) + "\n"
@@ -343,22 +401,27 @@ def print_region_up(data=None, seqlength=None, region=None, winnr=None):
             exc_value,
             exc_tb,
         )
-        log.error(logid + ''.join(tbe.format()))
+        log.error(logid + "".join(tbe.format()))
 
 
 def print_up(data=None, seqlength=None, region=None, winnr=None):
     #   pp = pprint.PrettyPrinter(indent=4)#use with pp.pprint(datastructure)
     #   pp.pprint(data)
-    logid = SCRIPTNAME + '.print_up: '
+    logid = SCRIPTNAME + ".print_up: "
     try:
-        ups = ''
+        ups = ""
         for i in range(int(seqlength)):
             for x in range(1, region + 1):
-                if data[i][x] is None or data[i][x] is np.nan or data[i][x] is 'nan':
-                    data[i][x] = 'NA'
+                if data[i][x] is None or data[i][x] is np.nan or data[i][x] is "nan":
+                    data[i][x] = "NA"
                 else:
                     data[i][x] = round(data[i][x], 7)
-            ups += str(i + 1 + int(winnr)) + "\t" + "\t".join(map(str, data[i][1 : region + 1])) + "\n"
+            ups += (
+                str(i + 1 + int(winnr))
+                + "\t"
+                + "\t".join(map(str, data[i][1 : region + 1]))
+                + "\n"
+            )
         return ups
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -367,20 +430,24 @@ def print_up(data=None, seqlength=None, region=None, winnr=None):
             exc_value,
             exc_tb,
         )
-        log.error(logid + ''.join(tbe.format()))
+        log.error(logid + "".join(tbe.format()))
 
 
 def up_to_array(data=None, region=None, seqlength=None):
     #   pp = pprint.PrettyPrinter(indent=4)#use with pp.pprint(datastructure)
     #   pp.pprint(data[165553:165588])
-    logid = SCRIPTNAME + '.up_to_array: '
+    logid = SCRIPTNAME + ".up_to_array: "
     try:
         entries = []
         if not seqlength:
             seqlength = len(data)
 
         for i in range(seqlength):
-            if data[i][region] is None or data[i][region] is 'NA' or data[i][region] is 'nan':
+            if (
+                data[i][region] is None
+                or data[i][region] is "NA"
+                or data[i][region] is "nan"
+            ):
                 data[i][region] = np.nan
                 entries.append(data[i][region])
             else:
@@ -394,19 +461,19 @@ def up_to_array(data=None, region=None, seqlength=None):
             exc_value,
             exc_tb,
         )
-        log.error(logid + ''.join(tbe.format()))
+        log.error(logid + "".join(tbe.format()))
 
 
 def npprint(a, o=None):  # , format_string ='{0:.2f}'):
-    logid = SCRIPTNAME + '.npprint: '
+    logid = SCRIPTNAME + ".npprint: "
     try:
-        out = ''
-        it = np.nditer(a, flags=['f_index'])
+        out = ""
+        it = np.nditer(a, flags=["f_index"])
         while not it.finished:
             out += "%d\t%0.7f" % (it.index + 1, it[0]) + "\n"
             it.iternext()
         if o:
-            o.write(bytes(out, encoding='UTF-8'))
+            o.write(bytes(out, encoding="UTF-8"))
         else:
             print(out)
     except Exception:
@@ -416,58 +483,60 @@ def npprint(a, o=None):  # , format_string ='{0:.2f}'):
             exc_value,
             exc_tb,
         )
-        log.error(logid + ''.join(tbe.format()))
+        log.error(logid + "".join(tbe.format()))
 
 
 def write_out(fa, printto, winnr, seqlen, data, region, window, span, outdir):
-    logid = SCRIPTNAME + '.write_out: '
+    logid = SCRIPTNAME + ".write_out: "
     try:
-        goi, chrom = fa.id.split(':')[::2]
-        strand = str(fa.id.split(':')[3].split('(')[1][0])
+        goi, chrom = fa.id.split(":")[::2]
+        strand = str(fa.id.split(":")[3].split("(")[1][0])
     except:
         goi = fa.id
-        chrom, strand = ['na', 'na']
+        chrom, strand = ["na", "na"]
 
     try:
-        if printto != 'STDOUT':
+        if printto != "STDOUT":
             bakdir = os.path.abspath(os.getcwd())
             os.chdir(outdir)
             if not os.path.exists(
-                'Window_'
+                "Window_"
                 + winnr
-                + '_'
+                + "_"
                 + goi
-                + '_'
+                + "_"
                 + chrom
-                + '_'
+                + "_"
                 + strand
-                + '_'
-                + '_'
+                + "_"
+                + "_"
                 + str(window)
-                + '_'
+                + "_"
                 + str(span)
-                + '.gz'
+                + ".gz"
             ):
                 o = gzip.open(
                     (
-                        'Window_'
+                        "Window_"
                         + winnr
-                        + '_'
+                        + "_"
                         + goi
-                        + '_'
+                        + "_"
                         + chrom
-                        + '_'
+                        + "_"
                         + strand
-                        + '_'
-                        + '_'
+                        + "_"
+                        + "_"
                         + str(window)
-                        + '_'
+                        + "_"
                         + str(span)
-                        + '.gz'
+                        + ".gz"
                     ),
-                    'wb',
+                    "wb",
                 )
-                o.write(bytes(print_up(data['up'], seqlen, region, winnr), encoding='UTF-8'))
+                o.write(
+                    bytes(print_up(data["up"], seqlen, region, winnr), encoding="UTF-8")
+                )
             os.chdir(bakdir)
         else:
             print(print_up(data, seqlen, region))
@@ -479,18 +548,18 @@ def write_out(fa, printto, winnr, seqlen, data, region, window, span, outdir):
             exc_value,
             exc_tb,
         )
-        log.error(logid + ''.join(tbe.format()))
+        log.error(logid + "".join(tbe.format()))
 
 
 def read_precalc_fold(data, name, fa):
-    logid = SCRIPTNAME + '.read_precalc_fold: '
+    logid = SCRIPTNAME + ".read_precalc_fold: "
     try:
         for i in range(len(fa.seq)):
             data.append([])
             data[i] = []
-        with gzip.open(name, 'rt') as o:
+        with gzip.open(name, "rt") as o:
             for line in o:
-                cells = line.rstrip().split('\t')
+                cells = line.rstrip().split("\t")
                 data[int(cells[0]) - 1].append([])
                 data[int(cells[0]) - 1][0] = None
                 for a in range(1, len(cells)):
@@ -504,35 +573,35 @@ def read_precalc_fold(data, name, fa):
             exc_value,
             exc_tb,
         )
-        log.error(logid + ''.join(tbe.format()))
+        log.error(logid + "".join(tbe.format()))
 
 
 def checkexisting(fa, region, winnr, window, span, outdir):
-    logid = SCRIPTNAME + '.checkexisting: '
+    logid = SCRIPTNAME + ".checkexisting: "
     try:
-        goi, chrom = fa.id.split(':')[::2]
-        strand = str(fa.id.split(':')[3].split('(')[1][0])
+        goi, chrom = fa.id.split(":")[::2]
+        strand = str(fa.id.split(":")[3].split("(")[1][0])
     except:
         goi = fa.id
-        chrom, strand = ['na', 'na']
+        chrom, strand = ["na", "na"]
     try:
         if os.path.exists(
             os.path.join(
                 outdir,
-                'Window_'
+                "Window_"
                 + winnr
-                + '_'
+                + "_"
                 + goi
-                + '_'
+                + "_"
                 + chrom
-                + '_'
+                + "_"
                 + strand
-                + '_'
-                + '_'
+                + "_"
+                + "_"
                 + str(window)
-                + '_'
+                + "_"
                 + str(span)
-                + '.gz',
+                + ".gz",
             )
         ):
             return True
@@ -545,20 +614,23 @@ def checkexisting(fa, region, winnr, window, span, outdir):
             exc_value,
             exc_tb,
         )
-        log.error(logid + ''.join(tbe.format()))
+        log.error(logid + "".join(tbe.format()))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     try:
-        SCRIPTNAME = os.path.basename(__file__).replace('.py', '')
+        SCRIPTNAME = os.path.basename(__file__).replace(".py", "")
         args = parseargs()
-        logid = SCRIPTNAME + '.main: '
+        logid = SCRIPTNAME + ".main: "
 
         log.setLevel(args.loglevel)
-        log.info(logid + 'Running ' + SCRIPTNAME + ' on ' + str(args.procs) + ' cores.')
+        log.info(logid + "Running " + SCRIPTNAME + " on " + str(args.procs) + " cores.")
         log.info(
-            logid + 'CLI: ' + sys.argv[0] + '{}'.format(' '.join([shlex.quote(s) for s in sys.argv[1:]]))
+            logid
+            + "CLI: "
+            + sys.argv[0]
+            + "{}".format(" ".join([shlex.quote(s) for s in sys.argv[1:]]))
         )
 
         fold(
@@ -586,6 +658,6 @@ if __name__ == '__main__':
             exc_value,
             exc_tb,
         )
-        log.error(logid + ''.join(tbe.format()))
+        log.error(logid + "".join(tbe.format()))
 
 # FoldWindows.py ends here

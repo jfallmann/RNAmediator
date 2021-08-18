@@ -2,7 +2,7 @@ import os
 import pytest
 import random
 import numpy as np
-from Tweaks.RNAtweaks import api_rnaplfold, cmd_rnaplfold
+from RIssmed.Tweaks.RNAtweaks import api_rnaplfold, cmd_rnaplfold
 
 TESTFOLDER = os.path.dirname(os.path.abspath(__file__))
 PARPATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -43,13 +43,16 @@ def test_api_and_cmd_plfold(seq, window, span, constraint):
     ],
 )
 def test_region_param(seq, window, span, constraint, regions):
-    api_result_r1 = api_rnaplfold(seq, window, span, constraint=constraint, region=regions[0])
-    api_result_r2 = api_rnaplfold(seq, window, span, constraint=constraint, region=regions[1])
+    api_result_r1 = api_rnaplfold(
+        seq, window, span, constraint=constraint, region=regions[0]
+    )
+    api_result_r2 = api_rnaplfold(
+        seq, window, span, constraint=constraint, region=regions[1]
+    )
     idx = min(regions)
     api_r1_array = api_result_r1.numpy_array[:, 0:idx]
     api_r2_array = api_result_r2.numpy_array[:, 0:idx]
     assert np.allclose(api_r1_array, api_r2_array, equal_nan=True)
-
 
 
 @pytest.mark.parametrize(
@@ -66,7 +69,9 @@ def test_constraint_error(seq, window, span, constraint):
 
 
 def test_localization():
-    result = api_rnaplfold(random_sequence(), 70, 70, region=7, constraint=[("p", 20, 30)])
+    result = api_rnaplfold(
+        random_sequence(), 70, 70, region=7, constraint=[("p", 20, 30)]
+    )
     result_array = result.numpy_array
     result.localize(30, 50)
     test_array = result.numpy_array
