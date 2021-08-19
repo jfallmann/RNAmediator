@@ -66,7 +66,7 @@ class SequenceSettings:
             str(sequence_record.seq).upper().replace("T", "U")
         )  # We always want RNA Sequence to have consistent output to ViennaRNA-CLI
         self.sequence_record = sequence_record
-        self._constrainlist = list(constrainlist)
+        self._constrainlist = list(constrainlist) if constrainlist is not None else []
         if strand in ["+", "-", "na", "."]:
             self.strand = strand
         else:
@@ -92,8 +92,6 @@ class SequenceSettings:
 
     def add_constraints(self, constraints: Tuple[Constraint]):
         """adds a constraints to the list of constraints"""
-        if self._constrainlist is None:
-            self._constrainlist = []
         for constraint in constraints:
             assert (
                 constraint.__class__ == Constraint
