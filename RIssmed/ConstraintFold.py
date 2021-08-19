@@ -378,10 +378,15 @@ def constrain_seq(
 
         outlist = list()
         goi, chrom, strand = idfromfa(seq_record.id)
-        seq = str(seq_record.seq.upper())
-        seq = str(
-            seq.replace("T", "U")
-        )  # Already taken care of by RIssmed, but we need to make sure this happens also for Sequences from outside
+        seq = str(seq_record.seq)
+
+        if len(seq) < int(window):
+            log.error(
+                logid + "Sequence to small, skipping " + str(id) + "\t" + str(len(seq))
+            )
+            return
+
+        fold_output = api_rnafold(seq, window, span)
 
         log.debug(logid + " Sequence to fold: " + str(seq))
 

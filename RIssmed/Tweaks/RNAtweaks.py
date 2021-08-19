@@ -710,20 +710,20 @@ def _constrain_paired(fc, start, end):
 def _constrain_unpaired(fc, start, end):
     """Adds hard constraint unpaired to region
 
-        Parameters
-        ----------
-        fc : RNA.fold_compound object
-            ViennaRNA fold_compound object
-        start : int
-            Start of constraint
-        end : int
-            End of constraint
+    Parameters
+    ----------
+    fc : RNA.fold_compound object
+        ViennaRNA fold_compound object
+    start : int
+        Start of constraint
+    end : int
+        End of constraint
 
-        Returns
-        -------
-        fc: RNA.fold_compound object
-            ViennaRNA fold_compound object with constraint
-        """
+    Returns
+    -------
+    fc: RNA.fold_compound object
+        ViennaRNA fold_compound object with constraint
+    """
 
     logid = scriptn + ".constrain_unpaired: "
     try:
@@ -991,6 +991,188 @@ class PLFoldOutput:
         return array
 
 
+class FoldOutput:
+    """Output wrapper for ouput files of RNAfold
+
+     Attributes
+    ----------
+     text : str
+        string representation of an RNAfold output file.
+    """
+
+    def __init__(self, text: str):
+        self.text = self.__sanitize(text)
+        self._numpy_array = None
+
+    def __str__(self):
+        return self.text
+
+    def __eq__(self, other: FoldOutput):
+        if self.__class__ != other.__class__:
+            raise NotImplementedError
+        return np.allclose(
+            self.numpy_array, other.numpy_array, equal_nan=True, atol=0.0000001, rtol=0
+        )
+
+    @classmethod
+    def from_file(cls, file_path: str):
+        """creates FoldOutput from a file
+
+         Parameters
+        ----------
+         file_path : str
+            file location of the output file
+         Returns
+        -------
+        FoldOutput
+            FoldOutput object
+        """
+
+        assert os.path.isfile(file_path), f"{file_path} is not a valid file path"
+        if ".gz" in file_path:
+            with gzip.open(file_path, "rt") as handle:
+                file_data = handle.read()
+        else:
+            with open(file_path, "r") as handle:
+                file_data = handle.read()
+        return FoldOutput(file_data)
+
+    @classmethod
+    def from_rissmed_numpy_output(cls, file_path: str):
+        """creates FoldOutput from original rissmed np arrays
+
+         Parameters
+        ----------
+         file_path : str
+            file location of the rissmed numpy array
+         Returns
+        -------
+        FoldOutput
+            FoldOutput object
+        """
+        assert os.path.isfile(file_path), f"{file_path} is not a valid file path"
+        ris_array = np.load(file_path)
+        array = np.squeeze(ris_array)
+        array_string = cls.__array_to_string(array)
+        output = FoldOutput(array_string)
+        output.__set_array(array)
+        return output
+
+    @classmethod
+    def from_numpy(cls, array: np.ndarray):
+        """creates FoldOutput from np arrays
+
+         Parameters
+        ----------
+         array : np.ndarray
+            array containing unpaired probabilities
+         Returns
+        -------
+        PLFoldOutput
+            PLFoldOutput object
+        """
+        array_string = cls.__array_to_string(array)
+        output = PLFoldOutput(array_string)
+        output.__set_array(array)
+        return output
+
+    @staticmethod
+    def __sanitize(text: str):
+        list_text = text.split("\n")
+        if list_text[0].startswith("1\t"):
+            length = len(list_text[0].split("\t")) - 1
+            part = [str(x + 1) for x in range(length)]
+            list_text = [
+                "#unpaired probabilities",
+                " #$i\tl=" + "\t".join(part),
+            ] + list_text
+            text = "\n".join(list_text)
+        elif list_text[0].startswith("#") and list_text[1].startswith(" #"):
+            pass
+        else:
+            raise ValueError("text seems not to be a valid plfold string")
+        text = text.replace("nan", "NA")
+        return text
+
+    @staticmethod
+    def __array_to_string(array):
+        array = np.array(array, dtype=float).round(7)
+        array_string = "\n".join(
+            [
+                "\t".join([str(x + 1)] + [str(num) for num in array[x]])
+                for x in range(len(array))
+            ]
+        )
+        return array_string
+
+    def __set_array(self, array: np.ndarray):
+        """sets numpy array and ensures data type is float"""
+        array = np.array(array, dtype=float)
+        self._numpy_array = array
+
+    @property
+    def numpy_array(self):
+        """numpy array representation of lunpaired file"""
+        if self._numpy_array is None:
+            array = []
+            for line in self.text.split("\n"):
+                if (
+                    not line.startswith("#")
+                    and not line.startswith(" #")
+                    and not line == ""
+                ):
+                    data = line.split("\t")[1:]
+                    data = [float(x) if x != "NA" else np.nan for x in data]
+                    array.append(data)
+            array = np.array(array, dtype=float)
+            self.__set_array(array)
+        return self._numpy_array
+
+    def localize(self, start: int, end: int):
+        """trims the output (zero based)"""
+        if self._numpy_array is not None:
+            self._numpy_array = self._numpy_array[start:end]
+        text_list = self.text.split("\n")[start + 2 : end + 2]
+        for x, item in enumerate(text_list):
+            text_list[x] = "\t".join([str(x + 1)] + item.split("\t")[1:])
+        self.text = self.__sanitize("\n".join(text_list))
+
+    def get_text(self, nan="NA", truncated=True) -> str:
+        """get string of the unpaired probabiity file
+
+         Parameters
+        ----------
+         nan : str, optional
+            replaces not a number with this string (default is as original output 'NA')
+         truncated : bool, optional
+            choose whether the starting # lines should be included in the string
+            (default is True)
+
+         Returns
+        -------
+        str
+            string representation of the unpaired probability output
+        """
+        out_string = self.text
+        if truncated:
+            out_string = "\n".join(out_string.split("\n")[2:])
+        out_string = out_string.replace("NA", nan)
+        return out_string
+
+    def get_rissmed_np_array(self) -> np.ndarray:
+        """get original RIssmed numpy array output
+
+         Returns
+        -------
+        np.ndarray
+            original rissmed numpy array with an additional empty axis
+        """
+        array = self.numpy_array
+        array = np.array(array, dtype=float)
+        array = np.expand_dims(array, axis=1)
+        return array
+
+
 def cmd_rnaplfold(
     sequence: str,
     window: int,
@@ -1073,7 +1255,7 @@ def api_rnaplfold(
     sequence: str,
     window: int,
     span: int,
-    region: int = 30,
+    region: int = 5,
     temperature: float = 37,
     constraint: Iterable[Tuple] = None,
 ) -> PLFoldOutput:
@@ -1100,6 +1282,65 @@ def api_rnaplfold(
     PLFoldOutput
         PLFoldOutput object
     """
+    sequence = sequence.upper().replace("T", "U")
+    data = {"up": []}
+    md = RNA.md()
+    md.max_bp_span = span
+    md.window_size = window
+    md.temperature = temperature
+
+    # create new fold_compound object
+    fc = RNA.fold_compound(str(sequence), md, RNA.OPTION_WINDOW)
+    if constraint is not None:
+        for entry in constraint:
+            mode = entry[0]
+            start = entry[1]
+            end = entry[2]
+            if mode == "paired" or mode == "p":
+                fc = _constrain_paired(fc, start, end)
+            elif mode == "unpaired" or mode == "u":
+                fc = _constrain_unpaired(fc, start, end)
+            else:
+                raise ValueError(
+                    "Constraint wrongly formatted. Has to be ('paired(p)'/'unpaired(u)', start, end)"
+                )
+
+    # call prop window calculation
+    fc.probs_window(region, RNA.PROBS_WINDOW_UP, _up_callback, data)
+    array = np.array(data["up"]).squeeze()[:, 1:]
+    pl_output = PLFoldOutput.from_numpy(array)
+    return pl_output
+
+
+def api_rnafold(
+    sequence: str,
+    window: int,
+    span: int,
+    temperature: float = 37,
+    constraint: Iterable[Tuple] = None,
+) -> FoldOutput:
+    """api wrapper for RNAfold
+
+    Parameters
+    ----------
+     sequence : str
+        string representation of the sequence either RNA or DNA
+     window : int
+        RNAfold window option
+     span: int
+         RNAfold basepair span option
+     temperature: float
+         RNAplfold temperature setting
+     constraint: Iterable[Tuple[str, int, int]], optional
+         Constraints as Tuple in format (paired(p)/unpaired(u), start, end) (default is None)
+         !!Warning!! ZERO BASED !!Warning!!
+
+    Returns
+    -------
+    FoldOutput
+        FoldOutput object
+    """
+
     sequence = sequence.upper().replace("T", "U")
     data = {"up": []}
     md = RNA.md()
