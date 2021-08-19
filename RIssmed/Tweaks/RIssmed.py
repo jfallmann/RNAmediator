@@ -96,9 +96,10 @@ class SequenceSettings:
             assert (
                 constraint.__class__ == Constraint
             ), "can only add Contraint objects to the constraintliste"
-            assert (
-                self.strand == constraint.strand
-            ), "strand values of constraint does not match the strand from the sequence"
+            if self.strand in ["+", "-"]:
+                assert (
+                    self.strand == constraint.strand
+                ), "strand values of constraint does not match the strand from the sequence"
         self._constrainlist += [constraints]
 
     @property
