@@ -355,9 +355,13 @@ def read_constraints(constrain: str, linewise: bool = False) -> Dict[str, List[s
         constraintlist = list()
     elif "-" in constrain:
         log.info(logid + "Calculating probs for constraint " + constrain)
-        constraintlist = (
-            constrain.split(",") if linewise is False else {"lw": constrain.split(";")}
-        )
+        if linewise is False:
+            constraintlist = constrain.split(",")
+        else:
+            constraintlist = defaultdict(list)
+            for cons in constrain.split(","):
+                constraintlist["lw"].append(cons)
+
     elif constrain == "temperature":
         log.info(logid + "Calculating probs for temperature constraint" + temprange)
         raise NotImplementedError("Temperature range folding needs to be reimplemented")
