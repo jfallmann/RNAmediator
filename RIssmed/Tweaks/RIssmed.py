@@ -70,8 +70,8 @@ class SequenceSettings:
         if strand in ["+", "-", "na", "."]:
             self.strand = strand
         else:
-            self.strand = "+"
-            log.warning("strand value automatically set to +")
+            self.strand = "na"
+            log.warning("strand value automatically set to na")
         self.chromosome = chrom
         self.gene = gene
         self.genomic_coords = genomic_coords
