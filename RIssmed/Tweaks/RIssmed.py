@@ -12,6 +12,7 @@ from collections import defaultdict
 from RIssmed.Tweaks.FileProcessor import (
     parseseq,
     idfromfa,
+    make_outdir,
     parse_annotation_bed,
     read_constraints_from_bed,
     read_constraints_from_csv,
@@ -398,10 +399,7 @@ def preprocess(sequence: str, constrain: str, conslength: int, outdir: str, gene
     try:
         # set path for output
         if outdir:
-            if not os.path.isabs(outdir):
-                outdir = os.path.abspath(outdir)
-            if not os.path.exists(outdir):
-                os.makedirs(outdir)
+            outdir = make_outdir(outdir)
         else:
             outdir = os.path.abspath(os.getcwd())
 
