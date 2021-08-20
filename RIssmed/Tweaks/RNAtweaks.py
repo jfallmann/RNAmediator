@@ -1342,6 +1342,15 @@ def api_rnafold(
     """
 
     sequence = sequence.upper().replace("T", "U")
+    if not window:
+        window = len(seq)
+    if not span:
+        span = window
+
+    dist = None
+    start, end, fstart, fend = const
+
+
     data = {"up": []}
     md = RNA.md()
     md.max_bp_span = span

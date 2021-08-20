@@ -390,13 +390,6 @@ def constrain_seq(
 
         log.debug(logid + " Sequence to fold: " + str(seq))
 
-        if not window:
-            window = len(seq)
-        if not span:
-            span = window
-
-        dist = None
-        start, end, fstart, fend = const
 
         if fend:
             dist = abs(start - fend)
