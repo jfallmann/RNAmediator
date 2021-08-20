@@ -1350,8 +1350,6 @@ def api_rnafold(
     md.max_bp_span = span
     md.temperature = temperature
 
-    log.debug(logid + "Constraints for " + goi + " are " + str(checklist))
-
     # create new fold_compound object
     fc = RNA.fold_compound(str(sequence), md, RNA.OPTION_WINDOW)
     if constraint is not None:
