@@ -563,7 +563,7 @@ def _read_precalc_plfold(data, name, seq):
 
     Returns
     -------
-    data: list[int, list[int]]
+    data: List[List[int]]
         List containing precalculated results
     """
 
