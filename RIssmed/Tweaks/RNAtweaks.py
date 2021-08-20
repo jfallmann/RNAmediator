@@ -735,10 +735,12 @@ def cmd_rnaplfold(
     ) as constraint_file:
         constraint_string = ""
         if constraint is not None:
+            seqlen = len(sequence)
             for entry in constraint:
                 mode = entry[0]
                 start = entry[1]
                 end = entry[2]
+                _check_constraint(seqlen, start, end)
                 if mode == "paired" or mode == "p":
                     const = "F"
                 elif mode == "unpaired" or mode == "u":
@@ -818,10 +820,12 @@ def api_rnaplfold(
     # create new fold_compound object
     fc = RNA.fold_compound(str(sequence), md, RNA.OPTION_WINDOW)
     if constraint is not None:
+        seqlen = len(sequence)
         for entry in constraint:
             mode = entry[0]
             start = entry[1]
             end = entry[2]
+            _check_constraint(seqlen, start, end)
             if mode == "paired" or mode == "p":
                 fc = _constrain_paired(fc, start, end)
             elif mode == "unpaired" or mode == "u":
@@ -836,6 +840,23 @@ def api_rnaplfold(
     array = np.array(data["up"]).squeeze()[:, 1:]
     pl_output = PLFoldOutput.from_numpy(array)
     return pl_output
+
+
+def _check_constraint(sequence_length: int, start: int, end: int):
+    if start > end:
+        raise ValueError(
+            f"Constraint start ({start}) greater than end ({end})"
+        )
+    if start < 0:
+        raise ValueError(
+            f"Constraint start ({start}) out of sequence bounds"
+        )
+    elif sequence_length < end:
+        raise ValueError(
+            f"Constraint end ({end}) out of sequence bounds "
+            f"(length {sequence_length}"
+        )
+
 
 
 # def bpp_callback(v, v_size, i, maxsize, what, data):

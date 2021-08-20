@@ -19,6 +19,7 @@ def random_sequence(seed: int = 1):
     [
         ("A" * 500, 70, 70, []),
         ("A" * 500, 70, 70, [("p", 20, 30)]),
+        ("A" * 500, 70, 70, [("p", 20, 30)]),
         (random_sequence(), 70, 70, [("p", 20, 30), ("u", 70, 90)]),
         (random_sequence(), 70, 70, [("u", 20, 30)]),
         (random_sequence(), 70, 70, []),
@@ -59,6 +60,9 @@ def test_region_param(seq, window, span, constraint, regions):
     "seq,window,span,constraint",
     [
         (random_sequence(5), 70, 70, [("nonesense", 3, 5)]),
+        (random_sequence(5), 70, 70, [("p", -3, 5)]),
+        (random_sequence(5), 70, 70, [("p", 350, 360)]),
+        (random_sequence(5), 70, 70, [("p", 360, 100)]),
     ],
 )
 def test_constraint_error(seq, window, span, constraint):
