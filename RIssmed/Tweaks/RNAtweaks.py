@@ -445,7 +445,7 @@ def _print_up(data=None, seqlength=None, region=None):
 
 
 def _up_to_array(data=None, region=None, seqlength=None):
-    """Converts output of ViennaRNA folc_compound.probs_window to numpy array
+    """Converts output of ViennaRNA fold_compound.probs_window to numpy array
 
     Parameters
     ----------
@@ -530,7 +530,7 @@ def printdiff(a, o=None):
 
     Parameters
     ----------
-    a : array
+    a : numpy.array
         Array to print
     o : str, optional
         where to save the diff to, by default None
