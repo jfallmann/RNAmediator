@@ -120,7 +120,7 @@ def _calc_gibbs(fc):
 
     Parameters
     ----------
-     fc: object
+     fc: RNA.fold_compound
         RNA.fold_compound object of ViennaRNA API with or without added constraints
 
     Returns
