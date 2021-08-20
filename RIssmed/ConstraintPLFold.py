@@ -183,14 +183,29 @@ def pl_fold(
 
                         if gstrand == "+" or gstrand == ".":
                             [fstart, fend], [start, end] = [
-                                [x - gs for x in get_location(cn)[:2]] for cn in cons.split(":", 1)
+                                [x - gs for x in get_location(cn)[:2]]
+                                for cn in cons.split(":", 1)
                             ]
                         else:
                             [fstart, fend], [start, end] = [
-                                [ge - x for x in get_location(cn)[:2][::-1]] for cn in cons.split(":", 1)
+                                [ge - x for x in get_location(cn)[:2][::-1]]
+                                for cn in cons.split(":", 1)
                             ]
-                        cons = str(fstart) + "-" + str(fend) + ":" + str(start) + "-" + str(end)
-                        if start < 0 or fstart < 0 or end > len(seq_record.seq) or fend > len(seq_record.seq):
+                        cons = (
+                            str(fstart)
+                            + "-"
+                            + str(fend)
+                            + ":"
+                            + str(start)
+                            + "-"
+                            + str(end)
+                        )
+                        if (
+                            start < 0
+                            or fstart < 0
+                            or end > len(seq_record.seq)
+                            or fend > len(seq_record.seq)
+                        ):
                             log.warning(
                                 logid
                                 + "Constraint out of sequence bounds! skipping! "
@@ -218,11 +233,21 @@ def pl_fold(
                             outdir,
                         ):
                             log.warning(
-                                logid + str(cons) + " Exists for " + str(seq_record.id) + "! Skipping!"
+                                logid
+                                + str(cons)
+                                + " Exists for "
+                                + str(seq_record.id)
+                                + "! Skipping!"
                             )
                             continue
 
-                        log.info(logid + "Constraining to " + str(fstart) + " and " + str(fend))
+                        log.info(
+                            logid
+                            + "Constraining to "
+                            + str(fstart)
+                            + " and "
+                            + str(fend)
+                        )
                         goi, chrom, strand = idfromfa(seq_record.id)
                         pool.apply_async(
                             constrain_seq_paired,
@@ -261,8 +286,18 @@ def pl_fold(
                         else:
                             start, end = [ge - x for x in get_location(cons)[:2][::-1]]
 
-                        tostart, toend = expand_pl_window(start, end, window, multi, len(seq_record.seq))
-                        cons = str(start) + "-" + str(end) + "_" + str(tostart) + "-" + str(toend)
+                        tostart, toend = expand_pl_window(
+                            start, end, window, multi, len(seq_record.seq)
+                        )
+                        cons = (
+                            str(start)
+                            + "-"
+                            + str(end)
+                            + "_"
+                            + str(tostart)
+                            + "-"
+                            + str(toend)
+                        )
                         log.debug(logid + str.join(" ", [goi, cons, gstrand]))
 
                         if start < 0 or end > len(seq_record.seq):
@@ -292,7 +327,11 @@ def pl_fold(
                             outdir,
                         ):
                             log.warning(
-                                logid + str(cons) + " Exists for " + str(seq_record.id) + "! Skipping!"
+                                logid
+                                + str(cons)
+                                + " Exists for "
+                                + str(seq_record.id)
+                                + "! Skipping!"
                             )
                             continue
                         pool.apply_async(
@@ -350,20 +389,31 @@ def fold_unconstraint(
     configurer=None,
     level=None,
 ):
-    seq = seq.upper().replace("T", "U")
+
     logid = SCRIPTNAME + ".fold_unconstraint: "
     try:
+        seq = seq.upper().replace("T", "U")
         if queue and level:
             configurer(queue, level)
 
         if len(seq) < int(window):
-            log.error(logid + "Sequence to small, skipping " + str(id) + "\t" + str(len(seq)))
+            log.error(
+                logid + "Sequence to small, skipping " + str(id) + "\t" + str(len(seq))
+            )
             return
 
         plfold_output = api_rnaplfold(seq, window, span, region)
 
-        if locws is not None and locwe is not None:  # If we only need a subset of the folded sequence
-            log.debug(logid + "Cutting RIO from fold with boundaries " + str(locws) + " and " + str(locwe))
+        if (
+            locws is not None and locwe is not None
+        ):  # If we only need a subset of the folded sequence
+            log.debug(
+                logid
+                + "Cutting RIO from fold with boundaries "
+                + str(locws)
+                + " and "
+                + str(locwe)
+            )
             plfold_output.localize(locws, locwe + 1)
             seq = seq[locws - 1 : locwe]
 
@@ -409,12 +459,14 @@ def constrain_seq(
     configurer=None,
     level=None,
 ):
-    seq = seq.upper().replace("T", "U")
+
     logid = SCRIPTNAME + ".constrain_seq: "
 
     try:
         if queue and level:
             configurer(queue, level)
+
+        seq = seq.upper().replace("T", "U")
         goi, chrom, strand = idfromfa(sid)
         log.debug(logid + "CONSTRAINING AWAY with " + str(start) + " " + str(end))
 
@@ -426,7 +478,9 @@ def constrain_seq(
 
         # get local window of interest 0 based closed, we do not need to store the whole seqtofold
         locws, locwe = localize_pl_window(start, end, window, len(seq))
-        cons = str("-".join([str(start), str(end)]) + "_" + "-".join([str(locws), str(locwe)]))
+        cons = str(
+            "-".join([str(start), str(end)]) + "_" + "-".join([str(locws), str(locwe)])
+        )
 
         if len(seqtofold) < (toend - tostart):
             log.warning(
@@ -519,19 +573,25 @@ def constrain_seq(
             locws,
             locwe,
         )
-        an = plfold_unconstraint.get_rissmed_np_array()  # create numpy array from output
+        an = (
+            plfold_unconstraint.get_rissmed_np_array()
+        )  # create numpy array from output
 
         if not np.array_equal(an, au):
             diff_nu = au - an
         else:
-            log.info(logid + "No influence on structure with unpaired constraint at " + cons)
+            log.info(
+                logid + "No influence on structure with unpaired constraint at " + cons
+            )
             diff_nu = None
 
         if not np.array_equal(an, ap):
             diff_np = ap - an
 
         else:
-            log.info(logid + "No influence on structure with paired constraint at " + cons)
+            log.info(
+                logid + "No influence on structure with paired constraint at " + cons
+            )
             diff_np = None
 
         seqtoprint = seqtofold[locws - 1 : locwe]
@@ -708,12 +768,16 @@ def constrain_seq_paired(
         if not np.array_equal(an, au):
             diff_nu = au - an
         else:
-            log.info(logid + "No influence on Structure with unpaired constraint at " + cons)
+            log.info(
+                logid + "No influence on Structure with unpaired constraint at " + cons
+            )
             diff_nu = None
         if not np.array_equal(an, ap):
             diff_np = ap - an
         else:
-            log.info(logid + "No influence on Structure with paired constraint at " + cons)
+            log.info(
+                logid + "No influence on Structure with paired constraint at " + cons
+            )
             diff_np = None
 
         write_constraint(
@@ -801,7 +865,12 @@ def write_unconstraint(
 ):
 
     logid = SCRIPTNAME + ".write_unconstraint: "
-    log.debug(logid + " ".join([str(save), str(len(seq)), str(len(data.numpy_array)), str(rawentry)]))
+    log.debug(
+        logid
+        + " ".join(
+            [str(save), str(len(seq)), str(len(data.numpy_array)), str(rawentry)]
+        )
+    )
     try:
         goi, chrom, strand = idfromfa(sid)
         temp_outdir = os.path.join(outdir, goi)
@@ -821,7 +890,9 @@ def write_unconstraint(
                     if e.errno != errno.EEXIST:
                         raise
             if rawentry:
-                filename = f"{goi}_{chrom}_{strand}_{rawentry}_{unconstraint}_{window}_{span}"
+                filename = (
+                    f"{goi}_{chrom}_{strand}_{rawentry}_{unconstraint}_{window}_{span}"
+                )
                 gz_filepath = os.path.join(temp_outdir, f"{filename}.gz")
                 npy_filepath = os.path.join(temp_outdir, f"{filename}.npy")
                 if save > 0 and not os.path.exists(gz_filepath):
@@ -1038,7 +1109,9 @@ def main(args=None):
         if not args:
             args = parseargs_plcons()
 
-        queue, listener, worker_configurer = rissmed_logging_setup(args.logdir, args.loglevel, SCRIPTNAME)
+        queue, listener, worker_configurer = rissmed_logging_setup(
+            args.logdir, args.loglevel, SCRIPTNAME
+        )
         worker_configurer(queue, args.loglevel)
         log.info(logid + "Running " + SCRIPTNAME + " on " + str(args.procs) + " cores.")
 

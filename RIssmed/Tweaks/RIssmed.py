@@ -215,7 +215,9 @@ def set_run_settings_dict(
         for x, record in enumerate(SeqIO.parse(sequence, "fasta")):
             goi, chrom, strand = idfromfa(record.id)
             cons = (
-                constraintlist[goi] if type(constraintlist) == defaultdict else constraintlist
+                constraintlist[goi]
+                if type(constraintlist) == defaultdict
+                else constraintlist
             )
             for entry in cons:
                 run_settings = add_rissmed_constraint(
@@ -494,15 +496,20 @@ def localize_pl_window(start, end, window, seqlen, multiplyer=2):
         log.error(logid + "".join(tbe.format()))
 
 
-def expand_window(start, end, window, multiplyer, seqlen):
+def expand_window(start, end, window, dist=None):
     logid = SCRIPTNAME + ".expand_window: "
     try:
-        tostart = start - multiplyer * window
-        if tostart < 1:
+        if dist:
+            tostart = start - (window - abs(dist))
+            toend = end + (window - abs(dist)) + 1
+        else:
+            tostart = start - window
+            toend = end + window + 1
+
+        if tostart < 0:
             tostart = 1
-        toend = end + multiplyer * window
-        if toend > seqlen:
-            toend = seqlen
+        if toend > len(seq):
+            toend = len(seq)
         return [tostart, toend]
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -514,20 +521,12 @@ def expand_window(start, end, window, multiplyer, seqlen):
         log.error(logid + "".join(tbe.format()))
 
 
-def localize_window(start, end, window, seqlen, multiplyer=2):
+def localize_window(start, end, tostart, toend):
     logid = SCRIPTNAME + ".localize_window: "
     try:
-        diff = start - window
-        if diff < 1:
-            locws = 1
-        else:
-            locws = diff
-        # this makes sure that if the start was trimmed, we do not just extend too much
-        locwe = diff + multiplyer * window + (end - start)
-
-        if locwe > seqlen:
-            locwe = seqlen
-        return [locws, locwe]
+        wstart = start - tostart
+        wend = end - tostart
+        return [wstart, wend]
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(

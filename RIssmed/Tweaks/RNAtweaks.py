@@ -1282,6 +1282,7 @@ def api_rnaplfold(
     PLFoldOutput
         PLFoldOutput object
     """
+
     sequence = sequence.upper().replace("T", "U")
     data = {"up": []}
     md = RNA.md()
@@ -1341,12 +1342,15 @@ def api_rnafold(
         FoldOutput object
     """
 
-    sequence = sequence.upper().replace("T", "U")
-    data = {"up": []}
+    # data
+    data = {"seq": seqtofold, "stru": []}
+
+    # set model details
     md = RNA.md()
     md.max_bp_span = span
-    md.window_size = window
     md.temperature = temperature
+
+    log.debug(logid + "Constraints for " + goi + " are " + str(checklist))
 
     # create new fold_compound object
     fc = RNA.fold_compound(str(sequence), md, RNA.OPTION_WINDOW)

@@ -294,17 +294,17 @@ def fold(
                     pool.apply_async(
                         constrain_seq,
                         args=(
-                            seq_record,
+                            fa,
                             const,
                             conslength,
                             consstr,
                             window,
                             span,
-                            unconstraint,
                             paired,
                             unpaired,
                             save,
                             outdir,
+                            unconstraint,
                             genecoords,
                         ),
                         kwds={"queue": queue, "configurer": configurer, "level": level},
@@ -335,12 +335,12 @@ def constrain_seq(
     cons,
     window,
     span,
-    unconstraint,
     paired,
     unpaired,
     save,
     outdir,
-    genecoords,
+    unconstraint=None,
+    genecoords=None,
     queue=None,
     configurer=None,
     level=None,
@@ -376,24 +376,20 @@ def constrain_seq(
         if queue and level:
             configurer(queue, level)
 
-        outlist = list()
+        seq = seq.upper().replace("T", "U")
         goi, chrom, strand = idfromfa(seq_record.id)
-        seq = str(seq_record.seq)
-
-        if len(seq) < int(window):
-            log.error(
-                logid + "Sequence to small, skipping " + str(id) + "\t" + str(len(seq))
-            )
-            return
-
-        fold_output = api_rnafold(seq, window, span)
-
         log.debug(logid + " Sequence to fold: " + str(seq))
 
         if not window:
             window = len(seq)
         if not span:
             span = window
+
+        if len(seq) < int(window):
+            log.error(
+                logid + "Sequence to small, skipping " + str(id) + "\t" + str(len(seq))
+            )
+            return
 
         dist = None
         start, end, fstart, fend = const
@@ -412,8 +408,7 @@ def constrain_seq(
         # we no longer fold the whole sequence but only the constraint region +- window size
         if window is not None:
             if dist:
-                tostart = start - (window - abs(dist))
-                toend = fend + (window - abs(dist)) + 1
+                tostart, toend = expand_window(start, fend, window, dist)
                 log.debug(
                     logid
                     + "Considering distance "
@@ -426,13 +421,8 @@ def constrain_seq(
                     + str(toend)
                 )
             else:
-                tostart = start - window
-                toend = end + window + 1
+                tostart, toend = expand_window(start, fend, window)
 
-            if tostart < 0:
-                tostart = 1
-            if toend > len(seq):
-                toend = len(seq)
             if fend is not None and toend < fend:
                 log.warning(
                     logid
@@ -443,6 +433,7 @@ def constrain_seq(
                     + "!Skipping!"
                 )  # One of the constraints is outside the sequence window
                 return
+
             seqtofold = str(seq[tostart - 1 : toend])
 
         log.debug(
@@ -478,8 +469,8 @@ def constrain_seq(
                 + str(window)
             )
 
-        cstart = start - tostart
-        cend = end - tostart
+        # get local start,ends 0 based closed
+        cstart, cend = localize_window(start, end, tostart, toend)
 
         if cstart < 0 or cend > len(seq):
             log.warning(
@@ -503,14 +494,18 @@ def constrain_seq(
             checklist.append((cfstart, cfend))
             checklist.append((cstart, cend, cfstart, cfend))
 
-        # data
-        data = {"seq": seqtofold, "stru": []}
-
-        # set model details
-        md = RNA.md()
-        md.max_bp_span = span
-
-        log.debug(logid + "Constraints for " + goi + " are " + str(checklist))
+        plfold_paired = api_rnafold(
+            seqtofold,
+            window,
+            span,
+            constraint=[("paired", locstart, locend + 1)],
+        )
+        plfold_unpaired = api_rnafold(
+            seqtofold,
+            window,
+            span,
+            constraint=[("unpaired", locstart, locend + 1)],
+        )
 
         for check in checklist:
             s, e, os, oe = [None, None, None, None]
@@ -972,14 +967,9 @@ def fold_unconstraint(seq, queue=None, configurer=None, level=None):
         if queue and level:
             configurer(queue, level)
 
-        # set model details
-        md = RNA.md()
-        # create new fold_compound object
-        fc = RNA.fold_compound(seq, md, RNA.OPTION_PF)
-        # call prop window calculation
-        gibbs_uc = fc.pf()[1]
+        fold_output = api_rnafold(seq, window, span)
 
-        return gibbs_uc
+        return fold_output
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
