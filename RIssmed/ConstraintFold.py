@@ -494,17 +494,19 @@ def constrain_seq(
             checklist.append((cfstart, cfend))
             checklist.append((cstart, cend, cfstart, cfend))
 
+        checklist.insert(0, "paired")
         plfold_paired = api_rnafold(
             seqtofold,
             window,
             span,
-            constraint=[("paired", locstart, locend + 1)],
+            constraint=[checklist],
         )
+        checklist[0] = "unpaired"
         plfold_unpaired = api_rnafold(
             seqtofold,
             window,
             span,
-            constraint=[("unpaired", locstart, locend + 1)],
+            constraint=[checklist],
         )
 
         for check in checklist:

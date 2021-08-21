@@ -1002,7 +1002,8 @@ class FoldOutput:
 
     def __init__(self, text: str):
         self.text = self.__sanitize(text)
-        self._numpy_array = None
+        self._gibbs = None
+        self._bppm = np.array()
 
     def __str__(self):
         return self.text
@@ -1010,9 +1011,12 @@ class FoldOutput:
     def __eq__(self, other: FoldOutput):
         if self.__class__ != other.__class__:
             raise NotImplementedError
-        return np.allclose(
-            self.numpy_array, other.numpy_array, equal_nan=True, atol=0.0000001, rtol=0
-        )
+        if np.assert_almost_equal(self, other) and np.allclose(
+            self.bppm, other.bppm, equal_nan=True, atol=0.0000001, rtol=0
+        ):
+            return True
+        else:
+            return False
 
     @classmethod
     def from_file(cls, file_path: str):
@@ -1332,7 +1336,7 @@ def api_rnafold(
          RNAfold basepair span option
      temperature: float
          RNAplfold temperature setting
-     constraint: Iterable[Tuple[str, int, int]], optional
+     constraint: Iterable[Tuple[str, int, int, int, int]], optional
          Constraints as Tuple in format (paired(p)/unpaired(u), start, end) (default is None)
          !!Warning!! ZERO BASED !!Warning!!
 
@@ -1351,12 +1355,16 @@ def api_rnafold(
     md.temperature = temperature
 
     # create new fold_compound object
-    fc = RNA.fold_compound(str(sequence), md, RNA.OPTION_WINDOW)
+    fc = RNA.fold_compound(data["seq"], md)
+
     if constraint is not None:
         for entry in constraint:
             mode = entry[0]
+            s, e, os, oe = [None, None, None, None]
             start = entry[1]
             end = entry[2]
+            fstart = entry[3] if len(entry > 2) else None
+            fend = entry[4] if len(entry > 3) else None
             if mode == "paired" or mode == "p":
                 fc = _constrain_paired(fc, start, end)
             elif mode == "unpaired" or mode == "u":
@@ -1366,11 +1374,15 @@ def api_rnafold(
                     "Constraint wrongly formatted. Has to be ('paired(p)'/'unpaired(u)', start, end)"
                 )
 
-    # call prop window calculation
-    fc.probs_window(region, RNA.PROBS_WINDOW_UP, _up_callback, data)
-    array = np.array(data["up"]).squeeze()[:, 1:]
-    pl_output = PLFoldOutput.from_numpy(array)
-    return pl_output
+    FoldOut = FoldOutput()
+    # call pf and prop calculation
+    FoldOut.set_gibbs = fc.pf()[1]
+    FoldOut.set_bppm = get_bppm(fc.bpp(), cstart, cend)
+
+    if bppm is None:
+        log.error(logid + "Empty bpp matrix returned, stopping here!")
+
+    return gibbs, bppm
 
 
 # def bpp_callback(v, v_size, i, maxsize, what, data):
