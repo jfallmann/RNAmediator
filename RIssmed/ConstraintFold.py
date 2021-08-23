@@ -112,13 +112,10 @@ def fold(
     window,
     span,
     temp,
-    unconstraint,
-    unpaired,
-    paired,
     constrain,
     conslength,
-    save,
     procs,
+    save="STDOUT",
     pattern=None,
     cutoff=None,
     queue=None,
@@ -135,13 +132,11 @@ def fold(
     span: int Maximum base-pair span to be evaluated
     temp: int
         Temperature to fold at
-    unconstraint: str Suffix for unconstraint output files
-    unpaired: str Suffix for ouput files of unpaired constraint
-    paired: str Suffix for output files of paired constraint
     constrain : str The file location of constrain file
     conslength : int Length of the constraint, only used if constrain is sliding
-    save: bool If output files should be saved
     procs: int Number of processes to run in parallel
+    save: str
+        The name of the output file to generate or STDOUT
     pattern: str String pattern for gene of interest
     cutoff: float Cutoff for raw accessibility, regions below this propability of being unpaired will not be folded
     queue: multiprocessing_queue Logging process queue
@@ -307,11 +302,8 @@ def fold(
                             window,
                             span,
                             temp,
-                            paired,
-                            unpaired,
                             save,
                             outdir,
-                            unconstraint,
                             genecoords,
                         ),
                         kwds={"queue": queue, "configurer": configurer, "level": level},
@@ -343,11 +335,8 @@ def constrain_seq(
     window,
     span,
     temp,
-    paired,
-    unpaired,
-    save,
-    outdir,
-    unconstraint=None,
+    save="STDOUT",
+    outdir=None,
     genecoords=None,
     queue=None,
     configurer=None,
@@ -365,10 +354,8 @@ def constrain_seq(
     span: int Maximum base-pair span to be evaluated
     temp: int
         Temperature to fold at
-    unconstraint: str Suffix for unconstraint output files
-    unpaired: str Suffix for ouput files of unpaired constraint
-    paired: str Suffix for output files of paired constraint
-    save: bool If output files should be saved
+    save: str
+        Name of output file or STDOUT
     outdir : str Location for the output directory
     genecoords: list Genomic coordinates of gene of interest
     procs: int Number of processes to run in parallel
@@ -623,170 +610,16 @@ def constrain_seq(
                 FoldOut=Output,
                 consstr=printcons,
             )
+
+            Output.annotate(
+                str(goi)
+                + ": "
+                + str.join(",", [str(chrom), str(gs), str(ge), str(gstrand)])
+            )
+
             log.debug(logid + f"UNPAIREDOUT: {Output.items()}")
 
-            fn = "constraint"
-
-            if os and oe:
-                fn = "pairedconstraint"
-
-            outlist.append(
-                [
-                    seq_record,
-                    fn,
-                    gibbs,
-                    "0",
-                    nrg,
-                    printcons,
-                    str(window),
-                    str(span),
-                    outdir,
-                    "unconstraint",
-                ]
-            )  # unconstraint
-            outlist.append(
-                [
-                    seq_record,
-                    fn,
-                    gibbs_u,
-                    dg_u,
-                    nrg_u,
-                    printcons,
-                    str(window),
-                    str(span),
-                    outdir,
-                    "constraint_unpaired",
-                ]
-            )  # constraint_paired
-            outlist.append(
-                [
-                    seq_record,
-                    fn,
-                    gibbs_p,
-                    dg_p,
-                    nrg_p,
-                    printcons,
-                    str(window),
-                    str(span),
-                    outdir,
-                    "constraint_paired",
-                ]
-            )  # constraint_unpaired
-
-            if os and oe:
-                log.debug(
-                    logid
-                    + "Second constraint: "
-                    + str(
-                        ",".join(
-                            map(str, [goi, data["seq"], len(data["seq"]), s, e, os, oe])
-                        )
-                    )
-                )
-                # enforce both constraints
-                # enforce both paired
-                fc_p = constrain_paired(fc_p, os, oe)
-                # enforce both unpaired
-                fc_u = constrain_unpaired(fc_u, os, oe)
-                # calculate probs and nrg
-                gibbs_u = calc_gibbs(fc_u)
-                bppm_u = get_bppm(fc_u.bpp(), cstart, cend)
-                dg_u = gibbs_u - gibbs
-
-                gibbs_p = calc_gibbs(fc_p)
-                bppm_p = get_bppm(fc_p.bpp(), cstart, cend)
-                dg_p = gibbs_p - gibbs
-
-                bpp = calc_bpp(bppm)
-                bpp_u = calc_bpp(bppm_u)
-                bpp_p = calc_bpp(bppm_p)
-                nrg = calc_nrg(bpp)
-                nrg_u = calc_nrg(bpp_u)
-                nrg_p = calc_nrg(bpp_p)
-
-                outlist.append(
-                    [
-                        seq_record,
-                        fn,
-                        gibbs_u,
-                        dg_u,
-                        nrg_u,
-                        printcons,
-                        str(window),
-                        str(span),
-                        outdir,
-                        "bothconstraint_unpaired",
-                    ]
-                )  # bothconstraint_unpaired
-                outlist.append(
-                    [
-                        seq_record,
-                        fn,
-                        gibbs_p,
-                        dg_p,
-                        nrg_p,
-                        printcons,
-                        str(window),
-                        str(span),
-                        outdir,
-                        "bothconstraint_paired",
-                    ]
-                )  # bothconstraint_paired
-
-                # enforce second constraint
-                # First clear old constraints
-                fc_u = RNA.fold_compound(data["seq"], md)
-                fc_p = RNA.fold_compound(data["seq"], md)
-                # enforce second paired
-                fc_p = constrain_paired(fc_p, os, oe)
-                # enforce second unpaired
-                fc_u = constrain_unpaired(fc_u, os, oe)
-                # calculate probs and nrg
-                gibbs_u = calc_gibbs(fc_u)
-                bppm_u = get_bppm(fc_u.bpp(), cstart, cend)
-                dg_u = gibbs_u - gibbs
-
-                gibbs_p = calc_gibbs(fc_p)
-                bppm_p = get_bppm(fc_p.bpp(), cstart, cend)
-                dg_p = gibbs_p - gibbs
-
-                bpp = calc_bpp(bppm)
-                bpp_u = calc_bpp(bppm_u)
-                bpp_p = calc_bpp(bppm_p)
-                nrg = calc_nrg(bpp)
-                nrg_u = calc_nrg(bpp_u)
-                nrg_p = calc_nrg(bpp_p)
-
-                outlist.append(
-                    [
-                        seq_record,
-                        fn,
-                        gibbs_u,
-                        dg_u,
-                        nrg_u,
-                        printcons,
-                        str(window),
-                        str(span),
-                        outdir,
-                        "secondconstraint_unpaired",
-                    ]
-                )  # secondconstraint_unpaired
-                outlist.append(
-                    [
-                        seq_record,
-                        fn,
-                        gibbs_p,
-                        dg_p,
-                        nrg_p,
-                        printcons,
-                        str(window),
-                        str(span),
-                        outdir,
-                        "secondconstraint_paired",
-                    ]
-                )  # secondconstraint_paired
-
-        write_out(outlist)
+            write_out(Output, window, span, printcons, save, outdir)
 
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -957,12 +790,23 @@ def fold_unconstraint(seq, queue=None, configurer=None, level=None):
         log.error(logid + "".join(tbe.format()))
 
 
-def write_out(resultlist):
+def write_out(Output, window, span, const, fname="STDOUT", outdir=None):
     """Print results to file
 
     Parameters
     ----------
-    resultlist: List[str] Contains all results generated by constrain
+    Output: FoldOutput object
+        Contains all results generated by constrain
+    window: int
+        Window to fold
+    span: int
+        Max basepair span
+    cons: str
+        Constraint applied on fold
+    fname: str, optional
+        Name of file to write to or STDOUT
+    outdir: str, optional
+        Name of output directory or None
 
     Returns
     -------
@@ -970,112 +814,74 @@ def write_out(resultlist):
     """
 
     try:
-        for result in resultlist:
-            (
-                seq_record,
-                fname,
-                gibbs,
-                ddg,
-                nrg,
-                const,
-                window,
-                span,
-                outdir,
-                condition,
-            ) = result
-            logid = SCRIPTNAME + ".write_out: "
-            goi, chrom, strand = idfromfa(seq_record.id)
-            temp_outdir = os.path.join(outdir, goi)
+        logid = SCRIPTNAME + ".write_out: "
+        goi, chrom, start, end, strand = Output.parse_anno()
+        temp_outdir = os.path.join(outdir, goi)
 
-            if fname != "STDOUT":
-                if not os.path.exists(temp_outdir):
-                    os.makedirs(temp_outdir)
-                if not os.path.exists(
+        if fname != "STDOUT":
+            if not os.path.exists(temp_outdir):
+                os.makedirs(temp_outdir)
+            if not os.path.exists(
+                os.path.join(
+                    temp_outdir,
+                    "_".join([goi, chrom, strand, fname, const, window, span]) + ".gz",
+                )
+            ):
+                with gzip.open(
+                    os.path.join(
+                        temp_outdir,
+                        "_".join([goi, chrom, strand, fname, const, window, span])
+                        + ".gz",
+                    ),
+                    "wb",
+                ) as o:
+                    o.write(
+                        bytes(
+                            str.join("\t", Output.get_text()) + "\n",
+                            encoding="UTF-8",
+                        )
+                    )
+            else:
+                log.info(
                     os.path.join(
                         temp_outdir,
                         "_".join([goi, chrom, strand, fname, const, window, span])
                         + ".gz",
                     )
-                ):
-                    o = gzip.open(
-                        os.path.join(
-                            temp_outdir,
-                            "_".join([goi, chrom, strand, fname, const, window, span])
-                            + ".gz",
-                        ),
-                        "wb",
-                    )
-                    o.write(
-                        bytes(
-                            str.join(
-                                "\t",
-                                [
-                                    "Condition",
-                                    "FreeNRG(gibbs)",
-                                    "deltaG",
-                                    "OpeningNRG",
-                                    "Constraint",
-                                ],
-                            )
-                            + "\n",
-                            encoding="UTF-8",
-                        )
-                    )
-                    o.write(
-                        bytes(
-                            str.join(
-                                "\t",
-                                [condition, str(gibbs), str(ddg), str(nrg), str(const)],
-                            )
-                            + "\n",
-                            encoding="UTF-8",
-                        )
-                    )
-                else:
-                    log.info(
-                        os.path.join(
-                            temp_outdir,
-                            "_".join([goi, chrom, strand, fname, const, window, span])
-                            + ".gz",
-                        )
-                        + " exists, will append!"
-                    )
-                    o = gzip.open(
-                        os.path.join(
-                            temp_outdir,
-                            "_".join([goi, chrom, strand, fname, const, window, span])
-                            + ".gz",
-                        ),
-                        "ab",
-                    )
-                    o.write(
-                        bytes(
-                            str.join(
-                                "\t",
-                                [condition, str(gibbs), str(ddg), str(nrg), str(const)],
-                            )
-                            + "\n",
-                            encoding="UTF-8",
-                        )
-                    )
-            else:
-                print(
-                    str.join(
-                        "\t",
-                        [
-                            "Condition",
-                            "FreeNRG(gibbs)",
-                            "deltaG",
-                            "OpeningNRG",
-                            "Constraint",
-                        ],
-                    )
+                    + " exists, will append!"
                 )
-                print(
-                    str.join(
-                        "\t", [condition, str(gibbs), str(ddg), str(nrg), str(const)]
+                with gzip.open(
+                    os.path.join(
+                        temp_outdir,
+                        "_".join([goi, chrom, strand, fname, const, window, span])
+                        + ".gz",
+                    ),
+                    "ab",
+                ) as o:
+                    o.write(
+                        bytes(
+                            str.join(
+                                "\t",
+                                Output.get_text(h=False),
+                            )
+                            + "\n",
+                            encoding="UTF-8",
+                        )
                     )
+        else:
+            print(
+                str.join(
+                    "\t",
+                    [
+                        "Condition",
+                        "FreeNRG(gibbs)",
+                        "deltaG",
+                        "OpeningNRG",
+                        "Constraint",
+                    ],
                 )
+            )
+            print(Output.get_text())
 
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -1184,13 +990,10 @@ def main(args=None):
             args.window,
             args.span,
             args.temperature,
-            args.unconstraint,
-            args.unpaired,
-            args.paired,
             args.constrain,
             args.conslength,
-            args.save,
             args.procs,
+            args.save,
             args.pattern,
             args.cutoff,
             queue=queue,

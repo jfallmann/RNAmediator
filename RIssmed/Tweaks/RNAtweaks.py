@@ -1016,7 +1016,7 @@ class FoldOutput(defaultdict):
     def __init__(
         self,
         condition: str = "unconstraint",
-        text: str = None,
+        anno: str = None,
         gibbs: float = None,
         constraint: str = None,
         bpp: float = None,
@@ -1067,9 +1067,9 @@ class FoldOutput(defaultdict):
         ) == True
 
         super(FoldOutput, self).__init__()
+        self["anno"] = anno
         self[condition] = dict()
 
-        self[condition].update({"text": text})
         self[condition].update({"gibbs": gibbs})
         self[condition].update({"constraint": None})
         self[condition].update({"bppm": np.empty(0)})
@@ -1303,8 +1303,38 @@ class FoldOutput(defaultdict):
         array = np.array(array, dtype=float)
         self[condition]["bppm"] = array
 
-    def get_text(self):
+    def annotate(self, anno):
+        """Annotate FoldOutput
+
+        Parameters
+        ----------
+        anno : str
+            Annotation to set
+        """
+        self["anno"] = anno
+
+    def parse_anno(self):
+        """returns annotation from FoldOutput
+
+        Returns
+        -------
+        list([str, str, str, str, str])
+            Returns goi, chrom, start, end, strand
+        """
+
+        anno = self.get("anno")
+        goi = anno.split(":")[0]
+        chrom, start, end, strand = anno.split(":")[1].split(",")
+
+        return [goi, chrom, start, end, strand]
+
+    def get_text(self, h=True):
         """return formatted string output
+
+        Parameters
+        ----------
+        h: bool
+            Prints header if True
 
         Returns
         -------
@@ -1313,20 +1343,25 @@ class FoldOutput(defaultdict):
         """
 
         formatted_string = list()
-        formatted_string.append(
-            str.join(
-                "\t",
-                [
-                    "Condition",
-                    "FreeNRG(gibbs)",
-                    "deltaG",
-                    "OpeningNRG",
-                    "Constraint",
-                ],
+        if h:
+            formatted_string.append(
+                str.join(
+                    "\t",
+                    [
+                        "Condition",
+                        "FreeNRG(gibbs)",
+                        "deltaG",
+                        "OpeningNRG",
+                        "Constraint",
+                    ],
+                )
+                + "\n",
             )
-            + "\n",
-        )
         for condition in self.keys():
+            log.debug(f"FINALE {condition}")
+            log.debug(
+                str([self[condition][x] for x in ["gibbs", "ddg", "nrg", "constraint"]])
+            )
             gibbs, ddg, nrg, const = [
                 self[condition][x] for x in ["gibbs", "ddg", "nrg", "constraint"]
             ]

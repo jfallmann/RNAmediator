@@ -339,28 +339,28 @@ def parseargs_foldcons():
         default=-0.01,
         help="Only print prob greater cutoff",
     )
-    parser.add_argument(
-        "-r",
-        "--unconstraint",
-        type=str,
-        default="STDOUT",
-        help="Print output of unconstraint folding to file with this name,"
-        ' use "STDOUT" to print to STDOUT (default)',
-    )
-    parser.add_argument(
-        "-n",
-        "--unpaired",
-        type=str,
-        default="STDOUT",
-        help="Print output of unpaired folding to file with this name",
-    )
-    parser.add_argument(
-        "-p",
-        "--paired",
-        type=str,
-        default="STDOUT",
-        help="Print output of paired folding to file with this name",
-    )
+    # parser.add_argument(
+    #    "-r",
+    #    "--unconstraint",
+    #    type=str,
+    #    default="STDOUT",
+    #    help="Print output of unconstraint folding to file with this name,"
+    #    ' use "STDOUT" to print to STDOUT (default)',
+    # )
+    # parser.add_argument(
+    #    "-n",
+    #    "--unpaired",
+    #    type=str,
+    #    default="STDOUT",
+    #    help="Print output of unpaired folding to file with this name",
+    # )
+    # parser.add_argument(
+    #    "-p",
+    #    "--paired",
+    #    type=str,
+    #    default="STDOUT",
+    #    help="Print output of paired folding to file with this name",
+    # )
     # parser.add_argument("-e", "--length", type=int, default=100, help='Length of randseq')
     # parser.add_argument("--gc", type=int, default=0, help='GC content, needs to be %%2==0 or will be rounded')
     # parser.add_argument("-b", "--number", type=int, default=1, help='Number of random seqs to generate')
@@ -390,14 +390,17 @@ def parseargs_foldcons():
         default=37,
         help="Temperature for structure prediction",
     )
-    parser.add_argument(
-        "-a", "--alphabet", type=str, default="AUCG", help="alphabet for random seqs"
-    )
+    # parser.add_argument(
+    #    "-a", "--alphabet", type=str, default="AUCG", help="alphabet for #random seqs"
+    # )
     # parser.add_argument("--plot", type=str, default='0', choices=['0','svg', 'png'],
     # help='Create image of the (un-)constraint sequence, you can select the file format here (svg,png).
     # These images can later on be animated with ImageMagick like `convert -delay 120 -loop 0 *.svg animated.gif`.')
     parser.add_argument(
-        "--save", type=int, default=1, help="Save the output as gz files"
+        "--save",
+        type=str,
+        default="STDOUT",
+        help="Save the output as gz file with that name",
     )
     parser.add_argument(
         "-o", "--outdir", type=str, default="", help="Directory to write to"
