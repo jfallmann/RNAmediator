@@ -1226,8 +1226,8 @@ class FoldOutput(defaultdict):
         self[condition].update({"nrg": nrg})
 
         if self.get("unconstraint") and condition != "unconstraint":
-            self[condition].update({"ddg": {self["unconstraint"]["gibbs"] - gibbs}})
-            self[condition].update({"dnrg": {self["unconstraint"]["nrg"] - nrg}})
+            self[condition].update({"ddg": self["unconstraint"]["gibbs"] - gibbs})
+            self[condition].update({"dnrg": self["unconstraint"]["nrg"] - nrg})
         else:
             self[condition].update({"ddg": None})
             self[condition].update({"dnrg": None})
@@ -1631,21 +1631,21 @@ def api_rnafold(
             fstart = entry[1]
             fend = entry[2]
             end, start = [None, None]
-            s, e, gtostart, gtoend = [None, None, None, None]
+            os, oe, gtostart, gtoend = [None, None, None, None]
             if gs != None and ge != None and tostart != None and toend != None:
-                s, e = [fstart + tostart + gs - 1, fend + tostart + gs]
+                os, oe = [fstart + tostart + gs, fend + tostart + gs]
                 gtostart, gtoend = [tostart + gs, toend + gs]
 
             if len(entry) > 3:
                 start = entry[3]
                 end = entry[4]
-                sp, ep = [None, None]
+                osp, oep = [None, None]
                 if gs != None and ge != None and tostart != None and toend != None:
-                    sp, ep = [start + tostart + gs - 1, end + tostart + gs]
+                    osp, oep = [start + tostart + gs, end + tostart + gs]
 
             log.info(
                 logid
-                + f"Mode {mode}, start: {fstart}, end: {fend}, second_start: {start}, second_end: {end}, s: {s}, e: {e}, gtostart: {gtostart}, gtoend: {gtoend}"
+                + f"Mode {mode}, start: {fstart}, end: {fend}, second_start: {start}, second_end: {end}, os: {os}, oe: {oe}, gtostart: {gtostart}, gtoend: {gtoend}"
             )
 
             if any(mode == x for x in ["paired", "p", "constraint_paired"]):
@@ -1656,7 +1656,8 @@ def api_rnafold(
                     [
                         str.join("-", [str(tostart), str(toend)]),
                         str.join("-", [str(gtostart), str(gtoend)]),
-                        str.join("-", [str(s + 1), str(e + 1)]),
+                        str.join("-", [str(fstart + 1), str(fend + 1)]),
+                        str.join("-", [str(os), str(oe)]),
                     ],
                 )
             elif mode == "secondconstraint_paired":
@@ -1666,7 +1667,8 @@ def api_rnafold(
                     [
                         str.join("-", [str(tostart), str(toend)]),
                         str.join("-", [str(gtostart), str(gtoend)]),
-                        str.join("-", [str(sp), str(ep)]),
+                        str.join("-", [str(start + 1), str(end + 1)]),
+                        str.join("-", [str(osp), str(oep)]),
                     ],
                 )
             elif mode == "bothconstraint_paired":
@@ -1676,8 +1678,12 @@ def api_rnafold(
                     [
                         str.join("-", [str(tostart), str(toend)]),
                         str.join("-", [str(gtostart), str(gtoend)]),
-                        str.join("-", [str(s + 1), str(e + 1)]),
-                        str.join("-", [str(sp), str(ep)]),
+                        str.join("-", [str(fstart + 1), str(fend + 1)])
+                        + ":"
+                        + str.join("-", [str(start + 1), str(end + 1)]),
+                        str.join("-", [str(os), str(oe)])
+                        + ":"
+                        + str.join("-", [str(osp), str(oep)]),
                     ],
                 )
             elif any(mode == x for x in ["unpaired", "u", "constraint_unpaired"]):
@@ -1688,7 +1694,8 @@ def api_rnafold(
                     [
                         str.join("-", [str(tostart), str(toend)]),
                         str.join("-", [str(gtostart), str(gtoend)]),
-                        str.join("-", [str(s + 1), str(e + 1)]),
+                        str.join("-", [str(fstart + 1), str(fend + 1)]),
+                        str.join("-", [str(os), str(oe)]),
                     ],
                 )
             elif mode == "secondconstraint_unpaired":
@@ -1698,7 +1705,8 @@ def api_rnafold(
                     [
                         str.join("-", [str(tostart), str(toend)]),
                         str.join("-", [str(gtostart), str(gtoend)]),
-                        str.join("-", [str(sp), str(ep)]),
+                        str.join("-", [str(start + 1), str(end + 1)]),
+                        str.join("-", [str(osp), str(oep)]),
                     ],
                 )
             elif mode == "bothconstraint_unpaired":
@@ -1708,8 +1716,12 @@ def api_rnafold(
                     [
                         str.join("-", [str(tostart), str(toend)]),
                         str.join("-", [str(gtostart), str(gtoend)]),
-                        str.join("-", [str(s + 1), str(e + 1)]),
-                        str.join("-", [str(sp), str(ep)]),
+                        str.join("-", [str(fstart + 1), str(fend + 1)])
+                        + ":"
+                        + str.join("-", [str(start + 1), str(end + 1)]),
+                        str.join("-", [str(os), str(oe)])
+                        + ":"
+                        + str.join("-", [str(osp), str(oep)]),
                     ],
                 )
             else:

@@ -501,20 +501,24 @@ def constrain_seq(
         coords = [gs, ge, tostart, toend]
 
         sp = ep = None
-        s, e = [fstart + tostart + gs - 1, fend + tostart + gs]
+        os, oe = [fstart + tostart + gs - 1, fend + tostart + gs]
         gtostart, gtoend = [tostart + gs, toend + gs]
         printcons = str.join(
             "|",
             [
                 str.join("-", [str(tostart), str(toend)]),
                 str.join("-", [str(gtostart), str(gtoend)]),
-                str.join("-", [str(s + 1), str(e + 1)]),
+                str.join("-", [str(fstart + 1), str(fend + 1)]),
             ],
         )
 
         if len(check) > 2:
-            sp, ep = [start + tostart + gs - 1, end + tostart + gs]
-            printcons = printcons + "|" + str.join("-", [str(sp), str(ep)])
+            osp, oep = [start + tostart + gs - 1, end + tostart + gs]
+            printcons = printcons + ":" + str.join("-", [str(start), str(end)])
+
+        printcons = printcons + "|" + str.join("-", [str(os), str(oe)])
+        if len(check) > 2:
+            printcons = printcons + ":" + str.join("-", [str(osp), str(oep)])
 
         Output = FoldOutput()
         Output = api_rnafold(
