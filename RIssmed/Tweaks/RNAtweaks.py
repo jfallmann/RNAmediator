@@ -161,18 +161,18 @@ def _get_bppm(matrix, start, end):
     logid = scriptn + ".get_bppm: "
     bppm = []
     try:
-        if start < 0 or end > len(tmp):
+        if start < 0 or end > len(matrix):
             log.warning(
                 f"{logid} start of constraint: {start} end of constraint: {end} "
-                f"while length of bpp matrix {len(tmp)} ! Skipping!"
+                f"while length of bpp matrix {len(matrix)} ! Skipping!"
             )
             return None
 
-        for item in tmp:
+        for item in matrix:
             for i in range(int(start), int(end) + 1):
                 if item[i] > 0.0:
                     bppm.append(
-                        str.join("\t", [str(tmp.index(item)), str(i), str(item[i])])
+                        str.join("\t", [str(matrix.index(item)), str(i), str(item[i])])
                     )
         if len(bppm) < 1:
             log.error(logid + "Empty bpp matrix returned, stopping here!")
@@ -1010,18 +1010,13 @@ class PLFoldOutput:
 class FoldOutput(defaultdict):
     """Output wrapper for ouput files of RNAfold
 
-     Attributes
-    ----------
-     text : str
-        string representation of an RNAfold output file.
-     anno : str, optional
-        Annotation for file
+    Inherits from collections.defaultdict
     """
 
     def __init__(
         self,
-        text: str,
         condition: str = "unconstraint",
+        text: str = None,
         gibbs: float = None,
         constraint: str = None,
         bpp: float = None,
@@ -1034,10 +1029,10 @@ class FoldOutput(defaultdict):
 
         Parameters
         ----------
-        text : str
-            string representation of an RNAfold output file
         condition : str, optional
             Condition used for folding, by default 'raw'
+        text : str, optional
+            string representation of an RNAfold output file
         gibbs : float, optional
             Gibbs Free Energy, by default None
         constraint : str, optional
@@ -1071,16 +1066,26 @@ class FoldOutput(defaultdict):
             )
         ) == True
 
-        super(FoldOutput, self).__init__(defaultdict)
+        super(FoldOutput, self).__init__()
+        self[condition] = dict()
 
-        self[condition]["text"] = text
-        self[condition]["gibbs"] = gibbs
-        self[condition]["constraint"] = None
-        self[condition]["bppm"] = np.empty(2)
-        self[condition]["bpp"] = None
-        self[condition]["nrg"] = None
-        self[condition]["ddg"] = None
-        self[condition]["dnrg"] = None
+        self[condition].update({"text": text})
+        self[condition].update({"gibbs": gibbs})
+        self[condition].update({"constraint": None})
+        self[condition].update({"bppm": np.empty(2)})
+        self[condition].update({"bpp": None})
+        self[condition].update({"nrg": None})
+        self[condition].update({"ddg": None})
+        self[condition].update({"dnrg": None})
+
+        # self[condition]["text"] = text
+        # self[condition]["gibbs"] = gibbs
+        # self[condition]["constraint"] = None
+        # self[condition]["bppm"] = np.empty(2)
+        # self[condition]["bpp"] = None
+        # self[condition]["nrg"] = None
+        # self[condition]["ddg"] = None
+        # self[condition]["dnrg"] = None
 
     def __getattr__(self, name):
         if name in self:
@@ -1115,7 +1120,7 @@ class FoldOutput(defaultdict):
 
     @classmethod
     def from_RNAfold_file(
-        self, file_path: str, condition: str = "unconstraint", constraint: str = None
+        cls, file_path: str, condition: str = "unconstraint", constraint: str = None
     ):
         """creates FoldOutput from a file
 
@@ -1161,21 +1166,28 @@ class FoldOutput(defaultdict):
             with open(file_path, "r") as handle:
                 file_data = handle.readlines()
                 gibbs = file_data[2].split(" ")[1].strip("()")
+        return cls(file_data, condition, gibbs)
 
-        return FoldOutput(file_data, condition, gibbs)
-
-    @classmethod
     def from_rissmed_fold_compound(
-        self, fc, condition: str = "unconstraint", start: int = None, end: int = None
+        self,
+        fc,
+        condition: str = "unconstraint",
+        constr: str = None,
+        start: int = None,
+        end: int = None,
     ):
         """creates FoldOutput from original rissmed fold compound
 
          Parameters
         ----------
-         fc : fold_compound object
+         self: FoldOutput
+            FoldOutput object to work on
+         fc: fold_compound object
             ViennaRNA fold_compound object
          condition: str
             Condition for folding
+         constr: str
+            Constraint string
          start: int
             Start of folding window
          end: int
@@ -1202,37 +1214,32 @@ class FoldOutput(defaultdict):
             ]
         )
 
-        log.debug(f"FC: {dir(fc)}")
+        if not self.get(condition):
+            self[condition] = dict()
 
-        self.update({condition: {"gibbs": _calc_gibbs(fc)}})
+        self[condition].update({"constraint": constr})
+        gibbs = _calc_gibbs(fc)
+        self[condition].update({"gibbs": gibbs})
         if not start and end:
             start = 0
-            end = fc.length()
+            end = fc.length
 
-        self.update({condition: {"bppm": np.array(_get_bppm(fc.bpp(), start, end))}})
-        self.update({condition: {"bpp": _calc_bpp(self[condition]["bppm"])}})
-        self.update({condition: {"nrg": _calc_nrg(self[condition]["bpp"])}})
+        bppm = np.array(_get_bppm(fc.bpp(), start, end))
+        self[condition].update({"bppm": bppm})
+
+        bpp = _calc_bpp(bppm)
+        self[condition].update({"bpp": bpp})
+        nrg = _calc_nrg(bpp)
+        self[condition].update({"nrg": nrg})
+
+        log.debug(f"OUTPUT: {[self.items()]}")
 
         if self.get("unconstraint") and condition != "unconstraint":
-            self.update(
-                {
-                    condition: {
-                        "ddg": {
-                            self["unconstraint"]["gibbs"] - self[condition]["gibbs"]
-                        }
-                    }
-                }
-            )
-            self.update(
-                {
-                    condition: {
-                        "dnrg": {self["unconstraint"]["nrg"] - self[condition]["nrg"]}
-                    }
-                }
-            )
+            self[condition].update({"ddg": {self["unconstraint"]["gibbs"] - gibbs}})
+            self[condition].update({"dnrg": {self["unconstraint"]["nrg"] - nrg}})
         else:
-            self.update({condition: {"ddg": None}})
-            self.update({condition: {"dnrg": None}})
+            self[condition].update({"ddg": None})
+            self[condition].update({"dnrg": None})
 
         return self
 
@@ -1477,6 +1484,7 @@ def cmd_rnafold(
     region: int = 30,
     temperature: float = 37,
     constraint: Iterable[Tuple[str, int, int]] = None,
+    FoldOut: FoldOutput = None,
 ) -> PLFoldOutput:
     """command line wrapper for RNAplfold
 
@@ -1495,6 +1503,8 @@ def cmd_rnafold(
      constraint: Iterable[Tuple[str, int, int]], optional
          Constraints as Tuple in format (paired(p)/unpaired(u), start, end) (default is None)
          !!Warning!! ZERO BASED !!Warning!!
+     FoldOut: FoldOutput, optional
+        FoldOutput object to work on
 
     Returns
     -------
@@ -1550,6 +1560,7 @@ def api_rnafold(
     temperature: float = 37,
     constraint: Iterable[Tuple] = None,
     FoldOut: FoldOutput = None,
+    consstr: str = None,
 ) -> FoldOutput:
     """api wrapper for RNAfold
 
@@ -1564,8 +1575,10 @@ def api_rnafold(
      constraint: Iterable[Tuple[str, int, int, int, int]], optional
          Constraints as Tuple in format (paired(p)/unpaired(u), start, end) (default is None)
          !!Warning!! ZERO BASED !!Warning!!
-     FoldOut: FoldOutput object, optional
+     FoldOut: FoldOutput, optional
         existing FoldOutput object to append use
+     printcons: str, optional
+        Constraint string for printing
 
     Returns
     -------
@@ -1617,10 +1630,25 @@ def api_rnafold(
                 raise ValueError(
                     "Constraint wrongly formatted. Has to be ('paired(p)'/'unpaired(u)', start, end)"
                 )
+
+            if not consstr:
+                consstr = str.join(
+                    "|",
+                    [
+                        str.join("-", [str(start), str(end)]),
+                        str.join(
+                            ":",
+                            [
+                                str.join("-", [str(start), str(end)]),
+                                str.join("-", [str(fstart), str(fend)]),
+                            ],
+                        ),
+                    ],
+                )
             if not FoldOut:
                 FoldOut = FoldOutput("none", mode)
             # call pf and prop calculation
-            FoldOut.from_rissmed_fold_compound(fc, mode, 0, len(sequence))
+            FoldOut.from_rissmed_fold_compound(fc, mode, consstr, 0, len(sequence))
             # FoldOut[mode]["gibbs"] = fc.pf()[1]
             # FoldOut[mode]["bppm"] = _get_bppm(fc.bpp(), 0, len(sequence))
 

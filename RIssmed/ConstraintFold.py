@@ -91,6 +91,7 @@ from RIssmed.Tweaks.RNAtweaks import (
     _constrain_unpaired as constrain_unpaired,
     get_location,
     api_rnafold,
+    FoldOutput,
 )
 from RIssmed.Tweaks.NPtweaks import *
 from RIssmed.Tweaks.RIssmed import (
@@ -110,6 +111,7 @@ def fold(
     outdir,
     window,
     span,
+    temp,
     unconstraint,
     unpaired,
     paired,
@@ -131,6 +133,8 @@ def fold(
     outdir : str Location of the Outpu directory. If it is an empty string os.cwd() is used
     window: int Size of window to fold
     span: int Maximum base-pair span to be evaluated
+    temp: int
+        Temperature to fold at
     unconstraint: str Suffix for unconstraint output files
     unpaired: str Suffix for ouput files of unpaired constraint
     paired: str Suffix for output files of paired constraint
@@ -217,6 +221,7 @@ def fold(
                             fold_unconstraint,
                             args=(fa),
                             kwds={
+                                "temp": temp,
                                 "queue": queue,
                                 "configurer": configurer,
                                 "level": level,
@@ -301,6 +306,7 @@ def fold(
                             consstr,
                             window,
                             span,
+                            temp,
                             paired,
                             unpaired,
                             save,
@@ -336,6 +342,7 @@ def constrain_seq(
     cons,
     window,
     span,
+    temp,
     paired,
     unpaired,
     save,
@@ -356,6 +363,8 @@ def constrain_seq(
     cons : str The constraint annotation
     window: int Size of window to fold
     span: int Maximum base-pair span to be evaluated
+    temp: int
+        Temperature to fold at
     unconstraint: str Suffix for unconstraint output files
     unpaired: str Suffix for ouput files of unpaired constraint
     paired: str Suffix for output files of paired constraint
@@ -407,7 +416,7 @@ def constrain_seq(
                 )
 
         # we no longer fold the whole sequence but only the constraint region +- window size
-        if window is not None:
+        if window < len(seq):
             if dist:
                 tostart, toend = expand_window(start, fend, window, len(seq), dist)
                 log.debug(
@@ -587,59 +596,35 @@ def constrain_seq(
                     ],
                 )
 
-            check = ("paired",) + check
+            Output = FoldOutput()
+            checku = ("paired",) + check
 
-            fold_unconst = api_rnafold(seqtofold, window, span)
+            fold_unconst = api_rnafold(
+                seqtofold, span, 37, None, FoldOut=Output, consstr=printcons
+            )
+
+            log.debug(f"FOLDOUT: {Output.items()}")
 
             fold_paired = api_rnafold(
                 seqtofold,
-                window,
                 span,
-                constraint=[check],
+                37,
+                constraint=[checku],
+                FoldOut=Output,
+                consstr=printcons,
             )
-            check[0] = "unpaired"
+            checkp = ("unpaired",) + check
 
             fold_unpaired = api_rnafold(
                 seqtofold,
-                window,
                 span,
-                constraint=[check],
+                37,
+                constraint=[checkp],
+                FoldOut=Output,
+                consstr=printcons,
             )
 
-            # create new fold_compound object
-            fc = RNA.fold_compound(data["seq"], md)
-            fc_u = RNA.fold_compound(data["seq"], md)
-            fc_p = RNA.fold_compound(data["seq"], md)
-
-            # call pf and prop calculation
-            gibbs = fc.pf()[1]
-            bppm = get_bppm(fc.bpp(), cstart, cend)
-
-            if bppm is None:
-                log.error(logid + "Empty bpp matrix returned, stopping here!")
-                return
-
-            # enforce paired
-            fc_p = constrain_paired(fc_p, s, e)
-            # enforce unpaired
-            fc_u = constrain_unpaired(fc_u, s, e)
-            # calculate probs and nrg
-            gibbs_u = calc_gibbs(fc_u)
-            bppm_u = get_bppm(fc_u.bpp(), cstart, cend)
-            dg_u = gibbs_u - gibbs
-
-            gibbs_p = calc_gibbs(fc_p)
-            bppm_p = get_bppm(fc_p.bpp(), cstart, cend)
-            dg_p = gibbs_p - gibbs
-
-            ###  access_energy([a, b]) = -RT log(prob([a, b]))
-            ###  prob([a, b]) = sum_{s in S[a, b]} exp(-E(s)/RT) / sum_{s in S0} exp(-E(s)/RT)
-            bpp = calc_bpp(bppm)
-            bpp_u = calc_bpp(bppm_u)
-            bpp_p = calc_bpp(bppm_p)
-            nrg = calc_nrg(bpp)
-            nrg_u = calc_nrg(bpp_u)
-            nrg_p = calc_nrg(bpp_p)
+            log.debug(logid + f"UNPAIRED: {fold_unpaired}")
 
             fn = "constraint"
 
@@ -960,7 +945,7 @@ def fold_unconstraint(seq, queue=None, configurer=None, level=None):
         if queue and level:
             configurer(queue, level)
 
-        fold_output = api_rnafold(seq, window, span)
+        fold_output = api_rnafold(seq, span)
 
         return fold_output
     except Exception:
@@ -1199,6 +1184,7 @@ def main(args=None):
             outdir,
             args.window,
             args.span,
+            args.temperature,
             args.unconstraint,
             args.unpaired,
             args.paired,
