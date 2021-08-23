@@ -90,6 +90,7 @@ from RIssmed.Tweaks.RNAtweaks import (
     _constrain_paired as constrain_paired,
     _constrain_unpaired as constrain_unpaired,
     get_location,
+    api_rnafold,
 )
 from RIssmed.Tweaks.NPtweaks import *
 from RIssmed.Tweaks.RIssmed import (
@@ -294,7 +295,7 @@ def fold(
                     pool.apply_async(
                         constrain_seq,
                         args=(
-                            fa,
+                            seq_record,
                             const,
                             conslength,
                             consstr,
@@ -376,7 +377,7 @@ def constrain_seq(
         if queue and level:
             configurer(queue, level)
 
-        seq = seq.upper().replace("T", "U")
+        seq = str(seq_record.seq).upper().replace("T", "U")
         goi, chrom, strand = idfromfa(seq_record.id)
         log.debug(logid + " Sequence to fold: " + str(seq))
 
@@ -408,7 +409,7 @@ def constrain_seq(
         # we no longer fold the whole sequence but only the constraint region +- window size
         if window is not None:
             if dist:
-                tostart, toend = expand_window(start, fend, window, dist)
+                tostart, toend = expand_window(start, fend, window, len(seq), dist)
                 log.debug(
                     logid
                     + "Considering distance "
@@ -421,7 +422,7 @@ def constrain_seq(
                     + str(toend)
                 )
             else:
-                tostart, toend = expand_window(start, fend, window)
+                tostart, toend = expand_window(start, fend, window, len(seq))
 
             if fend is not None and toend < fend:
                 log.warning(
@@ -470,21 +471,7 @@ def constrain_seq(
             )
 
         # get local start,ends 0 based closed
-        cstart, cend = localize_window(start, end, tostart, toend)
-
-        if cstart < 0 or cend > len(seq):
-            log.warning(
-                logid
-                + "start of constraint "
-                + str(cstart)
-                + " end of constraint "
-                + str(cend)
-                + " while length of sequence "
-                + str(len(seq))
-                + "! Skipping!"
-            )
-            return
-
+        cstart, cend = localize_window(start, end, tostart, toend, len(seq))
         checklist = []
 
         checklist.append((cstart, cend))
@@ -600,7 +587,7 @@ def constrain_seq(
                     ],
                 )
 
-            check.insert(0, "paired")
+            check = ("paired",) + check
 
             fold_unconst = api_rnafold(seqtofold, window, span)
 

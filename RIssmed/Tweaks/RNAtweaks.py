@@ -174,6 +174,8 @@ def _get_bppm(matrix, start, end):
                     bppm.append(
                         str.join("\t", [str(tmp.index(item)), str(i), str(item[i])])
                     )
+        if len(bppm) < 1:
+            log.error(logid + "Empty bpp matrix returned, stopping here!")
         return bppm
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -672,7 +674,7 @@ def get_location(entry):
 # Constraints
 
 
-def _constrain_paired(fc, start, end, fstart = None, fend = None):
+def _constrain_paired(fc, start, end, fstart=None, fend=None):
     """Adds hard constraint paired to region
 
     Parameters
@@ -714,7 +716,7 @@ def _constrain_paired(fc, start, end, fstart = None, fend = None):
         log.error(logid + "".join(tbe.format()))
 
 
-def _constrain_unpaired(fc, start, end, fstart = None, fend = None):
+def _constrain_unpaired(fc, start, end, fstart=None, fend=None):
     """Adds hard constraint unpaired to region
 
     Parameters
@@ -1016,7 +1018,18 @@ class FoldOutput(defaultdict):
         Annotation for file
     """
 
-    def __init__(self, text: str, condition: str = 'unconstraint', gibbs: float = None, constraint: str = None, bpp: float = None, bppm: np.array = None, nrg: float = None, ddg: float = None, dnrg: float = None):
+    def __init__(
+        self,
+        text: str,
+        condition: str = "unconstraint",
+        gibbs: float = None,
+        constraint: str = None,
+        bpp: float = None,
+        bppm: np.array = None,
+        nrg: float = None,
+        ddg: float = None,
+        dnrg: float = None,
+    ):
         """Output wrapper for RNAfold
 
         Parameters
@@ -1041,18 +1054,54 @@ class FoldOutput(defaultdict):
             Delta-Folding Pseudo-Energy, by default None
         """
 
-        assert any(condition == x for x in ["unconstraint", "constraint", "pairedconstraint", "constraint_unpaired", "constraint_paired", "secondconstraint_unpaired", "secondconstraint_paired", "bothconstraint_unpaired", "bothconstraint_paired"])
+        assert (
+            any(
+                condition == x
+                for x in [
+                    "unconstraint",
+                    "constraint",
+                    "pairedconstraint",
+                    "constraint_unpaired",
+                    "constraint_paired",
+                    "secondconstraint_unpaired",
+                    "secondconstraint_paired",
+                    "bothconstraint_unpaired",
+                    "bothconstraint_paired",
+                ]
+            )
+        ) == True
 
-        self[condition] = defaultdict
-        self[condition]['text'] = text
-        self[condition]['gibbs'] = gibbs
-        self[condition]['constraint'] = None
-        self[condition]['bppm'] = np.array()
-        self[condition]['bpp'] = None
-        self[condition]['nrg'] = None
-        self[condition]['ddg'] = None
-        self[condition]['dnrg'] = None
+        super(FoldOutput, self).__init__(defaultdict)
 
+        self[condition]["text"] = text
+        self[condition]["gibbs"] = gibbs
+        self[condition]["constraint"] = None
+        self[condition]["bppm"] = np.empty(2)
+        self[condition]["bpp"] = None
+        self[condition]["nrg"] = None
+        self[condition]["ddg"] = None
+        self[condition]["dnrg"] = None
+
+    def __getattr__(self, name):
+        if name in self:
+            return self[name]
+        else:
+            raise AttributeError("No such attribute: " + name)
+
+    def __setattr__(self, name, value):
+        self[name] = value
+
+    def __delattr__(self, name):
+        if name in self:
+            del self[name]
+        else:
+            raise AttributeError("No such attribute: " + name)
+
+    def __repr__(self):
+        return repr(dict(self))
+
+    def merge(self, *args):
+        self = merge_dicts(self, *args)
 
     def __eq__(self, other: FoldOutput):
         if self.__class__ != other.__class__:
@@ -1064,9 +1113,10 @@ class FoldOutput(defaultdict):
         else:
             return False
 
-    
     @classmethod
-    def from_RNAfold_file(cls, file_path: str, condition: str = 'unconstraint', constraint: str = None):
+    def from_RNAfold_file(
+        self, file_path: str, condition: str = "unconstraint", constraint: str = None
+    ):
         """creates FoldOutput from a file
 
          Parameters
@@ -1084,22 +1134,40 @@ class FoldOutput(defaultdict):
             FoldOutput object
         """
 
-        assert any(condition == x for x in ["unconstraint", "constraint", "pairedconstraint", "constraint_unpaired", "constraint_paired", "secondconstraint_unpaired", "secondconstraint_paired", "bothconstraint_unpaired", "bothconstraint_paired"])
+        assert (
+            any(
+                condition == x
+                for x in [
+                    "unconstraint",
+                    "constraint",
+                    "pairedconstraint",
+                    "constraint_unpaired",
+                    "constraint_paired",
+                    "secondconstraint_unpaired",
+                    "secondconstraint_paired",
+                    "bothconstraint_unpaired",
+                    "bothconstraint_paired",
+                ]
+            )
+            == True
+        )
         assert os.path.isfile(file_path), f"{file_path} is not a valid file path"
+
         if ".gz" in file_path:
             with gzip.open(file_path, "rt") as handle:
                 file_data = handle.readlines()
-                gibbs = file_data[2].split(' ')[1].strip("()")
+                gibbs = file_data[2].split(" ")[1].strip("()")
         else:
             with open(file_path, "r") as handle:
                 file_data = handle.readlines()
-                gibbs = file_data[2].split(' ')[1].strip("()")
+                gibbs = file_data[2].split(" ")[1].strip("()")
 
         return FoldOutput(file_data, condition, gibbs)
 
-
     @classmethod
-    def from_rissmed_fold_compound(cls, fc, condition: str = 'unconstraint', start: int, end: int):
+    def from_rissmed_fold_compound(
+        self, fc, condition: str = "unconstraint", start: int = None, end: int = None
+    ):
         """creates FoldOutput from original rissmed fold compound
 
          Parameters
@@ -1119,22 +1187,54 @@ class FoldOutput(defaultdict):
             FoldOutput object
         """
 
-        assert any(condition == x for x in ["unconstraint", "constraint", "pairedconstraint", "constraint_unpaired", "constraint_paired", "secondconstraint_unpaired", "secondconstraint_paired", "bothconstraint_unpaired", "bothconstraint_paired"])
+        assert any(
+            condition == x
+            for x in [
+                "unconstraint",
+                "constraint",
+                "pairedconstraint",
+                "constraint_unpaired",
+                "constraint_paired",
+                "secondconstraint_unpaired",
+                "secondconstraint_paired",
+                "bothconstraint_unpaired",
+                "bothconstraint_paired",
+            ]
+        )
 
-        cls[condition]['gibbs'] = calc_gibbs(fc)
-        cls[condition]['bppm'] = np.array(get_bppm(fc.bpp(), start, end))
-        cls[condition]['bpp'] = calc_bpp(cls[condition]['bppm'])
-        cls[condition]['nrg'] = calc_nrg(bpp)
+        log.debug(f"FC: {dir(fc)}")
 
-        if cls.get('unconstraint') and condition != 'unconstraint':
-            cls[condition]['ddg'] = cls['unconstraint']['gibbs'] - cls[condition]['gibbs']
-            cls[condition]['dnrg'] = cls['unconstraint']['nrg'] - cls[condition]['nrg']
+        self.update({condition: {"gibbs": _calc_gibbs(fc)}})
+        if not start and end:
+            start = 0
+            end = fc.length()
+
+        self.update({condition: {"bppm": np.array(_get_bppm(fc.bpp(), start, end))}})
+        self.update({condition: {"bpp": _calc_bpp(self[condition]["bppm"])}})
+        self.update({condition: {"nrg": _calc_nrg(self[condition]["bpp"])}})
+
+        if self.get("unconstraint") and condition != "unconstraint":
+            self.update(
+                {
+                    condition: {
+                        "ddg": {
+                            self["unconstraint"]["gibbs"] - self[condition]["gibbs"]
+                        }
+                    }
+                }
+            )
+            self.update(
+                {
+                    condition: {
+                        "dnrg": {self["unconstraint"]["nrg"] - self[condition]["nrg"]}
+                    }
+                }
+            )
         else:
-            cls[condition]['ddg'] = None
-            cls[condition]['dnrg'] = None
+            self.update({condition: {"ddg": None}})
+            self.update({condition: {"dnrg": None}})
 
-        return cls
-
+        return self
 
     @staticmethod
     def __sanitize(text: str):
@@ -1154,7 +1254,6 @@ class FoldOutput(defaultdict):
         text = text.replace("nan", "NA")
         return text
 
-
     @staticmethod
     def __array_to_string(array):
         array = np.array(array, dtype=float).round(7)
@@ -1166,14 +1265,36 @@ class FoldOutput(defaultdict):
         )
         return array_string
 
+    def __set_array(self, array: np.ndarray, condition: str = "unconstraint"):
+        """sets numpy array and ensures data type is float
 
-    def __set_array(self, condition: str = 'unconstraint', array: np.ndarray):
-        """sets numpy array and ensures data type is float"""
-         assert any(condition == x for x in ["unconstraint", "constraint", "pairedconstraint", "constraint_unpaired", "constraint_paired", "secondconstraint_unpaired", "secondconstraint_paired", "bothconstraint_unpaired", "bothconstraint_paired"])
+        Parameters
+        ----------
+        array : np.ndarray
+            Numpy array
+        condition : str, optional
+            Condition used for folding, by default 'unconstraint'
+        """
+
+        assert (
+            any(
+                condition == x
+                for x in [
+                    "unconstraint",
+                    "constraint",
+                    "pairedconstraint",
+                    "constraint_unpaired",
+                    "constraint_paired",
+                    "secondconstraint_unpaired",
+                    "secondconstraint_paired",
+                    "bothconstraint_unpaired",
+                    "bothconstraint_paired",
+                ]
+            )
+        ) == True
 
         array = np.array(array, dtype=float)
         self[condition]["bppm"] = array
-
 
     def get_text(self):
         """return formatted string output
@@ -1183,20 +1304,29 @@ class FoldOutput(defaultdict):
         formatted_string
             Contents of FoldOutput as formatted string
         """
-        
+
         formatted_string = list()
-        formatted_string.append(str.join("\t", [
-                                    "Condition",
-                                    "FreeNRG(gibbs)",
-                                    "deltaG",
-                                    "OpeningNRG",
-                                    "Constraint",
-                                ],
-                            )
-                            + "\n",)) 
+        formatted_string.append(
+            str.join(
+                "\t",
+                [
+                    "Condition",
+                    "FreeNRG(gibbs)",
+                    "deltaG",
+                    "OpeningNRG",
+                    "Constraint",
+                ],
+            )
+            + "\n",
+        )
         for condition in self.keys():
-            gibbs, ddg, nrg, const = [self[condition][x] for x in ['gibbs', 'ddg'. 'nrg', 'constraint']]
-            formatted_string.append(str.join("\t", [condition, str(gibbs), str(ddg), str(nrg), str(const)]) + "\n")
+            gibbs, ddg, nrg, const = [
+                self[condition][x] for x in ["gibbs", "ddg", "nrg", "constraint"]
+            ]
+            formatted_string.append(
+                str.join("\t", [condition, str(gibbs), str(ddg), str(nrg), str(const)])
+                + "\n"
+            )
         return formatted_string
 
 
@@ -1284,7 +1414,7 @@ def api_rnaplfold(
     span: int,
     region: int = 5,
     temperature: float = 37,
-    constraint: Iterable[Tuple] = None,
+    constraint: Iterable[Tuple[str, int, int]] = None,
 ) -> PLFoldOutput:
     """api wrapper for RNAplfold
 
@@ -1368,8 +1498,8 @@ def cmd_rnafold(
 
     Returns
     -------
-    PLFoldOutput
-        PLFoldOutput object
+    FoldOutput
+        FoldOutput object
     """
     with TemporaryDirectory() as tmp_dir, NamedTemporaryFile(
         mode="r+"
@@ -1419,7 +1549,7 @@ def api_rnafold(
     span: int,
     temperature: float = 37,
     constraint: Iterable[Tuple] = None,
-    FoldOut: FoldOutput object = None
+    FoldOut: FoldOutput = None,
 ) -> FoldOutput:
     """api wrapper for RNAfold
 
@@ -1443,8 +1573,9 @@ def api_rnafold(
         FoldOutput object
     """
 
+    logid = scriptn + ".api_rnafold: "
     # data
-    data = {"seq": seqtofold, "stru": []}
+    data = {"seq": sequence, "stru": []}
 
     # set model details
     md = RNA.md()
@@ -1460,16 +1591,24 @@ def api_rnafold(
             s, e, os, oe = [None, None, None, None]
             start = entry[1]
             end = entry[2]
-            fstart = entry[3] if len(entry > 2) else None
-            fend = entry[4] if len(entry > 3) else None
-            if any(mode == x for x in ["paired", "p", "constraint_paired"]): 
+            fend, fstart = [None, None]
+            if len(entry) > 3:
+                fstart = entry[3]
+                fend = entry[4]
+            log.debug(
+                logid
+                + f"Mode {mode}, start: {start}, end: {end}, fstart: {fstart}, fend: {fend}"
+            )
+            if any(mode == x for x in ["paired", "p", "constraint_paired"]):
                 fc = _constrain_paired(fc, start, end)
+                mode = "constraint_paired"
             elif mode == "secondconstraint_paired":
                 fc = _constrain_paired(fc, fstart, fend)
             elif mode == "bothconstraint_paired":
                 fc = _constrain_paired(fc, start, end, fstart, fend)
-            elif any(mode == x for x in ["unpaired", "u", "constraint_unpaired"]): 
+            elif any(mode == x for x in ["unpaired", "u", "constraint_unpaired"]):
                 fc = _constrain_unpaired(fc, start, end)
+                mode = "constraint_unpaired"
             elif mode == "secondconstraint_unpaired":
                 fc = _constrain_unpaired(fc, fstart, fend)
             elif mode == "bothconstraint_unpaired":
@@ -1478,14 +1617,12 @@ def api_rnafold(
                 raise ValueError(
                     "Constraint wrongly formatted. Has to be ('paired(p)'/'unpaired(u)', start, end)"
                 )
-    if not FoldOut:
-        FoldOut = FoldOutput('none', mode)
-    # call pf and prop calculation
-    FoldOut[mode]['gibbs'] = fc.pf()[1]
-    FoldOut[mode]['bppm'] = get_bppm(fc.bpp(), cstart, cend)
-
-    if bppm is None:
-        log.error(logid + "Empty bpp matrix returned, stopping here!")
+            if not FoldOut:
+                FoldOut = FoldOutput("none", mode)
+            # call pf and prop calculation
+            FoldOut.from_rissmed_fold_compound(fc, mode, 0, len(sequence))
+            # FoldOut[mode]["gibbs"] = fc.pf()[1]
+            # FoldOut[mode]["bppm"] = _get_bppm(fc.bpp(), 0, len(sequence))
 
     return FoldOut
 

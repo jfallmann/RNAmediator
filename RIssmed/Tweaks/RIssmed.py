@@ -496,7 +496,7 @@ def localize_pl_window(start, end, window, seqlen, multiplyer=2):
         log.error(logid + "".join(tbe.format()))
 
 
-def expand_window(start, end, window, dist=None):
+def expand_window(start, end, window, seqlen=None, dist=None):
     logid = SCRIPTNAME + ".expand_window: "
     try:
         if dist:
@@ -508,8 +508,8 @@ def expand_window(start, end, window, dist=None):
 
         if tostart < 0:
             tostart = 1
-        if toend > len(seq):
-            toend = len(seq)
+        if toend > seqlen:
+            toend = seqlen
         return [tostart, toend]
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -521,11 +521,25 @@ def expand_window(start, end, window, dist=None):
         log.error(logid + "".join(tbe.format()))
 
 
-def localize_window(start, end, tostart, toend):
+def localize_window(start, end, tostart, toend, seqlen=None):
     logid = SCRIPTNAME + ".localize_window: "
     try:
         wstart = start - tostart
         wend = end - tostart
+        if wstart < 0 or wend > seqlen:
+            log.error(
+                logid
+                + "start of constraint "
+                + str(wstart)
+                + " end of constraint "
+                + str(wend)
+                + " while length of sequence "
+                + str(seqlen)
+            )
+        if wstart < 0:
+            wstart = 0
+        if wend > seqlen:
+            wend = seqlen
         return [wstart, wend]
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
