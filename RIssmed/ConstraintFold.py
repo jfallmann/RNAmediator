@@ -597,15 +597,14 @@ def constrain_seq(
                 )
 
             Output = FoldOutput()
-            checku = ("paired",) + check
 
-            fold_unconst = api_rnafold(
+            Output = api_rnafold(
                 seqtofold, span, 37, None, FoldOut=Output, consstr=printcons
             )
+            log.debug(logid + f"UNCONSTOUT: {Output.items()}")
 
-            log.debug(f"FOLDOUT: {Output.items()}")
-
-            fold_paired = api_rnafold(
+            checku = ("paired",) + check
+            Output = api_rnafold(
                 seqtofold,
                 span,
                 37,
@@ -613,9 +612,10 @@ def constrain_seq(
                 FoldOut=Output,
                 consstr=printcons,
             )
-            checkp = ("unpaired",) + check
+            log.debug(logid + f"PAIREDOUT: {Output.items()}")
 
-            fold_unpaired = api_rnafold(
+            checkp = ("unpaired",) + check
+            Output = api_rnafold(
                 seqtofold,
                 span,
                 37,
@@ -623,8 +623,7 @@ def constrain_seq(
                 FoldOut=Output,
                 consstr=printcons,
             )
-
-            log.debug(logid + f"UNPAIRED: {fold_unpaired}")
+            log.debug(logid + f"UNPAIREDOUT: {Output.items()}")
 
             fn = "constraint"
 

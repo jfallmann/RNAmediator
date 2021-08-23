@@ -75,7 +75,10 @@ import numpy as np
 
 try:
     log = logging.getLogger(__name__)  # use module name
-    scriptn = __name__  # os.path.basename(inspect.stack()[-1].filename).replace('.py', '')
+    scriptn = (
+        __name__  # os.path.basename(inspect.stack()[-1].filename).replace('.py', '')
+    )
+    log.debug("LOGGING IN Argparsers" + str(scriptn) + str(log) + str(log.handlers))
 except Exception:
     exc_type, exc_value, exc_tb = sys.exc_info()
     tbe = tb.TracebackException(
@@ -83,7 +86,7 @@ except Exception:
         exc_value,
         exc_tb,
     )
-    print(''.join(tbe.format()), file=sys.stderr)
+    print("".join(tbe.format()), file=sys.stderr)
 
 
 ##############################
@@ -93,63 +96,86 @@ except Exception:
 
 def parseargs_plcons():
     parser = argparse.ArgumentParser(
-        description='Calculate base pairing probs of given seqs or random seqs for given window size, '
-        'span and region.'
+        description="Calculate base pairing probs of given seqs or random seqs for given window size, "
+        "span and region."
     )
-    parser.add_argument("-s", "--sequence", type=str, help='Sequence to fold')
-    parser.add_argument("-w", "--window", type=int, default=240, help='Size of window')
-    parser.add_argument("-l", "--span", type=int, default=60, help='Length of bp span')
-    parser.add_argument("-u", "--region", type=int, default=1, help='Length of region')
-    parser.add_argument("-m", "--multi", type=int, default=2, help='Multiplyer for window expansion')
-    parser.add_argument("-c", "--cutoff", type=float, default=-0.01, help='Only print prob greater cutoff')
+    parser.add_argument("-s", "--sequence", type=str, help="Sequence to fold")
+    parser.add_argument("-w", "--window", type=int, default=240, help="Size of window")
+    parser.add_argument("-l", "--span", type=int, default=60, help="Length of bp span")
+    parser.add_argument("-u", "--region", type=int, default=1, help="Length of region")
+    parser.add_argument(
+        "-m", "--multi", type=int, default=2, help="Multiplyer for window expansion"
+    )
+    parser.add_argument(
+        "-c",
+        "--cutoff",
+        type=float,
+        default=-0.01,
+        help="Only print prob greater cutoff",
+    )
     parser.add_argument(
         "-r",
         "--unconstraint",
         type=str,
-        default='STDOUT',
-        help='Print output of unconstraint folding to file with this name',
+        default="STDOUT",
+        help="Print output of unconstraint folding to file with this name",
     )
     parser.add_argument(
         "-n",
         "--unpaired",
         type=str,
-        default='STDOUT',
-        help='Print output of unpaired folding to file with this name',
+        default="STDOUT",
+        help="Print output of unpaired folding to file with this name",
     )
     parser.add_argument(
         "-p",
         "--paired",
         type=str,
-        default='STDOUT',
-        help='Print output of paired folding to file with this name',
+        default="STDOUT",
+        help="Print output of paired folding to file with this name",
     )
-    parser.add_argument("-e", "--length", type=int, default=100, help='Length of randseq')
-    parser.add_argument("--gc", type=int, default=0, help='GC content, needs to be %%2==0 or will be rounded')
-    parser.add_argument("-b", "--number", type=int, default=1, help='Number of random seqs to generate')
+    parser.add_argument(
+        "-e", "--length", type=int, default=100, help="Length of randseq"
+    )
+    parser.add_argument(
+        "--gc",
+        type=int,
+        default=0,
+        help="GC content, needs to be %%2==0 or will be rounded",
+    )
+    parser.add_argument(
+        "-b", "--number", type=int, default=1, help="Number of random seqs to generate"
+    )
     parser.add_argument(
         "-x",
         "--constrain",
         type=str,
-        default='sliding',
-        help='Region to constrain, either sliding window (default) or region to constrain (e.g. 1-10) '
-        'or path to file containing regions following the naming pattern $fastaID_constraints '
-        'e.g. Sequence1_constraints, if paired, the first entry of the file will become a fixed '
-        'constraint and paired with all the others, choices = [off,sliding,temperature, tempprobe,'
-        ' the string file or a filename, paired, or simply 1-10,2-11 or 1-10;15-20,2-11;16-21 '
-        'for paired or ono(oneonone),filename to use one line of constraint file for one '
-        'sequence from fasta]',
+        default="sliding",
+        help="Region to constrain, either sliding window (default) or region to constrain (e.g. 1-10) "
+        "or path to file containing regions following the naming pattern $fastaID_constraints "
+        "e.g. Sequence1_constraints, if paired, the first entry of the file will become a fixed "
+        "constraint and paired with all the others, choices = [off,sliding,temperature, tempprobe,"
+        " the string file or a filename, paired, or simply 1-10,2-11 or 1-10;15-20,2-11;16-21 "
+        "for paired or ono(oneonone),filename to use one line of constraint file for one "
+        "sequence from fasta]",
     )
     parser.add_argument(
-        "-y", "--conslength", type=int, default=1, help='Length of region to constrain for sliding window'
+        "-y",
+        "--conslength",
+        type=int,
+        default=1,
+        help="Length of region to constrain for sliding window",
     )
     parser.add_argument(
         "-t",
         "--temprange",
         type=str,
-        default='',
-        help='Temperature range for structure prediction (e.g. 37-60)',
+        default="",
+        help="Temperature range for structure prediction (e.g. 37-60)",
     )
-    parser.add_argument("-a", "--alphabet", type=str, default='AUCG', help='alphabet for random seqs')
+    parser.add_argument(
+        "-a", "--alphabet", type=str, default="AUCG", help="alphabet for random seqs"
+    )
     # parser.add_argument("--plot", type=str, default='0', choices=['0','svg', 'png'],
     # help='Create image of the (un-)constraint sequence, you can select the file format here (svg,png).
     # These images can later on be animated with ImageMagick like `convert -delay 120 -loop 0 *.svg animated.gif`.')
@@ -158,37 +184,53 @@ def parseargs_plcons():
         type=int,
         default=0,
         choices=[0, 1],
-        help='Save the output as numpy files only [0] or also as gzipped text files [1]',
+        help="Save the output as numpy files only [0] or also as gzipped text files [1]",
     )
-    parser.add_argument("-o", "--outdir", type=str, default='', help='Directory to write to')
     parser.add_argument(
-        "-z", "--procs", type=int, default=1, help='Number of parallel processes to run this job with'
+        "-o", "--outdir", type=str, default="", help="Directory to write to"
     )
-    parser.add_argument("--vrna", type=str, default='', help="Append path to vrna RNA module to sys.path")
+    parser.add_argument(
+        "-z",
+        "--procs",
+        type=int,
+        default=1,
+        help="Number of parallel processes to run this job with",
+    )
+    parser.add_argument(
+        "--vrna",
+        type=str,
+        default="",
+        help="Append path to vrna RNA module to sys.path",
+    )
     parser.add_argument(
         "--pattern",
         type=str,
-        default='',
+        default="",
         help="Helper var, only used if called from other prog where a pattern for files is defined",
     )
     parser.add_argument(
         "-g",
         "--genes",
         type=str,
-        default='',
-        help='Genomic coordinates bed for genes, either standard bed format or AnnotateBed.pl format',
+        default="",
+        help="Genomic coordinates bed for genes, either standard bed format or AnnotateBed.pl format",
     )
     parser.add_argument(
-        "-v", "--verbosity", type=int, default=0, choices=[0, 1], help="increase output verbosity"
+        "-v",
+        "--verbosity",
+        type=int,
+        default=0,
+        choices=[0, 1],
+        help="increase output verbosity",
     )
     parser.add_argument(
         "--loglevel",
         type=str,
-        default='WARNING',
-        choices=['WARNING', 'ERROR', 'INFO', 'DEBUG'],
+        default="WARNING",
+        choices=["WARNING", "ERROR", "INFO", "DEBUG"],
         help="Set log level",
     )
-    parser.add_argument("--logdir", type=str, default='LOGS', help="Set log directory")
+    parser.add_argument("--logdir", type=str, default="LOGS", help="Set log directory")
 
     if len(sys.argv) == 1:
         parser.print_help(sys.stderr)
@@ -199,65 +241,81 @@ def parseargs_plcons():
 
 def parseargs_collectpl():
     parser = argparse.ArgumentParser(
-        description='Calculate the regions with highest accessibility diff for given Sequence Pattern'
+        description="Calculate the regions with highest accessibility diff for given Sequence Pattern"
     )
     parser.add_argument(
-        "-p", "--pattern", type=str, default='250,150', help='Pattern for files and window, e.g. Seq1_30,250'
+        "-p",
+        "--pattern",
+        type=str,
+        default="250,150",
+        help="Pattern for files and window, e.g. Seq1_30,250",
     )
     parser.add_argument(
         "-c",
         "--cutoff",
         type=float,
         default=0.2,
-        help='Cutoff for the definition of pairedness, '
-        'if set to e.g. 0.2 it will mark all regions with '
-        'probability of being unpaired >= cutoff as unpaired',
+        help="Cutoff for the definition of pairedness, "
+        "if set to e.g. 0.2 it will mark all regions with "
+        "probability of being unpaired >= cutoff as unpaired",
     )
     parser.add_argument(
         "-b",
         "--border",
         type=float,
         default=0.0,
-        help='Cutoff for the minimum change between unconstraint and constraint structure, '
-        'regions below this cutoff will not be returned as list of regions with '
-        'most impact on structure.',
+        help="Cutoff for the minimum change between unconstraint and constraint structure, "
+        "regions below this cutoff will not be returned as list of regions with "
+        "most impact on structure.",
     )
     parser.add_argument(
         "-u",
         "--ulimit",
         type=int,
         default=1,
-        help='Stretch of nucleotides used during plfold run (-u option)',
+        help="Stretch of nucleotides used during plfold run (-u option)",
     )
     parser.add_argument(
-        "-r", "--roi", type=str, default=None, help='Define Region of Interest that will be compared'
+        "-r",
+        "--roi",
+        type=str,
+        default=None,
+        help="Define Region of Interest that will be compared",
     )
-    parser.add_argument("-o", "--outdir", type=str, default='', help='Directory to write to')
-    parser.add_argument("-d", "--dir", type=str, default='', help='Directory to read from')
+    parser.add_argument(
+        "-o", "--outdir", type=str, default="", help="Directory to write to"
+    )
+    parser.add_argument(
+        "-d", "--dir", type=str, default="", help="Directory to read from"
+    )
     parser.add_argument(
         "-g",
         "--genes",
         type=str,
-        help='Genomic coordinates bed for genes, either standard bed format or AnnotateBed.pl format',
+        help="Genomic coordinates bed for genes, either standard bed format or AnnotateBed.pl format",
     )
     parser.add_argument(
-        "-z", "--procs", type=int, default=1, help='Number of parallel processes to run this job with'
+        "-z",
+        "--procs",
+        type=int,
+        default=1,
+        help="Number of parallel processes to run this job with",
     )
     parser.add_argument(
         "--loglevel",
         type=str,
-        default='WARNING',
-        choices=['WARNING', 'ERROR', 'INFO', 'DEBUG'],
+        default="WARNING",
+        choices=["WARNING", "ERROR", "INFO", "DEBUG"],
         help="Set log level",
     )
-    parser.add_argument("--logdir", type=str, default='LOGS', help="Set log directory")
+    parser.add_argument("--logdir", type=str, default="LOGS", help="Set log directory")
     parser.add_argument(
         "-w",
         "--padding",
         type=int,
         default=1,
-        help='Padding around constraint that will be excluded from report, default is 1, '
-        'so directly overlapping effects will be ignored',
+        help="Padding around constraint that will be excluded from report, default is 1, "
+        "so directly overlapping effects will be ignored",
     )
 
     if len(sys.argv) == 1:
@@ -269,33 +327,39 @@ def parseargs_collectpl():
 
 def parseargs_foldcons():
     parser = argparse.ArgumentParser(
-        description='Calculate base pairing probs of given seqs or random seqs for given window size, span and region.'
+        description="Calculate base pairing probs of given seqs or random seqs for given window size, span and region."
     )
-    parser.add_argument("-s", "--sequence", type=str, help='Sequence to fold')
-    parser.add_argument("-w", "--window", type=int, default=None, help='Size of window')
-    parser.add_argument("-l", "--span", type=int, default=None, help='Maximum bp span')
-    parser.add_argument("-c", "--cutoff", type=float, default=-0.01, help='Only print prob greater cutoff')
+    parser.add_argument("-s", "--sequence", type=str, help="Sequence to fold")
+    parser.add_argument("-w", "--window", type=int, default=None, help="Size of window")
+    parser.add_argument("-l", "--span", type=int, default=None, help="Maximum bp span")
+    parser.add_argument(
+        "-c",
+        "--cutoff",
+        type=float,
+        default=-0.01,
+        help="Only print prob greater cutoff",
+    )
     parser.add_argument(
         "-r",
         "--unconstraint",
         type=str,
-        default='STDOUT',
-        help='Print output of unconstraint folding to file with this name,'
+        default="STDOUT",
+        help="Print output of unconstraint folding to file with this name,"
         ' use "STDOUT" to print to STDOUT (default)',
     )
     parser.add_argument(
         "-n",
         "--unpaired",
         type=str,
-        default='STDOUT',
-        help='Print output of unpaired folding to file with this name',
+        default="STDOUT",
+        help="Print output of unpaired folding to file with this name",
     )
     parser.add_argument(
         "-p",
         "--paired",
         type=str,
-        default='STDOUT',
-        help='Print output of paired folding to file with this name',
+        default="STDOUT",
+        help="Print output of paired folding to file with this name",
     )
     # parser.add_argument("-e", "--length", type=int, default=100, help='Length of randseq')
     # parser.add_argument("--gc", type=int, default=0, help='GC content, needs to be %%2==0 or will be rounded')
@@ -304,58 +368,77 @@ def parseargs_foldcons():
         "-x",
         "--constrain",
         type=str,
-        default='sliding',
-        help='Region to constrain, either sliding window (default) or region to constrain (e.g. 1-10) '
-        'or path to file containing regions following the naming pattern $fastaID_constraints, '
-        'if paired, the first entry of the file will become a fixed constraint and paired '
-        'with all the others, e.g. Sequence1_constraints, '
-        'choices = [off,sliding,temperature, tempprobe, file, paired,'
-        ' or simply 1-10,2-11 or 1-10;15-20,2-11:16-21 for paired]',
+        default="sliding",
+        help="Region to constrain, either sliding window (default) or region to constrain (e.g. 1-10) "
+        "or path to file containing regions following the naming pattern $fastaID_constraints, "
+        "if paired, the first entry of the file will become a fixed constraint and paired "
+        "with all the others, e.g. Sequence1_constraints, "
+        "choices = [off,sliding,temperature, tempprobe, file, paired,"
+        " or simply 1-10,2-11 or 1-10;15-20,2-11:16-21 for paired]",
     )
     parser.add_argument(
-        "-y", "--conslength", type=int, default=0, help='Length of region to constrain for slidingwindow'
+        "-y",
+        "--conslength",
+        type=int,
+        default=0,
+        help="Length of region to constrain for slidingwindow",
     )
-    # parser.add_argument(
-    #    "-t",
-    #    "--temprange",
-    #    type=str,
-    #    default='',
-    #    help='Temperature range for structure prediction (e.g. 37-60)',
-    # )
-    parser.add_argument("-a", "--alphabet", type=str, default='AUCG', help='alphabet for random seqs')
+    parser.add_argument(
+        "-t",
+        "--temperature",
+        type=int,
+        default=37,
+        help="Temperature for structure prediction",
+    )
+    parser.add_argument(
+        "-a", "--alphabet", type=str, default="AUCG", help="alphabet for random seqs"
+    )
     # parser.add_argument("--plot", type=str, default='0', choices=['0','svg', 'png'],
     # help='Create image of the (un-)constraint sequence, you can select the file format here (svg,png).
     # These images can later on be animated with ImageMagick like `convert -delay 120 -loop 0 *.svg animated.gif`.')
-    parser.add_argument("--save", type=int, default=1, help='Save the output as gz files')
-    parser.add_argument("-o", "--outdir", type=str, default='', help='Directory to write to')
     parser.add_argument(
-        "-z", "--procs", type=int, default=1, help='Number of parallel processes to run this job with'
+        "--save", type=int, default=1, help="Save the output as gz files"
+    )
+    parser.add_argument(
+        "-o", "--outdir", type=str, default="", help="Directory to write to"
+    )
+    parser.add_argument(
+        "-z",
+        "--procs",
+        type=int,
+        default=1,
+        help="Number of parallel processes to run this job with",
     )
     # parser.add_argument("--vrna", type=str, default='', help="Append path to vrna RNA module to sys.path")
     parser.add_argument(
         "--pattern",
         type=str,
-        default='',
+        default="",
         help="Helper var, only used if called from other prog where a pattern for files is defined",
     )
     parser.add_argument(
         "-g",
         "--genes",
         type=str,
-        default='',
-        help='Genomic coordinates bed for genes, either standard bed format or AnnotateBed.pl format',
+        default="",
+        help="Genomic coordinates bed for genes, either standard bed format or AnnotateBed.pl format",
     )
     parser.add_argument(
-        "-v", "--verbosity", type=int, default=0, choices=[0, 1], help="increase output verbosity"
+        "-v",
+        "--verbosity",
+        type=int,
+        default=0,
+        choices=[0, 1],
+        help="increase output verbosity",
     )
     parser.add_argument(
         "--loglevel",
         type=str,
-        default='WARNING',
-        choices=['WARNING', 'ERROR', 'INFO', 'DEBUG'],
+        default="WARNING",
+        choices=["WARNING", "ERROR", "INFO", "DEBUG"],
         help="Set log level",
     )
-    parser.add_argument("--logdir", type=str, default='LOGS', help="Set log directory")
+    parser.add_argument("--logdir", type=str, default="LOGS", help="Set log directory")
 
     if len(sys.argv) == 1:
         parser.print_help(sys.stderr)
@@ -366,44 +449,50 @@ def parseargs_foldcons():
 
 def parseargs_collect_window():
     parser = argparse.ArgumentParser(
-        description='Calculate the regions with highest accessibility diff for given Sequence Pattern'
+        description="Calculate the regions with highest accessibility diff for given Sequence Pattern"
     )
     parser.add_argument(
-        "-p", "--pattern", type=str, default='250,150', help='Pattern for files and window, e.g. Seq1_30,250'
+        "-p",
+        "--pattern",
+        type=str,
+        default="250,150",
+        help="Pattern for files and window, e.g. Seq1_30,250",
     )
     parser.add_argument(
         "-b",
         "--border",
         type=str,
-        default='',
-        help='Cutoff for the minimum change between unconstraint and constraint structure,'
-        ' regions below this cutoff will not be returned as list of regions with most '
-        'impact on structure. If not defined, will be calculated from folding the sequence of '
-        'interest at temperature range 30-44.',
+        default="",
+        help="Cutoff for the minimum change between unconstraint and constraint structure,"
+        " regions below this cutoff will not be returned as list of regions with most "
+        "impact on structure. If not defined, will be calculated from folding the sequence of "
+        "interest at temperature range 30-44.",
     )
-    parser.add_argument("-o", "--outdir", type=str, default='', help='Directory to write to')
+    parser.add_argument(
+        "-o", "--outdir", type=str, default="", help="Directory to write to"
+    )
     parser.add_argument(
         "-g",
         "--genes",
         type=str,
-        help='Genomic coordinates bed for genes, either standard bed format or AnnotateBed.pl format',
+        help="Genomic coordinates bed for genes, either standard bed format or AnnotateBed.pl format",
     )
     parser.add_argument(
         "-z",
         "--procs",
         type=int,
         default=1,
-        help='Number of parallel processed to run this job with,'
-        ' only important of no border is given and we need to fold',
+        help="Number of parallel processed to run this job with,"
+        " only important of no border is given and we need to fold",
     )
     parser.add_argument(
         "--loglevel",
         type=str,
-        default='WARNING',
-        choices=['WARNING', 'ERROR', 'INFO', 'DEBUG'],
+        default="WARNING",
+        choices=["WARNING", "ERROR", "INFO", "DEBUG"],
         help="Set log level",
     )
-    parser.add_argument("--logdir", type=str, default='LOGS', help="Set log directory")
+    parser.add_argument("--logdir", type=str, default="LOGS", help="Set log directory")
 
     if len(sys.argv) == 1:
         parser.print_help(sys.stderr)
@@ -413,19 +502,28 @@ def parseargs_collect_window():
 
 
 def visualiziation_parser():
-    parser = argparse.ArgumentParser(description="Visualize RIssmed Output using bed files")
+    parser = argparse.ArgumentParser(
+        description="Visualize RIssmed Output using bed files"
+    )
     parser.add_argument("-f", "--file", type=str, help="Path to the RIssmed BED file")
     parser.add_argument(
-        "-t", "--tmp", action="store_true", help="Will produce the database and store it in a tmp file"
+        "-t",
+        "--tmp",
+        action="store_true",
+        help="Will produce the database and store it in a tmp file",
     )
     parser.add_argument(
-        "-m", "--memory", action="store_true", help="Will store database in memory overrides tmp flag"
+        "-m",
+        "--memory",
+        action="store_true",
+        help="Will store database in memory overrides tmp flag",
     )
     parser.add_argument(
         "-d",
         "--database",
         type=str,
-        help="path to store the database file. If it already exists " "this file is used and -f is ignored",
+        help="path to store the database file. If it already exists "
+        "this file is used and -f is ignored",
     )
     return parser.parse_args()
 

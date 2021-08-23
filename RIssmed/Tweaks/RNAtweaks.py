@@ -1072,7 +1072,7 @@ class FoldOutput(defaultdict):
         self[condition].update({"text": text})
         self[condition].update({"gibbs": gibbs})
         self[condition].update({"constraint": None})
-        self[condition].update({"bppm": np.empty(2)})
+        self[condition].update({"bppm": np.empty(0)})
         self[condition].update({"bpp": None})
         self[condition].update({"nrg": None})
         self[condition].update({"ddg": None})
@@ -1220,6 +1220,8 @@ class FoldOutput(defaultdict):
         self[condition].update({"constraint": constr})
         gibbs = _calc_gibbs(fc)
         self[condition].update({"gibbs": gibbs})
+        log.debug(f"RIssmed_OUTPUT {condition}: {[self.items()]}")
+
         if not start and end:
             start = 0
             end = fc.length
@@ -1231,8 +1233,6 @@ class FoldOutput(defaultdict):
         self[condition].update({"bpp": bpp})
         nrg = _calc_nrg(bpp)
         self[condition].update({"nrg": nrg})
-
-        log.debug(f"OUTPUT: {[self.items()]}")
 
         if self.get("unconstraint") and condition != "unconstraint":
             self[condition].update({"ddg": {self["unconstraint"]["gibbs"] - gibbs}})
@@ -1645,12 +1645,24 @@ def api_rnafold(
                         ),
                     ],
                 )
+
             if not FoldOut:
+                log.warning(logid + "Creating new FoldOutput object")
                 FoldOut = FoldOutput("none", mode)
             # call pf and prop calculation
             FoldOut.from_rissmed_fold_compound(fc, mode, consstr, 0, len(sequence))
+            log.debug(f"AFTFOLDING: {FoldOut.items()}")
             # FoldOut[mode]["gibbs"] = fc.pf()[1]
             # FoldOut[mode]["bppm"] = _get_bppm(fc.bpp(), 0, len(sequence))
+
+    else:
+        consstr = mode = "unconstraint"
+        if not FoldOut:
+            log.warning(logid + "Creating new FoldOutput object")
+            FoldOut = FoldOutput("none", mode)
+        # call pf and prop calculation
+        FoldOut.from_rissmed_fold_compound(fc, mode, consstr, 0, len(sequence))
+        log.debug(f"AFTFOLDING: {FoldOut.items()}")
 
     return FoldOut
 
