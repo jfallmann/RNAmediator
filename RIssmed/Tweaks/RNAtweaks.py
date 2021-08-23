@@ -672,7 +672,7 @@ def get_location(entry):
 # Constraints
 
 
-def _constrain_paired(fc, start, end):
+def _constrain_paired(fc, start, end, fstart = None, fend = None):
     """Adds hard constraint paired to region
 
     Parameters
@@ -683,6 +683,10 @@ def _constrain_paired(fc, start, end):
         Start of constraint
     end : int
         End of constraint
+    fstart : int
+        Start of second constraint
+    fend : int
+        End of second constraint
 
     Returns
     -------
@@ -696,6 +700,9 @@ def _constrain_paired(fc, start, end):
             # 0 means without direction
             # ( $ d < 0 $: pairs upstream, $ d > 0 $: pairs downstream, $ d == 0 $: no direction)
             fc.hc_add_bp_nonspecific(x, 0)
+        if fstart and fend:
+            for x in range(fstart + 1, fend + 1):
+                fc.hc_add_bp_nonspecific(x, 0)
         return fc
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -707,7 +714,7 @@ def _constrain_paired(fc, start, end):
         log.error(logid + "".join(tbe.format()))
 
 
-def _constrain_unpaired(fc, start, end):
+def _constrain_unpaired(fc, start, end, fstart = None, fend = None):
     """Adds hard constraint unpaired to region
 
     Parameters
@@ -718,6 +725,10 @@ def _constrain_unpaired(fc, start, end):
         Start of constraint
     end : int
         End of constraint
+    fstart : int
+        Start of second constraint
+    fend : int
+        End of second constraint
 
     Returns
     -------
@@ -729,6 +740,9 @@ def _constrain_unpaired(fc, start, end):
     try:
         for x in range(start + 1, end + 1):
             fc.hc_add_up(x)
+        if fstart and fend:
+            for x in range(fstart + 1, fend + 1):
+                fc.hc_add_up(x)
         return fc
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -1052,7 +1066,7 @@ class FoldOutput(defaultdict):
 
     
     @classmethod
-    def from_RNAfold_file(cls, file_path: str, condition: str = 'raw', constraint: str = None):
+    def from_RNAfold_file(cls, file_path: str, condition: str = 'unconstraint', constraint: str = None):
         """creates FoldOutput from a file
 
          Parameters
@@ -1070,6 +1084,7 @@ class FoldOutput(defaultdict):
             FoldOutput object
         """
 
+        assert any(condition == x for x in ["unconstraint", "constraint", "pairedconstraint", "constraint_unpaired", "constraint_paired", "secondconstraint_unpaired", "secondconstraint_paired", "bothconstraint_unpaired", "bothconstraint_paired"])
         assert os.path.isfile(file_path), f"{file_path} is not a valid file path"
         if ".gz" in file_path:
             with gzip.open(file_path, "rt") as handle:
@@ -1325,9 +1340,82 @@ def api_rnaplfold(
     return pl_output
 
 
-def api_rnafold(
+def cmd_rnafold(
     sequence: str,
     window: int,
+    span: int,
+    region: int = 30,
+    temperature: float = 37,
+    constraint: Iterable[Tuple[str, int, int]] = None,
+) -> PLFoldOutput:
+    """command line wrapper for RNAplfold
+
+    Parameters
+    ----------
+     sequence : str
+        string representation of the sequence either RNA or DNA
+     window : int
+        RNAplfold window option
+     span: int
+         RNAplfold span option
+     region: int, optional
+         RNAplfold region (u) option (default is 30)
+     temperature: float
+         RNAplfold temperature setting
+     constraint: Iterable[Tuple[str, int, int]], optional
+         Constraints as Tuple in format (paired(p)/unpaired(u), start, end) (default is None)
+         !!Warning!! ZERO BASED !!Warning!!
+
+    Returns
+    -------
+    PLFoldOutput
+        PLFoldOutput object
+    """
+    with TemporaryDirectory() as tmp_dir, NamedTemporaryFile(
+        mode="r+"
+    ) as constraint_file:
+        constraint_string = ""
+        if constraint is not None:
+            for entry in constraint:
+                mode = entry[0]
+                start = entry[1]
+                end = entry[2]
+                if mode == "paired" or mode == "p":
+                    const = "F"
+                elif mode == "unpaired" or mode == "u":
+                    const = "P"
+                else:
+                    raise ValueError(
+                        "Constraint wrongly formatted. Has to be ('paired(p)'/'unpaired(u)', start, end)"
+                    )
+                constraint_string += f"{const} {start+1} {0} {end - start}\n"
+        constraint_file.write(constraint_string)
+        constraint_file.seek(0)
+
+        rnafold = subprocess.Popen(
+            [
+                "RNAfold",
+                "--maxBPspan",
+                str(span),
+                "--commands",
+                constraint_file.name,
+                "-T",
+                str(temperature),
+            ],
+            stderr=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stdin=subprocess.PIPE,
+            cwd=tmp_dir,
+        )
+        stdout, stderr = rnafold.communicate(sequence.encode("utf-8"))
+        assert stderr == b"", f"call to RNAfold went wrong: \n {stderr.decode()}"
+        file = os.path.join(tmp_dir, "sequence_0001_lunp")
+        rnafold_output = FoldOutput.from_RNAfold_file(file)
+        return rnafold_output
+
+
+def api_rnafold(
+    sequence: str,
     span: int,
     temperature: float = 37,
     constraint: Iterable[Tuple] = None,
@@ -1339,8 +1427,6 @@ def api_rnafold(
     ----------
      sequence : str
         string representation of the sequence either RNA or DNA
-     window : int
-        RNAfold window option
      span: int
          RNAfold basepair span option
      temperature: float
@@ -1381,15 +1467,13 @@ def api_rnafold(
             elif mode == "secondconstraint_paired":
                 fc = _constrain_paired(fc, fstart, fend)
             elif mode == "bothconstraint_paired":
-                fc = _constrain_paired(fc, start, end)
-                fc = _constrain_paired(fc, fstart, fend)
+                fc = _constrain_paired(fc, start, end, fstart, fend)
             elif any(mode == x for x in ["unpaired", "u", "constraint_unpaired"]): 
                 fc = _constrain_unpaired(fc, start, end)
             elif mode == "secondconstraint_unpaired":
                 fc = _constrain_unpaired(fc, fstart, fend)
             elif mode == "bothconstraint_unpaired":
-                fc = _constrain_unpaired(fc, start, end)
-                fc = _constrain_unpaired(fc, fstart, fend)
+                fc = _constrain_unpaired(fc, start, end, fstart, fend)
             else:
                 raise ValueError(
                     "Constraint wrongly formatted. Has to be ('paired(p)'/'unpaired(u)', start, end)"
