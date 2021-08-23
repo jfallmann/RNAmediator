@@ -186,7 +186,7 @@ def _get_bppm(matrix, start, end):
 
 
 def _get_ddg(file):
-    """Calcuates Delta-Delta Gibbs Free Energy for sequence
+    """Derives Delta-Delta Gibbs Free Energy for sequence from output file
 
     Parameters
     ----------
@@ -956,7 +956,7 @@ class PLFoldOutput:
         self.text = self.__sanitize("\n".join(text_list))
 
     def get_text(self, nan="NA", truncated=True) -> str:
-        """get string of the unpaired probabiity file
+        """get string of the unpaired probability file
 
          Parameters
         ----------
@@ -991,41 +991,79 @@ class PLFoldOutput:
         return array
 
 
-class FoldOutput:
+class FoldOutput(defaultdict):
     """Output wrapper for ouput files of RNAfold
 
      Attributes
     ----------
      text : str
         string representation of an RNAfold output file.
+     anno : str, optional
+        Annotation for file
     """
 
-    def __init__(self, text: str):
-        self.text = self.__sanitize(text)
-        self._gibbs = None
-        self._bppm = np.array()
+    def __init__(self, text: str, condition: str = 'unconstraint', gibbs: float = None, constraint: str = None, bpp: float = None, bppm: np.array = None, nrg: float = None, ddg: float = None, dnrg: float = None):
+        """Output wrapper for RNAfold
 
-    def __str__(self):
-        return self.text
+        Parameters
+        ----------
+        text : str
+            string representation of an RNAfold output file
+        condition : str, optional
+            Condition used for folding, by default 'raw'
+        gibbs : float, optional
+            Gibbs Free Energy, by default None
+        constraint : str, optional
+            Constraint applied for folding, by default None
+        bpp : float, optional
+            Base-Pairing Probability, by default None
+        bppm : np.array, optional
+            BasePairProbability matrix, by default None
+        nrg : float, optional
+            Folding Pseudo-Energy, by default None
+        ddg : float, optional
+            Delta-delta-Gibbs to unconstraint, by default None
+        dnrg : float, optional
+            Delta-Folding Pseudo-Energy, by default None
+        """
+
+        assert any(condition == x for x in ["unconstraint", "constraint", "pairedconstraint", "constraint_unpaired", "constraint_paired", "secondconstraint_unpaired", "secondconstraint_paired", "bothconstraint_unpaired", "bothconstraint_paired"])
+
+        self[condition] = defaultdict
+        self[condition]['text'] = text
+        self[condition]['gibbs'] = gibbs
+        self[condition]['constraint'] = None
+        self[condition]['bppm'] = np.array()
+        self[condition]['bpp'] = None
+        self[condition]['nrg'] = None
+        self[condition]['ddg'] = None
+        self[condition]['dnrg'] = None
+
 
     def __eq__(self, other: FoldOutput):
         if self.__class__ != other.__class__:
             raise NotImplementedError
-        if np.assert_almost_equal(self, other) and np.allclose(
+        if np.assert_almost_equal(self._bppm, other._bppm) and np.allclose(
             self.bppm, other.bppm, equal_nan=True, atol=0.0000001, rtol=0
         ):
             return True
         else:
             return False
 
+    
     @classmethod
-    def from_file(cls, file_path: str):
+    def from_RNAfold_file(cls, file_path: str, condition: str = 'raw', constraint: str = None):
         """creates FoldOutput from a file
 
          Parameters
         ----------
          file_path : str
             file location of the output file
+         condition : str, optional
+            which folding condition, e.g. raw, constraint, constraint-paired
+         constraint : str, optional
+            which constraint was applied when folding
+
          Returns
         -------
         FoldOutput
@@ -1035,50 +1073,53 @@ class FoldOutput:
         assert os.path.isfile(file_path), f"{file_path} is not a valid file path"
         if ".gz" in file_path:
             with gzip.open(file_path, "rt") as handle:
-                file_data = handle.read()
+                file_data = handle.readlines()
+                gibbs = file_data[2].split(' ')[1].strip("()")
         else:
             with open(file_path, "r") as handle:
-                file_data = handle.read()
-        return FoldOutput(file_data)
+                file_data = handle.readlines()
+                gibbs = file_data[2].split(' ')[1].strip("()")
+
+        return FoldOutput(file_data, condition, gibbs)
+
 
     @classmethod
-    def from_rissmed_numpy_output(cls, file_path: str):
-        """creates FoldOutput from original rissmed np arrays
+    def from_rissmed_fold_compound(cls, fc, condition: str = 'unconstraint', start: int, end: int):
+        """creates FoldOutput from original rissmed fold compound
 
          Parameters
         ----------
-         file_path : str
-            file location of the rissmed numpy array
+         fc : fold_compound object
+            ViennaRNA fold_compound object
+         condition: str
+            Condition for folding
+         start: int
+            Start of folding window
+         end: int
+            End of folding window
+
          Returns
         -------
         FoldOutput
             FoldOutput object
         """
-        assert os.path.isfile(file_path), f"{file_path} is not a valid file path"
-        ris_array = np.load(file_path)
-        array = np.squeeze(ris_array)
-        array_string = cls.__array_to_string(array)
-        output = FoldOutput(array_string)
-        output.__set_array(array)
-        return output
 
-    @classmethod
-    def from_numpy(cls, array: np.ndarray):
-        """creates FoldOutput from np arrays
+        assert any(condition == x for x in ["unconstraint", "constraint", "pairedconstraint", "constraint_unpaired", "constraint_paired", "secondconstraint_unpaired", "secondconstraint_paired", "bothconstraint_unpaired", "bothconstraint_paired"])
 
-         Parameters
-        ----------
-         array : np.ndarray
-            array containing unpaired probabilities
-         Returns
-        -------
-        PLFoldOutput
-            PLFoldOutput object
-        """
-        array_string = cls.__array_to_string(array)
-        output = PLFoldOutput(array_string)
-        output.__set_array(array)
-        return output
+        cls[condition]['gibbs'] = calc_gibbs(fc)
+        cls[condition]['bppm'] = np.array(get_bppm(fc.bpp(), start, end))
+        cls[condition]['bpp'] = calc_bpp(cls[condition]['bppm'])
+        cls[condition]['nrg'] = calc_nrg(bpp)
+
+        if cls.get('unconstraint') and condition != 'unconstraint':
+            cls[condition]['ddg'] = cls['unconstraint']['gibbs'] - cls[condition]['gibbs']
+            cls[condition]['dnrg'] = cls['unconstraint']['nrg'] - cls[condition]['nrg']
+        else:
+            cls[condition]['ddg'] = None
+            cls[condition]['dnrg'] = None
+
+        return cls
+
 
     @staticmethod
     def __sanitize(text: str):
@@ -1098,6 +1139,7 @@ class FoldOutput:
         text = text.replace("nan", "NA")
         return text
 
+
     @staticmethod
     def __array_to_string(array):
         array = np.array(array, dtype=float).round(7)
@@ -1109,72 +1151,38 @@ class FoldOutput:
         )
         return array_string
 
-    def __set_array(self, array: np.ndarray):
+
+    def __set_array(self, condition: str = 'unconstraint', array: np.ndarray):
         """sets numpy array and ensures data type is float"""
+         assert any(condition == x for x in ["unconstraint", "constraint", "pairedconstraint", "constraint_unpaired", "constraint_paired", "secondconstraint_unpaired", "secondconstraint_paired", "bothconstraint_unpaired", "bothconstraint_paired"])
+
         array = np.array(array, dtype=float)
-        self._numpy_array = array
+        self[condition]["bppm"] = array
 
-    @property
-    def numpy_array(self):
-        """numpy array representation of lunpaired file"""
-        if self._numpy_array is None:
-            array = []
-            for line in self.text.split("\n"):
-                if (
-                    not line.startswith("#")
-                    and not line.startswith(" #")
-                    and not line == ""
-                ):
-                    data = line.split("\t")[1:]
-                    data = [float(x) if x != "NA" else np.nan for x in data]
-                    array.append(data)
-            array = np.array(array, dtype=float)
-            self.__set_array(array)
-        return self._numpy_array
 
-    def localize(self, start: int, end: int):
-        """trims the output (zero based)"""
-        if self._numpy_array is not None:
-            self._numpy_array = self._numpy_array[start:end]
-        text_list = self.text.split("\n")[start + 2 : end + 2]
-        for x, item in enumerate(text_list):
-            text_list[x] = "\t".join([str(x + 1)] + item.split("\t")[1:])
-        self.text = self.__sanitize("\n".join(text_list))
+    def get_text(self):
+        """return formatted string output
 
-    def get_text(self, nan="NA", truncated=True) -> str:
-        """get string of the unpaired probabiity file
-
-         Parameters
-        ----------
-         nan : str, optional
-            replaces not a number with this string (default is as original output 'NA')
-         truncated : bool, optional
-            choose whether the starting # lines should be included in the string
-            (default is True)
-
-         Returns
+        Returns
         -------
-        str
-            string representation of the unpaired probability output
+        formatted_string
+            Contents of FoldOutput as formatted string
         """
-        out_string = self.text
-        if truncated:
-            out_string = "\n".join(out_string.split("\n")[2:])
-        out_string = out_string.replace("NA", nan)
-        return out_string
-
-    def get_rissmed_np_array(self) -> np.ndarray:
-        """get original RIssmed numpy array output
-
-         Returns
-        -------
-        np.ndarray
-            original rissmed numpy array with an additional empty axis
-        """
-        array = self.numpy_array
-        array = np.array(array, dtype=float)
-        array = np.expand_dims(array, axis=1)
-        return array
+        
+        formatted_string = list()
+        formatted_string.append(str.join("\t", [
+                                    "Condition",
+                                    "FreeNRG(gibbs)",
+                                    "deltaG",
+                                    "OpeningNRG",
+                                    "Constraint",
+                                ],
+                            )
+                            + "\n",)) 
+        for condition in self.keys():
+            gibbs, ddg, nrg, const = [self[condition][x] for x in ['gibbs', 'ddg'. 'nrg', 'constraint']]
+            formatted_string.append(str.join("\t", [condition, str(gibbs), str(ddg), str(nrg), str(const)]) + "\n")
+        return formatted_string
 
 
 def cmd_rnaplfold(
@@ -1323,6 +1331,7 @@ def api_rnafold(
     span: int,
     temperature: float = 37,
     constraint: Iterable[Tuple] = None,
+    FoldOut: FoldOutput object = None
 ) -> FoldOutput:
     """api wrapper for RNAfold
 
@@ -1339,6 +1348,8 @@ def api_rnafold(
      constraint: Iterable[Tuple[str, int, int, int, int]], optional
          Constraints as Tuple in format (paired(p)/unpaired(u), start, end) (default is None)
          !!Warning!! ZERO BASED !!Warning!!
+     FoldOut: FoldOutput object, optional
+        existing FoldOutput object to append use
 
     Returns
     -------
@@ -1365,24 +1376,34 @@ def api_rnafold(
             end = entry[2]
             fstart = entry[3] if len(entry > 2) else None
             fend = entry[4] if len(entry > 3) else None
-            if mode == "paired" or mode == "p":
+            if any(mode == x for x in ["paired", "p", "constraint_paired"]): 
                 fc = _constrain_paired(fc, start, end)
-            elif mode == "unpaired" or mode == "u":
+            elif mode == "secondconstraint_paired":
+                fc = _constrain_paired(fc, fstart, fend)
+            elif mode == "bothconstraint_paired":
+                fc = _constrain_paired(fc, start, end)
+                fc = _constrain_paired(fc, fstart, fend)
+            elif any(mode == x for x in ["unpaired", "u", "constraint_unpaired"]): 
                 fc = _constrain_unpaired(fc, start, end)
+            elif mode == "secondconstraint_unpaired":
+                fc = _constrain_unpaired(fc, fstart, fend)
+            elif mode == "bothconstraint_unpaired":
+                fc = _constrain_unpaired(fc, start, end)
+                fc = _constrain_unpaired(fc, fstart, fend)
             else:
                 raise ValueError(
                     "Constraint wrongly formatted. Has to be ('paired(p)'/'unpaired(u)', start, end)"
                 )
-
-    FoldOut = FoldOutput()
+    if not FoldOut:
+        FoldOut = FoldOutput('none', mode)
     # call pf and prop calculation
-    FoldOut.set_gibbs = fc.pf()[1]
-    FoldOut.set_bppm = get_bppm(fc.bpp(), cstart, cend)
+    FoldOut[mode]['gibbs'] = fc.pf()[1]
+    FoldOut[mode]['bppm'] = get_bppm(fc.bpp(), cstart, cend)
 
     if bppm is None:
         log.error(logid + "Empty bpp matrix returned, stopping here!")
 
-    return gibbs, bppm
+    return FoldOut
 
 
 # def bpp_callback(v, v_size, i, maxsize, what, data):

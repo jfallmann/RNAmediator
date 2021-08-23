@@ -494,21 +494,6 @@ def constrain_seq(
             checklist.append((cfstart, cfend))
             checklist.append((cstart, cend, cfstart, cfend))
 
-        checklist.insert(0, "paired")
-        plfold_paired = api_rnafold(
-            seqtofold,
-            window,
-            span,
-            constraint=[checklist],
-        )
-        checklist[0] = "unpaired"
-        plfold_unpaired = api_rnafold(
-            seqtofold,
-            window,
-            span,
-            constraint=[checklist],
-        )
-
         for check in checklist:
             s, e, os, oe = [None, None, None, None]
             if genecoords:
@@ -614,6 +599,25 @@ def constrain_seq(
                         ),
                     ],
                 )
+
+            check.insert(0, "paired")
+
+            fold_unconst = api_rnafold(seqtofold, window, span)
+
+            fold_paired = api_rnafold(
+                seqtofold,
+                window,
+                span,
+                constraint=[check],
+            )
+            check[0] = "unpaired"
+
+            fold_unpaired = api_rnafold(
+                seqtofold,
+                window,
+                span,
+                constraint=[check],
+            )
 
             # create new fold_compound object
             fc = RNA.fold_compound(data["seq"], md)
