@@ -1078,15 +1078,6 @@ class FoldOutput(defaultdict):
         self[condition].update({"ddg": None})
         self[condition].update({"dnrg": None})
 
-        # self[condition]["text"] = text
-        # self[condition]["gibbs"] = gibbs
-        # self[condition]["constraint"] = None
-        # self[condition]["bppm"] = np.empty(2)
-        # self[condition]["bpp"] = None
-        # self[condition]["nrg"] = None
-        # self[condition]["ddg"] = None
-        # self[condition]["dnrg"] = None
-
     def __getattr__(self, name):
         if name in self:
             return self[name]
@@ -1323,8 +1314,8 @@ class FoldOutput(defaultdict):
         """
 
         anno = self.get("anno")
-        goi = anno.split(":")[0]
-        chrom, start, end, strand = anno.split(":")[1].split(",")
+        goi = anno.split(":")[0].strip()
+        chrom, start, end, strand = anno.split(":")[1].strip().split(",")
 
         return [goi, chrom, start, end, strand]
 
@@ -1358,10 +1349,9 @@ class FoldOutput(defaultdict):
                 + "\n",
             )
         for condition in self.keys():
-            log.debug(f"FINALE {condition}")
-            log.debug(
-                str([self[condition][x] for x in ["gibbs", "ddg", "nrg", "constraint"]])
-            )
+            if condition in ["anno"]:
+                continue
+
             gibbs, ddg, nrg, const = [
                 self[condition][x] for x in ["gibbs", "ddg", "nrg", "constraint"]
             ]
@@ -1369,7 +1359,7 @@ class FoldOutput(defaultdict):
                 str.join("\t", [condition, str(gibbs), str(ddg), str(nrg), str(const)])
                 + "\n"
             )
-        return formatted_string
+        return "".join(formatted_string)
 
 
 def cmd_rnaplfold(
@@ -1595,7 +1585,7 @@ def api_rnafold(
     temperature: float = 37,
     constraint: Iterable[Tuple] = None,
     FoldOut: FoldOutput = None,
-    consstr: str = None,
+    coordinates: list = [None, None, None, None],
 ) -> FoldOutput:
     """api wrapper for RNAfold
 
@@ -1612,8 +1602,8 @@ def api_rnafold(
          !!Warning!! ZERO BASED !!Warning!!
      FoldOut: FoldOutput, optional
         existing FoldOutput object to append use
-     printcons: str, optional
-        Constraint string for printing
+     coordinates: list([gs, ge, tostart, toend]), optional
+        Coordinates of genes
 
     Returns
     -------
@@ -1633,62 +1623,105 @@ def api_rnafold(
     # create new fold_compound object
     fc = RNA.fold_compound(data["seq"], md)
 
+    gs, ge, tostart, toend = coordinates
+
     if constraint is not None:
         for entry in constraint:
             mode = entry[0]
-            s, e, os, oe = [None, None, None, None]
-            start = entry[1]
-            end = entry[2]
-            fend, fstart = [None, None]
+            fstart = entry[1]
+            fend = entry[2]
+            end, start = [None, None]
+            s, e, gtostart, gtoend = [None, None, None, None]
+            if gs != None and ge != None and tostart != None and toend != None:
+                s, e = [fstart + tostart + gs - 1, fend + tostart + gs]
+                gtostart, gtoend = [tostart + gs, toend + gs]
+
             if len(entry) > 3:
-                fstart = entry[3]
-                fend = entry[4]
-            log.debug(
+                start = entry[3]
+                end = entry[4]
+                sp, ep = [None, None]
+                if gs != None and ge != None and tostart != None and toend != None:
+                    sp, ep = [start + tostart + gs - 1, end + tostart + gs]
+
+            log.info(
                 logid
-                + f"Mode {mode}, start: {start}, end: {end}, fstart: {fstart}, fend: {fend}"
+                + f"Mode {mode}, start: {fstart}, end: {fend}, second_start: {start}, second_end: {end}, s: {s}, e: {e}, gtostart: {gtostart}, gtoend: {gtoend}"
             )
+
             if any(mode == x for x in ["paired", "p", "constraint_paired"]):
-                fc = _constrain_paired(fc, start, end)
+                fc = _constrain_paired(fc, fstart, fend)
                 mode = "constraint_paired"
+                printcons = str.join(
+                    "|",
+                    [
+                        str.join("-", [str(tostart), str(toend)]),
+                        str.join("-", [str(gtostart), str(gtoend)]),
+                        str.join("-", [str(s + 1), str(e + 1)]),
+                    ],
+                )
             elif mode == "secondconstraint_paired":
                 fc = _constrain_paired(fc, fstart, fend)
+                printcons = str.join(
+                    "|",
+                    [
+                        str.join("-", [str(tostart), str(toend)]),
+                        str.join("-", [str(gtostart), str(gtoend)]),
+                        str.join("-", [str(sp), str(ep)]),
+                    ],
+                )
             elif mode == "bothconstraint_paired":
                 fc = _constrain_paired(fc, start, end, fstart, fend)
+                printcons = str.join(
+                    "|",
+                    [
+                        str.join("-", [str(tostart), str(toend)]),
+                        str.join("-", [str(gtostart), str(gtoend)]),
+                        str.join("-", [str(s + 1), str(e + 1)]),
+                        str.join("-", [str(sp), str(ep)]),
+                    ],
+                )
             elif any(mode == x for x in ["unpaired", "u", "constraint_unpaired"]):
                 fc = _constrain_unpaired(fc, start, end)
                 mode = "constraint_unpaired"
+                printcons = str.join(
+                    "|",
+                    [
+                        str.join("-", [str(tostart), str(toend)]),
+                        str.join("-", [str(gtostart), str(gtoend)]),
+                        str.join("-", [str(s + 1), str(e + 1)]),
+                    ],
+                )
             elif mode == "secondconstraint_unpaired":
                 fc = _constrain_unpaired(fc, fstart, fend)
+                printcons = str.join(
+                    "|",
+                    [
+                        str.join("-", [str(tostart), str(toend)]),
+                        str.join("-", [str(gtostart), str(gtoend)]),
+                        str.join("-", [str(sp), str(ep)]),
+                    ],
+                )
             elif mode == "bothconstraint_unpaired":
                 fc = _constrain_unpaired(fc, start, end, fstart, fend)
+                printcons = str.join(
+                    "|",
+                    [
+                        str.join("-", [str(tostart), str(toend)]),
+                        str.join("-", [str(gtostart), str(gtoend)]),
+                        str.join("-", [str(s + 1), str(e + 1)]),
+                        str.join("-", [str(sp), str(ep)]),
+                    ],
+                )
             else:
                 raise ValueError(
                     "Constraint wrongly formatted. Has to be ('paired(p)'/'unpaired(u)', start, end)"
-                )
-
-            if not consstr:
-                consstr = str.join(
-                    "|",
-                    [
-                        str.join("-", [str(start), str(end)]),
-                        str.join(
-                            ":",
-                            [
-                                str.join("-", [str(start), str(end)]),
-                                str.join("-", [str(fstart), str(fend)]),
-                            ],
-                        ),
-                    ],
                 )
 
             if not FoldOut:
                 log.warning(logid + "Creating new FoldOutput object")
                 FoldOut = FoldOutput("none", mode)
             # call pf and prop calculation
-            FoldOut.from_rissmed_fold_compound(fc, mode, consstr, 0, len(sequence))
-            log.debug(f"AFTFOLDING: {FoldOut.items()}")
-            # FoldOut[mode]["gibbs"] = fc.pf()[1]
-            # FoldOut[mode]["bppm"] = _get_bppm(fc.bpp(), 0, len(sequence))
+            FoldOut.from_rissmed_fold_compound(fc, mode, printcons, 0, len(sequence))
 
     else:
         consstr = mode = "unconstraint"
@@ -1697,7 +1730,6 @@ def api_rnafold(
             FoldOut = FoldOutput("none", mode)
         # call pf and prop calculation
         FoldOut.from_rissmed_fold_compound(fc, mode, consstr, 0, len(sequence))
-        log.debug(f"AFTFOLDING: {FoldOut.items()}")
 
     return FoldOut
 

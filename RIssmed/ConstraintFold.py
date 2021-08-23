@@ -253,7 +253,7 @@ def fold(
                             + "-"
                             + str(end)
                         )
-                        consstr = str(f"{start}-{end}:{fstart}-{fend}")
+                        consstr = str(f"{fstart}-{fend}:{start}-{end}")
                         if start < 0 or fstart < 0 or end > len(fa) or fend > len(fa):
                             log.warning(
                                 logid
@@ -264,8 +264,8 @@ def fold(
                                         [
                                             goi,
                                             len(fa),
-                                            str(start) + "-" + str(end),
                                             str(fstart) + "-" + str(fend),
+                                            str(start) + "-" + str(end),
                                         ],
                                     )
                                 )
@@ -290,7 +290,7 @@ def fold(
                         log.debug(logid + str.join(" ", [goi, consstr, gstrand]))
 
                     genecoords = list([gs, ge, gstrand])
-                    const = list([start, end, fstart, fend])
+                    const = list([fstart, fend, start, end])
 
                     pool.apply_async(
                         constrain_seq,
@@ -388,11 +388,29 @@ def constrain_seq(
             )
             return
 
-        dist = None
-        start, end, fstart, fend = const
+        if genecoords and goi and goi in genecoords:
+            gs, ge, gstrand = get_location(genecoords[goi][0])
+            if gstrand != strand:
+                log.warning(
+                    logid
+                    + "Strand values differ between Gene annotation and FASTA file! Please check your input for "
+                    + str(goi)
+                )
+        else:
+            gs = ge = 0
+            gstrand = "."
+            log.warning(
+                logid
+                + "No coords found for gene "
+                + goi
+                + "! Assuming coordinates are already local!"
+            )
 
-        if fend:
-            dist = abs(start - fend)
+        dist = None
+        fstart, fend, start, end = const
+
+        if end:
+            dist = abs(fstart - end)
             if dist > window:
                 return log.warning(
                     logid
@@ -405,7 +423,7 @@ def constrain_seq(
         # we no longer fold the whole sequence but only the constraint region +- window size
         if window < len(seq):
             if dist:
-                tostart, toend = expand_window(start, fend, window, len(seq), dist)
+                tostart, toend = expand_window(fstart, end, window, len(seq), dist)
                 log.debug(
                     logid
                     + "Considering distance "
@@ -418,7 +436,7 @@ def constrain_seq(
                     + str(toend)
                 )
             else:
-                tostart, toend = expand_window(start, fend, window, len(seq))
+                tostart, toend = expand_window(fstart, fend, window, len(seq))
 
             if fend is not None and toend < fend:
                 log.warning(
@@ -430,8 +448,10 @@ def constrain_seq(
                     + "!Skipping!"
                 )  # One of the constraints is outside the sequence window
                 return
+        else:
+            tostart, toend = [1, len(seq)]
 
-            seqtofold = str(seq[tostart - 1 : toend])
+        seqtofold = str(seq[tostart - 1 : toend])
 
         log.debug(
             logid
@@ -467,159 +487,75 @@ def constrain_seq(
             )
 
         # get local start,ends 0 based closed
-        cstart, cend = localize_window(start, end, tostart, toend, len(seq))
-        checklist = []
+        cfstart, cfend = localize_window(fstart, fend, tostart, toend, len(seq))
+        check = []
 
-        checklist.append((cstart, cend))
-        if fstart and fend:
-            cfstart = fstart - tostart
-            cfend = fend - tostart
-            checklist.append((cfstart, cfend))
-            checklist.append((cstart, cend, cfstart, cfend))
+        if start and end:
+            cstart = start - tostart
+            cend = end - tostart
+            check = (cfstart, cfend, cstart, cend)
+        else:
+            check = (cfstart, cfend)
 
-        for check in checklist:
-            s, e, os, oe = [None, None, None, None]
-            if genecoords:
-                if goi in genecoords:
-                    gs, ge, gstrand = get_location(genecoords[goi][0])
-                    if gstrand != strand:
-                        log.warning(
-                            logid
-                            + "Strand values differ between Gene annotation and FASTA file! Please check your input for "
-                            + str(goi)
-                        )
-                else:
-                    gs, ge, gstrand = 0, 0, "."
-                    log.warning(
-                        logid
-                        + "No coords found for gene "
-                        + goi
-                        + "! Assuming coordinates are already local!"
-                    )
-            else:
-                gs = ge = 0
-                gstrand = "."
-                log.warning(
-                    logid
-                    + "No coords found for gene "
-                    + goi
-                    + "! Assuming coordinates are already local!"
-                )
+        # Coordinates for fold annotation
+        coords = [gs, ge, tostart, toend]
 
-            log.debug(
-                logid
-                + "GENECOORDS: "
-                + str(goi)
-                + ": "
-                + str.join(",", [str(gs), str(ge), str(gstrand)])
-            )
+        sp = ep = None
+        s, e = [fstart + tostart + gs - 1, fend + tostart + gs]
+        gtostart, gtoend = [tostart + gs, toend + gs]
+        printcons = str.join(
+            "|",
+            [
+                str.join("-", [str(tostart), str(toend)]),
+                str.join("-", [str(gtostart), str(gtoend)]),
+                str.join("-", [str(s + 1), str(e + 1)]),
+            ],
+        )
 
-            if len(check) < 3:
-                s, e = check
-                sp, ep = [s + tostart + gs - 1, e + tostart + gs]
-                gtostart, gtoend = [tostart + gs, toend + gs]
-                printcons = str.join(
-                    "|",
-                    [
-                        str.join("-", [str(tostart), str(toend)]),
-                        str.join("-", [str(gtostart), str(gtoend)]),
-                        str.join("-", [str(s), str(e)]),
-                        str.join("-", [str(sp), str(ep)]),
-                    ],
-                )
-            else:
-                s, e, os, oe = check
-                sp, ep, osp, oep = [
-                    s + tostart + gs - 1,
-                    e + tostart + gs,
-                    os + tostart + gs - 1,
-                    oe + tostart + gs,
-                ]
-                gtostart, gtoend = [tostart + gs, toend + gs]
-                log.debug(
-                    logid
-                    + "PAIRED:"
-                    + ";".join(
-                        map(
-                            str,
-                            [
-                                s,
-                                e,
-                                os,
-                                oe,
-                                gs,
-                                ge,
-                                sp,
-                                ep,
-                                osp,
-                                oep,
-                                tostart,
-                                toend,
-                                gtostart,
-                                gtoend,
-                            ],
-                        )
-                    )
-                )
-                printcons = str.join(
-                    "|",
-                    [
-                        str.join("-", [str(tostart), str(toend)]),
-                        str.join("-", [str(gtostart), str(gtoend)]),
-                        str.join(
-                            ":",
-                            [
-                                str.join("-", [str(s), str(e)]),
-                                str.join("-", [str(os), str(oe)]),
-                            ],
-                        ),
-                        str.join(
-                            ":",
-                            [
-                                str.join("-", [str(sp), str(ep)]),
-                                str.join("-", [str(osp), str(oep)]),
-                            ],
-                        ),
-                    ],
-                )
+        if len(check) > 2:
+            sp, ep = [start + tostart + gs - 1, end + tostart + gs]
+            printcons = printcons + "|" + str.join("-", [str(sp), str(ep)])
 
-            Output = FoldOutput()
+        Output = FoldOutput()
+        Output = api_rnafold(
+            seqtofold, span, 37, None, FoldOut=Output, coordinates=coords
+        )
 
-            Output = api_rnafold(
-                seqtofold, span, 37, None, FoldOut=Output, consstr=printcons
-            )
-            log.debug(logid + f"UNCONSTOUT: {Output.items()}")
-
-            checku = ("paired",) + check
+        for cons in ["paired", "unpaired"]:
+            checkc = (cons,) + check
             Output = api_rnafold(
                 seqtofold,
                 span,
                 37,
-                constraint=[checku],
+                constraint=[checkc],
                 FoldOut=Output,
-                consstr=printcons,
-            )
-            log.debug(logid + f"PAIREDOUT: {Output.items()}")
-
-            checkp = ("unpaired",) + check
-            Output = api_rnafold(
-                seqtofold,
-                span,
-                37,
-                constraint=[checkp],
-                FoldOut=Output,
-                consstr=printcons,
+                coordinates=coords,
             )
 
-            Output.annotate(
-                str(goi)
-                + ": "
-                + str.join(",", [str(chrom), str(gs), str(ge), str(gstrand)])
-            )
+        if len(check) > 3:
+            for cons in [
+                "secondconstraint_paired",
+                "secondconstraint_unpaired",
+                "bothconstraint_paired",
+                "bothconstraint_unpaired",
+            ]:
+                checkc = (cons,) + check
+                Output = api_rnafold(
+                    seqtofold,
+                    span,
+                    37,
+                    constraint=[checkc],
+                    FoldOut=Output,
+                    coordinates=coords,
+                )
 
-            log.debug(logid + f"UNPAIREDOUT: {Output.items()}")
+        Output.annotate(
+            str(goi)
+            + ": "
+            + str.join(",", [str(chrom), str(gs), str(ge), str(gstrand)])
+        )
 
-            write_out(Output, window, span, printcons, save, outdir)
+        write_out(Output, window, span, printcons, save, outdir)
 
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -727,7 +663,7 @@ def foldaround(
 
     Returns
     -------
-    Gibbs constraint
+    FoldOutput object
     """
 
     logid = SCRIPTNAME + ".foldaround: "
@@ -769,7 +705,7 @@ def fold_unconstraint(seq, queue=None, configurer=None, level=None):
 
     Returns
     -------
-    Gibbs unconstraint
+    FoldOutput object
     """
 
     logid = SCRIPTNAME + ".fold_unconstraint: "
@@ -777,7 +713,7 @@ def fold_unconstraint(seq, queue=None, configurer=None, level=None):
         if queue and level:
             configurer(queue, level)
 
-        fold_output = api_rnafold(seq, span)
+        fold_output = api_rnafold(seq)
 
         return fold_output
     except Exception:
@@ -824,28 +760,28 @@ def write_out(Output, window, span, const, fname="STDOUT", outdir=None):
             if not os.path.exists(
                 os.path.join(
                     temp_outdir,
-                    "_".join([goi, chrom, strand, fname, const, window, span]) + ".gz",
+                    "_".join([goi, chrom, strand, fname, const, str(window), str(span)])
+                    + ".gz",
                 )
             ):
                 with gzip.open(
                     os.path.join(
                         temp_outdir,
-                        "_".join([goi, chrom, strand, fname, const, window, span])
+                        "_".join(
+                            [goi, chrom, strand, fname, const, str(window), str(span)]
+                        )
                         + ".gz",
                     ),
                     "wb",
                 ) as o:
-                    o.write(
-                        bytes(
-                            str.join("\t", Output.get_text()) + "\n",
-                            encoding="UTF-8",
-                        )
-                    )
+                    o.write(bytes(Output.get_text() + "\n", encoding="UTF-8"))
             else:
                 log.info(
                     os.path.join(
                         temp_outdir,
-                        "_".join([goi, chrom, strand, fname, const, window, span])
+                        "_".join(
+                            [goi, chrom, strand, fname, const, str(window), str(span)]
+                        )
                         + ".gz",
                     )
                     + " exists, will append!"
@@ -853,35 +789,16 @@ def write_out(Output, window, span, const, fname="STDOUT", outdir=None):
                 with gzip.open(
                     os.path.join(
                         temp_outdir,
-                        "_".join([goi, chrom, strand, fname, const, window, span])
+                        "_".join(
+                            [goi, chrom, strand, fname, const, str(window), str(span)]
+                        )
                         + ".gz",
                     ),
                     "ab",
                 ) as o:
-                    o.write(
-                        bytes(
-                            str.join(
-                                "\t",
-                                Output.get_text(h=False),
-                            )
-                            + "\n",
-                            encoding="UTF-8",
-                        )
-                    )
+                    o.write(bytes(Output.get_text(h=False) + "\n", encoding="UTF-8"))
         else:
-            print(
-                str.join(
-                    "\t",
-                    [
-                        "Condition",
-                        "FreeNRG(gibbs)",
-                        "deltaG",
-                        "OpeningNRG",
-                        "Constraint",
-                    ],
-                )
-            )
-            print(Output.get_text())
+            print(Output.get_text() + "\n")
 
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
