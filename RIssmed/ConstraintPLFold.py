@@ -1034,12 +1034,13 @@ def checkexisting(sid, paired, unpaired, cons, region, window, span, outdir):
 def main(args=None):
 
     logid = SCRIPTNAME + ".main: "
-    try:
-        if not args:
-            args = parseargs_plcons()
+    if not args:
+        args = parseargs_plcons()
 
-        queue, listener, worker_configurer = rissmed_logging_setup(args.logdir, args.loglevel, SCRIPTNAME)
-        worker_configurer(queue, args.loglevel)
+    queue, listener, worker_configurer = rissmed_logging_setup(
+        args.logdir, args.loglevel, SCRIPTNAME
+    )
+    try:
         log.info(logid + "Running " + SCRIPTNAME + " on " + str(args.procs) + " cores.")
 
         log.info(
@@ -1049,7 +1050,7 @@ def main(args=None):
             + " "
             + "{}".format(" ".join([shlex.quote(s) for s in sys.argv[1:]]))
         )
-
+        raise ValueError
         run_settings, outdir = preprocess(
             args.sequence, args.constrain, args.conslength, args.outdir, args.genes
         )
