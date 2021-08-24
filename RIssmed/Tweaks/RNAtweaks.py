@@ -1446,7 +1446,7 @@ def api_rnaplfold(
     sequence: str,
     window: int,
     span: int,
-    region: int = 5,
+    region: int = 30,
     temperature: float = 37,
     constraint: Iterable[Tuple[str, int, int]] = None,
 ) -> PLFoldOutput:
