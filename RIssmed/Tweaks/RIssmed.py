@@ -343,15 +343,15 @@ def read_constraints(constrain: str, linewise: bool = False) -> Dict[str, List[s
                 f = open(constrain, "rt")
             constraintlist = read_constraints_from_generic(f, linewise)
         f.close()
-    elif constrain == "file" or constrain == "paired":
-        log.info(
-            logid
-            + "Calculating probs for constraint from file "
-            + str(goi + "_constraints")
-        )
-        with open(goi + "_constraints", "rt") as o:
-            for line in o:
-                conslist.append(line.rstrip())
+    # elif constrain == "file" or constrain == "paired":
+    #    log.info(
+    #        logid
+    #        + "Calculating probs for constraint from file "
+    #        + str(goi + "_constraints")
+    #    )
+    #    with open(goi + "_constraints", "rt") as o:
+    #        for line in o:
+    #            conslist.append(line.rstrip())
     elif constrain == "none":
         constraintlist = ["NOCONS"]
     elif constrain == "sliding":
@@ -366,7 +366,6 @@ def read_constraints(constrain: str, linewise: bool = False) -> Dict[str, List[s
                 constraintlist["lw"].append(cons)
 
     elif constrain == "temperature":
-        log.info(logid + "Calculating probs for temperature constraint" + temprange)
         raise NotImplementedError("Temperature range folding needs to be reimplemented")
     else:
         log.error(logid + "Could not compute constraints from input " + str(constrain))
