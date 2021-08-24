@@ -120,7 +120,7 @@ def _calc_gibbs(fc):
 
     Parameters
     ----------
-     fc: object
+     fc: RNA.fold_compound
         RNA.fold_compound object of ViennaRNA API with or without added constraints
 
     Returns
@@ -447,7 +447,7 @@ def _print_up(data=None, seqlength=None, region=None):
 
 
 def _up_to_array(data=None, region=None, seqlength=None):
-    """Converts output of ViennaRNA folc_compound.probs_window to numpy array
+    """Converts output of ViennaRNA fold_compound.probs_window to numpy array
 
     Parameters
     ----------
@@ -532,7 +532,7 @@ def printdiff(a, o=None):
 
     Parameters
     ----------
-    a : array
+    a : numpy.array
         Array to print
     o : str, optional
         where to save the diff to, by default None
@@ -565,7 +565,7 @@ def _read_precalc_plfold(data, name, seq):
 
     Returns
     -------
-    data: list[int, list[int]]
+    data: List[List[int]]
         List containing precalculated results
     """
 
@@ -1398,10 +1398,12 @@ def cmd_rnaplfold(
     ) as constraint_file:
         constraint_string = ""
         if constraint is not None:
+            seqlen = len(sequence)
             for entry in constraint:
                 mode = entry[0]
                 start = entry[1]
                 end = entry[2]
+                _check_constraint(seqlen, start, end)
                 if mode == "paired" or mode == "p":
                     const = "F"
                 elif mode == "unpaired" or mode == "u":
@@ -1482,10 +1484,12 @@ def api_rnaplfold(
     # create new fold_compound object
     fc = RNA.fold_compound(str(sequence), md, RNA.OPTION_WINDOW)
     if constraint is not None:
+        seqlen = len(sequence)
         for entry in constraint:
             mode = entry[0]
             start = entry[1]
             end = entry[2]
+            _check_constraint(seqlen, start, end)
             if mode == "paired" or mode == "p":
                 fc = _constrain_paired(fc, start, end)
             elif mode == "unpaired" or mode == "u":
@@ -1744,6 +1748,18 @@ def api_rnafold(
         FoldOut.from_rissmed_fold_compound(fc, mode, consstr, 0, len(sequence))
 
     return FoldOut
+
+
+def _check_constraint(sequence_length: int, start: int, end: int):
+    if start > end:
+        raise ValueError(f"Constraint start ({start}) greater than end ({end})")
+    if start < 0:
+        raise ValueError(f"Constraint start ({start}) out of sequence bounds")
+    elif sequence_length < end:
+        raise ValueError(
+            f"Constraint end ({end}) out of sequence bounds "
+            f"(length {sequence_length}"
+        )
 
 
 # def bpp_callback(v, v_size, i, maxsize, what, data):

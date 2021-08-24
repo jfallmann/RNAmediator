@@ -12,6 +12,7 @@ from collections import defaultdict
 from RIssmed.Tweaks.FileProcessor import (
     parseseq,
     idfromfa,
+    make_outdir,
     parse_annotation_bed,
     read_constraints_from_bed,
     read_constraints_from_csv,
@@ -66,12 +67,12 @@ class SequenceSettings:
             str(sequence_record.seq).upper().replace("T", "U")
         )  # We always want RNA Sequence to have consistent output to ViennaRNA-CLI
         self.sequence_record = sequence_record
-        self._constrainlist = list(constrainlist)
+        self._constrainlist = list(constrainlist) if constrainlist is not None else []
         if strand in ["+", "-", "na", "."]:
             self.strand = strand
         else:
-            self.strand = "+"
-            log.warning("strand value automatically set to +")
+            self.strand = "na"
+            log.warning("strand value automatically set to na")
         self.chromosome = chrom
         self.gene = gene
         self.genomic_coords = genomic_coords
@@ -92,15 +93,14 @@ class SequenceSettings:
 
     def add_constraints(self, constraints: Tuple[Constraint]):
         """adds a constraints to the list of constraints"""
-        if self._constrainlist is None:
-            self._constrainlist = []
         for constraint in constraints:
             assert (
                 constraint.__class__ == Constraint
             ), "can only add Contraint objects to the constraintliste"
-            assert (
-                self.strand == constraint.strand
-            ), "strand values of constraint does not match the strand from the sequence"
+            if self.strand in ["+", "-"]:
+                assert (
+                    self.strand == constraint.strand
+                ), "strand values of constraint does not match the strand from the sequence"
         self._constrainlist += [constraints]
 
     @property
@@ -358,9 +358,13 @@ def read_constraints(constrain: str, linewise: bool = False) -> Dict[str, List[s
         constraintlist = list()
     elif "-" in constrain:
         log.info(logid + "Calculating probs for constraint " + constrain)
-        constraintlist = (
-            constrain.split(",") if linewise is False else {"lw": constrain.split(";")}
-        )
+        if linewise is False:
+            constraintlist = constrain.split(",")
+        else:
+            constraintlist = defaultdict(list)
+            for cons in constrain.split(","):
+                constraintlist["lw"].append(cons)
+
     elif constrain == "temperature":
         log.info(logid + "Calculating probs for temperature constraint" + temprange)
         raise NotImplementedError("Temperature range folding needs to be reimplemented")
@@ -397,10 +401,7 @@ def preprocess(sequence: str, constrain: str, conslength: int, outdir: str, gene
     try:
         # set path for output
         if outdir:
-            if not os.path.isabs(outdir):
-                outdir = os.path.abspath(outdir)
-            if not os.path.exists(outdir):
-                os.makedirs(outdir)
+            outdir = make_outdir(outdir)
         else:
             outdir = os.path.abspath(os.getcwd())
 

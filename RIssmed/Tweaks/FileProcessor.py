@@ -162,7 +162,7 @@ def parse_annotation_bed(bed, annotated=None):
         else:
             f = open(os.path.abspath(bed), "rt")
     else:
-        f = bed
+        raise FileNotFoundError(f"File {bed} not found")
     try:
         for line in f:
             entries = line.rstrip().split("\t")

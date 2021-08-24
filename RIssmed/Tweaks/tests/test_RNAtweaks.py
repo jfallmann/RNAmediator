@@ -1,6 +1,6 @@
 import os
-import pytest
 import random
+from tempfile import TemporaryDirectory
 import numpy as np
 from RIssmed.Tweaks.RNAtweaks import (
     api_rnaplfold,
@@ -8,11 +8,21 @@ from RIssmed.Tweaks.RNAtweaks import (
     cmd_rnaplfold,
     api_rnafold,
     cmd_rnafold,
+    _pl_to_array,
+    _read_precalc_plfold,
+    printdiff,
+    _npprint,
+    _calc_gibbs,
 )
+import pytest
+import RNA
 
 TESTFOLDER = os.path.dirname(os.path.abspath(__file__))
+TESTDATAPATH = os.path.join(TESTFOLDER, "testdata")
 PARPATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PROJECT_DIR = os.path.dirname(os.path.dirname(PARPATH))
+TMP_DIR = TemporaryDirectory()
+TMP_TEST_DIR = TMP_DIR.name
 
 
 def random_sequence(seed: int = 1):
@@ -24,6 +34,7 @@ def random_sequence(seed: int = 1):
     "seq,window,span,constraint",
     [
         ("A" * 500, 70, 70, []),
+        ("A" * 500, 70, 70, [("p", 20, 30)]),
         ("A" * 500, 70, 70, [("p", 20, 30)]),
         (random_sequence(), 70, 70, [("p", 20, 30), ("u", 70, 90)]),
         (random_sequence(), 70, 70, [("u", 20, 30)]),
@@ -71,6 +82,9 @@ def test_region_param(seq, window, span, constraint, regions):
     "seq,window,span,constraint",
     [
         (random_sequence(5), 70, 70, [("nonesense", 3, 5)]),
+        (random_sequence(5), 70, 70, [("p", -3, 5)]),
+        (random_sequence(5), 70, 70, [("p", 350, 360)]),
+        (random_sequence(5), 70, 70, [("p", 360, 100)]),
     ],
 )
 def test_constraint_error(seq, window, span, constraint):
@@ -106,3 +120,152 @@ def test_constraint(seq, window, span, constraint):
         assert np.all(test == 0)
     elif mode == "unpaired" or mode == "u":
         assert np.all(test == 1)
+
+
+@pytest.fixture
+def pl_fold_file():
+    """Returns Path to gziped RIssmed output (same content as pl_npy_file)"""
+    return os.path.join(TESTDATAPATH, "pl_test_output.txt.gz")
+
+
+@pytest.fixture()
+def pl_npy_file():
+    """Returns Path to gziped RIssmed output (same content as pl_npy_file)"""
+
+    return os.path.join(TESTDATAPATH, "pl_test_output.npy")
+
+
+@pytest.fixture
+def pl_fold_test_sequence():
+    """return sequence used for pl_fold_file and pl_npy_file"""
+    seq = "TTTTTTCTTTATAATTATTCCCCTATTTGAAAAATCAACTTGTATATGAGGCAGCAAACACCTTGCAGAGCAGCATTCCCTTTTAGTTTCAGGACGTGGTGGTGGATGGAACCACTGTAACCTGGCCTCCCTCCATGAGAGGAGGGAATCCAGGTGGCCATGTTGAAATGTGCCTGTGTGCAGCAAGGCTTCTGAAATGACAAGAGAGCCCAGCAGCTTCCAAAGCAGCTGTGACTCTGGATCTCACCCATCATCTCTGCTTCTCACTGTTAGAGGAGTGAATCTGTGCTGCCTTAGGAGGCATGGAACCTGGGACTTTTCTTCCTTGTTTAATGTTTAATTTTATTAAAATAATTTGTAAGTGATAGATGTTGATCTCGTGACAAAAGAGAGATTCCCTCTTTATAAAACTATTCTAACTAAAGATCTTTTGTAAGCCCATGTGTTAGAAATAAAACTTGAATATCCCC"
+    return seq[0:135]
+
+
+@pytest.fixture()
+def diff_numpy_array():
+    return np.load(os.path.join(TESTDATAPATH, "diffnp.npy"))
+
+
+@pytest.mark.parametrize(
+    "ulim,works",
+    [
+        (7, True),
+        (5, True),
+        (100, False),
+    ],
+)
+def test_pl_to_array_from_npy(pl_npy_file, ulim, works, caplog):
+    pl_array = _pl_to_array(pl_npy_file, ulim, fmt="npy")
+    if not works:
+        assert pl_array is None
+        assert "ERROR" in caplog.text
+    else:
+        assert isinstance(pl_array, np.ndarray)
+
+
+@pytest.mark.parametrize(
+    "ulim,works",
+    [
+        (7, True),
+        (5, True),
+        (100, False),
+    ],
+)
+def test_pl_to_array_from_txt(pl_fold_file, ulim, works, caplog):
+    pl_array = _pl_to_array(pl_fold_file, ulim, fmt="txt")
+    if not works:
+        assert pl_array is None
+        assert "ERROR" in caplog.text
+    else:
+        assert isinstance(pl_array, np.ndarray)
+
+
+def test_pl_to_array_difference(pl_npy_file, pl_fold_file):
+    npy_array = _pl_to_array(pl_npy_file, 7, fmt="npy")
+    txt_array = _pl_to_array(pl_fold_file, 7, fmt="txt")
+    assert np.array_equal(npy_array, txt_array, equal_nan=True)
+
+
+def test_read_precalc_plfold(pl_fold_file, pl_fold_test_sequence):
+    data = _read_precalc_plfold([], pl_fold_file, pl_fold_test_sequence)
+    assert data is not None
+    assert type(data) == list
+    for line in data:
+        assert len(line) != 0
+        assert type(line) == list
+
+
+@pytest.mark.parametrize(
+    "outfile",
+    [
+        os.path.join(TMP_TEST_DIR, "saved_array.npy"),
+    ],
+)
+def test_printdiff(diff_numpy_array, outfile):
+    printdiff(diff_numpy_array, outfile)
+    assert os.path.exists(outfile)
+
+
+def test_printdiff_with_defaults(diff_numpy_array, caplog):
+    printdiff(diff_numpy_array)
+    for log in caplog.records:
+        assert log.levelname == "ERROR"
+
+
+@pytest.mark.parametrize(
+    "outfile",
+    [
+        os.path.join(TMP_TEST_DIR, "saved_array_print.npy"),
+        None,
+    ],
+)
+def test_npprint(diff_numpy_array, outfile, capsys):
+    if outfile is not None:
+        file = open(outfile, "wb")
+        _npprint(diff_numpy_array, file)
+        captured = capsys.readouterr()
+        assert captured.out == ""
+        assert os.path.exists(outfile)
+    else:
+        _npprint(diff_numpy_array, outfile)
+        captured = capsys.readouterr()
+        assert captured.out != ""
+
+
+@pytest.fixture()
+def fold_compound():
+    fc = RNA.fold_compound(random_sequence(), RNA.md())
+    return fc
+
+
+@pytest.mark.xfail()
+def test_calc_gibbs(fold_compound):
+    result = _calc_gibbs(fold_compound)
+    assert type(result) == float
+    raise NotImplementedError
+
+
+@pytest.mark.xfail
+def test_calc_bpp():
+    raise NotImplementedError
+
+
+@pytest.mark.xfail()
+def test_calc_nrg():
+    raise NotImplementedError
+
+
+@pytest.mark.xfail()
+def test_calc_ddgs():
+    raise NotImplementedError
+
+
+@pytest.mark.xfail()
+def test_get_ddg():
+    raise NotImplementedError
+
+
+@pytest.mark.xfail()
+def test_get_bppm():
+    raise NotImplementedError
