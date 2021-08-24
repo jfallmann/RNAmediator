@@ -2,7 +2,13 @@ import os
 import pytest
 import random
 import numpy as np
-from RIssmed.Tweaks.RNAtweaks import api_rnaplfold, cmd_rnaplfold
+from RIssmed.Tweaks.RNAtweaks import (
+    api_rnaplfold,
+    cmd_rnafold,
+    cmd_rnaplfold,
+    api_rnafold,
+    cmd_rnafold,
+)
 
 TESTFOLDER = os.path.dirname(os.path.abspath(__file__))
 PARPATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -27,6 +33,12 @@ def random_sequence(seed: int = 1):
 def test_api_and_cmd_plfold(seq, window, span, constraint):
     cmd_result = cmd_rnaplfold(seq, window, span, constraint=constraint)
     api_result = api_rnaplfold(seq, window, span, constraint=constraint)
+    assert api_result == cmd_result
+
+
+def test_api_and_cmd_fold(seq, span, constraint, temp=37, coordinates=None):
+    cmd_result = cmd_rnafold(seq, span, temp, constraint=constraint)
+    api_result = api_rnafold(seq, span, temp, constraint=constraint)
     assert api_result == cmd_result
 
 
