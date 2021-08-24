@@ -1050,7 +1050,6 @@ def main(args=None):
             + " "
             + "{}".format(" ".join([shlex.quote(s) for s in sys.argv[1:]]))
         )
-        raise ValueError
         run_settings, outdir = preprocess(
             args.sequence, args.constrain, args.conslength, args.outdir, args.genes
         )
