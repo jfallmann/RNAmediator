@@ -890,7 +890,6 @@ def main(args=None):
         queue, listener, worker_configurer = rissmed_logging_setup(
             args.logdir, args.loglevel, SCRIPTNAME
         )
-        print(str(queue), str(listener))
 
         log.info(logid + "Running " + SCRIPTNAME + " on " + str(args.procs) + " cores.")
         log.info(
