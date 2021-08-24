@@ -9,7 +9,12 @@ from RIssmed.ConstraintPLFold import main as pl_main
 from RIssmed.ConstraintPLFold import fold_unconstraint, constrain_seq
 from Bio import SeqIO
 from RIssmed.Tweaks.RNAtweaks import PLFoldOutput, cmd_rnaplfold
-from RIssmed.Tweaks.RIssmed import expand_window, localize_window
+from RIssmed.Tweaks.RIssmed import (
+    expand_window,
+    localize_window,
+    expand_pl_window,
+    localize_pl_window,
+)
 
 
 TESTFOLDER = os.path.dirname(os.path.abspath(__file__))
@@ -63,15 +68,21 @@ def compare_output_folders(test_path: str, expected_path: str):
         test_subdir = os.path.join(test_path, subdir)
         expected_subdir = os.path.join(expected_path, subdir)
         assert os.path.exists(test_subdir), f"test: {test_subdir} does not exist"
-        assert os.path.exists(expected_subdir), f"expected: {expected_subdir} does not exist"
+        assert os.path.exists(
+            expected_subdir
+        ), f"expected: {expected_subdir} does not exist"
         expected_files = os.listdir(expected_subdir)
         for file in expected_files:
             test_file = os.path.join(test_subdir, file)
             expected_file = os.path.join(expected_subdir, file)
             assert os.path.exists(test_file), f"test: {test_file} does not exist"
-            assert os.path.exists(expected_file), f"expected: {expected_file} does not exist"
+            assert os.path.exists(
+                expected_file
+            ), f"expected: {expected_file} does not exist"
             if ".gz" in test_file:
-                with gzip.open(test_file, "rt") as test, gzip.open(expected_file, "rt") as expected:
+                with gzip.open(test_file, "rt") as test, gzip.open(
+                    expected_file, "rt"
+                ) as expected:
                     for x, test_line in enumerate(test):
                         expected_line = expected.readline().rstrip().split("\t")
                         test_line = test_line.rstrip().split("\t")
@@ -112,8 +123,12 @@ def compare_logs(test_log: str, expected_log: str):
 
 def compare_arrays(test_array: np.ndarray, expected_array: np.ndarray):
     array_difference = test_array - expected_array
-    max_difference = np.max(np.abs(array_difference), where=~np.isnan(array_difference), initial=-1)
-    max_diff_idx = np.unravel_index(np.nanargmax(array_difference), array_difference.shape)
+    max_difference = np.max(
+        np.abs(array_difference), where=~np.isnan(array_difference), initial=-1
+    )
+    max_diff_idx = np.unravel_index(
+        np.nanargmax(array_difference), array_difference.shape
+    )
     assert np.allclose(test_array, expected_array, equal_nan=True, atol=0.000001), (
         f"detected high difference between RIssmed and command line result "
         f"with a max of {max_difference} at index: {max_diff_idx}"
@@ -201,8 +216,12 @@ def parafold_args(default_args):
 
 
 def test_data_available():
-    assert os.path.exists(os.path.join(TESTDATAPATH, "test.fa.gz")), "Test data not available"
-    assert os.path.exists(os.path.join(TESTDATAPATH, "test_single.fa")), "Test data not available"
+    assert os.path.exists(
+        os.path.join(TESTDATAPATH, "test.fa.gz")
+    ), "Test data not available"
+    assert os.path.exists(
+        os.path.join(TESTDATAPATH, "test_single.fa")
+    ), "Test data not available"
     assert os.path.isfile(os.path.join(TESTDATAPATH, "test_single_constraint.bed"))
     assert os.path.isfile(os.path.join(TESTDATAPATH, "test_constraints.bed"))
     assert os.path.isfile(os.path.join(TESTDATAPATH, "parafold_test.bed"))
@@ -230,7 +249,9 @@ def test_single_constraint(single_constraint_args):
     expected_path = os.path.join(EXPECTED_RESULTS, "single_constraint_result")
     test_path = single_constraint_args.outdir
     compare_output_folders(test_path=test_path, expected_path=expected_path)
-    test_log = os.path.join(single_constraint_args.logdir, os.listdir(single_constraint_args.logdir)[0])
+    test_log = os.path.join(
+        single_constraint_args.logdir, os.listdir(single_constraint_args.logdir)[0]
+    )
     expected_log = os.path.join(EXPECTED_LOGS, "Single_Constraint.log")
 
 
@@ -248,7 +269,9 @@ def test_multi_constraint(multi_constraint_args):
     expected_path = os.path.join(EXPECTED_RESULTS, "multi_constraint_result")
     test_path = multi_constraint_args.outdir
     compare_output_folders(test_path=test_path, expected_path=expected_path)
-    test_log = os.path.join(multi_constraint_args.logdir, os.listdir(multi_constraint_args.logdir)[0])
+    test_log = os.path.join(
+        multi_constraint_args.logdir, os.listdir(multi_constraint_args.logdir)[0]
+    )
     expected_log = os.path.join(EXPECTED_LOGS, "Multi_Constraint.log")
 
 
@@ -256,10 +279,21 @@ def test_multi_constraint(multi_constraint_args):
     "seq_id,region,window,span,unconstraint,save,outdir,seq",
     [
         ("onlyA", 7, 100, 60, "raw", 1, "onlyA", "A" * 500),
-        ("testseq2", 7, 100, 60, "raw", 2, "testseq2", os.path.join(TESTDATAPATH, "test_single.fa")),
+        (
+            "testseq2",
+            7,
+            100,
+            60,
+            "raw",
+            2,
+            "testseq2",
+            os.path.join(TESTDATAPATH, "test_single.fa"),
+        ),
     ],
 )
-def test_fold_unconstraint(seq_id, region, window, span, unconstraint, save, outdir, seq):
+def test_fold_unconstraint(
+    seq_id, region, window, span, unconstraint, save, outdir, seq
+):
     if os.path.isfile(seq):
         seq = str(SeqIO.read(seq, format="fasta").seq)
     seq = seq.upper().replace("T", "U")
@@ -288,7 +322,21 @@ def test_fold_unconstraint(seq_id, region, window, span, unconstraint, save, out
 @pytest.mark.parametrize(
     "seq_id,start,end,window,span,region,multi,paired,unpaired,save,outdir,unconstraint,seq",
     [
-        ("onlyA", 200, 207, 100, 60, 7, 1, "paired", "unpaired", 1, "onlyA", "raw", "A" * 500),
+        (
+            "onlyA",
+            200,
+            207,
+            100,
+            60,
+            7,
+            1,
+            "paired",
+            "unpaired",
+            1,
+            "onlyA",
+            "raw",
+            "A" * 500,
+        ),
         (
             "testseq2",
             200,
@@ -322,28 +370,48 @@ def test_fold_unconstraint(seq_id, region, window, span, unconstraint, save, out
     ],
 )
 def test_fold_constraint(
-    seq_id, start, end, window, span, region, multi, paired, unpaired, save, outdir, unconstraint, seq
+    seq_id,
+    start,
+    end,
+    window,
+    span,
+    region,
+    multi,
+    paired,
+    unpaired,
+    save,
+    outdir,
+    unconstraint,
+    seq,
 ):
     if os.path.isfile(seq):
         seq = str(SeqIO.read(seq, format="fasta").seq)
     seq = seq.upper().replace("T", "U")
     outdir = os.path.join(TMP_TEST_DIR, outdir)
     # TODO: Maybe rewrite this part in the ConstraintPLfold and just import the function
-    tostart, toend = expand_window(start, end, window, multi, len(seq))
+    tostart, toend = expand_pl_window(start, end, window, multi, len(seq))
     seqtofold = str(seq[tostart - 1 : toend])
-    locws, locwe = localize_window(start, end, window, len(seq))
+    locws, locwe = localize_pl_window(start, end, window, len(seq))
     locws = locws - tostart
     locwe = locwe - tostart
     locstart = start - tostart
     locend = end - tostart
 
     cmd_unpaired = cmd_rnaplfold(
-        seqtofold, window, span, region=region, constraint=[("unpaired", locstart, locend + 1)]
+        seqtofold,
+        window,
+        span,
+        region=region,
+        constraint=[("unpaired", locstart, locend + 1)],
     )
     cmd_unpaired.localize(locws, locwe + 1)
     cmd_unpaired_array = cmd_unpaired.numpy_array
     cmd_paired = cmd_rnaplfold(
-        seqtofold, window, span, region=region, constraint=[("paired", locstart, locend + 1)]
+        seqtofold,
+        window,
+        span,
+        region=region,
+        constraint=[("paired", locstart, locend + 1)],
     )
     cmd_paired.localize(locws, locwe + 1)
     cmd_paired_array = cmd_paired.numpy_array
