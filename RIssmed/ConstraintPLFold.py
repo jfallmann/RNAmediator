@@ -1105,11 +1105,11 @@ def checkexisting(sid, paired, unpaired, cons, region, window, span, outdir):
 def main(args=None):
 
     logid = SCRIPTNAME + ".main: "
-    
+
     try:
 
         if not args:
-        args = parseargs_plcons()
+            args = parseargs_plcons()
 
         queue, listener, worker_configurer = rissmed_logging_setup(
             args.logdir, args.loglevel, SCRIPTNAME
