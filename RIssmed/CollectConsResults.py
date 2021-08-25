@@ -215,10 +215,10 @@ def screen_genes(
             try:
                 for uncons in raw:
                     unpa = uncons.replace("raw", "diffnu").replace(
-                        goi + "_", "StruCons_" + goi + "_"
+                        goi + "_", "StruCons_" + goi + "_", 1
                     )
                     pair = uncons.replace("raw", "diffnp").replace(
-                        goi + "_", "StruCons_" + goi + "_"
+                        goi + "_", "StruCons_" + goi + "_", 1
                     )
                     if unpa in unpaired and pair in paired:
                         pool.apply_async(
