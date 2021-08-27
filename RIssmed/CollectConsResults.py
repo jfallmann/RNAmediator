@@ -113,7 +113,7 @@ def screen_genes(
     border,
     ulim,
     procs,
-    roi,
+    unconstraint,
     outdir,
     dir,
     genes,
@@ -153,7 +153,7 @@ def screen_genes(
             # get files with specified pattern
             raw = os.path.abspath(
                 os.path.join(
-                    dir, goi, goi + "*_raw_*" + str(window) + "_" + str(span) + ".npy"
+                    dir, goi, goi + f"*_{unconstraint}_*" + str(window) + "_" + str(span) + ".npy"
                 )
             )
             unpaired = os.path.abspath(
@@ -646,7 +646,7 @@ def main():
             args.border,
             args.ulimit,
             args.procs,
-            args.roi,
+            args.unconstraint,
             args.outdir,
             args.dir,
             args.genes,
