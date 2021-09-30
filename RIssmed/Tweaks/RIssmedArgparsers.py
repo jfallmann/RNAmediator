@@ -247,7 +247,7 @@ def parseargs_collectpl():
         "-p",
         "--pattern",
         type=str,
-        default="250,150",
+        default="240,60",
         help="Pattern for files and window, e.g. Seq1_30,250",
     )
     parser.add_argument(
@@ -277,10 +277,10 @@ def parseargs_collectpl():
     )
     parser.add_argument(
         "-r",
-        "--roi",
+        "--unconstraint",
         type=str,
-        default=None,
-        help="Define Region of Interest that will be compared",
+        default="raw",
+        help="same name as unconstraint provided at ConstraintPLFold -r",
     )
     parser.add_argument(
         "-o", "--outdir", type=str, default="", help="Directory to write to"

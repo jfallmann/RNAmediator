@@ -71,6 +71,8 @@ import shlex
 
 # others
 from natsort import natsorted
+from itertools import repeat
+
 
 # Logging
 import datetime
@@ -93,6 +95,15 @@ log = logging.getLogger(__name__)  # use module name
 SCRIPTNAME = os.path.basename(__file__).replace(".py", "")
 
 
+def starmap_with_kwargs(pool, fn, args_iter, kwargs_iter):
+    args_for_starmap = zip(repeat(fn), args_iter, kwargs_iter)
+    return pool.starmap(apply_args_and_kwargs, args_for_starmap)
+
+
+def apply_args_and_kwargs(fn, args, kwargs):
+    return fn(*args, **kwargs)
+
+
 def screen_genes(
     queue,
     configurer,
@@ -102,7 +113,7 @@ def screen_genes(
     border,
     ulim,
     procs,
-    roi,
+    unconstraint,
     outdir,
     dir,
     genes,
@@ -133,7 +144,7 @@ def screen_genes(
 
         # Create process pool with processes
         num_processes = procs or 1
-        pool = multiprocessing.Pool(processes=num_processes, maxtasksperchild=1)
+        call_list = []
 
         for goi in genecoords:
             log.info(logid + "Working on " + goi)
@@ -142,7 +153,7 @@ def screen_genes(
             # get files with specified pattern
             raw = os.path.abspath(
                 os.path.join(
-                    dir, goi, goi + "*_raw_*" + str(window) + "_" + str(span) + ".npy"
+                    dir, goi, goi + f"*_{unconstraint}_*" + str(window) + "_" + str(span) + ".npy"
                 )
             )
             unpaired = os.path.abspath(
@@ -215,15 +226,13 @@ def screen_genes(
             try:
                 for uncons in raw:
                     unpa = uncons.replace("raw", "diffnu").replace(
-                        goi + "_", "StruCons_" + goi + "_"
+                        goi + "_", "StruCons_" + goi + "_", 1
                     )
                     pair = uncons.replace("raw", "diffnp").replace(
-                        goi + "_", "StruCons_" + goi + "_"
+                        goi + "_", "StruCons_" + goi + "_", 1
                     )
                     if unpa in unpaired and pair in paired:
-                        pool.apply_async(
-                            judge_diff,
-                            args=(
+                        call_list.append((
                                 uncons,
                                 unpa,
                                 pair,
@@ -236,12 +245,8 @@ def screen_genes(
                                 outdir,
                                 padding,
                             ),
-                            kwds={
-                                "queue": queue,
-                                "configurer": configurer,
-                                "level": level,
-                            },
                         )
+
                     else:
                         log.debug(
                             logid + "MISMATCH: " + uncons + "\t" + unpa + "\t" + pair
@@ -255,6 +260,7 @@ def screen_genes(
                             + "!"
                         )
                         continue
+
             except Exception:
                 exc_type, exc_value, exc_tb = sys.exc_info()
                 tbe = tb.TracebackException(
@@ -263,9 +269,14 @@ def screen_genes(
                     exc_tb,
                 )
                 log.error(logid + "".join(tbe.format()))
-
-        pool.close()
-        pool.join()
+        with multiprocessing.Pool(num_processes, maxtasksperchild=1) as pool:
+            outlist = starmap_with_kwargs(pool, judge_diff, call_list, repeat({
+                "queue": queue,
+                "configurer": configurer,
+                "level": level,
+            }, len(call_list)))
+        for entry in outlist:
+            savelists(entry, outdir)
 
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -556,9 +567,7 @@ def judge_diff(
                                     ]
                                 )
                             )
-
-        savelists(out, outdir)
-
+        return out
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
@@ -637,7 +646,7 @@ def main():
             args.border,
             args.ulimit,
             args.procs,
-            args.roi,
+            args.unconstraint,
             args.outdir,
             args.dir,
             args.genes,
