@@ -78,6 +78,10 @@ from RIssmed.Tweaks.logger import (
     worker_configurer,
 )
 
+from . import _version
+
+__version__ = _version.get_versions()["version"]
+
 # load own modules
 from RIssmed.Tweaks.FileProcessor import *
 from RIssmed.Tweaks.RNAtweaks import *
@@ -273,47 +277,75 @@ def write_out(out, outdir):
         log.error(logid + "".join(tbe.format()))
 
 
-def main():
+def main(args=None):
+    """Main process, prepares run_settings dict, creates logging process queue and worker processes for folding, calls screen_genes
 
-    args = parseargs_collect_window()
-    #  Logging configuration
-    logdir = args.logdir
-    ts = str(datetime.datetime.now().strftime("%Y%m%d_%H_%M_%S_%f"))
-    logfile = str.join(
-        os.sep, [os.path.abspath(logdir), SCRIPTNAME + "_" + ts + ".log"]
-    )
-    loglevel = args.loglevel
+    Parameters
+    ----------
 
-    makelogdir(logdir)
-    makelogfile(logfile)
+    Returns
+    -------
+    Call to screen_genes
+    """
 
-    queue = multiprocessing.Manager().Queue(-1)
-    listener = multiprocessing.Process(
-        target=listener_process, args=(queue, listener_configurer, logfile, loglevel)
-    )
-    listener.start()
+    try:
+        if not args:
+            args = parseargs_collect_window()
 
-    worker_configurer(queue, loglevel)
+        if args.version:
+            sys.exit("Running RIssmed version " + __version__)
 
-    log.info(logid + "Running " + SCRIPTNAME + " on " + str(args.procs) + " cores.")
-    log.info(
-        logid
-        + "CLI: "
-        + sys.argv[0]
-        + " "
-        + "{}".format(" ".join([shlex.quote(s) for s in sys.argv[1:]]))
-    )
+        #  Logging configuration
+        logdir = args.logdir
+        ts = str(datetime.datetime.now().strftime("%Y%m%d_%H_%M_%S_%f"))
+        logfile = str.join(
+            os.sep, [os.path.abspath(logdir), SCRIPTNAME + "_" + ts + ".log"]
+        )
+        loglevel = args.loglevel
 
-    screen_genes(
-        queue,
-        worker_configurer,
-        loglevel,
-        args.pattern,
-        args.border,
-        args.procs,
-        args.outdir,
-        args.genes,
-    )
+        makelogdir(logdir)
+        makelogfile(logfile)
+
+        queue = multiprocessing.Manager().Queue(-1)
+        listener = multiprocessing.Process(
+            target=listener_process,
+            args=(queue, listener_configurer, logfile, loglevel),
+        )
+        listener.start()
+
+        worker_configurer(queue, loglevel)
+
+        log.info(logid + "Running " + SCRIPTNAME + " on " + str(args.procs) + " cores.")
+        log.info(
+            logid
+            + "CLI: "
+            + sys.argv[0]
+            + " "
+            + "{}".format(" ".join([shlex.quote(s) for s in sys.argv[1:]]))
+        )
+
+        screen_genes(
+            queue,
+            worker_configurer,
+            loglevel,
+            args.pattern,
+            args.border,
+            args.procs,
+            args.outdir,
+            args.genes,
+        )
+    except Exception:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+            exc_type,
+            exc_value,
+            exc_tb,
+        )
+        log.error(logid + "".join(tbe.format()))
+
+    finally:
+        queue.put_nowait(None)
+        listener.join()
 
 
 ####################

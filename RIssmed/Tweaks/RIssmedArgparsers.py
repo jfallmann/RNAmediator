@@ -216,12 +216,9 @@ def parseargs_plcons():
         help="Genomic coordinates bed for genes, either standard bed format or AnnotateBed.pl format",
     )
     parser.add_argument(
-        "-v",
-        "--verbosity",
-        type=int,
-        default=0,
-        choices=[0, 1],
-        help="increase output verbosity",
+        "--version",
+        action="store_true",
+        help="Print version",
     )
     parser.add_argument(
         "--loglevel",
@@ -316,6 +313,11 @@ def parseargs_collectpl():
         default=1,
         help="Padding around constraint that will be excluded from report, default is 1, "
         "so directly overlapping effects will be ignored",
+    )
+    parser.add_argument(
+        "--version",
+        action="store_true",
+        help="Print version",
     )
 
     if len(sys.argv) == 1:
@@ -442,6 +444,11 @@ def parseargs_foldcons():
         help="Set log level",
     )
     parser.add_argument("--logdir", type=str, default="LOGS", help="Set log directory")
+    parser.add_argument(
+        "--version",
+        action="store_true",
+        help="Print version",
+    )
 
     if len(sys.argv) == 1:
         parser.print_help(sys.stderr)
@@ -496,6 +503,11 @@ def parseargs_collect_window():
         help="Set log level",
     )
     parser.add_argument("--logdir", type=str, default="LOGS", help="Set log directory")
+    parser.add_argument(
+        "--version",
+        action="store_true",
+        help="Print version",
+    )
 
     if len(sys.argv) == 1:
         parser.print_help(sys.stderr)
@@ -527,6 +539,11 @@ def visualiziation_parser():
         type=str,
         help="path to store the database file. If it already exists "
         "this file is used and -f is ignored",
+    )
+    parser.add_argument(
+        "--version",
+        action="store_true",
+        help="Print version",
     )
     return parser.parse_args()
 

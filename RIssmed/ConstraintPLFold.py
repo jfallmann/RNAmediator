@@ -77,6 +77,10 @@ import multiprocessing
 import shlex
 from typing import Dict
 
+from . import _version
+
+__version__ = _version.get_versions()["version"]
+
 # load own modules
 from RIssmed.Tweaks.FileProcessor import *
 from RIssmed.Tweaks.RIssmed import (
@@ -1103,6 +1107,15 @@ def checkexisting(sid, paired, unpaired, cons, region, window, span, outdir):
 
 
 def main(args=None):
+    """Main process, prepares run_settings dict, creates logging process queue and worker processes for folding, calls fold
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+    Call to pl_fold
+    """
 
     logid = SCRIPTNAME + ".main: "
 

@@ -78,6 +78,10 @@ import errno
 # ViennaRNA
 import RNA
 
+from . import _version
+
+__version__ = _version.get_versions()["version"]
+
 # load own modules
 from RIssmed.Tweaks.FileProcessor import *
 from RIssmed.Tweaks.RNAtweaks import (
@@ -886,6 +890,9 @@ def main(args=None):
     try:
         if not args:
             args = parseargs_foldcons()
+
+        if args.version:
+            sys.exit("Running RIssmed version " + __version__)
 
         queue, listener, worker_configurer = rissmed_logging_setup(
             args.logdir, args.loglevel, SCRIPTNAME

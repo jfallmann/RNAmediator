@@ -15,6 +15,10 @@ import plotly.io as pio
 from dash import callback_context
 from dash.dependencies import Input, Output, State, ALL
 
+from . import _version
+
+__version__ = _version.get_versions()["version"]
+
 from RIssmed.Tweaks.RIssmedArgparsers import visualiziation_parser
 from RIssmed.vis.database_handling import (
     get_interesting,
@@ -518,6 +522,9 @@ def change_dropdown(output_data_upload):
 
 if __name__ == "__main__":
     args = visualiziation_parser()
+    if args.version:
+        sys.exit("Running RIssmed version " + __version__)
+
     bed_file = args.file
     global database
     if args.memory is True:

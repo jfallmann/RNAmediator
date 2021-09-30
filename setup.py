@@ -1,9 +1,10 @@
 from setuptools import setup, find_packages
-
+import versioneer
 
 setup(
     name="RIssmed",
-    version="0.0.1",
+    version=versioneer.get_version(),
+    cmdclass=versioneer.get_cmdclass(),
     author="Joerg Fallmann",
     author_email="fall@bioinf.uni-leipzig.de",
     scripts=[
@@ -15,11 +16,11 @@ setup(
     packages=["RIssmed.Tweaks", "RIssmed"],
     entry_points={
         "console_scripts": [
-            "RIssmed_fold = RIssmed.ConstraintFold:main",
-            "RIssmed_plfold = RIssmed.ConstraintPLFold:main",
-            "RIssmed_collect_fold = RIssmed.CollectWindowResults:main",
-            "RIssmed_collect_plfold = RIssmed.CollectConsResults:main",
-            "RIssmed_visualize = RIssmed.visualize:main",
+            "RIssmed fold = RIssmed.ConstraintFold:main",
+            "RIssmed plfold = RIssmed.ConstraintPLFold:main",
+            "RIssmed collect fold = RIssmed.CollectWindowResults:main",
+            "RIssmed collect plfold = RIssmed.CollectConsResults:main",
+            "RIssmed visualize = RIssmed.visualize:main",
         ]
     },
     license="LICENSE.txt",

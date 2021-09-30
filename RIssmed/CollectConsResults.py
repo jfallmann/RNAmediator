@@ -85,6 +85,11 @@ from RIssmed.Tweaks.logger import (
     worker_configurer,
 )
 
+from . import _version
+
+__version__ = _version.get_versions()["version"]
+
+
 # load own modules
 from RIssmed.Tweaks.FileProcessor import *
 from RIssmed.Tweaks.RNAtweaks import *
@@ -153,7 +158,14 @@ def screen_genes(
             # get files with specified pattern
             raw = os.path.abspath(
                 os.path.join(
-                    dir, goi, goi + f"*_{unconstraint}_*" + str(window) + "_" + str(span) + ".npy"
+                    dir,
+                    goi,
+                    goi
+                    + f"*_{unconstraint}_*"
+                    + str(window)
+                    + "_"
+                    + str(span)
+                    + ".npy",
                 )
             )
             unpaired = os.path.abspath(
@@ -232,7 +244,8 @@ def screen_genes(
                         goi + "_", "StruCons_" + goi + "_", 1
                     )
                     if unpa in unpaired and pair in paired:
-                        call_list.append((
+                        call_list.append(
+                            (
                                 uncons,
                                 unpa,
                                 pair,
@@ -270,11 +283,19 @@ def screen_genes(
                 )
                 log.error(logid + "".join(tbe.format()))
         with multiprocessing.Pool(num_processes, maxtasksperchild=1) as pool:
-            outlist = starmap_with_kwargs(pool, judge_diff, call_list, repeat({
-                "queue": queue,
-                "configurer": configurer,
-                "level": level,
-            }, len(call_list)))
+            outlist = starmap_with_kwargs(
+                pool,
+                judge_diff,
+                call_list,
+                repeat(
+                    {
+                        "queue": queue,
+                        "configurer": configurer,
+                        "level": level,
+                    },
+                    len(call_list),
+                ),
+            )
         for entry in outlist:
             savelists(entry, outdir)
 
@@ -605,9 +626,24 @@ def savelists(out, outdir):
         log.error(logid + "".join(tbe.format()))
 
 
-def main():
+def main(args=None):
+     """Main process, prepares run_settings dict, creates logging process queue and worker processes for folding, calls screen_genes
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+    Call to screen_genes
+    """
+
     try:
-        args = parseargs_collectpl()
+        if not args:
+            args = parseargs_collectpl()
+
+        if args.version:
+            sys.exit("Running RIssmed version " + __version__)
+
         #  Logging configuration
         logdir = args.logdir
         ts = str(datetime.datetime.now().strftime("%Y%m%d_%H_%M_%S_%f"))

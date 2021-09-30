@@ -55,6 +55,10 @@ import traceback as tb
 import argparse
 import shlex
 
+from . import _version
+
+__version__ = _version.get_versions()["version"]
+
 from RIssmed.Tweaks.logger import makelogdir, setup_logger
 
 
@@ -232,6 +236,9 @@ if __name__ == "__main__":
     logid = SCRIPTNAME + ".main: "
     try:
         args = parseargs()
+        if args.version:
+            sys.exit("Running RIssmed version " + __version__)
+
         log = setup_logger(
             name=logname,
             log_file="LOGS/" + logname,
