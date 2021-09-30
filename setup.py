@@ -1,8 +1,14 @@
 from setuptools import setup, find_packages
 import versioneer
 
+NAME = "RIssmed"
+DESCRIPTION = "The RNA Interaction via secondary structure mediation (RIssmed) tool suite analyses the change of RNA secondary structure upon binding other molecules. (Most of the functionality currently missing)"
+
+# Set __version__ done by versioneer
+# exec(open("NextSnakes/__init__.py").read())
+
 setup(
-    name="RIssmed",
+    name=NAME,
     version=versioneer.get_version(),
     cmdclass=versioneer.get_cmdclass(),
     author="Joerg Fallmann",
@@ -23,14 +29,15 @@ setup(
             "RIssmed visualize = RIssmed.visualize:main",
         ]
     },
-    license="LICENSE.txt",
+    license="LICENSE",
     url="https://github.com/jfallmann/RIssmed",
-    long_description_content_type="text/markdown",
-    description="The RNA Interaction via secondary structure mediation (RIssmed) tool suite analyses the change of RNA "
-    "secondary structure upon binding other molecules. (Most of the functionality currently missing)",
+    description=DESCRIPTION,
     long_description=open(
         "RIssmed/Tweaks/README.md"
     ).read(),  # Change this to include other RISSmed stuff
+    long_description_content_type="text/markdown",
     include_package_data=True,
     install_requires=["numpy"],
+    setup_requires=["pytest-runner"],
+    tests_require=["pytest"],
 )
