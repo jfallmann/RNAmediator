@@ -39,5 +39,5 @@ jobs:
       run: |
         export PATH="/usr/share/miniconda/bin:$PATH"
         source activate rissmed
-        pytest
+        python -m pytest
 

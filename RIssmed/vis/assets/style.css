@@ -1,0 +1,314 @@
+
+
+#test {
+    color: red;
+    font-size: 50px;
+}
+
+#wrapper #filter-table {
+    text-align: middle;
+    border-radius: 5px;
+}
+
+#wrapper #filter-table .table-header {
+    background-color: #98a2ac;
+    color: black;
+    border-radius: 5px;
+    text-align: center;
+    font-weight: 1000;
+    margin: auto;
+}
+
+
+
+#wrapper .databox {
+	background-color:  #323232;
+    height: 100%;
+	border-radius: 10px;
+	border-color: black;
+	border-width: 2px;
+	border-style: solid;
+
+
+
+}
+
+#wrapper .page-header {
+    text-align: center;
+	background-color:  #323232;
+	border-radius: 10px;
+	border-color: black;
+	padding: 5px;
+	border-width: 2px;
+	border-style: solid;
+	margin: auto;
+	margin-top: 5px;
+	margin-bottom: 5px;
+
+}
+#wrapper .filter_table_interactive {
+    background-color: white;
+    color: black;
+    border-radius: 5px;
+    margin: auto;
+    text-align: center;
+}
+
+
+#wrapper .interesting-table-tablerows button {
+    background-color: Transparent;
+    display: table-cell;
+    outline: 3px solid #7f7f7f;
+    border-collapse: collapse;
+    color: inherit;
+    border: None;
+    padding: 10px;
+}
+
+#wrapper .interesting-table-index-column {
+    background: #666666;
+    color: black;
+
+
+}
+
+#wrapper .interesting-table {
+    border: 2px solid black;
+    border-radius: 10px;
+    margin: 0;
+    width: 100%;
+}
+
+
+#wrapper .interesting-table-tablerows tr {
+    color: white;
+}
+
+#wrapper .interesting-table-tablerows tr:hover {
+    background: #7bb6b3;
+    color: black;
+}
+
+#wrapper .interesting-table-header button{
+    background: #666666;
+    color: black;
+    outline: 3px solid #7f7f7f;
+    padding: 10px;
+    font-size: 18px;
+
+
+}
+
+#wrapper .interesting-table-tablerows {
+    border: 10px solid #7f7f7f;
+    border-radius: 10px;
+    overflow: hidden;
+    border-collapse: separate;
+    width: 100%;
+}
+
+#wrapper .next-button {
+    width: 0;
+	height: 0;
+    content: "";
+    outline: none;
+    background-color: Transparent;
+    border-top: 20px solid transparent;
+	border-left: 40px solid #7d7d7d;
+    border-right: None;
+	border-bottom: 20px solid transparent;
+    text-decoration: None;
+    margin:inherit;
+}
+
+#wrapper .next-button:hover {
+    border-left: 40px solid #7bb6b3;
+
+}
+
+
+#wrapper .prev-button {
+    width: 0;
+	height: 0;
+    content: "";
+    outline: none;
+    margin: auto;
+    background-color: Transparent;
+    border-top: 20px solid transparent;
+	border-right: 40px solid #7d7d7d;
+    border-left: None;
+	border-bottom: 20px solid transparent;
+    text-decoration: None;
+}
+#wrapper .prev-button:hover {
+    border-right: 40px solid #7bb6b3;
+
+}
+
+#wrapper .search-input {
+    width:70%;
+    background: #f1fffe;
+    padding: 10px;
+    border: 1px solid #7bb6b3;
+    border-radius: 0 5px 5px 0;
+
+}
+#wrapper nobr {
+    width: 100%;
+}
+#wrapper .search-label {
+    width: 30%;
+    margin: 0;
+    background: #7bb6b3;
+    color: black;
+    font-weight: bold;
+    padding: 10px;
+    outline: 2px;
+    border: 1px solid #7bb6b3;
+    border-radius: 5px 0 0 5px;
+
+
+}
+
+#wrapper .search-wrapper {
+        margin: auto;
+        width: 90%;
+    }
+
+
+#wrapper .search-input:focus {
+    background: white;
+}
+
+.dash-bootstrap .Select-control {
+  height: calc(1.5em + 0.75rem + 2px);
+  font-size: 0.9375rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #fff;
+  background-color: #222;
+  background-clip: padding-box;
+  border: 1px solid #444;
+  border-radius: 0.25rem;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dash-bootstrap .Select-control {
+    transition: none;
+  }
+}
+
+.dash-bootstrap .Select-control:hover {
+  box-shadow: none;
+}
+
+.dash-bootstrap .is-open > .Select-control {
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.dash-bootstrap .is-focused:not(.is-open) > .Select-control {
+  border-color: #aaa;
+  outline: 0;
+  box-shadow: 0 0 0 0.2rem rgba(55, 90, 127, 0.25);
+}
+
+.dash-bootstrap .Select.is-disabled > .Select-control {
+  background-color: #ebebeb;
+}
+
+.dash-bootstrap .Select--multi .Select-value {
+  border-radius: 0.125rem;
+  color: #eee;
+  border-color: rgba(200, 200, 200, 0.25);
+  background-color: rgba(55, 55, 55, 0.1);
+}
+
+.dash-bootstrap .Select--multi .Select-value-icon:hover {
+    background-color: #333;
+    color: #fff;
+}
+
+.dash-bootstrap .Select--multi .Select-value-icon {
+  border-right-color: rgba(55, 55, 55, 0.25);
+}
+
+.dash-bootstrap .has-value.Select--single > .Select-control .Select-value .Select-value-label,
+.dash-bootstrap .has-value.is-pseudo-focused.Select--single > .Select-control .Select-value .Select-value-label {
+  color: #444;
+}
+
+.dash-bootstrap .Select-multi-value-wrapper {
+  height: calc(1.5em + 0.75rem);
+}
+
+.dash-bootstrap .Select-placeholder {
+  color: #999;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+}
+
+.dash-bootstrap .Select--single > .Select-control .Select-value,
+.dash-bootstrap .Select-placeholder {
+  line-height: calc(1.5em + 0.75rem);
+}
+
+.dash-bootstrap .Select-input {
+  height: calc(1.5em + 0.75rem);
+}
+
+.dash-bootstrap .Select-menu-outer {
+  border-bottom-right-radius: 0.25rem;
+  border-bottom-left-radius: 0.25rem;
+  background-color: #222;
+  background-clip: padding-box;
+  border: 1px solid #444;
+  border-top-color: transparent;
+  box-shadow: none;
+  color: #fff;
+}
+
+.dash-bootstrap .VirtualizedSelectOption {
+  height: calc(1.5em + 0.75rem) !important;
+}
+
+.dash-bootstrap .VirtualizedSelectFocusedOption {
+  background-color: rgba(55, 90, 127, 0.1) !important;
+}
+
+@media screen and (max-width:1100px) {
+    .selection-table table tr > *{
+        display: block;
+        padding: 5px;
+        height: 45px;
+    }
+    .selection-table table tr {
+        display: table-cell;
+        vertical-align: top;
+        padding: 5px;
+        height: 45px;
+
+    }
+
+
+    #wrapper .interesting-table {
+        margin-left: 20px;
+        margin-right: 20px;
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+
+
+    #wrapper .interesting-table button {
+        font-size: 12px;
+    }
+    #wrapper .interesting-table-header-button {
+        font-size: 12px;
+    }
+
+
+}
+
+
+

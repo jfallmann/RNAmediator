@@ -1,0 +1,2 @@
+include RIssmed/RNAtweaks/*.mdinclude versioneer.py
+include RIssmed/_version.py
