@@ -95,6 +95,7 @@ Therefore it is recommended to use one fasta file containing sequences and anoth
 bed file containing the constraints. Matching between sequences and constraints is
 done via the gene identifier (here **ENSG00000270742**) which has to be the same in the bed file and the fasta
 and should look as follows:
+
 #####Fasta
 ```
 >ENSG00000270742:chr1:61124732-61125202(+)
