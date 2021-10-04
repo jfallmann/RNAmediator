@@ -126,7 +126,7 @@ Matching between constraints and sequences consequently ignores the gene identif
 and instead the first sequence will use the first line in the bed file as a constraint.
 
 If you want to construct bed files with genomic coordinates, containing information about
-pairing probabilities (see [CollectConsResults](#CollectConsResults)), it is essential to
+pairing probabilities (see [CollectConsResults](##CollectConsResults)), it is essential to
 provide another bed file with genomic coordinates.
 This file can be passed using the `--genes GeneBedFile` and should look like: 
 
