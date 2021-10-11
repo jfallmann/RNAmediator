@@ -10,22 +10,47 @@ options(echo=TRUE)
 args <- commandArgs(trailingOnly = TRUE)
 file <- args[1]
 name <- args[2]
+cores <- args[3]
 
 #setwd('~/Work/TempAnalysis/denbicloud/RIssMed')
 #file <- 'InfoSubset_20_7.tsv.gz'
 #name <- 'GC20_Cons7'
 
-data <- vroom(file, delim="\t", col_names=c("Delta_acc", "Distance", "Acc_raw", "Zscore","Type"), col_types=c("Delta_acc"="n","Distance"="i","Acc_raw"="n","Zscore"="n","Type"="c"), num_threads=6)
+### Total output of CollectConstResults.py
+#data <- vroom(file, delim="\t", col_names=c("Delta_acc", "Distance", "Acc_raw", "Zscore","Type"), col_types=c("Delta_acc"="n","Distance"="i","Acc_raw"="n","Zscore"="n","Type"="c"), num_threads=cores)
+###Filtered output
+data <- vroom(file, delim="\t", col_names=c("Constraint", "Distance", "Scores"), col_types=c("Constraint"="c", "Distance"="i","Scores"="c"), num_threads=cores)
+
+#https://stackoverflow.com/questions/4350440/split-data-frame-string-column-into-multiple-columns
+
+split_into_multiple <- function(column, pattern = ", ", into_prefix){
+    cols <- str_split_fixed(column, pattern, n = Inf)
+    # Sub out the ""'s returned by filling the matrix to the right, with NAs which are useful
+    cols[which(cols == "")] <- NA
+    cols <- as.tibble(cols)
+    # name the 'cols' tibble as 'into_prefix_1', 'into_prefix_2', ..., 'into_prefix_m' 
+    # where m = # columns of 'cols'
+    m <- dim(cols)[2]
+    
+    names(cols) <- paste(into_prefix, 1:m, sep = "_")
+    return(cols)
+}
+
+data <- data %>% 
+    bind_cols(split_into_multiple(.$Scores, "\\|", "Scores")) %>% 
+    # selecting those that start with 'type_' will remove the original 'type' column
+    select(Constraint, Distance, starts_with("Scores_")) %>% rename(PreAcc = Scores_1, delta_Acc = Scores_2, zScore = Scores_3)
+
 
 # Density plot
-p <- ggplot(data, aes(x=`Delta_acc`)) + geom_density() + theme_minimal()
+p <- ggplot(data, aes(x=`delta_Acc`)) + geom_density() + theme_minimal()
 p <- p + theme(aspect.ratio=0.4)
 p <- p + theme(axis.text.x=element_text(angle=90, hjust=1, vjust=0.5, size=6))
 p <- p + theme(axis.title.y = element_text(angle=90))
 p <- p + ggtitle(name)
 p <- p + xlab("Delta Accessibility")
 p <- p + ylab("Density")
-p <- p + scale_x_log10()
+#p <- p + scale_x_log10()
 p
 out <- paste("DeltaAccessibilityDensity_", file,".svg",sep="")
 ggsave(filename=out, path="./", width=7.2, height=7.2)
