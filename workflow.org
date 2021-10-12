@@ -262,12 +262,13 @@ Stats.R
 ssh circ
 cd /scratch/CONSTRAINTS/Longwindow
 ***** CLI
-for i in */Collection_unpaired.bed.gz;do a=${i%\/*}; zcat $i |perl -wlane '{$cons=(split(/\|/,$F[3]))[1];$reg{$cons}{"RAW"}=$F[$#F];$reg{$cons}{$F[6]}=join("|",$F[7],$F[4],$F[-1])}END{foreach $c (keys %reg){print join("\t",$c,$reg{$c}{"RAW"});delete $reg{$c}{"RAW"}; foreach $d (sort{$a <=> $b} keys %{$reg{$c}}){print join("\t",$d,$reg{$c}{$d})}}}' |gzip > Distance_Zscore_$a\.gz;done
+for i in */Collection_unpaired.bed.gz;do a=${i%\/*}; zcat $i |perl -wlane '{$cons=(split(/\|/,$F[3]))[1];$reg{$cons}{"RAW"}=$F[$#F];$reg{$cons}{$F[6]}=join("|",$F[7],$F[4],$F[-2])}END{foreach $c (keys %reg){$r=$reg{$c}{"RAW"};delete $reg{$c}{"RAW"}; foreach $d (sort{$a <=> $b} keys %{$reg{$c}}){print join("\t",$c,$d,$r,$reg{$c}{$d})}}}' |gzip > Distance_Zscore_$a\.gz;done
 ***** Slurm
 for i in */Collection_unpaired.bed.gz;do sbatch --export ALL,FILE=$i extract_info.sh;done
 cd /scratch2/CONSTRAINTS
 for i in Distance_Zscore_*.gz;do sbatch --export ALL,FILE=$i plot.sh;done
 ****** extract_info.sh
+
 #!/bin/bash
 #
 #SBATCH --job-name=extract
@@ -286,12 +287,10 @@ echo "Number of Tasks Allocated      = $SLURM_NTASKS"
 echo "Number of Cores/Task Allocated = $SLURM_CPUS_PER_TASK"
 
 OUT=${FILE%\/*}; 
-zcat $FILE |perl -wlane '{$cons=(split(/\|/,$F[3]))[1];$reg{$cons}{"RAW"}=$F[$#F];$reg{$cons}{$F[6]}=join("|",$F[7],$F[4],$F[-1])}END{foreach $c (keys %reg){print join("\t",$c,"0",$reg{$c}{"RAW"});delete $reg{$c}{"RAW"}; foreach $d (sort{
-$a <=> $b} keys %{$reg{$c}}){print join("\t",$c,$d,$reg{$c}{$d})}}}' |gzip > /scratch2/CONSTRAINTS/Distance_Zscore_$OUT\.gz
-###PreAcc, deltaAcc, zScore
+zcat $FILE |perl -wlane '{$cons=(split(/\|/,$F[3]))[1];$reg{$cons}{"RAW"}=$F[$#F];$reg{$cons}{$F[6]}=join("|",$F[7],$F[4],$F[-2])}END{foreach $c (keys %reg){$r=$reg{$c}{"RAW"};delete $reg{$c}{"RAW"}; foreach $d (sort{$a <=> $b} keys %{$reg{$c}}){print join("\t",$c,$d,$r,$reg{$c}{$d})}}}' |gzip > /scratch2/CONSTRAINTS/Distance_Zscore_$OUT\.gz
 
 ****** plot.sh
-!/bin/bash
+#!/bin/bash
 #
 #SBATCH --job-name=plot
 #SBATCH --output=/scratch2/SLURMLOG/plot_%J.txt
@@ -308,8 +307,7 @@ echo "Number of Nodes Allocated      = $SLURM_JOB_NUM_NODES"
 echo "Number of Tasks Allocated      = $SLURM_NTASKS"
 echo "Number of Cores/Task Allocated = $SLURM_CPUS_PER_TASK"
 
-u=${FILE#Distance_Zscore_*};u=${u%.gz}; Rscript --verbose Stats.R $a "GC_"$u"_s120" 10
-
+u=${FILE#Distance_Zscore_*};u=${u%.gz}; Rscript --verbose /scratch/CONSTRAINTS/Longwindow/Stats.R $a "GC_"$u"_s250" 10 
 
 * TODOS
 ** Soft-constraints
