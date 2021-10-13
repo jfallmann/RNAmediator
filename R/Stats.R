@@ -46,7 +46,7 @@ data <- data %>%
 toplot <- data %>% mutate(bin = cut(Raw, seq(0,1,0.1), right = FALSE)) %>% select(delta_Acc, bin)
 
 # Density plot
-p <- ggplot(toplot, aes(x=`delta_Acc`)) + geom_density() + theme_minimal()
+p <- ggplot(toplot, aes(x=`delta_Acc`)) + geom_density() + theme_classic()
 p <- p + theme(aspect.ratio=0.4)
 p <- p + theme(axis.text.x=element_text(angle=90, hjust=1, vjust=0.5, size=6))
 p <- p + theme(axis.title.y = element_text(angle=90))
@@ -66,7 +66,7 @@ toplot <- data %>% mutate(Distance = Distance/(-1*min(Distance))) %>%  mutate(bi
     #mutate(bin = cut(Distance, 25, right = FALSE)) %>% select(delta_Acc, bin)
 
 # Density plot
-p <- ggplot(toplot, aes(x=`delta_Acc`)) + geom_density() + theme_minimal()
+p <- ggplot(toplot, aes(x=`delta_Acc`)) + geom_density() + theme_classic()
 p <- p + theme(aspect.ratio=0.4)
 p <- p + theme(axis.text.x=element_text(angle=90, hjust=1, vjust=0.5, size=6))
 p <- p + theme(axis.title.y = element_text(angle=90))
@@ -85,7 +85,7 @@ ggsave(filename=out, path="./", width=7.2, height=7.2)
 toplot <- data %>% mutate(Constraint = as.numeric(str_split(.$Constraint, "\\-")[[1]][2])/1000) %>%  mutate(bin = cut(Constraint, 10, right = FALSE)) %>% select(delta_Acc, bin)
 
 # Density plot
-p <- ggplot(toplot, aes(x=`delta_Acc`)) + geom_density() + theme_minimal()
+p <- ggplot(toplot, aes(x=`delta_Acc`)) + geom_density() + theme_classic()
 p <- p + theme(aspect.ratio=0.4)
 p <- p + theme(axis.text.x=element_text(angle=90, hjust=1, vjust=0.5, size=6))
 p <- p + theme(axis.title.y = element_text(angle=90))
@@ -105,7 +105,7 @@ ggsave(filename=out, path="./", width=7.2, height=7.2)
 toplot <- data %>% mutate(bin = cut(zScore, 10, right = FALSE)) %>% select(delta_Acc, bin)
 
 # Density plot
-p <- ggplot(toplot, aes(x=`delta_Acc`)) + geom_density() + theme_minimal()
+p <- ggplot(toplot, aes(x=`delta_Acc`)) + geom_density() + theme_classic()
 p <- p + theme(aspect.ratio=0.4)
 p <- p + theme(axis.text.x=element_text(angle=90, hjust=1, vjust=0.5, size=6))
 p <- p + theme(axis.title.y = element_text(angle=90))
@@ -128,7 +128,7 @@ ggsave(filename=out, path="./", width=7.2, height=7.2)
 toplot <- data %>% mutate(Distance = Distance/(-1*min(Distance))) %>%  mutate(bin = cut(Distance, seq(-1,1,0.1), right = FALSE)) %>% select(delta_Acc, bin)
 #mutate(bin = cut(Distance, 25, right = FALSE)) %>% select(delta_Acc, bin)
 
-p <- ggplot(toplot, aes(x=`bin`, y=`delta_Acc`)) + geom_violin(fill="bisque",color="black",alpha=0.3) + stat_summary(fun=mean, colour="black", geom="point", shape=18, size=3, show.legend = FALSE) + guides(fill=FALSE) + theme_minimal()# + scale_fill_manual(values = c("firebrick"), alpha(.4)) + geom_jitter(aes(color='blue'),alpha=0.2)
+p <- ggplot(toplot, aes(x=`bin`, y=`delta_Acc`)) + geom_violin(fill="bisque",color="black",alpha=0.3) + stat_summary(fun=mean, colour="black", geom="point", shape=18, size=3, show.legend = FALSE) + guides(fill=FALSE) + theme_classic()# + scale_fill_manual(values = c("firebrick"), alpha(.4)) + geom_jitter(aes(color='blue'),alpha=0.2)
 p <- p + theme(aspect.ratio=0.4)
 p <- p + theme(axis.text.x=element_text(angle=90, hjust=1, vjust=0.5, size=6))
 p <- p + theme(axis.title.y = element_text(angle=90))
