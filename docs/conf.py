@@ -14,7 +14,8 @@ import os
 import sys
 
 sys.path.insert(0, os.path.abspath("."))
-from ..RIssmed import _version
+sys.path.insert(1, os.path.abspath("../RIssmed"))
+from RIssmed import _version
 
 __version__ = _version.get_versions()["version"]
 
