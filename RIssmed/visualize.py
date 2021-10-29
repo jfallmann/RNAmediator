@@ -71,7 +71,7 @@ def get_app_layout(dash_app: dash.Dash, df: str):
                 [
                     html.Div(
                         html.Div(
-                            html.H3("RIssmed Dasboard"),
+                            html.H3("RIssmed Dashboard"),
                             className="databox",
                             style={"text-align": "center"},
                         ),
