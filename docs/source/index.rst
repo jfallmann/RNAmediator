@@ -15,9 +15,10 @@ It is available as suite of commandline tools, the source code of RIssmed is ope
    :maxdepth: 2
    :caption: Contents:
 
-   installation
+   getit
    tutorial
    modules
+   contribute
 
 
 
