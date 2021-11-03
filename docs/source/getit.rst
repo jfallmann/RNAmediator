@@ -15,26 +15,36 @@ For details on ``conda`` please refer to the `conda manual`_ .
 
 .. _conda manual: https://docs.conda.io/en/latest/
 
-Installation should be as easy as running ``conda install -c conda-forge -c bioconda rissmed``.
-Best practice would be to install into an encapsulated environment via ``conda create -n rissmed -c conda-forge -c bioconda rissmed``
+Installation should be as easy as running:
+
+.. code-block ::
+
+    conda install -c conda-forge -c bioconda rissmed
+
+.. note::
+
+    Best practice would be to install into an encapsulated environment via:
+
+    .. code-block ::
+
+        conda create -n rissmed -c conda-forge -c bioconda rissmed
 
 
 Pip
 ---
 
-To create a working environment for this repository please install the
-``rissmed.yaml`` environment as found in the ``envs`` directory
-like so:
+Installation via Pip is simple. Just type:
 
-``conda env create -n rissmed -f envs/rissmed.yaml``
+.. code-block ::
 
-Followed by installation of ``RIssmed``, therefore activate the created environment
+    pip install rissmed
 
-``conda activate rissmed``
+.. note::
 
-and run 
+    Most of the required packages will be installed. However, the ViennaRNA_ package needs to be in PATH. Also, make sure that the Python API of the
+    ViennaRNA package is installed.
 
-``pip install rissmed`` to install the latest version
+    .. _ViennaRNA: https://www.tbi.univie.ac.at/RNA/
 
 
 Parallelization
