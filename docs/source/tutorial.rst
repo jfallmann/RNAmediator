@@ -46,8 +46,7 @@ Constraints can also be passed using the ``--ono`` (one on one) flag like this:
 Matching between constraints and sequences consequently ignores the gene identifiers
 and instead the first sequence will use the first line in the bed file as a constraint.
 
-If you want to construct bed files with genomic coordinates, containing information about
-pairing probabilities (see RIssmed_collect_plfold_), it is essential to
+If your constraints are specified using genomic coordinates, it is essential to
 provide another bed file with genomic coordinates.
 This file can be passed using the ``--genes GeneBedFile`` and should look like:
 
@@ -69,15 +68,17 @@ changing the header of your fasta sequences as well as the constraints in the be
 
 **BED** ::
 
-    ENST00000240304.5	0	5482	ENST00000240304.5	.	.
+    ENST00000240304.5	1178	1183	ENST00000240304.5	.	.
 
 In this case you should use GeneBed files (``--genes``) which look quite similar to
 the Constraints File but have as start position 0 and end position the length of
-the sequence
+the sequence. It is not important to use this file in the Rissmed_plfold call.
+However, it is essential for the RIssmed_collect_plfold_ step.
 
 **GeneBED** ::
 
-    ENST00000240304.5	1178	1183	ENST00000240304.5	.	.
+    ENST00000240304.5	0	5482	ENST00000240304.5	.	.
+
 
 
 RIssmed_collect_plfold
@@ -92,6 +93,9 @@ constraint. Therefore simply call:
 
     Rissmed_collect_plfold -d path/to/ConstraintPLFold/output -u 5 -g GeneBed --outdir path/to/outdir --unconstraint name
 
+.. note::
+
+    The collection step will only work if you provide coordinates of the gene or transcript via a **GeneBED**
 
 Hereby it is essential that ``--unconstraint`` matches the unconstraint name provided at the ConstraintPLFold call.
 Further the ``-u`` parameter defines the span sizes that are used for the output BED files which might
