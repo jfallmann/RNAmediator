@@ -1118,12 +1118,10 @@ def main(args=None):
     """
 
     logid = SCRIPTNAME + ".main: "
+    if not args:
+        args = parseargs_plcons()
 
     try:
-
-        if not args:
-            args = parseargs_plcons()
-
         queue, listener, worker_configurer = rissmed_logging_setup(
             args.logdir, args.loglevel, SCRIPTNAME
         )
