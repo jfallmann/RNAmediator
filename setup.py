@@ -19,7 +19,8 @@ setup(
         "RIssmed/CollectConsResults.py",
         "RIssmed/CollectWindowResults.py",
     ],
-    packages=["RIssmed.Tweaks", "RIssmed"],
+    packages=["RIssmed.Tweaks", "RIssmed", "RIssmed.vis"],
+    package_data={"RIssmed.vis": ["assets/*", "templates/*"]},
     entry_points={
         "console_scripts": [
             "RIssmed_fold = RIssmed.ConstraintFold:main",
@@ -37,7 +38,14 @@ setup(
     ).read(),  # Change this to include other RISSmed stuff
     long_description_content_type="text/markdown",
     include_package_data=True,
-    install_requires=["numpy"],
+    install_requires=[
+        "numpy",
+        "biopython",
+        "natsort",
+        "pandas",
+        "dash",
+        "dash-bootstrap-components",
+    ],
     setup_requires=["pytest-runner"],
     tests_require=["pytest"],
 )

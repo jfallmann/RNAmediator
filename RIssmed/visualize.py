@@ -15,7 +15,7 @@ import plotly.io as pio
 from dash import callback_context
 from dash.dependencies import Input, Output, State, ALL
 
-from . import _version
+from RIssmed import _version
 
 __version__ = _version.get_versions()["version"]
 
@@ -520,7 +520,7 @@ def change_dropdown(output_data_upload):
     return tables_table(names)
 
 
-if __name__ == "__main__":
+def main():
     args = visualiziation_parser()
     if args.version:
         sys.exit("Running RIssmed version " + __version__)
@@ -546,3 +546,8 @@ if __name__ == "__main__":
     app.run_server(debug=True, port=8080, host="0.0.0.0")
     if tmpdir:
         tmpdir.cleanup()
+
+
+if __name__ == "__main__":
+    main()
+
