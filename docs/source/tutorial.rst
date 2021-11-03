@@ -1,7 +1,7 @@
 Tutorial
 ========
 
-ConstraintPLFold
+RIssmed_plfold
 ################
 
 Using Genes
@@ -27,17 +27,18 @@ The command line call for this simple scenario is supposed to look like this:
 
 .. code-block:: shell
 
-    python ConstraintPLFold.py -s FASTA -x BedFile
+    RIssmed_plfold -s FASTA -x BedFile
 
 
 by default the results are printed to stdout. The first output is the
 folded sequence without constraints. This output can be redirected to a file
-using `--unconstraint nameforunconstraint`. The following outputs are the matrices for
+using ``--unconstraint nameforunconstraint``. The following outputs are the matrices for
 an unpaired constraint and for an paired constraint. These matrices can also be
-redirected to an file using `--paired nameforpaired` or `--unpaired nameforunpaired`.
-The folder to which these files should be saved is determined via the `--outdir` flag.
+redirected to an file using ``--paired nameforpaired`` or ``--unpaired nameforunpaired``.
+The folder to which these files should be saved is determined via the ``--outdir`` flag.
 
-Constraints can also be passed using the `ono` (one on one) flag like this:
+Constraints can also be passed using the ``--ono`` (one on one) flag like this:
+
 .. code-block:: shell
 
     python ConstraintPLFold.py -s FASTA -x ono,BedFile
@@ -46,9 +47,9 @@ Matching between constraints and sequences consequently ignores the gene identif
 and instead the first sequence will use the first line in the bed file as a constraint.
 
 If you want to construct bed files with genomic coordinates, containing information about
-pairing probabilities (see [CollectConsResults](#CollectConsResults)), it is essential to
+pairing probabilities (see RIssmed_collect_plfold_), it is essential to
 provide another bed file with genomic coordinates.
-This file can be passed using the `--genes GeneBedFile` and should look like:
+This file can be passed using the ``--genes GeneBedFile`` and should look like:
 
 **GeneBED** ::
 
@@ -70,7 +71,7 @@ changing the header of your fasta sequences as well as the constraints in the be
 
     ENST00000240304.5	0	5482	ENST00000240304.5	.	.
 
-In this case you should use GeneBed files (`--genes`) which look quite similar to
+In this case you should use GeneBed files (``--genes``) which look quite similar to
 the Constraints File but have as start position 0 and end position the length of
 the sequence
 
@@ -79,22 +80,22 @@ the sequence
     ENST00000240304.5	1178	1183	ENST00000240304.5	.	.
 
 
-CollectConsResults
-####################
+RIssmed_collect_plfold
+######################
 
-The methods mentioned in `ConstraintPLFold`_ example will
+The methods mentioned in RIssmed_plfold_ example will
 produce output that can be processed by CollectConsResults. This will generate BED
 files storing the probability of being unpaired for overlapping spans of nucleotides around the
 constraint. Therefore simply call:
 
 .. code-block::
 
-    python CollectConsResults.py -d path/to/ConstraintPLFold/output -u 5 -g GeneBed --outdir path/to/outdir --unconstraint name
+    Rissmed_collect_plfold -d path/to/ConstraintPLFold/output -u 5 -g GeneBed --outdir path/to/outdir --unconstraint name
 
 
-Hereby it is essential that `--unconstraint` matches the uconstraint name provided at the ConstraintPLFold call.
-Further the `-u` parameter defines the span sizes that are used for the output BED files which might
-for example look like this for `-u 5`:
+Hereby it is essential that ``--unconstraint`` matches the unconstraint name provided at the ConstraintPLFold call.
+Further the ``-u`` parameter defines the span sizes that are used for the output BED files which might
+for example look like this for ``-u 5``:
 
 ::
 
@@ -106,8 +107,17 @@ for example look like this for `-u 5`:
     chr1	110135779	110135784	ENSG00000065135|44542-44544|110135774-110135777	0.2991335	+	-8	0.1657577	0.4648912	0.7438289320089759	0.2991335	3.4228983161623856	0.15227569
     chr1	110135780	110135785	ENSG00000065135|44542-44544|110135774-110135777	0.29541885	+	-9	0.15833754	0.45375639	0.7515304743397738	0.29541885	3.376939173064934	0.15227569
 
+.. note::
 
-A detailed description of that files columns can be found in the [Output](#output) section.
+    If you used different plfold parameters (-w, -l) in the RIssmed_plfold call, you have to specify a pattern using ``-p w,l``
+
+
+A detailed description of that files columns can be found in the Output_ section.
+
+Output
+######
+
+WARNING Output missing
 
 Further steps
 ##############
@@ -115,3 +125,5 @@ Further steps
 The BED file created by CollectConsResults can be used to intersect with other known binding sites on the
 same gene/transcript. Thus, it is possible to see whether the changes in RNA structure upon binding of one ligand might
 affect the structure of binding site of other ligands.
+
+
