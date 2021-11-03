@@ -21,7 +21,11 @@ if errorlevel 9009 (
 	echo.may add the Sphinx directory to PATH.
 	echo.
 	echo.If you don't have Sphinx installed, grab it from
+<<<<<<< HEAD
 	echo.https://www.sphinx-doc.org/
+=======
+	echo.http://sphinx-doc.org/
+>>>>>>> c6bc3254d5daa09e232e1c24b45d6f70fab232f3
 	exit /b 1
 )
 

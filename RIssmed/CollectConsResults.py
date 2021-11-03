@@ -561,10 +561,10 @@ def judge_diff(
                         else:
                             dist = cs - pos
 
-                        preacc = preaccu[pos] - epsilon
-                        nrgdiff = nrgdiffu[pos]
-                        kd = kdu[pos]
-                        zscore = zscoresu[pos]
+                        preacc = preaccp[pos] - epsilon
+                        nrgdiff = nrgdiffp[pos]
+                        kd = kdp[pos]
+                        zscore = zscoresp[pos]
 
                         if not any(
                             [x is np.nan for x in [preacc, nrgdiff, kd, zscore]]

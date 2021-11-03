@@ -258,7 +258,62 @@ rm -f Dist_acc.tsv.gz; for a in 20 40 60 80;do for i in 5 7 9 11;do zcat $a\_$i\
 Accessibility_difference, Distance_to_constraint, Accessibility_no_constraint, Zscore
 **** Plot
 Stats.R
+**** Plot more
+ssh circ
+cd /scratch/CONSTRAINTS/Longwindow
+***** CLI
+for i in */Collection_unpaired.bed.gz;do a=${i%\/*}; zcat $i |perl -wlane '{$cons=(split(/\|/,$F[3]))[1];$reg{$cons}{"RAW"}=$F[$#F];$reg{$cons}{$F[6]}=join("|",$F[7],$F[4],$F[-2])}END{foreach $c (keys %reg){$r=$reg{$c}{"RAW"};delete $reg{$c}{"RAW"}; foreach $d (sort{$a <=> $b} keys %{$reg{$c}}){print join("\t",$c,$d,$r,$reg{$c}{$d})}}}' |gzip > Distance_Zscore_$a\.gz;done
+***** Slurm
+for i in */Collection_unpaired.bed.gz;do sbatch --export ALL,FILE=$i extract_info.sh;done
+cd /scratch2/CONSTRAINTS
+for i in Distance_Zscore_*.gz;do sbatch --export ALL,FILE=$i plot.sh;done
+****** extract_info.sh
+
+#!/bin/bash
+#
+#SBATCH --job-name=extract
+#SBATCH --output=/scratch2/SLURMLOG/extract_%J.txt
+#SBATCH --ntasks=10
+#SBATCH --time=10:00:00
+#SBATCH --mem-per-cpu=100GB
+
+echo "JOB = $SLURM_JOB_NAME"
+echo "Date              = $(date)"
+echo "Hostname          = $(hostname -s)"
+echo "Working Directory = $(pwd)"
+echo ""
+echo "Number of Nodes Allocated      = $SLURM_JOB_NUM_NODES"
+echo "Number of Tasks Allocated      = $SLURM_NTASKS"
+echo "Number of Cores/Task Allocated = $SLURM_CPUS_PER_TASK"
+
+OUT=${FILE%\/*}; 
+zcat $FILE |perl -wlane '{$cons=(split(/\|/,$F[3]))[1];$reg{$cons}{"RAW"}=$F[$#F];$reg{$cons}{$F[6]}=join("|",$F[7],$F[4],$F[-2])}END{foreach $c (keys %reg){$r=$reg{$c}{"RAW"};delete $reg{$c}{"RAW"}; foreach $d (sort{$a <=> $b} keys %{$reg{$c}}){print join("\t",$c,$d,$r,$reg{$c}{$d})}}}' |gzip > /scratch2/CONSTRAINTS/Distance_Zscore_$OUT\.gz
+
+****** plot.sh
+#!/bin/bash
+#
+#SBATCH --job-name=plot
+#SBATCH --output=/scratch2/SLURMLOG/plot_%J.txt
+#SBATCH --ntasks=10
+#SBATCH --time=24:00:00
+#SBATCH --mem-per-cpu=250GB
+
+echo "JOB = $SLURM_JOB_NAME"
+echo "Date              = $(date)"
+echo "Hostname          = $(hostname -s)"
+echo "Working Directory = $(pwd)"
+echo ""
+echo "Number of Nodes Allocated      = $SLURM_JOB_NUM_NODES"
+echo "Number of Tasks Allocated      = $SLURM_NTASKS"
+echo "Number of Cores/Task Allocated = $SLURM_CPUS_PER_TASK"
+
+u=${FILE#Distance_Zscore_*};u=${u%.gz}; Rscript --verbose /scratch/CONSTRAINTS/Longwindow/Stats.R $a "GC_"$u"_s250" 10 
+
 * TODOS
 ** Soft-constraints
 Add factor variable and model variable to define soft-constraints factor specific and binding motif specific
 e.g. 'TTP,-0.02,WTTTW;HuR,+0.2,UUUUU' as command-line or file, then --factors TTP,HuR,... and foreach factor in factors run folding and apply soft constraint if motif regex fits or everywhere, needs smart regex to work with IUPAC, see AREsite motif regex builder
+
+
+
+

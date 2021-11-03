@@ -1,0 +1,11 @@
+sphinx
+sphinxcontrib-napoleon
+sphinx-argparse
+sphinx_rtd_theme
+pytest-sphinx
+docutils
+autodoc
+mathjax
+recommonmark
+configargparse
+appdirs
