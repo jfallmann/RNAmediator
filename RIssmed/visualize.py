@@ -40,7 +40,7 @@ from RIssmed.vis.html_templates import (
 FILEDIR = os.path.dirname(os.path.abspath(__file__))
 ASSETS_DIR = os.path.join(FILEDIR, "vis/assets")
 app = dash.Dash(
-    "FOO",
+    "RIssmed Dashboard",
     external_stylesheets=[dbc.themes.DARKLY],
     assets_folder=ASSETS_DIR,
     index_string=open(os.path.join(ASSETS_DIR, "index.html")).read(),
@@ -543,7 +543,7 @@ def main():
     if not os.path.exists(database):
         csv_to_sqlite(bed_file, database)
     get_app_layout(app, database)
-    app.run_server(debug=True, port=8080, host="0.0.0.0")
+    app.run_server(debug=False, port=8080, host="0.0.0.0")
     if tmpdir:
         tmpdir.cleanup()
 
