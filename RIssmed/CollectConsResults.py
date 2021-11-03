@@ -61,21 +61,17 @@
 ##
 ### Code:
 ### IMPORTS
+# Logging
+import datetime
 import glob
-
 # multiprocessing
 import multiprocessing
-
 # numpy
 import shlex
+from itertools import repeat
 
 # others
 from natsort import natsorted
-from itertools import repeat
-
-
-# Logging
-import datetime
 
 from RIssmed.Tweaks.logger import (
     makelogdir,
@@ -84,7 +80,6 @@ from RIssmed.Tweaks.logger import (
     listener_configurer,
     worker_configurer,
 )
-
 from . import _version
 
 __version__ = _version.get_versions()["version"]
@@ -627,15 +622,16 @@ def savelists(out, outdir):
 
 
 def main(args=None):
-     """Main process, prepares run_settings dict, creates logging process queue and worker processes for folding, calls screen_genes
+    """Main process, prepares run_settings dict, creates logging process queue and worker processes for folding, calls screen_genes
 
-    Parameters
-    ----------
+   Parameters
+   ----------
 
-    Returns
-    -------
-    Call to screen_genes
-    """
+   Returns
+   -------
+   Call to screen_genes
+   """
+
 
     try:
         if not args:
@@ -664,7 +660,8 @@ def main(args=None):
 
         worker_configurer(queue, loglevel)
 
-        log.info(logid + "Running " + SCRIPTNAME + " on " + str(args.procs) + " cores.")
+        log.info(
+            logid + "Running " + SCRIPTNAME + " on " + str(args.procs) + " cores.")
         log.info(
             logid
             + "CLI: "
