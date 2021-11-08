@@ -55,7 +55,7 @@ import traceback as tb
 import argparse
 import shlex
 
-from . import _version
+from RIssmed import _version
 
 __version__ = _version.get_versions()["version"]
 
