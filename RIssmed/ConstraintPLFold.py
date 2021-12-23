@@ -1161,9 +1161,9 @@ def main(args=None):
             exc_tb,
         )
         log.error(logid + "".join(tbe.format()))
-    finally:
-        queue.put_nowait(None)
-        listener.join()
+    # finally:
+    #    queue.put_nowait(None)
+    #    listener.join()
 
 
 ####################
