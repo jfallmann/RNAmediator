@@ -633,6 +633,7 @@ def main(args=None):
     -------
     Call to screen_genes
     """
+
     logid = SCRIPTNAME + ".main: "
 
     try:
