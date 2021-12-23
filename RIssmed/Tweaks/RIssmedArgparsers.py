@@ -471,7 +471,7 @@ def parseargs_collect_window():
         "-b",
         "--border",
         type=str,
-        default="0,0",
+        default="-inf,inf",
         help="Cutoff for the minimum change between unconstraint and constraint structure,"
         " regions below this cutoff will not be returned as list of regions with most "
         "impact on structure.",

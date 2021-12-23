@@ -203,7 +203,7 @@ def _get_ddg(file):
 
     logid = scriptn + ".get_ddg: "
     try:
-        ret = defaultdict()
+        ret = defaultdict(dict)
         if isinstance(file, str) and os.path.isfile(file):
             if ".gz" in file:
                 res = gzip.open(file, "rt")
@@ -212,13 +212,13 @@ def _get_ddg(file):
 
             for line in res:
                 log.debug(logid + line)
-                if "Condition" in line[0:15]:
+                if "Condition" in line[0:15] or len(line.rstrip().split("\t")) < 5:
                     continue
                 else:
                     cond, gibbs, dg, nrg, cons = line.rstrip().split("\t")
-                    if not str(cons) in ret:
-                        ret[str(cons)] = defaultdict()
-                    ret[str(cons)][cond] = float(dg)
+                    ret[str(cond)] = float(dg)
+                    if ":" in cons:
+                        ret["constraint"] = cons
         return ret
 
     except Exception:
@@ -256,6 +256,7 @@ def _calc_ddg(ddgs):
         uncons = ddgs["unconstraint"]
         ddg = cons_up + sec_cons_up - both_cons_up - uncons
 
+        log.debug(logid + str(ddg))
         return ddg
 
     except Exception:

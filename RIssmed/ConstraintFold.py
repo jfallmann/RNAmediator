@@ -806,7 +806,7 @@ def write_out(Output, window, span, const, fname="STDOUT", outdir=None):
                     ),
                     "ab",
                 ) as o:
-                    o.write(bytes(Output.get_text(h=False) + "\n", encoding="UTF-8"))
+                    o.write(bytes(Output.get_text(h=False), encoding="UTF-8"))
         else:
             print(Output.get_text() + "\n")
 

@@ -154,7 +154,7 @@ def screen_genes(queue, configurer, level, pat, border, procs, outdir, genes):
 
             try:
                 for i in range(len(p)):
-                    log.debug(logid + "Calculating file " + str(p[i]))
+                    log.debug(logid + "Adding file " + str(p[i]) + " to queue.")
                     pool.apply_async(
                         calc,
                         args=(p[i], gs, ge, border, outdir),
@@ -207,32 +207,32 @@ def calc(p, gs, ge, border, outdir, queue=None, configurer=None, level=None):
 
         out = defaultdict()
         ddgs = _get_ddg(p)
-        log.debug(logid + str(ddgs))
+        log.debug(logid + "ddgs: " + str(ddgs))
 
         RT = (-1.9872041 * 10 ** (-3)) * (37 + 273.15)
         log.debug(logid + "RT is " + str(RT))
 
-        for cons in ddgs:
-            if not cons in out:
-                out[cons] = list()
-            ddg = _calc_ddg(ddgs[cons])
-            if ddg is not None:
-                if ddg > border1 and ddg < border2:
-                    dkd = math.exp(ddg / RT)
-                    out[cons].append(
-                        "\t".join(
-                            [
-                                str(chrom),
-                                str(gs),
-                                str(ge),
-                                str(goi),
-                                str(ddg),
-                                str(strand),
-                                str(cons),
-                                str(dkd) + "\n",
-                            ]
-                        )
+        cons = ddgs.pop("constraint")
+        if not cons in out:
+            out[cons] = list()
+        ddg = _calc_ddg(ddgs)
+        if ddg is not None:
+            if ddg > border1 and ddg < border2:
+                dkd = math.exp(ddg / RT)
+                out[cons].append(
+                    "\t".join(
+                        [
+                            str(chrom),
+                            str(gs),
+                            str(ge),
+                            str(goi),
+                            str(ddg),
+                            str(strand),
+                            str(cons),
+                            str(dkd) + "\n",
+                        ]
                     )
+                )
         if out:
             write_out(out, outdir)
         else:
