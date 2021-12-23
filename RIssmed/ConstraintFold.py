@@ -126,7 +126,7 @@ def fold(
     configurer=None,
     level=None,
 ):
-    """fold prepares and submitts sequenced to be folded constrained and unconstrained
+    """fold prepares and submits sequences to be folded constrained and unconstrained
 
     Parameters
     ----------
