@@ -206,7 +206,7 @@ def set_run_settings_dict(
             goi, chrom, strand = idfromfa(record.id)
             for start in range(1, len(record.seq) - conslength + 2):
                 end = start + conslength - 1
-                cons = str(start) + "-" + str(end) + "|" + str(strand)  # AUA
+                cons = str(start) + "-" + str(end) + "|" + str(strand)
                 run_settings = add_rissmed_constraint(
                     run_settings, cons, record, goi, chrom, strand
                 )

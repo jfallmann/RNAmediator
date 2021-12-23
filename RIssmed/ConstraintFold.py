@@ -285,11 +285,13 @@ def fold(
                         #    continue
                     else:
                         if gstrand == "+" or gstrand == ".":
-                            start, end = [x - gs for x in get_location(cons)[:2]]
+                            fstart, fend = [x - gs for x in get_location(cons)[:2]]
                         else:
-                            start, end = [ge - x for x in get_location(cons)[:2][::-1]]
+                            fstart, fend = [
+                                ge - x for x in get_location(cons)[:2][::-1]
+                            ]
 
-                        consstr = str(start) + "-" + str(end)
+                        consstr = str(fstart) + "-" + str(fend)
 
                         log.debug(logid + str.join(" ", [goi, consstr, gstrand]))
 
