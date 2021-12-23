@@ -471,11 +471,10 @@ def parseargs_collect_window():
         "-b",
         "--border",
         type=str,
-        default="",
+        default="0,0",
         help="Cutoff for the minimum change between unconstraint and constraint structure,"
         " regions below this cutoff will not be returned as list of regions with most "
-        "impact on structure. If not defined, will be calculated from folding the sequence of "
-        "interest at temperature range 30-44.",
+        "impact on structure.",
     )
     parser.add_argument(
         "-o", "--outdir", type=str, default="", help="Directory to write to"

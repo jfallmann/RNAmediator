@@ -91,6 +91,7 @@ __version__ = _version.get_versions()["version"]
 # load own modules
 from RIssmed.Tweaks.FileProcessor import *
 from RIssmed.Tweaks.RNAtweaks import *
+from RIssmed.Tweaks.RNAtweaks import _get_ddg, _calc_ddg, _calc_gibbs, _calc_nrg
 from RIssmed.Tweaks.NPtweaks import *
 
 log = logging.getLogger(__name__)  # use module name
@@ -132,12 +133,7 @@ def screen_genes(queue, configurer, level, pat, border, procs, outdir, genes):
             paired = os.path.abspath(
                 os.path.join(
                     goi,
-                    goi
-                    + "*_pairedconstraint_*"
-                    + str(window)
-                    + "_"
-                    + str(span)
-                    + ".gz",
+                    goi + "*" + str(window) + "_" + str(span) + ".gz",
                 )
             )
 
@@ -209,7 +205,7 @@ def calc(p, gs, ge, border, outdir, queue=None, configurer=None, level=None):
         )
 
         out = defaultdict()
-        ddgs = get_ddg(p)
+        ddgs = _get_ddg(p)
         log.debug(logid + str(ddgs))
 
         RT = (-1.9872041 * 10 ** (-3)) * (37 + 273.15)
@@ -218,7 +214,7 @@ def calc(p, gs, ge, border, outdir, queue=None, configurer=None, level=None):
         for cons in ddgs:
             if not cons in out:
                 out[cons] = list()
-            ddg = calc_ddg(ddgs[cons])
+            ddg = _calc_ddg(ddgs[cons])
             if ddg is not None:
                 if ddg > border1 and ddg < border2:
                     dkd = math.exp(ddg / RT)
