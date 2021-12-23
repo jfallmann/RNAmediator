@@ -375,7 +375,7 @@ def parseargs_foldcons():
         "or path to file containing regions following the naming pattern $fastaID_constraints, "
         "if paired, the first entry of the file will become a fixed constraint and paired "
         "with all the others, e.g. Sequence1_constraints, "
-        "choices = [off,sliding,temperature, tempprobe, file, paired,"
+        "choices = [off, sliding, file, paired,"
         " or simply 1-10,2-11 or 1-10;15-20,2-11:16-21 for paired]",
     )
     parser.add_argument(
@@ -414,7 +414,6 @@ def parseargs_foldcons():
         default=1,
         help="Number of parallel processes to run this job with",
     )
-    # parser.add_argument("--vrna", type=str, default='', help="Append path to vrna RNA module to sys.path")
     parser.add_argument(
         "--pattern",
         type=str,
