@@ -1665,7 +1665,7 @@ def api_rnafold(
                     ],
                 )
             elif mode == "secondconstraint_paired":
-                fc = _constrain_paired(fc, fstart, fend)
+                fc = _constrain_paired(fc, start, end)
                 printcons = str.join(
                     "|",
                     [
@@ -1676,7 +1676,7 @@ def api_rnafold(
                     ],
                 )
             elif mode == "bothconstraint_paired":
-                fc = _constrain_paired(fc, start, end, fstart, fend)
+                fc = _constrain_paired(fc, fstart, fend, start, end)
                 printcons = str.join(
                     "|",
                     [
@@ -1691,7 +1691,7 @@ def api_rnafold(
                     ],
                 )
             elif any(mode == x for x in ["unpaired", "u", "constraint_unpaired"]):
-                fc = _constrain_unpaired(fc, start, end)
+                fc = _constrain_unpaired(fc, fstart, fend)
                 mode = "constraint_unpaired"
                 printcons = str.join(
                     "|",
@@ -1703,7 +1703,7 @@ def api_rnafold(
                     ],
                 )
             elif mode == "secondconstraint_unpaired":
-                fc = _constrain_unpaired(fc, fstart, fend)
+                fc = _constrain_unpaired(fc, start, end)
                 printcons = str.join(
                     "|",
                     [
@@ -1714,7 +1714,7 @@ def api_rnafold(
                     ],
                 )
             elif mode == "bothconstraint_unpaired":
-                fc = _constrain_unpaired(fc, start, end, fstart, fend)
+                fc = _constrain_unpaired(fc, fstart, fend, start, end)
                 printcons = str.join(
                     "|",
                     [
