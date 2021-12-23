@@ -334,6 +334,9 @@ def main(args=None):
             args.outdir,
             args.genes,
         )
+        queue.put_nowait(None)
+        listener.join()
+
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
@@ -342,10 +345,6 @@ def main(args=None):
             exc_tb,
         )
         log.error(logid + "".join(tbe.format()))
-
-    finally:
-        queue.put_nowait(None)
-        listener.join()
 
 
 ####################

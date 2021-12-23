@@ -64,8 +64,10 @@
 # Logging
 import datetime
 import glob
+
 # multiprocessing
 import multiprocessing
+
 # numpy
 import shlex
 from itertools import repeat
@@ -624,15 +626,14 @@ def savelists(out, outdir):
 def main(args=None):
     """Main process, prepares run_settings dict, creates logging process queue and worker processes for folding, calls screen_genes
 
-   Parameters
-   ----------
+    Parameters
+    ----------
 
-   Returns
-   -------
-   Call to screen_genes
-   """
+    Returns
+    -------
+    Call to screen_genes
+    """
     logid = SCRIPTNAME + ".main: "
-
 
     try:
         if not args:
@@ -661,8 +662,7 @@ def main(args=None):
 
         worker_configurer(queue, loglevel)
 
-        log.info(
-            logid + "Running " + SCRIPTNAME + " on " + str(args.procs) + " cores.")
+        log.info(logid + "Running " + SCRIPTNAME + " on " + str(args.procs) + " cores.")
         log.info(
             logid
             + "CLI: "
