@@ -1229,8 +1229,8 @@ class FoldOutput(defaultdict):
             self[condition].update({"ddg": self["unconstraint"]["gibbs"] - gibbs})
             self[condition].update({"dnrg": self["unconstraint"]["nrg"] - nrg})
         else:
-            self[condition].update({"ddg": None})
-            self[condition].update({"dnrg": None})
+            self[condition].update({"ddg": 0})
+            self[condition].update({"dnrg": 0})
 
         return self
 
@@ -1714,7 +1714,7 @@ def api_rnafold(
                     ],
                 )
             elif mode == "bothconstraint_unpaired":
-                fc = _constrain_unpaired(fc, fstart, fend, start, end)
+                fc = _constrain_unpaired(fc, fstart, fend, start, fend)
                 printcons = str.join(
                     "|",
                     [

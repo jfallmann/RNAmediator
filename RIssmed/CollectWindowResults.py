@@ -186,6 +186,7 @@ def calc(p, gs, ge, border, outdir, queue=None, configurer=None, level=None):
 
     logid = SCRIPTNAME + ".calc_ddg: "
     try:
+        log.debug(logid + "Parsing outputfile " + p)
         if queue and level:
             configurer(queue, level)
 
