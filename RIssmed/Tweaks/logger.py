@@ -43,7 +43,9 @@ def listener_process(queue, configurer, logfile, loglevel):
     try:
         configurer(logfile, loglevel)
         while True:
+            print(f"TESTQ: {queue}, {configurer}")
             record = queue.get()
+            print(f"TEST: {record}")
             if (
                 record is None
             ):  # We send this as a sentinel to tell the listener to quit.
