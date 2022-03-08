@@ -23,11 +23,13 @@ def listener_configurer(logfile, loglevel):
     root = logging.getLogger()
     if root.hasHandlers():
         root.handlers.clear()
-    file_handler = logging.FileHandler(logfile, 'a')
+    file_handler = logging.FileHandler(logfile, "a")
     console_handler = logging.StreamHandler()
-    formatter = logging.Formatter('%(asctime)s %(processName)-10s %(name)s %(levelname)-8s %(message)s')
+    formatter = logging.Formatter(
+        "%(asctime)s %(processName)-10s %(name)s %(levelname)-8s %(message)s"
+    )
     file_handler.setFormatter(formatter)
-    formatter = logging.Formatter('%(asctime)s %(levelname)-8s %(message)s')
+    formatter = logging.Formatter("%(asctime)s %(levelname)-8s %(message)s")
     console_handler.setFormatter(formatter)
     root.addHandler(file_handler)
     root.addHandler(console_handler)
@@ -42,7 +44,9 @@ def listener_process(queue, configurer, logfile, loglevel):
         configurer(logfile, loglevel)
         while True:
             record = queue.get()
-            if record is None:  # We send this as a sentinel to tell the listener to quit.
+            if (
+                record is None
+            ):  # We send this as a sentinel to tell the listener to quit.
                 break
             logger = logging.getLogger(record.name)
             logger.handle(record)  # No level or filter logic applied - just do it!
@@ -53,7 +57,7 @@ def listener_process(queue, configurer, logfile, loglevel):
             exc_value,
             exc_tb,
         )
-        print('LOGGING ERROR'.join(tbe.format()), file=sys.stderr)
+        print("LOGGING ERROR: ".join(tbe.format()), file=sys.stderr)
 
 
 # The worker configuration is done at the start of the worker process run.
@@ -71,21 +75,24 @@ def worker_configurer(queue, loglevel):
 def worker(args, todolist, whattodo):
 
     #  Logging configuration
-    SCRIPTNAME = 'Example_worker'
+    SCRIPTNAME = "Example_worker"
     logdir = args.logdir
-    logfile = str.join(os.sep, [os.path.abspath(logdir), SCRIPTNAME + '.log'])
+    logfile = str.join(os.sep, [os.path.abspath(logdir), SCRIPTNAME + ".log"])
 
     makelogdir(logdir)
     makelogfile(logfile)
 
     #  Multiprocessing with spawn
     nthreads = args.cores or 2
-    multiprocessing.set_start_method('spawn')  # set multiprocessing start method to safe spawn
+    multiprocessing.set_start_method(
+        "spawn"
+    )  # set multiprocessing start method to safe spawn
     pool = multiprocessing.Pool(processes=nthreads, maxtasksperchild=1)
 
     queue = multiprocessing.Manager().Queue(-1)
     listener = multiprocessing.Process(
-        target=listener_process, args=(queue, listener_configurer, logfile, args.loglevel)
+        target=listener_process,
+        args=(queue, listener_configurer, logfile, args.loglevel),
     )
     listener.start()
 
@@ -95,7 +102,9 @@ def worker(args, todolist, whattodo):
     # log.info(logid+'CLI: '+sys.argv[0]+' '+'{}'.format(' '.join( [shlex.quote(s) for s in sys.argv[1:]] )))
 
     for todo in todolist:
-        pool.apply_async(whattodo, args=(queue, worker_configurer, args.loglevel, todo, args))
+        pool.apply_async(
+            whattodo, args=(queue, worker_configurer, args.loglevel, todo, args)
+        )
     pool.close()
     pool.join()
     queue.put_nowait(None)
@@ -122,26 +131,28 @@ def makelogdir(logdir):
         except OSError:
             # If directory has already been created or is inaccessible
             if not os.path.exists(logdir):
-                sys.exit('Problem creating directory ' + logdir)
+                sys.exit("Problem creating directory " + logdir)
 
 
 def makelogfile(logfile):
     if not os.path.isfile(os.path.abspath(logfile)) or os.stat(logfile).st_size == 0:
-        open(logfile, 'a').close()
+        open(logfile, "a").close()
     else:
         ts = str(
-            datetime.datetime.fromtimestamp(os.path.getmtime(os.path.abspath(logfile))).strftime(
-                "%Y%m%d_%H_%M_%S_%f"
-            )
+            datetime.datetime.fromtimestamp(
+                os.path.getmtime(os.path.abspath(logfile))
+            ).strftime("%Y%m%d_%H_%M_%S_%f")
         )
-        shutil.move(logfile, logfile.replace('.log', '') + '_' + ts + '.log')
+        shutil.move(logfile, logfile.replace(".log", "") + "_" + ts + ".log")
 
 
-def setup_logger(name, log_file, filemode='a', logformat=None, datefmt=None, level='WARNING'):
+def setup_logger(
+    name, log_file, filemode="a", logformat=None, datefmt=None, level="WARNING"
+):
     """Function setup as many loggers as you want"""
 
     log = logging.getLogger(name)
-    if log_file != 'stderr':
+    if log_file != "stderr":
         handler = logging.FileHandler(log_file, mode=filemode)
     else:
         handler = logging.StreamHandler(sys.stderr)

@@ -119,6 +119,16 @@ class Constraint:
         return f"{self.start}-{self.end}|{self.strand}"
 
 
+@dataclass(frozen=True)
+class NoConstraint:
+    start: str
+    end: str
+    strand: str
+
+    def __str__(self):
+        return f"{self.start}-{self.end}|{self.strand}"
+
+
 def get_gene_coords(
     genecoords: Union[None, Dict], goi: str, strand: str
 ) -> Tuple[int, int, str]:
@@ -277,11 +287,14 @@ def add_rissmed_constraint(
     for constraint in constraints.split(
         ":"
     ):  # Should now work with paired constraints split via : separator
-        cons = constraint.split("|")
-        cons_strand = cons[1] if len(cons) > 1 else sequence_strand
-        cons = cons[0]
-        cons_start, cons_end = cons.split("-")
-        cons_list.append(Constraint(int(cons_start), int(cons_end), cons_strand))
+        if cons == "NOCONS":
+            cons_list.append(NoConstraint("NOCONS", "NOCONS", sequence_strand))
+        else:
+            cons = constraint.split("|")
+            cons_strand = cons[1] if len(cons) > 1 else sequence_strand
+            cons = cons[0]
+            cons_start, cons_end = cons.split("-")
+            cons_list.append(Constraint(int(cons_start), int(cons_end), cons_strand))
     cons_tuple = tuple(cons_list)
     if record.id in run_settings:
         run_settings[record.id].add_constraints(cons_tuple)
@@ -352,7 +365,7 @@ def read_constraints(constrain: str, linewise: bool = False) -> Dict[str, List[s
     #    with open(goi + "_constraints", "rt") as o:
     #        for line in o:
     #            conslist.append(line.rstrip())
-    elif constrain == "none":
+    elif constrain == "scanning":
         constraintlist = ["NOCONS"]
     elif constrain == "sliding":
         constraintlist = list()
