@@ -43,13 +43,9 @@ def listener_process(queue, configurer, logfile, loglevel):
     try:
         configurer(logfile, loglevel)
         while True:
-            print(f"TESTQ: {queue}, {configurer}")
             record = queue.get()
-            print(f"TEST: {record}")
-            if (
-                record is None
-            ):  # We send this as a sentinel to tell the listener to quit.
-                break
+            if record is None:
+                break  # We send this as a sentinel to tell the listener to quit.
             logger = logging.getLogger(record.name)
             logger.handle(record)  # No level or filter logic applied - just do it!
     except Exception:
@@ -59,7 +55,7 @@ def listener_process(queue, configurer, logfile, loglevel):
             exc_value,
             exc_tb,
         )
-        print("LOGGING ERROR: ".join(tbe.format()), file=sys.stderr)
+        print("LOGGING ERROR: " + str.join("", tbe.format()), file=sys.stderr)
 
 
 # The worker configuration is done at the start of the worker process run.

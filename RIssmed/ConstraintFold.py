@@ -929,7 +929,7 @@ def main(args=None):
             configurer=worker_configurer,
             level=args.loglevel,
         )
-        queue.put_nowait(None)
+        queue.put(None)
         listener.join()
 
     except Exception:

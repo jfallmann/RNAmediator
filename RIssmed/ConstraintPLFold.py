@@ -168,8 +168,9 @@ def pl_fold(
             for cons_tuple in conslist:
                 log.debug(logid + "ENTRY: " + str(cons_tuple))
                 if (
-                    "NOCONS" in cons_tuple
+                    cons_tuple == "NOCONS"
                 ):  # in case we just want to fold the sequence without constraints at all
+                    raise NotImplementedError("Needs to be reimplemented")
                     cons = str(cons_tuple[0])
                     log.info(logid + "Folding without constraint")
                     start, end = [gs, ge]
@@ -440,6 +441,7 @@ def pl_fold(
         log.error(logid + "".join(tbe.format()))
 
     log.info(logid + "DONE: output in: " + str(outdir))
+    return 1
 
 
 def fold_unconstraint(
@@ -510,141 +512,141 @@ def fold_unconstraint(
         log.error(logid + "".join(tbe.format()))
 
 
-def scan_seq(
-    sid,
-    seq,
-    start,
-    end,
-    window,
-    span,
-    region,
-    multi,
-    paired,
-    unpaired,
-    save,
-    outdir,
-    unconstraint=None,
-    queue=None,
-    configurer=None,
-    level=None,
-):
-
-    logid = SCRIPTNAME + ".constrain_seq: "
-
-    try:
-        if queue and level:
-            configurer(queue, level)
-
-        seq = seq.upper().replace("T", "U")
-        goi, chrom, strand = idfromfa(sid)
-        log.debug(logid + "Scanning Sequence")
-
-        # Here we fold the whole raw sequence +- window size
-
-        tostart, toend = expand_pl_window(start, end, window, multi, len(seq))
-        seqtofold = str(seq[tostart - 1 : toend])
-
-        # get local window of interest 0 based closed, we do not need to store the whole seqtofold
-        locws, locwe = localize_pl_window(start, end, window, len(seq))
-        cons = str(
-            "-".join([str(start), str(end)]) + "_" + "-".join([str(locws), str(locwe)])
-        )
-
-        if len(seqtofold) < (toend - tostart):
-            log.warning(
-                logid
-                + "Sequence to small, skipping "
-                + str(sid)
-                + "\t"
-                + str(len(seqtofold))
-                + "\t"
-                + str(cons)
-            )
-            return
-
-        log.debug(logid + str.join(" ", [goi, cons, strand]))
-
-        if start < 1 or end > len(seq):
-            log.warning(
-                logid
-                + "Constraint out of sequence bounds! skipping! "
-                + ",".join([len(seq), str(start) + "-" + str(end)])
-            )
-            return
-
-        if check_raw_existing(sid, unconstraint, cons, region, window, span, outdir):
-            log.warning(logid + str(cons) + " Existst for " + str(sid) + "! Skipping!")
-            return
-
-        # get local start, ends 0 based closed
-        locstart = start - tostart
-        locend = end - tostart
-
-        log.debug(
-            " ".join(
-                map(
-                    str,
-                    [
-                        logid,
-                        sid,
-                        region,
-                        str(len(seq)),
-                        str(len(seqtofold)),
-                        cons,
-                        tostart,
-                        locstart,
-                        locend,
-                        toend,
-                    ],
-                )
-            )
-        )
-
-        # Cut sequence of interest from data, we no longer need the window extension as no effect outside of window
-        # is visible with plfold anyways
-        # get local start,ends 0 based closed
-        locws = locws - tostart
-        locwe = locwe - tostart
-
-        plfold_unconstraint = fold_unconstraint(
-            str(seqtofold),
-            sid,
-            region,
-            window,
-            span,
-            unconstraint,
-            save,
-            outdir,
-            cons,
-            locws,
-            locwe,
-        )
-        an = (
-            plfold_unconstraint.get_rissmed_np_array()
-        )  # create numpy array from output
-
-        seqtoprint = seqtofold[locws - 1 : locwe]
-
-        write_unconstraint(
-            save,
-            str(sid),
-            str(seqtoprint),
-            unconstraint,
-            plfold_unconstraint,
-            int(region),
-            str(window),
-            str(span),
-            outdir,
-        )
-
-    except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
+# def scan_seq(
+#    sid,
+#    seq,
+#    start,
+#    end,
+#    window,
+#    span,
+#    region,
+#    multi,
+#    paired,
+#    unpaired,
+#    save,
+#    outdir,
+#    unconstraint=None,
+#    queue=None,
+#    configurer=None,
+#    level=None,
+# ):
+#
+#    logid = SCRIPTNAME + ".constrain_seq: "
+#
+#    try:
+#        if queue and level:
+#            configurer(queue, level)
+#
+#        seq = seq.upper().replace("T", "U")
+#        goi, chrom, strand = idfromfa(sid)
+#        log.debug(logid + "Scanning Sequence")
+#
+#        # Here we fold the whole raw sequence +- window size
+#
+#        tostart, toend = expand_pl_window(start, end, window, multi, len(seq))
+#        seqtofold = str(seq[tostart - 1 : toend])
+#
+# get local window of interest 0 based closed, we do not need #to store the whole seqtofold
+#        locws, locwe = localize_pl_window(start, end, window, len(seq))
+#        cons = str(
+#            "-".join([str(start), str(end)]) + "_" + "-".join([str(locws), str(locwe)])
+#        )
+#
+#        if len(seqtofold) < (toend - tostart):
+#            log.warning(
+#                logid
+#                + "Sequence to small, skipping "
+#                + str(sid)
+#                + "\t"
+#                + str(len(seqtofold))
+#                + "\t"
+#                + str(cons)
+#            )
+#            return
+#
+#        log.debug(logid + str.join(" ", [goi, cons, strand]))
+#
+#        if start < 1 or end > len(seq):
+#            log.warning(
+#                logid
+#                + "Constraint out of sequence bounds! skipping! "
+#                + ",".join([len(seq), str(start) + "-" + str(end)])
+#            )
+#            return
+#
+#        if check_raw_existing(sid, unconstraint, cons, region, window, span, outdir):
+#            log.warning(logid + str(cons) + " Existst for " + str(sid) + "! Skipping!")
+#            return
+#
+#        # get local start, ends 0 based closed
+#        locstart = start - tostart
+#        locend = end - tostart
+#
+#        log.debug(
+#            " ".join(
+#                map(
+#                    str,
+#                    [
+#                        logid,
+#                        sid,
+#                        region,
+#                        str(len(seq)),
+#                        str(len(seqtofold)),
+#                        cons,
+#                        tostart,
+#                        locstart,
+#                        locend,
+#                        toend,
+#                    ],
+#                )
+#            )
+#        )
+#
+# Cut sequence of interest from data, we no longer need the #window extension as no effect outside of window
+#        # is visible with plfold anyways
+#        # get local start,ends 0 based closed
+#        locws = locws - tostart
+#        locwe = locwe - tostart
+#
+#        plfold_unconstraint = fold_unconstraint(
+#            str(seqtofold),
+#            sid,
+#            region,
+#            window,
+#            span,
+#            unconstraint,
+#            save,
+#            outdir,
+#            cons,
+#            locws,
+#            locwe,
+#        )
+#        an = (
+#            plfold_unconstraint.get_rissmed_np_array()
+#        )  # create numpy array from output
+#
+#        seqtoprint = seqtofold[locws - 1 : locwe]
+#
+#        write_unconstraint(
+#            save,
+#            str(sid),
+#            str(seqtoprint),
+#            unconstraint,
+#            plfold_unconstraint,
+#            int(region),
+#            str(window),
+#            str(span),
+#            outdir,
+#        )
+#
+#    except Exception:
+#        exc_type, exc_value, exc_tb = sys.exc_info()
+#        tbe = tb.TracebackException(
+#            exc_type,
+#            exc_value,
+#            exc_tb,
+#        )
+#        log.error(logid + "".join(tbe.format()))
 
 
 def constrain_seq(
@@ -1355,6 +1357,7 @@ def main(args=None):
         queue, listener, worker_configurer = rissmed_logging_setup(
             args.logdir, args.loglevel, SCRIPTNAME
         )
+
         log.info(logid + "Running " + SCRIPTNAME + " on " + str(args.procs) + " cores.")
 
         log.info(
@@ -1383,7 +1386,7 @@ def main(args=None):
             configurer=worker_configurer,
             level=args.loglevel,
         )
-        queue.put_nowait(None)
+        queue.put(None)
         listener.join()
 
     except Exception:

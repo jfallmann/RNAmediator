@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 import versioneer
 
 NAME = "RIssmed"
-DESCRIPTION = "The RNA Interaction via secondary structure mediation (RIssmed) tool suite analyses the change of RNA secondary structure upon binding other molecules. (Most of the functionality currently missing)"
+DESCRIPTION = "The RNA Interaction via secondary structure mediation (RIssmed) tool suite analyses the change of RNA secondary structure upon binding other molecules."
 
 # Set __version__ done by versioneer
 # exec(open("NextSnakes/__init__.py").read())
