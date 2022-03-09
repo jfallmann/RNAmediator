@@ -5,8 +5,17 @@ from tempfile import TemporaryDirectory, NamedTemporaryFile
 import pytest
 from Bio import SeqIO
 from collections import defaultdict
-from RIssmed.Tweaks.RIssmed import SequenceSettings, Constraint, \
-    get_gene_coords, set_run_settings_dict, read_constraints, add_rissmed_constraint, preprocess, expand_pl_window, localize_pl_window
+from RIssmed.Tweaks.RIssmed import (
+    SequenceSettings,
+    Constraint,
+    get_gene_coords,
+    set_run_settings_dict,
+    read_constraints,
+    add_rissmed_constraint,
+    preprocess,
+    expand_pl_window,
+    localize_pl_window,
+)
 
 TESTFOLDER = os.path.dirname(os.path.abspath(__file__))
 TESTDATAPATH = os.path.join(TESTFOLDER, "testdata")
@@ -19,18 +28,22 @@ def single_sequence_fasta():
     path = os.path.join(TESTDATAPATH, "test.fa")
     return path
 
+
 @pytest.fixture
 def sequence_string():
     return "AAATTTTTGGGGUUUUUUUCCCCTTTTTttt"
 
+
 @pytest.fixture
 def stringio_fasta():
-    fasta = \
-        ">ENSG00000270742::chr1:61124732-61125202(+)\n" \
+    fasta = (
+        ">ENSG00000270742::chr1:61124732-61125202(+)\n"
         "AAAATTTTTTTTTTTTTTTGGGGGGGGGGGGGGCCCCCCCCCCGGGGGGGGGGGGGGGGGGAA"
+    )
     file = StringIO(fasta)
     yield file
     file.close()
+
 
 @pytest.fixture
 def command_line_constraint():
@@ -45,6 +58,11 @@ def paired_constraints():
 @pytest.fixture()
 def sliding_constraint():
     return "sliding"
+
+
+@pytest.fixture()
+def scanning_constraint():
+    return "scanning"
 
 
 @pytest.fixture
@@ -118,13 +136,11 @@ def basic_minus_constraintlist():
     [
         (SeqIO.SeqRecord("AAAACCCCGGGGGUUUU"), "+", "basic_constraintlist"),
         (SeqIO.SeqRecord("AAAATTTTTTTT"), "-", "basic_minus_constraintlist"),
-    ]
+    ],
 )
 def test_sequence_settings_init_with_strand(seq, strand, constraintlist, request):
     constraintlist = request.getfixturevalue(constraintlist)
-    seq_settings = SequenceSettings(seq,
-                                    constrainlist=constraintlist,
-                                    strand=strand)
+    seq_settings = SequenceSettings(seq, constrainlist=constraintlist, strand=strand)
     assert "T" not in seq_settings.sequence_record
     for entry in seq_settings.constrainlist:
         for cons in entry:
@@ -138,13 +154,12 @@ def test_sequence_settings_auto_strand(sequence_string, caplog):
     assert "strand value automatically set to na" in caplog.text
 
 
-
 @pytest.mark.parametrize(
     "seqsettings, constraint",
     [
         ("basic_sequence_settings", "basic_constraint"),
         ("na_strand_sequence_settings", "minus_constraint"),
-    ]
+    ],
 )
 def test_sequence_settings_add_constraint(constraint, seqsettings, request):
     constraint = request.getfixturevalue(constraint)
@@ -156,7 +171,7 @@ def test_sequence_settings_add_constraint(constraint, seqsettings, request):
     "seqsettings, constraint",
     [
         ("basic_sequence_settings", "minus_constraint"),
-    ]
+    ],
 )
 def test_sequence_settings_add_constraints_assertions(seqsettings, constraint, request):
     constraint = request.getfixturevalue(constraint)
@@ -183,20 +198,14 @@ def gene_coords_dict():
     }
     return gcd
 
+
 @pytest.fixture
 def none_fixture():
     return None
 
 
-@pytest.mark.parametrize(
-    "strand", ["+", "-"]
-)
-@pytest.mark.parametrize(
-    "goi",
-    [
-        "gene1", "gene2", "gene3", "gene4"
-    ]
-)
+@pytest.mark.parametrize("strand", ["+", "-"])
+@pytest.mark.parametrize("goi", ["gene1", "gene2", "gene3", "gene4"])
 def test_get_gene_coords_with_annotation(gene_coords_dict, goi, strand, caplog):
     expected_strand = gene_coords_dict[goi][0].split("|")[-1]
     genomic_start, genomic_end, genomic_strand = get_gene_coords(gene_coords_dict, goi, strand)
@@ -208,12 +217,7 @@ def test_get_gene_coords_with_annotation(gene_coords_dict, goi, strand, caplog):
 
 
 @pytest.mark.parametrize("strand", ["+", "-"])
-@pytest.mark.parametrize(
-    "goi",
-    [
-        "gene1", "gene2", "gene3", "gene4"
-    ]
-)
+@pytest.mark.parametrize("goi", ["gene1", "gene2", "gene3", "gene4"])
 def test_get_gene_coords_default(none_fixture, goi, strand, caplog):
     genomic_start, genomic_end, genomic_strand = get_gene_coords(none_fixture, goi, "+")
     assert "No coords found for gene" in caplog.text
@@ -237,7 +241,7 @@ def test_get_gene_coords_missing_entry(gene_coords_dict, caplog):
         ("single_sequence_fasta", "ono,10-15", "genomic_coords_file", 1),
         ("stringio_fasta", "single_bedfile", "genomic_coords_file", 1),
         ("stringio_fasta", "sliding", "genomic_coords_file", 3),
-    ]
+    ],
 )
 def test_set_run_settings_dict(sequence, constrain, conslength, genomic_coords, request):
     sequence = request.getfixturevalue(sequence)
@@ -251,7 +255,6 @@ def test_set_run_settings_dict(sequence, constrain, conslength, genomic_coords, 
         assert isinstance(run_settings[entry], SequenceSettings)
 
 
-
 @pytest.mark.parametrize("linewise", [True, False])
 @pytest.mark.parametrize(
     "constraints",
@@ -260,14 +263,14 @@ def test_set_run_settings_dict(sequence, constrain, conslength, genomic_coords, 
         "multi_bedfile_gz",
         "command_line_constraint",
         "paired_constraints",
-        "sliding_constraint"
-
-    ]
+        "sliding_constraint",
+        "scanning_constraint",
+    ],
 )
 def test_read_constraints(constraints, request, linewise):
     constraints = request.getfixturevalue(constraints)
     constraintlist = read_constraints(constraints, linewise)
-    if linewise and constraints != "sliding":
+    if linewise and constraints != "sliding" and constraints != "scanning":
         assert type(constraintlist) == defaultdict
         assert "lw" in constraintlist
     else:
@@ -278,11 +281,14 @@ def test_read_constraints(constraints, request, linewise):
 
 
 @pytest.mark.parametrize("cons1", ["5-10|+"])
-@pytest.mark.parametrize("cons2, expected_length", [
-    ("5-10|+:10-20|+", 2),
-    ("7-8:12-13", 2),
-    ("7-8|+", 1),
-])
+@pytest.mark.parametrize(
+    "cons2, expected_length",
+    [
+        ("5-10|+:10-20|+", 2),
+        ("7-8:12-13", 2),
+        ("7-8|+", 1),
+    ],
+)
 def test_add_rissmed_constraint(cons1, cons2, expected_length, sequence_string):
     seq = SeqIO.SeqRecord(sequence_string)
     run_settings_dict = dict()
@@ -295,11 +301,7 @@ def test_add_rissmed_constraint(cons1, cons2, expected_length, sequence_string):
         assert len(conslist[1]) == expected_length
 
 
-@pytest.mark.parametrize(
-    "outdir",
-    ["",
-    os.path.join(TMP_TEST_DIR, "preprocess")]
-)
+@pytest.mark.parametrize("outdir", ["", os.path.join(TMP_TEST_DIR, "preprocess")])
 def test_preprocess(single_sequence_fasta, single_bedfile, outdir):
     run_settings, outdir = preprocess(single_sequence_fasta, single_bedfile, 1, outdir, "")
     assert os.path.isdir(outdir)
@@ -312,7 +314,7 @@ def test_preprocess(single_sequence_fasta, single_bedfile, outdir):
         (20, 25, 50, 2, 150, [1, 125]),
         (100, 125, 70, 1, 300, [30, 195]),
         (100, 125, 70, 2, 150, [1, 150]),
-    ]
+    ],
 )
 def test_expand_pl_window(start, end, window, multiplyier, seqlen, expected):
     new_start, new_end = expand_pl_window(start, end, window, multiplyier, seqlen)
@@ -328,9 +330,7 @@ def test_expand_pl_window(start, end, window, multiplyier, seqlen, expected):
         (20, 25, 50, 2, 150, [1, 125]),
         (100, 125, 70, 1, 300, [30, 195]),
         (100, 125, 70, 2, 150, [1, 150]),
-    ]
+    ],
 )
 def test_localize_pl_window(start, end, window, multiplyier, seqlen, expected):
     local_start, local_end = localize_pl_window(start, end, window, seqlen, multiplyier)
-
-

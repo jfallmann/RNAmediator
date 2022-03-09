@@ -87,16 +87,12 @@ class SequenceSettings:
                         assert (
                             entry.strand == self.strand
                         ), "strand values of constraint does not match the strand from the sequence"
-                    assert (
-                        entry.__class__ == Constraint
-                    ), "can only add Contraint objects to the constraintlist"
+                    assert entry.__class__ == Constraint, "can only add Contraint objects to the constraintlist"
 
     def add_constraints(self, constraints: Tuple[Constraint]):
         """adds a constraints to the list of constraints"""
         for constraint in constraints:
-            assert (
-                constraint.__class__ == Constraint
-            ), "can only add Contraint objects to the constraintliste"
+            assert constraint.__class__ == Constraint, "can only add Contraint objects to the constraintliste"
             if self.strand in ["+", "-"]:
                 assert (
                     self.strand == constraint.strand
@@ -119,19 +115,7 @@ class Constraint:
         return f"{self.start}-{self.end}|{self.strand}"
 
 
-@dataclass(frozen=True)
-class NoConstraint:
-    start: str
-    end: str
-    strand: str
-
-    def __str__(self):
-        return f"{self.start}-{self.end}|{self.strand}"
-
-
-def get_gene_coords(
-    genecoords: Union[None, Dict], goi: str, strand: str
-) -> Tuple[int, int, str]:
+def get_gene_coords(genecoords: Union[None, Dict], goi: str, strand: str) -> Tuple[int, int, str]:
     """Get genomic coordinates for a gene (goi) from the genecoords dict or returns  default values
 
     Parameters
@@ -160,27 +144,15 @@ def get_gene_coords(
                 )
         else:
             gs, ge, gstrand = 0, 0, "."
-            log.warning(
-                logid
-                + "No coords found for gene "
-                + goi
-                + "! Assuming coordinates are already local!"
-            )
+            log.warning(logid + "No coords found for gene " + goi + "! Assuming coordinates are already local!")
     else:
         gs = ge = 0
         gstrand = "."
-        log.warning(
-            logid
-            + "No coords found for gene "
-            + goi
-            + "! Assuming coordinates are already local!"
-        )
+        log.warning(logid + "No coords found for gene " + goi + "! Assuming coordinates are already local!")
     return gs, ge, gstrand
 
 
-def set_run_settings_dict(
-    sequence, constrain: str, conslength: int, genes: str
-) -> Dict[str, SequenceSettings]:
+def set_run_settings_dict(sequence, constrain: str, conslength: int, genes: str) -> Dict[str, SequenceSettings]:
     """Use command line parameters to build the run settings dictionary.
 
     Parameters
@@ -208,31 +180,21 @@ def set_run_settings_dict(
         for x, record in enumerate(SeqIO.parse(sequence, "fasta")):
             goi, chrom, strand = idfromfa(record.id)
             cons = constraintlist["lw"][x]
-            run_settings = add_rissmed_constraint(
-                run_settings, cons, record, goi, chrom, strand
-            )
+            run_settings = add_rissmed_constraint(run_settings, cons, record, goi, chrom, strand)
     elif constrain == "sliding":
         for record in SeqIO.parse(sequence, "fasta"):
             goi, chrom, strand = idfromfa(record.id)
             for start in range(1, len(record.seq) - conslength + 2):  # 0-based
                 end = start + conslength - 1
                 cons = str(start) + "-" + str(end) + "|" + str(strand)
-                run_settings = add_rissmed_constraint(
-                    run_settings, cons, record, goi, chrom, strand
-                )
+                run_settings = add_rissmed_constraint(run_settings, cons, record, goi, chrom, strand)
     else:
         constraintlist = read_constraints(constrain=constrain)
         for x, record in enumerate(SeqIO.parse(sequence, "fasta")):
             goi, chrom, strand = idfromfa(record.id)
-            cons = (
-                constraintlist[goi]
-                if type(constraintlist) == defaultdict
-                else constraintlist
-            )
+            cons = constraintlist[goi] if type(constraintlist) == defaultdict else constraintlist
             for entry in cons:
-                run_settings = add_rissmed_constraint(
-                    run_settings, entry, record, goi, chrom, strand
-                )
+                run_settings = add_rissmed_constraint(run_settings, entry, record, goi, chrom, strand)
     if genes != "":
         # get genomic coords to print to bed later, should always be just one set of coords per gene
         genecoords = parse_annotation_bed(genes)
@@ -241,12 +203,8 @@ def set_run_settings_dict(
     for entry in run_settings:
         fasta_settings = run_settings[entry]
         goi, chrom, strand = idfromfa(fasta_settings.sequence_record.id)
-        genomic_start, genomic_end, genomic_strand = get_gene_coords(
-            genecoords, goi, strand
-        )
-        fasta_settings.genomic_coords = Constraint(
-            genomic_start, genomic_end, genomic_strand
-        )
+        genomic_start, genomic_end, genomic_strand = get_gene_coords(genecoords, goi, strand)
+        fasta_settings.genomic_coords = Constraint(genomic_start, genomic_end, genomic_strand)
 
     return run_settings
 
@@ -284,13 +242,12 @@ def add_rissmed_constraint(
     """
 
     cons_list = []
-    for constraint in constraints.split(
-        ":"
-    ):  # Should now work with paired constraints split via : separator
+    for constraint in constraints.split(":"):  # Should now work with paired constraints split via : separator
+        cons = constraint.split("|")
         if cons == "NOCONS":
-            cons_list.append(NoConstraint("NOCONS", "NOCONS", sequence_strand))
+            # cons_list.append(NoConstraint("NOCONS", "NOCONS", sequence_strand))
+            cons_list.append(None)
         else:
-            cons = constraint.split("|")
             cons_strand = cons[1] if len(cons) > 1 else sequence_strand
             cons = cons[0]
             cons_start, cons_end = cons.split("-")
@@ -338,9 +295,7 @@ def read_constraints(constrain: str, linewise: bool = False) -> Dict[str, List[s
             else:
                 f = open(constrain, "rt")
             if "paired" in constrain:
-                constraintlist = read_paired_constraints_from_bed(
-                    f, linewise
-                )  # Not sure if it works but it should
+                constraintlist = read_paired_constraints_from_bed(f, linewise)  # Not sure if it works but it should
             else:
                 constraintlist = read_constraints_from_bed(f, linewise)
         elif ".csv" in constrain:
@@ -456,9 +411,7 @@ def rissmed_logging_setup(logdir: str, loglevel: str, runscript: str):
     if multiprocessing.get_start_method(allow_none=True) != "spawn":
         multiprocessing.set_start_method("spawn")
     queue = multiprocessing.Manager().Queue(-1)
-    listener = multiprocessing.Process(
-        target=listener_process, args=(queue, listener_configurer, logfile, loglevel)
-    )
+    listener = multiprocessing.Process(target=listener_process, args=(queue, listener_configurer, logfile, loglevel))
     listener.start()
     worker_configurer(queue, loglevel)
 

@@ -26,15 +26,15 @@ from typing import Iterable, Tuple
 import RNA
 import numpy as np
 
+from RIssmed.Tweaks.Collection import merge_dicts
+
 ####################
 # ViennaRNA helper
 ####################
 
 try:
     log = logging.getLogger(__name__)  # use module name
-    scriptn = (
-        __name__  # os.path.basename(inspect.stack()[-1].filename).replace('.py', '')
-    )
+    scriptn = __name__  # os.path.basename(inspect.stack()[-1].filename).replace('.py', '')
     log.debug("LOGGING IN RNAtweaks" + str(scriptn) + str(log) + str(log.handlers))
 except Exception:
     EXC_TYPE, EXC_VALUE, EXC_TB = sys.exc_info()
@@ -171,9 +171,7 @@ def _get_bppm(matrix, start, end):
         for item in matrix:
             for i in range(int(start), int(end) + 1):
                 if item[i] > 0.0:
-                    bppm.append(
-                        str.join("\t", [str(matrix.index(item)), str(i), str(item[i])])
-                    )
+                    bppm.append(str.join("\t", [str(matrix.index(item)), str(i), str(item[i])]))
         if len(bppm) < 1:
             log.error(logid + "Empty bpp matrix returned, stopping here!")
         return bppm
@@ -411,11 +409,7 @@ def _print_up(data=None, seqlength=None, region=None):
             ups = ""
             if seqlength and seqlength != len(data):
                 log.error(
-                    logid
-                    + "Lengths of sequence and array do not match: "
-                    + str(seqlength)
-                    + " and "
-                    + str(len(data))
+                    logid + "Lengths of sequence and array do not match: " + str(seqlength) + " and " + str(len(data))
                 )
             for i in range(len(data)):
                 if i >= len(data):
@@ -427,12 +421,7 @@ def _print_up(data=None, seqlength=None, region=None):
                         data[i][x] = np.nan
                     else:
                         data[i][x] = round(data[i][x], 7)
-                ups += (
-                    str(i + 1)
-                    + "\t"
-                    + "\t".join(map(str, data[i][1 : region + 1]))
-                    + "\n"
-                )
+                ups += str(i + 1) + "\t" + "\t".join(map(str, data[i][1 : region + 1])) + "\n"
             return ups
         else:
             log.error(logid + "No up data to print")
@@ -492,16 +481,7 @@ def _up_to_array(data=None, region=None, seqlength=None):
             exc_value,
             exc_tb,
         )
-        log.error(
-            logid
-            + "".join(tbe.format())
-            + "\t"
-            + str(entries)
-            + "\t"
-            + str(region)
-            + "\t"
-            + str(seqlength)
-        )
+        log.error(logid + "".join(tbe.format()) + "\t" + str(entries) + "\t" + str(region) + "\t" + str(seqlength))
 
 
 def _npprint(a, o=None):  # format_string ='{0:.2f}'):
@@ -616,11 +596,7 @@ def _pl_to_array(name, ulim, fmt="npy"):
     try:
         log.debug("\t".join([logid, name, str(ulim), fmt]))
         if fmt == "txt":
-            return np.array(
-                np.loadtxt(
-                    name, usecols=ulim, unpack=True, delimiter="\t", encoding="bytes"
-                )
-            )
+            return np.array(np.loadtxt(name, usecols=ulim, unpack=True, delimiter="\t", encoding="bytes"))
         elif fmt == "npy":
             # log.debug(np.load(name)[:,0][:,0])
             return np.array(np.load(name)[:, 0][:, ulim - 1])
@@ -845,9 +821,7 @@ class PLFoldOutput:
     def __eq__(self, other: PLFoldOutput):
         if self.__class__ != other.__class__:
             raise NotImplementedError
-        return np.allclose(
-            self.numpy_array, other.numpy_array, equal_nan=True, atol=0.0000001, rtol=0
-        )
+        return np.allclose(self.numpy_array, other.numpy_array, equal_nan=True, atol=0.0000001, rtol=0)
 
     @classmethod
     def from_file(cls, file_path: str):
@@ -932,12 +906,7 @@ class PLFoldOutput:
     @staticmethod
     def __array_to_string(array):
         array = np.array(array, dtype=float).round(7)
-        array_string = "\n".join(
-            [
-                "\t".join([str(x + 1)] + [str(num) for num in array[x]])
-                for x in range(len(array))
-            ]
-        )
+        array_string = "\n".join(["\t".join([str(x + 1)] + [str(num) for num in array[x]]) for x in range(len(array))])
         return array_string
 
     def __set_array(self, array: np.ndarray):
@@ -951,11 +920,7 @@ class PLFoldOutput:
         if self._numpy_array is None:
             array = []
             for line in self.text.split("\n"):
-                if (
-                    not line.startswith("#")
-                    and not line.startswith(" #")
-                    and not line == ""
-                ):
+                if not line.startswith("#") and not line.startswith(" #") and not line == "":
                     data = line.split("\t")[1:]
                     data = [float(x) if x != "NA" else np.nan for x in data]
                     array.append(data)
@@ -1111,9 +1076,7 @@ class FoldOutput(defaultdict):
             return False
 
     @classmethod
-    def from_RNAfold_file(
-        cls, file_path: str, condition: str = "unconstraint", constraint: str = None
-    ):
+    def from_RNAfold_file(cls, file_path: str, condition: str = "unconstraint", constraint: str = None):
         """creates FoldOutput from a file
 
          Parameters
@@ -1256,12 +1219,7 @@ class FoldOutput(defaultdict):
     @staticmethod
     def __array_to_string(array):
         array = np.array(array, dtype=float).round(7)
-        array_string = "\n".join(
-            [
-                "\t".join([str(x + 1)] + [str(num) for num in array[x]])
-                for x in range(len(array))
-            ]
-        )
+        array_string = "\n".join(["\t".join([str(x + 1)] + [str(num) for num in array[x]]) for x in range(len(array))])
         return array_string
 
     def __set_array(self, array: np.ndarray, condition: str = "unconstraint"):
@@ -1353,13 +1311,8 @@ class FoldOutput(defaultdict):
             if condition in ["anno"]:
                 continue
 
-            gibbs, ddg, nrg, const = [
-                self[condition][x] for x in ["gibbs", "ddg", "nrg", "constraint"]
-            ]
-            formatted_string.append(
-                str.join("\t", [condition, str(gibbs), str(ddg), str(nrg), str(const)])
-                + "\n"
-            )
+            gibbs, ddg, nrg, const = [self[condition][x] for x in ["gibbs", "ddg", "nrg", "constraint"]]
+            formatted_string.append(str.join("\t", [condition, str(gibbs), str(ddg), str(nrg), str(const)]) + "\n")
         return "".join(formatted_string)
 
 
@@ -1394,9 +1347,7 @@ def cmd_rnaplfold(
     PLFoldOutput
         PLFoldOutput object
     """
-    with TemporaryDirectory() as tmp_dir, NamedTemporaryFile(
-        mode="r+"
-    ) as constraint_file:
+    with TemporaryDirectory() as tmp_dir, NamedTemporaryFile(mode="r+") as constraint_file:
         constraint_string = ""
         if constraint is not None:
             seqlen = len(sequence)
@@ -1410,9 +1361,7 @@ def cmd_rnaplfold(
                 elif mode == "unpaired" or mode == "u":
                     const = "P"
                 else:
-                    raise ValueError(
-                        "Constraint wrongly formatted. Has to be ('paired(p)'/'unpaired(u)', start, end)"
-                    )
+                    raise ValueError("Constraint wrongly formatted. Has to be ('paired(p)'/'unpaired(u)', start, end)")
                 constraint_string += f"{const} {start+1} {0} {end - start}\n"
         constraint_file.write(constraint_string)
         constraint_file.seek(0)
@@ -1496,9 +1445,7 @@ def api_rnaplfold(
             elif mode == "unpaired" or mode == "u":
                 fc = _constrain_unpaired(fc, start, end)
             else:
-                raise ValueError(
-                    "Constraint wrongly formatted. Has to be ('paired(p)'/'unpaired(u)', start, end)"
-                )
+                raise ValueError("Constraint wrongly formatted. Has to be ('paired(p)'/'unpaired(u)', start, end)")
 
     # call prop window calculation
     fc.probs_window(region, RNA.PROBS_WINDOW_UP, _up_callback, data)
@@ -1541,9 +1488,7 @@ def cmd_rnafold(
     FoldOutput
         FoldOutput object
     """
-    with TemporaryDirectory() as tmp_dir, NamedTemporaryFile(
-        mode="r+"
-    ) as constraint_file:
+    with TemporaryDirectory() as tmp_dir, NamedTemporaryFile(mode="r+") as constraint_file:
         constraint_string = ""
         if constraint is not None:
             for entry in constraint:
@@ -1555,9 +1500,7 @@ def cmd_rnafold(
                 elif mode == "unpaired" or mode == "u":
                     const = "P"
                 else:
-                    raise ValueError(
-                        "Constraint wrongly formatted. Has to be ('paired(p)'/'unpaired(u)', start, end)"
-                    )
+                    raise ValueError("Constraint wrongly formatted. Has to be ('paired(p)'/'unpaired(u)', start, end)")
                 constraint_string += f"{const} {start+1} {0} {end - start}\n"
         constraint_file.write(constraint_string)
         constraint_file.seek(0)
@@ -1686,9 +1629,7 @@ def api_rnafold(
                         str.join("-", [str(fstart + 1), str(fend + 1)])
                         + ":"
                         + str.join("-", [str(start + 1), str(end + 1)]),
-                        str.join("-", [str(os), str(oe)])
-                        + ":"
-                        + str.join("-", [str(osp), str(oep)]),
+                        str.join("-", [str(os), str(oe)]) + ":" + str.join("-", [str(osp), str(oep)]),
                     ],
                 )
             elif any(mode == x for x in ["unpaired", "u", "constraint_unpaired"]):
@@ -1724,15 +1665,11 @@ def api_rnafold(
                         str.join("-", [str(fstart + 1), str(fend + 1)])
                         + ":"
                         + str.join("-", [str(start + 1), str(end + 1)]),
-                        str.join("-", [str(os), str(oe)])
-                        + ":"
-                        + str.join("-", [str(osp), str(oep)]),
+                        str.join("-", [str(os), str(oe)]) + ":" + str.join("-", [str(osp), str(oep)]),
                     ],
                 )
             else:
-                raise ValueError(
-                    "Constraint wrongly formatted. Has to be ('paired(p)'/'unpaired(u)', start, end)"
-                )
+                raise ValueError("Constraint wrongly formatted. Has to be ('paired(p)'/'unpaired(u)', start, end)")
 
             if not FoldOut:
                 log.warning(logid + "Creating new FoldOutput object")
@@ -1757,10 +1694,7 @@ def _check_constraint(sequence_length: int, start: int, end: int):
     if start < 0:
         raise ValueError(f"Constraint start ({start}) out of sequence bounds")
     elif sequence_length < end:
-        raise ValueError(
-            f"Constraint end ({end}) out of sequence bounds "
-            f"(length {sequence_length}"
-        )
+        raise ValueError(f"Constraint end ({end}) out of sequence bounds " f"(length {sequence_length}")
 
 
 # def bpp_callback(v, v_size, i, maxsize, what, data):
