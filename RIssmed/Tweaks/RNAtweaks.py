@@ -27,6 +27,7 @@ import RNA
 import numpy as np
 
 from RIssmed.Tweaks.Collection import merge_dicts
+from RIssmed.Tweaks.FileProcessor import SCRIPTN
 
 ####################
 # ViennaRNA helper
@@ -1424,6 +1425,7 @@ def api_rnaplfold(
         PLFoldOutput object
     """
 
+    logid = f"{SCRIPTN}.api_rnaplfold"
     sequence = sequence.upper().replace("T", "U")
     data = {"up": []}
     md = RNA.md()
@@ -1448,7 +1450,9 @@ def api_rnaplfold(
                 raise ValueError("Constraint wrongly formatted. Has to be ('paired(p)'/'unpaired(u)', start, end)")
 
     # call prop window calculation
+    log.debug(f"{logid} FoldCompound: {fc}")
     fc.probs_window(region, RNA.PROBS_WINDOW_UP, _up_callback, data)
+    log.debug(f"{logid} FC_probs: {data['up'][1:100][1]}")
     array = np.array(data["up"]).squeeze()[:, 1:]
     pl_output = PLFoldOutput.from_numpy(array)
     return pl_output

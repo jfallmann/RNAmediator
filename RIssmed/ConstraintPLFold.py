@@ -157,7 +157,7 @@ def pl_fold(
             if pattern and pattern not in goi:
                 continue
 
-            log.info(logid + "Working on " + goi + "\t" + seq_record.id)
+            log.info(f"{logid} Working on {goi}: {seq_record.id}, start {gs}, end {ge}, strand {gstrand} ")
 
             # define data structures
             data = {"up": []}
@@ -170,8 +170,8 @@ def pl_fold(
                 if cons_tuple[0] is None:  # in case we just want to fold the sequence without constraints at all
                     # raise NotImplementedError("Needs to be reimplemented")
                     cons = str(cons_tuple[0])
-                    log.info(logid + "Folding without constraint")
-                    start, end = [gs, ge]
+                    log.info(f"{logid} Folding without constraint from {gs} to {ge}")
+                    start, end = [1, ge - gs]
                     tostart, toend = expand_pl_window(start, end, window, multi, len(seq_record.seq))
                     cons = str(start) + "-" + str(end) + "_" + str(tostart) + "-" + str(toend)
                     log.debug(logid + str.join(" ", [goi, cons, gstrand]))
@@ -408,6 +408,7 @@ def fold_unconstraint(
             log.error(logid + "Sequence to small, skipping " + str(id) + "\t" + str(len(seq)))
             return
 
+        log.debug(f"{SCRIPTNAME} Seqlength: {len(seq)}, Window: {window}, Span: {span}, Region: {region}")
         plfold_output = api_rnaplfold(seq, window, span, region)
 
         if locws is not None and locwe is not None:  # If we only need a subset of the folded sequence
@@ -456,7 +457,7 @@ def scan_seq(
     level=None,
 ):
 
-    logid = SCRIPTNAME + ".constrain_seq: "
+    logid = SCRIPTNAME + ".scan_seq: "
 
     try:
         if queue and level:
@@ -469,6 +470,7 @@ def scan_seq(
         # Here we fold the whole raw sequence +- window size
 
         tostart, toend = expand_pl_window(start, end, window, multi, len(seq))
+        log.debug(f"{logid} tostart {tostart}, toend {toend}")
         seqtofold = str(seq[tostart - 1 : toend])
 
         # get local window of interest 0 based closed, we do not need to store the whole seqtofold
@@ -484,11 +486,7 @@ def scan_seq(
         log.debug(logid + str.join(" ", [goi, cons, strand]))
 
         if start < 1 or end > len(seq):
-            log.warning(
-                logid
-                + "Constraint out of sequence bounds! skipping! "
-                + ",".join([len(seq), str(start) + "-" + str(end)])
-            )
+            log.warning(logid + f"Constraint out of sequence bounds! skipping! {len(seq)}, {str(start)} - {str(end)}")
             return
 
         if check_raw_existing(sid, unconstraint, cons, region, window, span, outdir):
@@ -525,25 +523,10 @@ def scan_seq(
         locws = locws - tostart
         locwe = locwe - tostart
 
-        plfold_unconstraint = api_rnaplfold(seqtofold, window, span, region, None)
+        plfold_unconstraint = fold_unconstraint(str(seqtofold), sid, region, window, span, unconstraint, save, outdir)
 
-        # fold_unconstraint(str(seqtofold), sid, region, window, span, unconstraint, save, outdir, cons, locws, locwe)
-        # create numpy array from output
-        an = plfold_unconstraint.get_rissmed_np_array()
-
-        seqtoprint = seqtofold[locws - 1 : locwe]
-
-        write_unconstraint(
-            save,
-            str(sid),
-            str(seqtoprint),
-            unconstraint,
-            plfold_unconstraint,
-            int(region),
-            str(window),
-            str(span),
-            outdir,
-        )
+        log.debug(f"PLFold_unconstraint output: {plfold_unconstraint}")
+        return 1
 
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()

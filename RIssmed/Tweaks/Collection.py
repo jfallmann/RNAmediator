@@ -117,10 +117,10 @@ def check_run(func):
 @check_run
 def parseargs_plcons():
     parser = argparse.ArgumentParser(
-        description="Calculate base pairing probs of given seqs or random seqs for given window size, span and region."
+        description="Calculate base pairing probabilities with and without constraints for sequences with given window size, span and region."
     )
     parser.add_argument("-s", "--sequence", type=str, help="Sequence to fold")
-    parser.add_argument("-w", "--window", type=int, default=240, help="Size of window")
+    parser.add_argument("-w", "--window", type=int, default=120, help="Size of window")
     parser.add_argument("-l", "--span", type=int, default=60, help="Length of bp span")
     parser.add_argument("-u", "--region", type=int, default=1, help="Length of region")
     parser.add_argument("-m", "--multi", type=int, default=2, help="Multiplyer for window expansion")
@@ -165,21 +165,21 @@ def parseargs_plcons():
         "--constrain",
         type=str,
         default="sliding",
-        help="Region to constrain, either sliding window (default) or region to constrain (e.g. 1-10) or path to file containing regions following the naming pattern $fastaID_constraints e.g. Sequence1_constraints, if paired, the first entry of the file will become a fixed constraint and paired with all the others, choices = [off,sliding,temperature, tempprobe, the string file or a filename, paired, or simply 1-10,2-11 or 1-10;15-20,2-11;16-21 for paired or ono(oneonone),filename to use one line of constraint file for one sequence from fasta]",
+        help="Region to constrain, either sliding window (default) or region to constrain (e.g. 1-10) or path to file containing constraint regions, can be BED file or the string 'file'. Latter requires that a file following the naming pattern $fastaID_constraints e.g. Sequence1_constraints can be found. If 'paired', the first entry of the constraint file will become a fixed constraint and paired with all the others, If 'ono' one line of constraint file is used per line of sequence in the sequence file. Choose 'scanning' to fold sequence without constraint. choices = [scanning, sliding, the string 'file' or a filename, paired, or simply 1-10,2-11 or 1-10;15-20,2-11;16-21 for paired or ono(oneonone),filename to use one line of constraint file for one sequence from fasta]",
     )
     parser.add_argument(
         "-y",
         "--conslength",
         type=int,
         default=1,
-        help="Length of region to constrain for slidingwindow",
+        help="Length of region to constrain for sliding window",
     )
     parser.add_argument(
         "-t",
         "--temprange",
         type=str,
         default="",
-        help="Temperature range for structure prediction (e.g. 37-60)",
+        help="Temperature range for structure prediction (e.g. 37-60) [Currently not enabled]",
     )
     parser.add_argument("-a", "--alphabet", type=str, default="AUCG", help="alphabet for random seqs")
     # parser.add_argument("--plot", type=str, default='0', choices=['0','svg', 'png'], help='Create image of the (un-)constraint sequence, you can select the file format here (svg,png). These images can later on be animated with ImageMagick like `convert -delay 120 -loop 0 *.svg animated.gif`.')
@@ -215,15 +215,7 @@ def parseargs_plcons():
         "--genes",
         type=str,
         default="",
-        help="Genomic coordinates bed for genes, either standard bed format or AnnotateBed.pl format",
-    )
-    parser.add_argument(
-        "-v",
-        "--verbosity",
-        type=int,
-        default=0,
-        choices=[0, 1],
-        help="increase output verbosity",
+        help="Genomic coordinates bed for genes in standard BED format",
     )
     parser.add_argument(
         "--loglevel",

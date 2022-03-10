@@ -86,11 +86,12 @@ class SequenceSettings:
         if self._constrainlist is not None:
             for constraint_tuple in self._constrainlist:
                 for entry in constraint_tuple:
-                    if self.strand in ["+", "-"]:
-                        assert (
-                            entry.strand == self.strand
-                        ), "strand values of constraint does not match the strand from the sequence"
-                    assert entry.__class__ == Constraint, "can only add Contraint objects to the constraintlist"
+                    if entry is not None:
+                        if self.strand in ["+", "-"]:
+                            assert (
+                                entry.strand == self.strand
+                            ), "strand values of constraint does not match the strand from the sequence"
+                        assert entry.__class__ == Constraint, "can only add Contraint objects to the constraintlist"
 
     @check_run
     def add_constraints(self, constraints: Tuple[Constraint]):
@@ -137,7 +138,8 @@ def get_gene_coords(genecoords: Union[None, Dict], goi: str, strand: str) -> Tup
     Tuple[int, int, str]
         genomic start, end, strand retrieved from genecoords dict or a default value (0, 0, '.')
     """
-    logid = f"{SCRIPTNAME}.read_constraints "
+    logid = f"{SCRIPTNAME}.get_gene_coords "
+    log.debug(f"{logid} Goi:{goi}, coords:{genecoords}")
     if genecoords:
         if goi in genecoords:
             gs, ge, gstrand = get_location(genecoords[goi][0])
