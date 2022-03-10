@@ -28,6 +28,7 @@ from RIssmed.Tweaks.logger import (
     listener_configurer,
     worker_configurer,
 )
+from RIssmed.Tweaks.Collection import check_run
 import multiprocessing
 
 
@@ -54,6 +55,7 @@ class SequenceSettings:
          genomic coordinates of the sequence record (default is None)
     """
 
+    @check_run
     def __init__(
         self,
         sequence_record: SeqIO.SeqRecord,
@@ -79,6 +81,7 @@ class SequenceSettings:
 
         self._check_strands()
 
+    @check_run
     def _check_strands(self):
         if self._constrainlist is not None:
             for constraint_tuple in self._constrainlist:
@@ -89,6 +92,7 @@ class SequenceSettings:
                         ), "strand values of constraint does not match the strand from the sequence"
                     assert entry.__class__ == Constraint, "can only add Contraint objects to the constraintlist"
 
+    @check_run
     def add_constraints(self, constraints: Tuple[Constraint]):
         """adds a constraints to the list of constraints"""
         for constraint in constraints:
@@ -115,6 +119,7 @@ class Constraint:
         return f"{self.start}-{self.end}|{self.strand}"
 
 
+@check_run
 def get_gene_coords(genecoords: Union[None, Dict], goi: str, strand: str) -> Tuple[int, int, str]:
     """Get genomic coordinates for a gene (goi) from the genecoords dict or returns  default values
 
@@ -152,6 +157,7 @@ def get_gene_coords(genecoords: Union[None, Dict], goi: str, strand: str) -> Tup
     return gs, ge, gstrand
 
 
+@check_run
 def set_run_settings_dict(sequence, constrain: str, conslength: int, genes: str) -> Dict[str, SequenceSettings]:
     """Use command line parameters to build the run settings dictionary.
 
@@ -209,6 +215,7 @@ def set_run_settings_dict(sequence, constrain: str, conslength: int, genes: str)
     return run_settings
 
 
+@check_run
 def add_rissmed_constraint(
     run_settings: Dict[str, SequenceSettings],
     constraints: str,
@@ -241,10 +248,12 @@ def add_rissmed_constraint(
         object.
     """
 
+    logid = f"{SCRIPTNAME}.add_rissmed_constraint"
     cons_list = []
     for constraint in constraints.split(":"):  # Should now work with paired constraints split via : separator
         cons = constraint.split("|")
-        if cons == "NOCONS":
+        log.debug(f"{logid} Constraint: {cons}")
+        if cons[0] == "NOCONS":
             # cons_list.append(NoConstraint("NOCONS", "NOCONS", sequence_strand))
             cons_list.append(None)
         else:
@@ -268,6 +277,7 @@ def add_rissmed_constraint(
 
 
 # put this into Fileprocessing ?
+@check_run
 def read_constraints(constrain: str, linewise: bool = False) -> Dict[str, List[str]]:
     """Reads constraints from the constraints file
 
@@ -341,6 +351,7 @@ def read_constraints(constrain: str, linewise: bool = False) -> Dict[str, List[s
     return constraintlist
 
 
+@check_run
 def preprocess(sequence: str, constrain: str, conslength: int, outdir: str, genes: str):
     """builds the run settings dict and creates the output directory
 
@@ -386,6 +397,7 @@ def preprocess(sequence: str, constrain: str, conslength: int, outdir: str, gene
         log.error(logid + "".join(tbe.format()))
 
 
+@check_run
 def rissmed_logging_setup(logdir: str, loglevel: str, runscript: str):
     """creates log process, queue, config, dir and file according to runscript
 
@@ -418,6 +430,7 @@ def rissmed_logging_setup(logdir: str, loglevel: str, runscript: str):
     return queue, listener, worker_configurer
 
 
+@check_run
 def expand_pl_window(start, end, window, multiplyer, seqlen):
     logid = SCRIPTNAME + ".expand_window: "
     try:
@@ -438,6 +451,7 @@ def expand_pl_window(start, end, window, multiplyer, seqlen):
         log.error(logid + "".join(tbe.format()))
 
 
+@check_run
 def localize_pl_window(start, end, window, seqlen, multiplyer=2):
     logid = SCRIPTNAME + ".localize_window: "
     try:
@@ -462,6 +476,7 @@ def localize_pl_window(start, end, window, seqlen, multiplyer=2):
         log.error(logid + "".join(tbe.format()))
 
 
+@check_run
 def expand_window(start, end, window, seqlen=None, dist=None):
     logid = SCRIPTNAME + ".expand_window: "
     try:
@@ -487,6 +502,7 @@ def expand_window(start, end, window, seqlen=None, dist=None):
         log.error(logid + "".join(tbe.format()))
 
 
+@check_run
 def localize_window(start, end, tostart, toend, seqlen=None):
     logid = SCRIPTNAME + ".localize_window: "
     try:

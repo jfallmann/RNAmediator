@@ -65,6 +65,7 @@ import sys
 import logging
 import collections
 import six
+import functools
 
 ## other modules
 import traceback as tb
@@ -88,11 +89,32 @@ except Exception:
     print("".join(tbe.format()), file=sys.stderr)
 
 
+### Wrapper for Try/Except
+def check_run(func):
+    @functools.wraps(func)
+    def func_wrapper(*args, **kwargs):
+        logid = scriptn + ".Collection_func_wrapper: "
+        try:
+            return func(*args, **kwargs)
+
+        except Exception:
+            exc_type, exc_value, exc_tb = sys.exc_info()
+            tbe = tb.TracebackException(
+                exc_type,
+                exc_value,
+                exc_tb,
+            )
+            log.error(logid + "".join(tbe.format()))
+
+    return func_wrapper
+
+
 ##############################
 ########## ARGPARSE ##########
 ##############################
 
 
+@check_run
 def parseargs_plcons():
     parser = argparse.ArgumentParser(
         description="Calculate base pairing probs of given seqs or random seqs for given window size, span and region."
@@ -219,6 +241,7 @@ def parseargs_plcons():
     return parser.parse_args()
 
 
+@check_run
 def parseargs_collectpl():
     parser = argparse.ArgumentParser(
         description="Calculate the regions with highest accessibility diff for given Sequence Pattern"
@@ -296,6 +319,7 @@ def parseargs_collectpl():
     return parser.parse_args()
 
 
+@check_run
 def parseargs_foldcons():
     parser = argparse.ArgumentParser(
         description="Calculate base pairing probs of given seqs or random seqs for given window size, span and region."
@@ -413,6 +437,7 @@ def parseargs_foldcons():
     return parser.parse_args()
 
 
+@check_run
 def parseargs_collectWindow():
     parser = argparse.ArgumentParser(
         description="Calculate the regions with highest accessibility diff for given Sequence Pattern"

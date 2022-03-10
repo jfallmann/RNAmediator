@@ -167,7 +167,7 @@ def pl_fold(
             log.debug(logid + str(conslist))
             for cons_tuple in conslist:
                 log.debug(logid + "ENTRY: " + str(cons_tuple))
-                if cons_tuple == "NOCONS":  # in case we just want to fold the sequence without constraints at all
+                if cons_tuple[0] is None:  # in case we just want to fold the sequence without constraints at all
                     # raise NotImplementedError("Needs to be reimplemented")
                     cons = str(cons_tuple[0])
                     log.info(logid + "Folding without constraint")
