@@ -177,7 +177,7 @@ def test_sequence_settings_add_constraints_assertions(seqsettings, constraint, r
     constraint = request.getfixturevalue(constraint)
     seqsettings = request.getfixturevalue(seqsettings)
     seqsettings.add_constraints([constraint])
-    captured = capsys.readouterr()
+    captured = seqsettings.readouterr()
     assert "AssertionError" in captured.out
 
 
