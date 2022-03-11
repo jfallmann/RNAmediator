@@ -176,7 +176,7 @@ def test_sequence_settings_add_constraint(constraint, seqsettings, request):
 def test_sequence_settings_add_constraints_assertions(seqsettings, constraint, request):
     constraint = request.getfixturevalue(constraint)
     seqsettings = request.getfixturevalue(seqsettings)
-    with pytest.raises(AssertionError):
+    with pytest.raises(Error):
         seqsettings.add_constraints([constraint])
 
 
