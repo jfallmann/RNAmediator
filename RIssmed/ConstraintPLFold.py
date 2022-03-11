@@ -472,7 +472,7 @@ def scan_seq(
         tostart, toend = expand_pl_window(start, end, window, multi, len(seq))
         log.debug(f"{logid} tostart {tostart}, toend {toend}")
         seqtofold = str(seq[tostart - 1 : toend])
-
+        log.info(f"{logid}: Seq: {len(seq)}, fold: {len(seqtofold)}")
         # get local window of interest 0 based closed, we do not need to store the whole seqtofold
         locws, locwe = localize_pl_window(start, end, window, len(seq))
         cons = str("-".join([str(start), str(end)]) + "_" + "-".join([str(locws), str(locwe)]))
@@ -523,7 +523,9 @@ def scan_seq(
         locws = locws - tostart
         locwe = locwe - tostart
 
-        plfold_unconstraint = fold_unconstraint(str(seqtofold), sid, region, window, span, unconstraint, save, outdir)
+        ### So far we just fold the whole sequence as we assume no constraint means no constraint for whole sequence, this could be later on changed to allow folding of subsequences via constraint regions, in principal this would just mean to add an option raw only and run standard folding that stops after fold_unconstraint
+
+        plfold_unconstraint = fold_unconstraint(str(seq), sid, region, window, span, unconstraint, save, outdir)
 
         log.debug(f"PLFold_unconstraint output: {plfold_unconstraint}")
         return 1
