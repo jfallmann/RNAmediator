@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-## CollectWindowResults.py ---
+## CollectWindowDiffs.py ---
 ##
-## Filename: CollectWindowResults.py
+## Filename: CollectWindowDiffs.py
 ## Description:
 ## Author: Joerg Fallmann
 ## Maintainer:
@@ -98,9 +98,9 @@ log = logging.getLogger(__name__)  # use module name
 SCRIPTNAME = os.path.basename(__file__).replace(".py", "")
 
 
-def screen_genes(queue, configurer, level, pat, border, procs, outdir, genes):
+def screen_diffs(queue, configurer, level, window, span, ulim, cutoff, procs, outdir, genes):
 
-    logid = SCRIPTNAME + ".screen_genes: "
+    logid = SCRIPTNAME + ".screen_diffs: "
     try:
         # set path for output
         if outdir:
@@ -112,9 +112,11 @@ def screen_genes(queue, configurer, level, pat, border, procs, outdir, genes):
         else:
             outdir = os.path.abspath(os.getcwd())
 
-        pattern = pat.split(sep=",")
-        window = int(pattern[0])
-        span = int(pattern[1])
+        windows = window.split(",")
+        spans = span.split(",")
+
+        combis = [x for x in [itertools.product(w + "_", spans) for w in windows]]
+        patterns = itertools.combinations(combis, 2)
 
         genecoords = parse_annotation_bed(
             genes
@@ -125,49 +127,47 @@ def screen_genes(queue, configurer, level, pat, border, procs, outdir, genes):
         pool = multiprocessing.Pool(processes=num_processes, maxtasksperchild=1)
 
         for goi in genecoords:
-
             log.info(logid + "Working on " + goi)
             gs, ge, gstrand = get_location(genecoords[goi][0])
 
             # get files with specified pattern
-            paired = os.path.abspath(
-                os.path.join(
-                    goi,
-                    goi + "*" + str(window) + "_" + str(span) + ".gz",
-                )
-            )
+            for pair in patterns:
+                diffin = [
+                    os.path.abspath(
+                        os.path.join(
+                            goi,
+                            goi + "*" + x + ".npy",
+                        )
+                    )
+                    for x in pair
+                ]
 
-            # search for files
-            p = natsorted(glob.glob(paired), key=lambda y: y.lower())
-            log.debug(logid + "Files found: " + str(p))
+                # search for files
+                p = [natsorted(glob.glob(d), key=lambda y: y.lower()) for d in diffin]
+                log.debug(logid + "Files found: " + str(p))
 
-            # get absolute path for files
-            nocons = []
+                # get absolute path for files
 
-            paired = [os.path.abspath(i) for i in p]
+                comparelist = [os.path.abspath(i) for i in p]
 
-            if not paired:
-                log.warning(
-                    logid + "No output for gene " + str(goi) + " found, will skip!"
-                )
-                continue
+                if not comparelist:
+                    log.warning(logid + "No output for gene " + str(goi) + " found, will skip!")
+                    continue
 
-            try:
-                for i in range(len(p)):
-                    log.debug(logid + "Adding file " + str(p[i]) + " to queue.")
+                try:
                     pool.apply_async(
-                        calc,
-                        args=(p[i], gs, ge, border, outdir),
+                        calcdiff,
+                        args=(comparelist, gs, ge, gstrand, ulim, cutoff, outdir),
                         kwds={"queue": queue, "configurer": configurer, "level": level},
                     )
-            except Exception:
-                exc_type, exc_value, exc_tb = sys.exc_info()
-                tbe = tb.TracebackException(
-                    exc_type,
-                    exc_value,
-                    exc_tb,
-                )
-                log.error(logid + "".join(tbe.format()))
+                except Exception:
+                    exc_type, exc_value, exc_tb = sys.exc_info()
+                    tbe = tb.TracebackException(
+                        exc_type,
+                        exc_value,
+                        exc_tb,
+                    )
+                    log.error(logid + "".join(tbe.format()))
 
         pool.close()
         pool.join()
@@ -182,58 +182,118 @@ def screen_genes(queue, configurer, level, pat, border, procs, outdir, genes):
         log.error(logid + "".join(tbe.format()))
 
 
-def calc(p, gs, ge, border, outdir, queue=None, configurer=None, level=None):
+def calcdiff(p, gs, ge, gstrand, ulim, border, outdir, queue=None, configurer=None, level=None):
 
-    logid = SCRIPTNAME + ".calc_ddg: "
+    logid = SCRIPTNAME + ".calc_diff: "
     try:
         log.debug(logid + "Parsing outputfile " + p)
         if queue and level:
             configurer(queue, level)
 
-        goi, chrom, strand, cons, reg, window, span = map(
-            str, os.path.basename(p).split(sep="_")
+        goi, chrom, strand, cons, reg, f, window, span = map(str, os.path.basename(p[0]).split(sep="_"))
+        goi1, chrom1, strand1, cons1, reg1, f1, window1, span1 = map(str, os.path.basename(p[1]).split(sep="_"))
+        span = span.split(sep=".")[0]
+        span1 = span1.split(sep=".")[0]
+        diffname = '_'.join(['|'.join([window, window1]), '|'.join([span, span1])])
+
+        cs, ce = map(int, cons.split(sep="-"))
+        ws, we = map(int, reg.split(sep="-"))
+
+        cs = cs - ws  # fit to window and make 0-based
+        ce = ce - ws  # fit to window and make 0-based closed
+
+        if 0 > any([cs, ce, ws, we]):
+            raise Exception(
+                "One of "
+                + str([cs, ce, ws, we])
+                + " lower than 0! this should not happen for "
+                + ",".join([goi, chrom, strand, cons, reg, f, window, span])
+            )
+
+        if gstrand != "-":
+            ws = ws + gs - 2  # get genomic coords 0 based closed, ws and gs are 1 based
+            we = we + gs - 2
+
+        else:
+            wst = ws  # temp ws for we calc
+            ws = ge - we  # get genomic coords 0 based closed, ge and we are 1 based
+            we = ge - wst
+
+        log.debug(
+            logid
+            + "DiffCoords: "
+            + " ".join(
+                map(
+                    str,
+                    [
+                        goi,
+                        chrom,
+                        strand,
+                        cons,
+                        reg,
+                        f,
+                        window,
+                        span,
+                        gs,
+                        ge,
+                        cs,
+                        ce,
+                        ws,
+                        we,
+                    ],
+                )
+            )
         )
-        border1, border2 = map(
-            float, border.split(",")
-        )  # defines how big a diff has to be to be of importance
+
+        border = abs(border)  # defines how big a diff has to be to be of importance
 
         log.info(
-            logid
-            + "Continuing calculation with borders: "
-            + str(border1)
-            + " and "
-            + str(border2)
-        )
+            logid + "Continuing " + str(goi) + " calculation with cutoff: " + str(border)
+        )  # + ' and ' + str(border2))
 
         out = defaultdict()
-        ddgs = _get_ddg(p)
-        log.debug(logid + "ddgs: " + str(ddgs))
+        a1 = _pl_to_array(p[0], ulim)
+        a2 = _pl_to_array(p[1], ulim)
+        if not np.array_equal(a1, a2):
+            diff = a1 - a2
+        else:
+            log.info(logid + "No influence on structure with unpaired constraint at " + cons)
+            diff = None
 
-        RT = (-1.9872041 * 10 ** (-3)) * (37 + 273.15)
-        log.debug(logid + "RT is " + str(RT))
+        log.debug(logid + "diff: " + str(diff[1:10]))
 
-        cons = ddgs.pop("constraint")
-        if not cons in out:
-            out[cons] = list()
-        ddg = _calc_ddg(ddgs)
-        if ddg is not None:
-            if ddg > border1 and ddg < border2:
-                dkd = math.exp(ddg / RT)
-                out[cons].append(
+        # RT = (-1.9872041 * 10 ** (-3)) * (37 + 273.15)
+        # log.debug(logid + "RT is " + str(RT))
+
+        if diff is not None:
+            for pos in range(len(diff)):
+                if strand != "-":
+                        gpos = pos + ws - ulim + 1  # already 0-based
+                        gend = gpos + ulim  # 0-based half-open
+                        gcst = cs + ws + 1
+                        gcen = ce + ws + 2
+                        gcons = str(gcst) + "-" + str(gcen)
+                else:
+                    gpos = we - pos  # already 0-based
+                    gend = gpos + ulim  # 0-based half-open
+                    gcst = we - ce - 1
+                    gcen = we - cs
+                    gcons = str(gcst) + "-" + str(gcen)
+
+                if border < abs(diff[pos]):
+                out[diffname].append(
                     "\t".join(
                         [
                             str(chrom),
-                            str(gs),
-                            str(ge),
-                            str(goi),
-                            str(ddg),
-                            str(strand),
-                            str(cons),
-                            str(dkd) + "\n",
+                            str(gpos),
+                            str(gend),
+                            str(goi) + "|" + str(cons) + "|" + str(gcons),
+                            str(diff[pos]),
+                            str(strand) + "\n",
                         ]
                     )
                 )
-        if out:
+        if len(out) > 0:
             write_out(out, outdir)
         else:
             log.warning(logid + "No ddg above cutoffs for gene " + str(goi))
@@ -256,17 +316,15 @@ def write_out(out, outdir):
         for cons in out:
             if not os.path.exists(outdir):
                 os.makedirs(outdir)
-            if not os.path.exists(
-                os.path.abspath(os.path.join(outdir, "Collection_window.bed.gz"))
-            ):
+            if not os.path.exists(os.path.abspath(os.path.join(outdir, "Collection_windowdiff.bed.gz"))):
                 with gzip.open(
-                    os.path.abspath(os.path.join(outdir, "Collection_window.bed.gz")),
+                    os.path.abspath(os.path.join(outdir, "Collection_windowdiff.bed.gz")),
                     "wb",
                 ) as o:
                     o.write(bytes("\n".join(out[cons]), encoding="UTF-8"))
             else:
                 with gzip.open(
-                    os.path.abspath(os.path.join(outdir, "Collection_window.bed.gz")),
+                    os.path.abspath(os.path.join(outdir, "Collection_windowdiff.bed.gz")),
                     "ab",
                 ) as o:
                     o.write(bytes("\n".join(out[cons]), encoding="UTF-8"))
@@ -295,7 +353,7 @@ def main(args=None):
 
     try:
         if not args:
-            args = parseargs_collect_window()
+            args = parseargs_collect_windowdiff()
 
         if args.version:
             sys.exit("Running RIssmed version " + __version__)
@@ -303,9 +361,7 @@ def main(args=None):
         #  Logging configuration
         logdir = args.logdir
         ts = str(datetime.datetime.now().strftime("%Y%m%d_%H_%M_%S_%f"))
-        logfile = str.join(
-            os.sep, [os.path.abspath(logdir), SCRIPTNAME + "_" + ts + ".log"]
-        )
+        logfile = str.join(os.sep, [os.path.abspath(logdir), SCRIPTNAME + "_" + ts + ".log"])
         loglevel = args.loglevel
 
         makelogdir(logdir)
@@ -321,20 +377,16 @@ def main(args=None):
         worker_configurer(queue, loglevel)
 
         log.info(logid + "Running " + SCRIPTNAME + " on " + str(args.procs) + " cores.")
-        log.info(
-            logid
-            + "CLI: "
-            + sys.argv[0]
-            + " "
-            + "{}".format(" ".join([shlex.quote(s) for s in sys.argv[1:]]))
-        )
+        log.info(logid + "CLI: " + sys.argv[0] + " " + "{}".format(" ".join([shlex.quote(s) for s in sys.argv[1:]])))
 
-        screen_genes(
+        screen_diffs(
             queue,
             worker_configurer,
             loglevel,
-            args.pattern,
-            args.border,
+            args.window,
+            args.span,
+            args.ulimit,
+            args.cutoff,
             args.procs,
             args.outdir,
             args.genes,

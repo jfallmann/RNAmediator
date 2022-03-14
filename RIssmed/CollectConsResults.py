@@ -157,44 +157,25 @@ def screen_genes(
                 os.path.join(
                     dir,
                     goi,
-                    goi
-                    + f"*_{unconstraint}_*"
-                    + str(window)
-                    + "_"
-                    + str(span)
-                    + ".npy",
+                    goi + f"*_{unconstraint}_*" + str(window) + "_" + str(span) + ".npy",
                 )
             )
             unpaired = os.path.abspath(
                 os.path.join(
                     dir,
                     goi,
-                    "StruCons_"
-                    + goi
-                    + "*_diffnu_*"
-                    + str(window)
-                    + "_"
-                    + str(span)
-                    + ".npy",
+                    "StruCons_" + goi + "*_diffnu_*" + str(window) + "_" + str(span) + ".npy",
                 )
             )
             paired = os.path.abspath(
                 os.path.join(
                     dir,
                     goi,
-                    "StruCons_"
-                    + goi
-                    + "*_diffnp_*"
-                    + str(window)
-                    + "_"
-                    + str(span)
-                    + ".npy",
+                    "StruCons_" + goi + "*_diffnp_*" + str(window) + "_" + str(span) + ".npy",
                 )
             )
 
-            log.debug(
-                logid + "PATHS: " + str(raw) + "\t" + str(paired) + "\t" + str(unpaired)
-            )
+            log.debug(logid + "PATHS: " + str(raw) + "\t" + str(paired) + "\t" + str(unpaired))
 
             # search for files
             r = natsorted(glob.glob(raw), key=lambda y: y.lower())
@@ -209,15 +190,7 @@ def screen_genes(
             paired = [os.path.abspath(i) for i in p]
             unpaired = [os.path.abspath(i) for i in u]
 
-            log.debug(
-                logid
-                + "PATHS: "
-                + str(len(r))
-                + "\t"
-                + str(len(p))
-                + "\t"
-                + str(len(u))
-            )
+            log.debug(logid + "PATHS: " + str(len(r)) + "\t" + str(len(p)) + "\t" + str(len(u)))
 
             if not raw or not paired or not unpaired:
                 log.warning(
@@ -234,12 +207,8 @@ def screen_genes(
 
             try:
                 for uncons in raw:
-                    unpa = uncons.replace("raw", "diffnu").replace(
-                        goi + "_", "StruCons_" + goi + "_", 1
-                    )
-                    pair = uncons.replace("raw", "diffnp").replace(
-                        goi + "_", "StruCons_" + goi + "_", 1
-                    )
+                    unpa = uncons.replace("raw", "diffnu").replace(goi + "_", "StruCons_" + goi + "_", 1)
+                    pair = uncons.replace("raw", "diffnp").replace(goi + "_", "StruCons_" + goi + "_", 1)
                     if unpa in unpaired and pair in paired:
                         call_list.append(
                             (
@@ -258,9 +227,7 @@ def screen_genes(
                         )
 
                     else:
-                        log.debug(
-                            logid + "MISMATCH: " + uncons + "\t" + unpa + "\t" + pair
-                        )
+                        log.debug(logid + "MISMATCH: " + uncons + "\t" + unpa + "\t" + pair)
                         log.warning(
                             logid
                             + "Files for raw and constraint do not match or no difference has been found in pairing probabilities, skipping "
@@ -328,9 +295,7 @@ def judge_diff(
         if queue and level:
             configurer(queue, level)
 
-        goi, chrom, strand, cons, reg, f, window, span = map(
-            str, os.path.basename(raw).split(sep="_")
-        )
+        goi, chrom, strand, cons, reg, f, window, span = map(str, os.path.basename(raw).split(sep="_"))
         span = span.split(sep=".")[0]
         cs, ce = map(int, cons.split(sep="-"))
         ws, we = map(int, reg.split(sep="-"))
@@ -433,22 +398,12 @@ def judge_diff(
             nrgdiffu[np.isneginf(nrgdiffu)] = np.nan
             nrgdiffp[np.isneginf(nrgdiffp)] = np.nan
 
-            kdu = np.exp(
-                nrgdiffu / RT
-            )  # math.exp(np.array(nrgdiffu//RT))) ### THIS IS BASICALLY ACCESSIBILITY AGAIN
-            kdp = np.exp(
-                nrgdiffp / RT
-            )  # math.exp(np.array(nrgdiffp//RT))) ### THIS IS BASICALLY ACCESSIBILITY AGAIN
+            kdu = np.exp(nrgdiffu / RT)  # math.exp(np.array(nrgdiffu//RT))) ### THIS IS BASICALLY ACCESSIBILITY AGAIN
+            kdp = np.exp(nrgdiffp / RT)  # math.exp(np.array(nrgdiffp//RT))) ### THIS IS BASICALLY ACCESSIBILITY AGAIN
 
             log.debug(logid + "NRG: " + str(nrgdiffu[:10]))
             log.debug(
-                logid
-                + "KD: "
-                + str(kdu[:10])
-                + " mean: "
-                + str(np.nanmean(kdu))
-                + " std: "
-                + str(np.nanstd(kdu))
+                logid + "KD: " + str(kdu[:10]) + " mean: " + str(np.nanmean(kdu)) + " std: " + str(np.nanstd(kdu))
             )
 
             np.seterr(divide="ignore")  # ignore 0 for LOGS
@@ -529,9 +484,7 @@ def judge_diff(
                         kd = kdu[pos]
                         zscore = zscoresu[pos]
 
-                        if not any(
-                            [x is np.nan for x in [preacc, nrgdiff, kd, zscore]]
-                        ):
+                        if not any([x is np.nan for x in [preacc, nrgdiff, kd, zscore]]):
                             out["u"].append(
                                 "\t".join(
                                     [
@@ -563,9 +516,7 @@ def judge_diff(
                         kd = kdp[pos]
                         zscore = zscoresp[pos]
 
-                        if not any(
-                            [x is np.nan for x in [preacc, nrgdiff, kd, zscore]]
-                        ):
+                        if not any([x is np.nan for x in [preacc, nrgdiff, kd, zscore]]):
                             out["p"].append(
                                 "\t".join(
                                     [
@@ -608,9 +559,7 @@ def savelists(out, outdir):
                 o.write(bytes("\n".join(out["u"]), encoding="UTF-8"))
                 o.write(bytes("\n", encoding="UTF-8"))
         if len(out["p"]) > 0:
-            with gzip.open(
-                os.path.abspath(os.path.join(outdir, "Collection_paired.bed.gz")), "ab"
-            ) as o:
+            with gzip.open(os.path.abspath(os.path.join(outdir, "Collection_paired.bed.gz")), "ab") as o:
                 o.write(bytes("\n".join(out["p"]), encoding="UTF-8"))
                 o.write(bytes("\n", encoding="UTF-8"))
     except Exception:
@@ -646,9 +595,7 @@ def main(args=None):
         #  Logging configuration
         logdir = args.logdir
         ts = str(datetime.datetime.now().strftime("%Y%m%d_%H_%M_%S_%f"))
-        logfile = str.join(
-            os.sep, [os.path.abspath(logdir), SCRIPTNAME + "_" + ts + ".log"]
-        )
+        logfile = str.join(os.sep, [os.path.abspath(logdir), SCRIPTNAME + "_" + ts + ".log"])
         loglevel = args.loglevel
 
         makelogdir(logdir)
@@ -664,13 +611,7 @@ def main(args=None):
         worker_configurer(queue, loglevel)
 
         log.info(logid + "Running " + SCRIPTNAME + " on " + str(args.procs) + " cores.")
-        log.info(
-            logid
-            + "CLI: "
-            + sys.argv[0]
-            + " "
-            + "{}".format(" ".join([shlex.quote(s) for s in sys.argv[1:]]))
-        )
+        log.info(logid + "CLI: " + sys.argv[0] + " " + "{}".format(" ".join([shlex.quote(s) for s in sys.argv[1:]])))
 
         screen_genes(
             queue,

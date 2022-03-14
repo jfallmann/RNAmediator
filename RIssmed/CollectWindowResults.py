@@ -147,9 +147,7 @@ def screen_genes(queue, configurer, level, pat, border, procs, outdir, genes):
             paired = [os.path.abspath(i) for i in p]
 
             if not paired:
-                log.warning(
-                    logid + "No output for gene " + str(goi) + " found, will skip!"
-                )
+                log.warning(logid + "No output for gene " + str(goi) + " found, will skip!")
                 continue
 
             try:
@@ -190,20 +188,10 @@ def calc(p, gs, ge, border, outdir, queue=None, configurer=None, level=None):
         if queue and level:
             configurer(queue, level)
 
-        goi, chrom, strand, cons, reg, window, span = map(
-            str, os.path.basename(p).split(sep="_")
-        )
-        border1, border2 = map(
-            float, border.split(",")
-        )  # defines how big a diff has to be to be of importance
+        goi, chrom, strand, cons, reg, window, span = map(str, os.path.basename(p).split(sep="_"))
+        border1, border2 = map(float, border.split(","))  # defines how big a diff has to be to be of importance
 
-        log.info(
-            logid
-            + "Continuing calculation with borders: "
-            + str(border1)
-            + " and "
-            + str(border2)
-        )
+        log.info(logid + "Continuing calculation with borders: " + str(border1) + " and " + str(border2))
 
         out = defaultdict()
         ddgs = _get_ddg(p)
@@ -256,9 +244,7 @@ def write_out(out, outdir):
         for cons in out:
             if not os.path.exists(outdir):
                 os.makedirs(outdir)
-            if not os.path.exists(
-                os.path.abspath(os.path.join(outdir, "Collection_window.bed.gz"))
-            ):
+            if not os.path.exists(os.path.abspath(os.path.join(outdir, "Collection_window.bed.gz"))):
                 with gzip.open(
                     os.path.abspath(os.path.join(outdir, "Collection_window.bed.gz")),
                     "wb",
@@ -303,9 +289,7 @@ def main(args=None):
         #  Logging configuration
         logdir = args.logdir
         ts = str(datetime.datetime.now().strftime("%Y%m%d_%H_%M_%S_%f"))
-        logfile = str.join(
-            os.sep, [os.path.abspath(logdir), SCRIPTNAME + "_" + ts + ".log"]
-        )
+        logfile = str.join(os.sep, [os.path.abspath(logdir), SCRIPTNAME + "_" + ts + ".log"])
         loglevel = args.loglevel
 
         makelogdir(logdir)
@@ -321,13 +305,7 @@ def main(args=None):
         worker_configurer(queue, loglevel)
 
         log.info(logid + "Running " + SCRIPTNAME + " on " + str(args.procs) + " cores.")
-        log.info(
-            logid
-            + "CLI: "
-            + sys.argv[0]
-            + " "
-            + "{}".format(" ".join([shlex.quote(s) for s in sys.argv[1:]]))
-        )
+        log.info(logid + "CLI: " + sys.argv[0] + " " + "{}".format(" ".join([shlex.quote(s) for s in sys.argv[1:]])))
 
         screen_genes(
             queue,
