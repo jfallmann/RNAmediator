@@ -71,7 +71,7 @@ import multiprocessing
 
 # numpy
 import shlex
-from itertools import repeat
+import itertools
 
 # others
 from natsort import natsorted
@@ -91,7 +91,7 @@ __version__ = _version.get_versions()["version"]
 # load own modules
 from RIssmed.Tweaks.FileProcessor import *
 from RIssmed.Tweaks.RNAtweaks import *
-from RIssmed.Tweaks.RNAtweaks import _get_ddg, _calc_ddg, _calc_gibbs, _calc_nrg
+from RIssmed.Tweaks.RNAtweaks import _get_ddg, _calc_ddg, _calc_gibbs, _calc_nrg, _pl_to_array
 from RIssmed.Tweaks.NPtweaks import *
 
 log = logging.getLogger(__name__)  # use module name
@@ -194,7 +194,7 @@ def calcdiff(p, gs, ge, gstrand, ulim, border, outdir, queue=None, configurer=No
         goi1, chrom1, strand1, cons1, reg1, f1, window1, span1 = map(str, os.path.basename(p[1]).split(sep="_"))
         span = span.split(sep=".")[0]
         span1 = span1.split(sep=".")[0]
-        diffname = '_'.join(['|'.join([window, window1]), '|'.join([span, span1])])
+        diffname = "_".join(["|".join([window, window1]), "|".join([span, span1])])
 
         cs, ce = map(int, cons.split(sep="-"))
         ws, we = map(int, reg.split(sep="-"))
@@ -268,11 +268,11 @@ def calcdiff(p, gs, ge, gstrand, ulim, border, outdir, queue=None, configurer=No
         if diff is not None:
             for pos in range(len(diff)):
                 if strand != "-":
-                        gpos = pos + ws - ulim + 1  # already 0-based
-                        gend = gpos + ulim  # 0-based half-open
-                        gcst = cs + ws + 1
-                        gcen = ce + ws + 2
-                        gcons = str(gcst) + "-" + str(gcen)
+                    gpos = pos + ws - ulim + 1  # already 0-based
+                    gend = gpos + ulim  # 0-based half-open
+                    gcst = cs + ws + 1
+                    gcen = ce + ws + 2
+                    gcons = str(gcst) + "-" + str(gcen)
                 else:
                     gpos = we - pos  # already 0-based
                     gend = gpos + ulim  # 0-based half-open
@@ -281,24 +281,23 @@ def calcdiff(p, gs, ge, gstrand, ulim, border, outdir, queue=None, configurer=No
                     gcons = str(gcst) + "-" + str(gcen)
 
                 if border < abs(diff[pos]):
-                out[diffname].append(
-                    "\t".join(
-                        [
-                            str(chrom),
-                            str(gpos),
-                            str(gend),
-                            str(goi) + "|" + str(cons) + "|" + str(gcons),
-                            str(diff[pos]),
-                            str(strand) + "\n",
-                        ]
+                    out[diffname].append(
+                        "\t".join(
+                            [
+                                str(chrom),
+                                str(gpos),
+                                str(gend),
+                                str(goi) + "|" + str(cons) + "|" + str(gcons),
+                                str(diff[pos]),
+                                str(strand) + "\n",
+                            ]
+                        )
                     )
-                )
         if len(out) > 0:
             write_out(out, outdir)
         else:
-            log.warning(logid + "No ddg above cutoffs for gene " + str(goi))
+            log.warning(logid + "No diffs above cutoffs for gene " + str(goi))
         return
-
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(

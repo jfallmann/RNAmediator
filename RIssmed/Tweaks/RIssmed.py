@@ -95,13 +95,16 @@ class SequenceSettings:
 
     @check_run
     def add_constraints(self, constraints: Tuple[Constraint]):
-        """adds a constraints to the list of constraints"""
+        """adds a constraint to the list of constraints"""
         for constraint in constraints:
             assert constraint.__class__ == Constraint, "can only add Contraint objects to the constraintliste"
             if self.strand in ["+", "-"]:
-                assert (
-                    self.strand == constraint.strand
-                ), "strand values of constraint does not match the strand from the sequence"
+                try:
+                    assert self.strand == constraint.strand
+                except AssertionError:
+                    print("AssertionError: strand values of constraint does not match the strand from the sequence")
+                    raise
+
         self._constrainlist += [constraints]
 
     @property

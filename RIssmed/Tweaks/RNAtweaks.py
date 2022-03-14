@@ -1366,9 +1366,11 @@ def cmd_rnaplfold(
                 constraint_string += f"{const} {start+1} {0} {end - start}\n"
         constraint_file.write(constraint_string)
         constraint_file.seek(0)
+        ENVBIN = sys.exec_prefix
+        BIN = os.path.join(ENVBIN, "bin", "RNAplfold")
         rnaplfold = subprocess.Popen(
             [
-                "RNAplfold",
+                BIN,
                 "-W",
                 str(window),
                 "-L",
