@@ -68,21 +68,15 @@ def compare_output_folders(test_path: str, expected_path: str):
         test_subdir = os.path.join(test_path, subdir)
         expected_subdir = os.path.join(expected_path, subdir)
         assert os.path.exists(test_subdir), f"test: {test_subdir} does not exist"
-        assert os.path.exists(
-            expected_subdir
-        ), f"expected: {expected_subdir} does not exist"
+        assert os.path.exists(expected_subdir), f"expected: {expected_subdir} does not exist"
         expected_files = os.listdir(expected_subdir)
         for file in expected_files:
             test_file = os.path.join(test_subdir, file)
             expected_file = os.path.join(expected_subdir, file)
             assert os.path.exists(test_file), f"test: {test_file} does not exist"
-            assert os.path.exists(
-                expected_file
-            ), f"expected: {expected_file} does not exist"
+            assert os.path.exists(expected_file), f"expected: {expected_file} does not exist"
             if ".gz" in test_file:
-                with gzip.open(test_file, "rt") as test, gzip.open(
-                    expected_file, "rt"
-                ) as expected:
+                with gzip.open(test_file, "rt") as test, gzip.open(expected_file, "rt") as expected:
                     for x, test_line in enumerate(test):
                         expected_line = expected.readline().rstrip().split("\t")
                         test_line = test_line.rstrip().split("\t")
@@ -123,12 +117,8 @@ def compare_logs(test_log: str, expected_log: str):
 
 def compare_arrays(test_array: np.ndarray, expected_array: np.ndarray):
     array_difference = test_array - expected_array
-    max_difference = np.max(
-        np.abs(array_difference), where=~np.isnan(array_difference), initial=-1
-    )
-    max_diff_idx = np.unravel_index(
-        np.nanargmax(array_difference), array_difference.shape
-    )
+    max_difference = np.max(np.abs(array_difference), where=~np.isnan(array_difference), initial=-1)
+    max_diff_idx = np.unravel_index(np.nanargmax(array_difference), array_difference.shape)
     assert np.allclose(test_array, expected_array, equal_nan=True, atol=0.000001), (
         f"detected high difference between RIssmed and command line result "
         f"with a max of {max_difference} at index: {max_diff_idx}"
@@ -148,6 +138,7 @@ def single_constraint_args(default_args):
     default_args.outdir = os.path.join(TMP_TEST_DIR, "single_constraint_test")
     default_args.save = 1
     default_args.logdir = os.path.join(TMP_TEST_DIR, "LOG_SINGLE")
+    default_args.version = None
     return default_args
 
 
@@ -165,6 +156,7 @@ def paired_constraint_args(default_args):
     default_args.outdir = os.path.join(TMP_TEST_DIR, "paired_constraint_test")
     default_args.save = 1
     default_args.logdir = os.path.join(TMP_TEST_DIR, "LOG_PAIRED")
+    default_args.version = None
     return default_args
 
 
@@ -182,6 +174,7 @@ def multi_constraint_args(default_args):
     default_args.outdir = os.path.join(TMP_TEST_DIR, "multi_constraint_test")
     default_args.save = 1
     default_args.logdir = os.path.join(TMP_TEST_DIR, "LOG_MULTI")
+    default_args.version = None
     return default_args
 
 
@@ -196,7 +189,7 @@ def sliding_args(default_args):
     default_args.unconstraint = "raw"
     default_args.outdir = os.path.join(TMP_TEST_DIR, "sliding_test")
     default_args.logdir = os.path.join(TMP_TEST_DIR, "LOG_SLIDING")
-
+    default_args.version = None
     return default_args
 
 
@@ -211,17 +204,14 @@ def parafold_args(default_args):
     default_args.outdir = os.path.join(TMP_TEST_DIR, "parafold_test")
     default_args.logdir = os.path.join(TMP_TEST_DIR, "LOG_PARAFOLD")
     default_args.constrain = f"ono,{constrain}"
+    default_args.version = None
     default_args.save = 1
     return default_args
 
 
 def test_data_available():
-    assert os.path.exists(
-        os.path.join(TESTDATAPATH, "test.fa.gz")
-    ), "Test data not available"
-    assert os.path.exists(
-        os.path.join(TESTDATAPATH, "test_single.fa")
-    ), "Test data not available"
+    assert os.path.exists(os.path.join(TESTDATAPATH, "test.fa.gz")), "Test data not available"
+    assert os.path.exists(os.path.join(TESTDATAPATH, "test_single.fa")), "Test data not available"
     assert os.path.isfile(os.path.join(TESTDATAPATH, "test_single_constraint.bed"))
     assert os.path.isfile(os.path.join(TESTDATAPATH, "test_constraints.bed"))
     assert os.path.isfile(os.path.join(TESTDATAPATH, "parafold_test.bed"))
@@ -249,9 +239,7 @@ def test_single_constraint(single_constraint_args):
     expected_path = os.path.join(EXPECTED_RESULTS, "single_constraint_result")
     test_path = single_constraint_args.outdir
     compare_output_folders(test_path=test_path, expected_path=expected_path)
-    test_log = os.path.join(
-        single_constraint_args.logdir, os.listdir(single_constraint_args.logdir)[0]
-    )
+    test_log = os.path.join(single_constraint_args.logdir, os.listdir(single_constraint_args.logdir)[0])
     expected_log = os.path.join(EXPECTED_LOGS, "Single_Constraint.log")
 
 
@@ -269,9 +257,7 @@ def test_multi_constraint(multi_constraint_args):
     expected_path = os.path.join(EXPECTED_RESULTS, "multi_constraint_result")
     test_path = multi_constraint_args.outdir
     compare_output_folders(test_path=test_path, expected_path=expected_path)
-    test_log = os.path.join(
-        multi_constraint_args.logdir, os.listdir(multi_constraint_args.logdir)[0]
-    )
+    test_log = os.path.join(multi_constraint_args.logdir, os.listdir(multi_constraint_args.logdir)[0])
     expected_log = os.path.join(EXPECTED_LOGS, "Multi_Constraint.log")
 
 
@@ -291,9 +277,7 @@ def test_multi_constraint(multi_constraint_args):
         ),
     ],
 )
-def test_fold_unconstraint(
-    seq_id, region, window, span, unconstraint, save, outdir, seq
-):
+def test_fold_unconstraint(seq_id, region, window, span, unconstraint, save, outdir, seq):
     if os.path.isfile(seq):
         seq = str(SeqIO.read(seq, format="fasta").seq)
     seq = seq.upper().replace("T", "U")
