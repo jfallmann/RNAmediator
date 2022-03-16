@@ -472,7 +472,7 @@ def scan_seq(
         tostart, toend = expand_pl_window(start, end, window, multi, len(seq))
         log.debug(f"{logid} tostart {tostart}, toend {toend}")
         seqtofold = str(seq[tostart - 1 : toend])
-        log.info(f"{logid}: Seq: {len(seq)}, fold: {len(seqtofold)}")
+        log.debug(f"{logid}: Seq: {len(seq)}, fold: {len(seqtofold)}")
         # get local window of interest 0 based closed, we do not need to store the whole seqtofold
         locws, locwe = localize_pl_window(start, end, window, len(seq))
         cons = str("-".join([str(start), str(end)]) + "_" + "-".join([str(locws), str(locwe)]))
