@@ -1198,7 +1198,7 @@ def main(args=None):
     logid = SCRIPTNAME + ".main: "
     try:
         if not args:
-            args = parseargs_foldcons()
+            args = parseargs_plcons()
 
         if args.version:
             sys.exit("Running RIssmed version " + __version__)
