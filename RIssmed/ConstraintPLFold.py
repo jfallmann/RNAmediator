@@ -527,7 +527,6 @@ def scan_seq(
 
         plfold_unconstraint = fold_unconstraint(str(seq), sid, region, window, span, unconstraint, save, outdir)
 
-        log.debug(f"PLFold_unconstraint output: {plfold_unconstraint}")
         return 1
 
     except Exception:
