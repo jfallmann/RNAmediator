@@ -368,6 +368,8 @@ def pl_fold(
 
         pool.close()
         pool.join()  # timeout
+        log.info(logid + "DONE: output in: " + str(outdir))
+
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
@@ -376,9 +378,6 @@ def pl_fold(
             exc_tb,
         )
         log.error(logid + "".join(tbe.format()))
-
-    log.info(logid + "DONE: output in: " + str(outdir))
-    return 1
 
 
 def fold_unconstraint(
@@ -878,8 +877,6 @@ def constrain_seq_paired(
         )
         log.error(logid + "".join(tbe.format()))
 
-    return 1
-
 
 # def constrain_temp(sid, seq, temp, window, span, region, multi, an, save, outdir, queue=None, configurer=None, level=None):
 #     seq = seq.upper().replace("T", "U")
@@ -982,7 +979,6 @@ def write_unconstraint(
             exc_tb,
         )
         log.error(logid + "".join(tbe.format()))
-    return 1
 
 
 def write_constraint(
@@ -1066,7 +1062,6 @@ def write_constraint(
             exc_tb,
         )
         log.error(logid + "".join(tbe.format()))
-    return 1
 
 
 # def write_temp(save, sid, seq, temp, data, region, diff, window, span, outdir):
@@ -1154,7 +1149,6 @@ def checkexisting(sid, paired, unpaired, cons, region, window, span, outdir):
             exc_tb,
         )
         log.error(logid + "".join(tbe.format()))
-    return 1
 
 
 def check_raw_existing(sid, unconstraint, cons, region, window, span, outdir, rawentry=None):
@@ -1188,7 +1182,6 @@ def check_raw_existing(sid, unconstraint, cons, region, window, span, outdir, ra
             exc_tb,
         )
         log.error(logid + "".join(tbe.format()))
-    return 1
 
 
 def main(args=None):
@@ -1203,10 +1196,12 @@ def main(args=None):
     """
 
     logid = SCRIPTNAME + ".main: "
-    if not args:
-        args = parseargs_plcons()
-
     try:
+        if not args:
+            args = parseargs_plcons()
+        if args.version:
+            sys.exit("Running RIssmed version " + __version__)
+
         queue, listener, worker_configurer = rissmed_logging_setup(args.logdir, args.loglevel, SCRIPTNAME)
 
         log.info(logid + "Running " + SCRIPTNAME + " on " + str(args.procs) + " cores.")
