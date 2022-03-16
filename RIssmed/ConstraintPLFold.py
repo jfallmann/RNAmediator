@@ -1200,7 +1200,7 @@ def main(args=None):
         if not args:
             args = parseargs_plcons()
         if args.version:
-            sys.exit("Running RIssmed version " + __version__)
+            sys.exit("Running RIssmed version " + _version.get_versions()["version"])
 
         queue, listener, worker_configurer = rissmed_logging_setup(args.logdir, args.loglevel, SCRIPTNAME)
 
