@@ -183,6 +183,7 @@ def set_run_settings_dict(sequence, constrain: str, conslength: int, genes: str)
         a dictionary using the fasta sequence id as key and stores corresponding settings in an SequenceSettings
         object
     """
+    logid = SCRIPTNAME + ".set_run_settings_dict: "
     run_settings: Dict[str, SequenceSettings] = dict()
     sequence = parseseq(sequence)
     if "ono" == str(constrain.split(",")[0]):
@@ -204,6 +205,7 @@ def set_run_settings_dict(sequence, constrain: str, conslength: int, genes: str)
         for x, record in enumerate(SeqIO.parse(sequence, "fasta")):
             goi, chrom, strand = idfromfa(record.id)
             cons = constraintlist[goi] if type(constraintlist) == defaultdict else constraintlist
+            log.debug(f"{logid} Setting {goi} {chrom} {strand} constraint {cons}")
             for entry in cons:
                 run_settings = add_rissmed_constraint(run_settings, entry, record, goi, chrom, strand)
     if genes != "":
@@ -301,7 +303,7 @@ def read_constraints(constrain: str, linewise: bool = False) -> Dict[str, List[s
         as values. If linewise is set to True only a single key ("lw") is used to store all constraints.
     """
     constraintlist = []
-    logid = f"{SCRIPTNAME}.read_constraints"
+    logid = f"{SCRIPTNAME}.read_constraints: "
     if os.path.isfile(constrain):
         if ".bed" in constrain:
             log.info(logid + "Parsing constraints from Bed " + constrain)
@@ -310,7 +312,7 @@ def read_constraints(constrain: str, linewise: bool = False) -> Dict[str, List[s
             else:
                 f = open(constrain, "rt")
             if "paired" in constrain:
-                constraintlist = read_paired_constraints_from_bed(f, linewise)  # Not sure if it works but it should
+                constraintlist = read_paired_constraints_from_bed(f, linewise)
             else:
                 constraintlist = read_constraints_from_bed(f, linewise)
         elif ".csv" in constrain:
@@ -353,6 +355,7 @@ def read_constraints(constrain: str, linewise: bool = False) -> Dict[str, List[s
     else:
         log.error(logid + "Could not compute constraints from input " + str(constrain))
         sys.exit()
+    log.debug(f"{logid} Constraintlist: {constraintlist}")
     return constraintlist
 
 

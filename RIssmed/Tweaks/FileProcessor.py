@@ -129,14 +129,13 @@ def parseseq(sequence):
 def idfromfa(fa_id):
     logid = SCRIPTN + ".idfromfa: "
     # goi, chrom, strand = [None, None, None] # not used in the current code
-    fa_id = fa_id.replace("_", "-")
+    # fa_id = fa_id.replace("_", "-")
     try:
         goi, chrom = fa_id.split(":")[::2]
         strand = str(fa_id.split(":")[3].split("(")[1][0])
     except (IndexError, ValueError):
         log.warning(
-            logid
-            + "Fasta header is not in expected format, you will loose information on strand and chromosome"
+            logid + "Fasta header is not in expected format, you will loose information on strand and chromosome"
         )
         goi = fa_id
         chrom, strand = ["na", "na"]
@@ -144,13 +143,8 @@ def idfromfa(fa_id):
     if goi and chrom and strand:
         return [str(goi), str(chrom), str(strand)]
     else:
-        log.error(
-            logid
-            + "Could not assign any value from fasta header, please check your fasta files"
-        )
-        sys.exit(
-            "Could not assign any value from fasta header, please check your fasta files"
-        )
+        log.error(logid + "Could not assign any value from fasta header, please check your fasta files")
+        sys.exit("Could not assign any value from fasta header, please check your fasta files")
 
 
 def parse_annotation_bed(bed, annotated=None):
@@ -175,9 +169,7 @@ def parse_annotation_bed(bed, annotated=None):
             else:
                 start = int(entries[1]) + 1
                 end = int(entries[2])
-            anno[str(goi)].append(
-                "|".join(["-".join([str(start), str(end)]), strand])
-            )  # Need strand info here!
+            anno[str(goi)].append("|".join(["-".join([str(start), str(end)]), strand]))  # Need strand info here!
         return anno
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -202,9 +194,7 @@ def read_constraints_from_bed(bed, linewise=None):
             if linewise:
                 cons["lw"].append("|".join(["-".join([str(start), str(end)]), strand]))
             else:
-                cons[str(goi)].append(
-                    "|".join(["-".join([str(start), str(end)]), strand])
-                )
+                cons[str(goi)].append("|".join(["-".join([str(start), str(end)]), strand]))
         return cons
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -240,12 +230,8 @@ def read_paired_constraints_from_bed(bed, linewise=None):
                     cons["lw"].append(
                         ":".join(
                             [
-                                "|".join(
-                                    ["-".join([str(start_one), str(end_one)]), strand]
-                                ),
-                                "|".join(
-                                    ["-".join([str(start_two), str(end_two)]), strand]
-                                ),
+                                "|".join(["-".join([str(start_one), str(end_one)]), strand]),
+                                "|".join(["-".join([str(start_two), str(end_two)]), strand]),
                             ]
                         )
                     )
@@ -253,12 +239,8 @@ def read_paired_constraints_from_bed(bed, linewise=None):
                     cons[str(goi)].append(
                         ":".join(
                             [
-                                "|".join(
-                                    ["-".join([str(start_one), str(end_one)]), strand]
-                                ),
-                                "|".join(
-                                    ["-".join([str(start_two), str(end_two)]), strand]
-                                ),
+                                "|".join(["-".join([str(start_one), str(end_one)]), strand]),
+                                "|".join(["-".join([str(start_two), str(end_two)]), strand]),
                             ]
                         )
                     )
@@ -285,9 +267,7 @@ def read_constraints_from_csv(csv, linewise=None):
             if linewise:
                 cons["lw"].append("|".join(["-".join([str(start), str(end)]), strand]))
             else:
-                cons[entries[3]].append(
-                    "|".join(["-".join([str(start), str(end)]), strand])
-                )
+                cons[entries[3]].append("|".join(["-".join([str(start), str(end)]), strand]))
         return cons
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -311,25 +291,17 @@ def read_constraints_from_generic(generic, linewise=None):
                 end = entries[3]
                 strand = entries[5]
                 if linewise:
-                    cons["lw"].append(
-                        "|".join(["-".join([str(start), str(end)]), strand])
-                    )
+                    cons["lw"].append("|".join(["-".join([str(start), str(end)]), strand]))
                 else:
-                    cons[entries[0]].append(
-                        "|".join(["-".join([str(start), str(end)]), strand])
-                    )
+                    cons[entries[0]].append("|".join(["-".join([str(start), str(end)]), strand]))
             else:
                 start = entries[2]
                 end = entries[3]
                 strand = "."
                 if linewise:
-                    cons["lw"].append(
-                        "|".join(["-".join([str(start), str(end)]), strand])
-                    )
+                    cons["lw"].append("|".join(["-".join([str(start), str(end)]), strand]))
                 else:
-                    cons["generic"].append(
-                        "|".join(["-".join([str(start), str(end)]), strand])
-                    )
+                    cons["generic"].append("|".join(["-".join([str(start), str(end)]), strand]))
         return cons
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
