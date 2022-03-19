@@ -212,6 +212,7 @@ def screen_genes(
                     if unpa in unpaired and pair in paired:
                         call_list.append(
                             (
+                                goi,
                                 uncons,
                                 unpa,
                                 pair,
@@ -274,6 +275,7 @@ def screen_genes(
 
 
 def judge_diff(
+    goi,
     raw,
     u,
     p,
@@ -294,8 +296,10 @@ def judge_diff(
     try:
         if queue and level:
             configurer(queue, level)
-
-        goi, chrom, strand, cons, reg, f, window, span = map(str, os.path.basename(raw).split(sep="_"))
+        log.debug(f"{logid} RAW; {str(os.path.basename(raw)).replace(goi + '_', '')}")
+        chrom, strand, cons, reg, f, window, span = map(
+            str, str(os.path.basename(raw)).replace(goi + "_", "").split(sep="_")
+        )
         span = span.split(sep=".")[0]
         cs, ce = map(int, cons.split(sep="-"))
         ws, we = map(int, reg.split(sep="-"))
