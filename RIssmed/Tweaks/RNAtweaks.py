@@ -1366,6 +1366,15 @@ def cmd_rnaplfold(
                 constraint_string += f"{const} {start+1} {0} {end - start}\n"
         constraint_file.write(constraint_string)
         constraint_file.seek(0)
+        # check for window and span length
+        if window > len(sequence):
+            log.warning(
+                f"{logid} Window {window} larger than sequence, will shrink window to sequence length {len(sequence)}"
+            )
+            window = len(sequence)
+        if span > window:
+            log.warning(f"{logid} Span {span} larger than window, will shrink span to window {window}")
+            span = window
         ENVBIN = sys.exec_prefix
         BIN = os.path.join(ENVBIN, "bin", "RNAplfold")
         rnaplfold = subprocess.Popen(
@@ -1427,9 +1436,18 @@ def api_rnaplfold(
         PLFoldOutput object
     """
 
-    logid = f"{SCRIPTN}.api_rnaplfold"
+    logid = f"{scriptn}.api_rnaplfold"
     sequence = sequence.upper().replace("T", "U")
     data = {"up": []}
+    # check for window and span length
+    if window > len(sequence):
+        log.warning(
+            f"{logid} Window {window} larger than sequence, will shrink window to sequence length {len(sequence)}"
+        )
+        window = len(sequence)
+    if span > window:
+        log.warning(f"{logid} Span {span} larger than window, will shrink span to window {window}")
+        span = window
     md = RNA.md()
     md.max_bp_span = span
     md.window_size = window

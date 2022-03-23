@@ -152,7 +152,7 @@ def pl_fold(
                         + str(multi)
                     )
                 )
-                continue
+                # continue
 
             if pattern and pattern not in goi:
                 continue
@@ -176,7 +176,7 @@ def pl_fold(
                     cons = str(start) + "-" + str(end) + "_" + str(tostart) + "-" + str(toend)
                     log.debug(logid + str.join(" ", [goi, cons, gstrand]))
 
-                    if start < 0 or end > len(seq_record.seq):
+                    if start < 1 or end > len(seq_record.seq):
                         log.warning(
                             logid
                             + "Constraint out of sequence bounds! skipping! "
@@ -403,10 +403,6 @@ def fold_unconstraint(
         if queue and level:
             configurer(queue, level)
 
-        if len(seq) < int(window):
-            log.error(logid + "Sequence to small, skipping " + str(id) + "\t" + str(len(seq)))
-            return
-
         log.debug(f"{SCRIPTNAME} Seqlength: {len(seq)}, Window: {window}, Span: {span}, Region: {region}")
         plfold_output = api_rnaplfold(seq, window, span, region)
 
@@ -521,8 +517,6 @@ def scan_seq(
         # get local start,ends 0 based closed
         locws = locws - tostart
         locwe = locwe - tostart
-
-        ### So far we just fold the whole sequence as we assume no constraint means no constraint for whole sequence, this could be later on changed to allow folding of subsequences via constraint regions, in principal this would just mean to add an option raw only and run standard folding that stops after fold_unconstraint
 
         plfold_unconstraint = fold_unconstraint(str(seq), sid, region, window, span, unconstraint, save, outdir)
 
