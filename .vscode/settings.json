@@ -6,7 +6,7 @@
     "python.testing.nosetestsEnabled": true,
     "python.testing.pytestEnabled": true,
     "esbonio.server.enabled": true,
-    "esbonio.sphinx.confDir": "${workspaceFolder}/docs",
+    "esbonio.sphinx.confDir": "/home/fall/Projects/INPROGRESS/RIssmed/docs",
     "python.formatting.provider": "black",
     "python.formatting.blackArgs": ["--line-length", "119"],
 }

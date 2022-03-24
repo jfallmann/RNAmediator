@@ -1,9 +1,10 @@
-============
 Installation
 ============
 
-For fast resolve of conda package dependencies, we recommend `mamba`_  as drop in replacement of ``conda``,
-simply install mamba into your base conda environment and run commands replacing ``conda`` with ``mamba``.
+For fast resolve of conda package dependencies,
+we recommend `mamba`_  as drop in replacement of ``conda``,
+simply install mamba into your base conda environment
+and run commands replacing ``conda`` with ``mamba``.
 
 .. _mamba: https://github.com/TheSnakePit/mamba
 
@@ -57,4 +58,5 @@ SGE_.
 
 .. _Slurm: https://slurm.schedmd.com/documentation.html
 .. _SGE: https://docs.oracle.com/cd/E19957-01/820-0699/chp1-1/index.html
+
 This manual will only show examples on local and SLURM usage.
