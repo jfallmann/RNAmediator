@@ -8,10 +8,7 @@ Using Genes
 **********************
 
 ConstraintPLFold.py can be used for folding a list of sequences with constraints.
-Therefore it is recommended to use one fasta file containing sequences and another
-bed file containing the constraints. Matching between sequences and constraints is
-done via the gene identifier (here **ENSG00000270742**) which has to be the same in the bed file and the fasta
-and should look as follows:
+Therefore it is recommended to use one fasta file containing sequences and a corresponding bed file containing the constraints. Matching between sequences and constraints is done via the gene identifier (here **ENSG00000270742**) which has to be the same in the bed file (Column 4)and the fasta header and should look as follows:
 
 **FASTA** ::
 
@@ -23,19 +20,20 @@ and should look as follows:
     chr1	26	35	ENSG00000270742 .	+
 
 
-The command line call for this simple scenario is supposed to look like this:
+A FASTA File with header following this format can easily be generated using `getfasta` from the `BedTools`_ suite on a gene coordinates BED file with options `-name` and `-full-header` enabled.
+
+.. _BedTools: https://bedtools.readthedocs.io/en/latest/content/tools/getfasta.html
+
+The command line call for this simple scenario is supposed to look like this, where `window`, `span` and `ulim` are options for RNAplfold_ and will be used to collect and summarize results in the the `RIssmed_collect_plfold` step:
+
+.. _RNAplfold: https://www.tbi.univie.ac.at/RNA/RNAplfold.1.html
 
 .. code-block:: shell
 
-    RIssmed_plfold -s FASTA -x BedFile
+    RIssmed_plfold -s FASTA -x BedFile --window SizeOfWindowToFold --span BasepairSpan -u ulim
 
 
-by default the results are printed to stdout. The first output is the
-folded sequence without constraints. This output can be redirected to a file
-using ``--unconstraint nameforunconstraint``. The following outputs are the matrices for
-an unpaired constraint and for an paired constraint. These matrices can also be
-redirected to an file using ``--paired nameforpaired`` or ``--unpaired nameforunpaired``.
-The folder to which these files should be saved is determined via the ``--outdir`` flag.
+By default all results are printed to stdout. The first output is the folded sequence without constraints. This output can be redirected to a file using ``--unconstraint nameforunconstraint``. The following outputs are the matrices for an unpaired constraint and for an paired constraint. These matrices can also be redirected to a file using ``--paired nameforpaired`` or ``--unpaired nameforunpaired``. The folder to which these files should be saved is determined via the ``--outdir`` flag.
 
 Constraints can also be passed using the ``--ono`` (one on one) flag like this:
 
@@ -43,11 +41,9 @@ Constraints can also be passed using the ``--ono`` (one on one) flag like this:
 
     python ConstraintPLFold.py -s FASTA -x ono,BedFile
 
-Matching between constraints and sequences consequently ignores the gene identifiers
-and instead the first sequence will use the first line in the bed file as a constraint.
+Matching between constraints and sequences consequently ignores the gene identifiers and instead the first sequence will use the first line in the bed file as a constraint.
 
-If your constraints are specified using genomic coordinates, it is essential to
-provide another bed file with genomic coordinates.
+If your constraints are specified using genomic coordinates, it is essential to provide another bed file with genomic coordinates.
 This file can be passed using the ``--genes GeneBedFile`` and should look like:
 
 **GeneBED** ::
@@ -55,50 +51,68 @@ This file can be passed using the ``--genes GeneBedFile`` and should look like:
     chr1  61124732  61125202  ENSG00000270742 .	+
 
 
-Using Transcripts
-**********************
+Folding without constraint
+**************************
 
-If you plan to use transcripts, missing exons, instead of genes it is highly recommended
-changing the header of your fasta sequences as well as the constraints in the bed file as follows:
+In case you simply want to fold sequences without applying any constraints you can use the `scanning` mode of `RIssmed_plfold` which will only create ``--unconstraint nameforunconstraint`` ouput as follows:
+
+.. code-block:: shell
+
+    RIssmed_plfold -s FASTA -x scanning --window SizeOfWindowToFold --span BasepairSpan -u ulim
+
+
+Folding with sliding window constraint
+**************************************
+
+In case you want to fold sequences without specific constraint positions you can use the `sliding` mode of `RIssmed_plfold` (DEFAULT) which will generate a list of constraints covering every nucleotide of the input sequence and fold each independently. This will take long and produce large amounts of output, so make sure this is really what you want. It does, however, provide one with the opportunity to scan for regions with largest impact on structure along a given sequence, e.g. to identify potential miRNA or antagonist binding sites:
+
+.. code-block:: shell
+
+    RIssmed_plfold -s FASTA -x sliding --window SizeOfWindowToFold --span BasepairSpan -u ulim
+
+
+Using Transcripts or single gene features
+******************************************
+
+If you plan to use transcript isoforms instead of genes it is highly recommended to change the header of your fasta sequences as well as providing local instead of genomic coordinates for constraints in the bed file.
+
+If using single exon or intron sequences, make sure they have unique identifiers (e.g. ENST000000001.5_intron1, ENST000000001.5_intron2 etc.) in both files, using just the transcript ID is not enough to map constraints to the respective sequences in that case.
+
+ For transcripts this can look as follows:
 
 **FASTA** ::
 
     >ENST00000240304.5::ENST00000240304.5:0-5482(.)
-    GUCUUGUCGGCUCCUGUGUGUAGGAGGGAUUUCGGCCUGAGAGCGGGCCGAGGAGAUUGGCGACGGUGUCGCCCGUGUUUUCGUUGGCGGGUGCCUGGGCUGGUGGGAACAGCCGCCCGAAGGAAGCACCAUGAUUUCGGCCGCGCAGUUGUUGGAUGAGUUAAUGGGCCGGGACCGAAACCUAGCCCCGGACGAGAAGCGCAGCAACGUGCGGUGGGACCACGAGAGCGUUUGUAAAUAUUAUCUCUGUGGUUUUUGUCCUGCGGAAUUGUUCACAAAUACACGUUCUGAUCUUGGUCCGUGUGAAAAAAUUCAUGAUGAAAAUCUACGAAAACAGUAUGAGAAGAGCUCUCGUUUCAUGAAAGUUGGCUAUGAGAGAGAUUUUUUGCGAUACUUACAGAGCUUACUUGCAGAAGUAGAACGUAGGAUCAGACGAGGCCAUGCUCGUUUGGCAUUAUCUCAAAACCAGCAGUCUUCUGGGGCCGCUGGCCCAACAGGCAAAAAUGAAGAAAAAAUUCAGGUUCUAACAGACAAAAUUGAUGUACUUCUGCAACAGAUUGAAGAAUUAGGGUCUGAAGGAAAAGUAGAAGAAGCCCAGGGGAUGAUGAAAUUAGUUGAGCAAUUAAAAGAAGAGAGAGAACUGCUAAGGUCCACAACGUCGACAAUUGAAAGCUUUGCUGCACAAGAAAAACAAAUGGAAGUUUGUGAAGUAUGUGGAGCCUUUUUAAUAGUAGGAGAUGCCCAGUCCCGGGUAGAUGACCAUUUGAUGGGAAAACAACACAUGGGCUAUGCCAAAAUUAAAGCUACUGUAGAAGAAUUAAAAGAAAAGUUAAGGAAAAGAACCGAAGAACCUGAUCGUGAUGAGCGUCUAAAAAAGGAGAAGCAAGAAAGAGAAGAAAGAGAAAAAGAACGGGAGAGAGAAAGGGAAGAAAGAGAAAGGAAAAGACGAAGGGAAGAGGAAGAAAGAGAAAAAGAAAGGGCUCGUGACAGAGAAAGAAGAAAGAGAAGUCGUUCACGAAGUAGACACUCAAGCCGAACAUCAGACAGAAGAUGCAGCAGGUCUCGGGACCACAAAAGGUCACGAAGUAGAGAAAGAAGGCGGAGCAGAAGUAGAGAUCGACGAAGAAGCAGAAGCCAUGAUCGAUCAGAAAGAAAACACAGAUCUCGAAGUCGGGAUCGAAGAAGAUCAAAAAGCCGGGAUCGAAAGUCAUAUAAGCACAGGAGCAAAAGUCGGGACAGAGAACAAGAUAGAAAAUCCAAGGAGAAAGAAAAGAGGGGAUCUGAUGAUAAAAAAAGUAGUGUGAAGUCCGGUAGUCGAGAAAAGCAGAGUGAAGACACAAACACUGAAUCGAAGGAAAGUGAUACUAAGAAUGAGGUCAAUGGGACCAGUGAAGACAUUAAAUCUGAAGGUGACACUCAGUCCAAUUAAAACUGAUCUGAUAAGACCUCAGAUCAGACAGAGGACUACUGUUCGAAGAUUUUUGGAAGAAUACUGAGAACGGCAUAAAGUGAAGAUCGACAUUUAAAAAAUGAGGUGAAAGAAAGCUAUAGUGGCAUAGAAAAAGUAUAAAGCUCAGUUAGUUUUUUUAUUAUUAUUAUUAUUAAAAGUUAAUUCAGGACUGAUGUGACCUACCAGAUUUCAGAACAUGUGUUAAUAGUAUAUAUGCCACUGAAAACUUAGGUCCUGUAUCAUACUUUUUUCUUUAAGACUUUUUAAGAAAUAUUACUUAAACAUGUGGCUUGCUCAGUGUUUAAUUGCAAGUUUUCAAUCUUGGACUUUGAAAACAGGAUUAAACGUUAGUAUUCGUGUGAAUCAGACUAAGUGGGAUUUCAUUUUUACAACUCUGCUCUACUUAGCCUUUGGAUUUAGAAGUAAAAAUAAAGUAUCUCUGACUUUCUGUUACAAAGUUGAUUGUCUCUGUCAUUGAAAAGUUUUAGUAUUAAUCUUUUUCUAAUAAAGUUAUUGACUCUGAACUAGUCCCCUGUUUUAAAUACAAGAGUUACACUAUUACUAGAGGUGUUGGUGUACAGUUUUAUCUGAUUUGUUCUGUUUAAGACUAAUUUUUAUAGACUUUCUAAUGUUUUAAAUAAUGGUGCUUCAAUUUUAGGUGGUUAUGAAUAAAUUUGAAUUUUGCUUUUAAUAGCAAAGAUGUGCAGUGAACUAGAAUAUAUUUUUACAUCCCUGAGAGAUUCAUUUAGUAGAAAAUUCCAAGUAUCCUGACAAGCACUCUUUAGCUGGCUAGCUAUGGGAUGAUGUAGAAAAGCAUUCAAGAGCUAGUUUUUGUUAAGUCCUGUAUCAAGAUUAACCCAGCUGUGUCAGUUUAUAAAUGUAUUUGUGUAUAGGGUGUGUAGUAUAUAUGGCAAGGGUUUUUUCCCCCCACUUAAGUGAUUAUUUUUGUGUCACAUCUAGGAAAACCGGCAGCAUGUUUCUAUCUAUAGCCAGCUUCUUCGACUGUAUAAAAGUAUUCUCUCCAGCUACGUAUAUACACACAUACAUAUAUAUCAUAGCAAUUCCUUGUGGUUUAUAACUUGCAAAUACUGCUAUCAGUUUAUAGGUAAAGAAACAGUGUGUUAAAUGACUUAUCCAGGGAGGGUCCUGUGGCUUCAUGUUUAUGGAGUUGCUAGGUCUCUGCCUCAUGGUCCAGUGCCUGUUAAGCCACUGUGUUCAUUCUAAUAGGCAUAAUGAAUUGUUAAAGAAUUUACUAAAAUCUCUUCCACCAAACUUUGAAAAAUAAUGAAGCCGCCCCCACUUUAGAGGCUCUGUAUGAAAAAAUGCUGUGGAGACAGAGCCCUCCUGGCUCCCUAGCUGAUCCUGGAGAUGCAGCAAUAGAUGAAUGGGUUAUCUCUGAAUUUGUAAGAGAUAAUUCACAUGAGGAUUAAGAUAAAAUGGGAAGUAAAAUCUAACAAACACAAAGAUAGCUCCCAGGCACUGCUUUGUGUAGUUUGACAGCAUUGUGGUUGUAGCAGCAAAGGACUUAAAGUGAUAGUUUUUAAACCAUAUUCUGUCCCUAAGUAAUAAAAAAUCUAGGAAGUUACUAAAAUACCAGAUUUGUUCUGCUCUGCCUCAUCUAGAAUCAACGUCUAACUAACUUAAAUGAAGUAUAAUAAAUGAGUUCAUAUGAAAAGGCUUCCUCUAUGGACACUUAGAUAUAUUGUAACUAUUGAAGUUACCUGGGAUGUGGGGGUGGUGGGAGGAGGACCUGCCUCCCCAGGACAUCUAUGACUAAGGCCUGGCUUUAGUUAUGGAGAGAGACGUAGAAGUUGAAUUUUACACCCAAAAUUGAUGUGACUGAAGAGGAACUGAUUGUUGCUAACCAGCUCACAAGAAUCCAGUAUUGAGACCAGUUCACUAGAAGAAACAAACAUUUCUGCCAUGCAGACCAAAAAGUUAUUAGUUGGUGAAUAUGUAUUUUCUCUUUGGAAGGUCUUUAAGGGGAGCAAACCAGUUUUAAUCAAUCAGAUUGCUUGGUAAGUUUGGAAUCUGCAAUCAGUUGGUCUUAAAAAAAAAAAAACUUUAUUUUGGAAAUUUAAAGACAUACACAAAAGAGGAACAAUAUAAUUAACCUCUGUUAACUCAUCACCAACAAGACUCAUGACCACUUUUAUACUUCAUGAGUGAUUGUAUUUGUAUCCACUGUUUUCUAUUAUUUUCGAGCAAGUCUCAGACACACCAUUUAAUCUGUAAAUAAUUCAGCAUGUAUCUCUAAAAGACAAAGACCUCUUAAAUAACAGUUCAUUAGUAUAAAACAAAUUGGGUAAACUUUUGUUGGUCAUCAAACUAUAUUAGCACUGGUCCAAUAGUUUAAUUUUCAUUGAGCCUUUCAAGAGGACCGACCAGUCUGCUGCUCAAGACAUCCUCUCCUCUGGAAUGUAGAGAUAAUACAUAUCAUGCUCCUUUUUGUUAAAACGUUUUUUUUUCCCCUUCAAACACAGUCCAUUCAUUUUUCAGUUUGGGUUGAAACAUCCUUUUCUUGAUCUUGAGCUUAUAAUAACCUAGUCAUAUUGCUCAGCUCAGAUAUUUUUACUCCCUCUCCUUAGGCAUUCUGGUUCCUUAAAUAUAGUUAGUGUCACAGAGGAUAAAUAACCAACCUUAUUUCUAAGGUCUGAGAACACUUGGACCACAUAUUGGUUGAGCUCAGCCACCUUCUGAUUAAAGUUUUCAGACUUGUAAGAACUGAAAAUUUUUAUGGUGGAAGUUCUCUGAGCCCUCAUCCAUUCUGUUUUUAAAAAUGCAUUGCAGAUGGGCUAUGUGAAUAUGUUUUUAAACAUCUGAUAUGUGCAUGAAACAAAAAACACUUGAAGUUAUUAUGUAUACAAUUCUGUGGGAUGGGACUUCAUGCAGGAUUGGUUUUCAAGUUUGAUUUCCUGAGGGAUUUUUUAGUUGUUUGUGAAAGAACCCCAGGUCUACUUUUGAAAUUUUGUAUUAUAAUUGUAAUGUUGCCCAUGGUUAAAAAAAAAAAGUGUUCAGUGAUCUAUGUCUCCUACUACUCCUAUUUCUCUGUUUUUCCUCUGCAGGAGCUUGCUGCUGUUAACAGUUAUUCUUCCAAGUUGUUUUCUUUGUGGGGAGAUGGGAGGUGGGAGGAAAUAUAAACAUAUAUGUAUAGAUCUUUCAAAAUAUAUGACGGUAUACCCGUAUGUUCUGAGUCUUGCUGUUUUUACCUGGUAAUAUUUAGAAACAUUUAUUUUGAGAUAAAGGAGAGCACUUUUAAGUUGAACCUGUAGUUUUAAAAAGUACAUUUCAAGUAAGCCAAAGCAGAGAAGUAAAUGUAUUUUUCAUUGUUGUAUCAGAAUUUUGAAUUUACUAUUUUAAAAAUUCAAGAGUUUUGUAGCUGAUCUAUUUCUUCCCCUCAGCCAUCCCAAAUAGGUCAUUUGUCAACAGAUUUAAGAAUGUUUAGAAACAACAACUUUGGGAAACGGGAAACAAUUUGGUAUAAGUGGGUGUGCCAUAACCUCUCUCGUAGCCAUUCAUUCCCGGAUACAUACCCUAGAGAAACUCUUACACAUGCGUACCAGGGGAUGGAUUUAAGCAUUUGUGUGUAAUAGGAAGAAAAGAAGAAAAAACCCGGGAAGAUCCCAAGUGUCCACCAACAGUGUGUUGGAUAAAUACUGUGGUAUAUUCCAACAGUGGAAUUCCACAGAAGUGAAACUGAACUGCAGCUGUGUAUGUGAACAUGGACAAAACUCAACAAUAGAAGGAUCAAAAAAAGCAAGUCACAGAAGAAUACAUCACUAUGGUUCCAUUUCAAUGAAAGUCAAAAACAGGCUGUCAAAUACAUGAUAAAAGGAAACGAUUAAGACAAAAUUUAAUGUUAGCCGUUUUGAUGGAGGGAGAGGUGAUCAUGAGGGCACAGGGGUCUUCAGAAGAACUGGUGAGGGUCUGUUUCUGAAGCCUGUGGGCAUUUCCUUUUUUAAUCUGUAUGUUUAUGUGCUUUUGUAUGUAUGAUAUUUCUUAAUAAAAUUUAAAAAGAAGAAUGGGAAAAAA
+    GUCUUGUCGGCUCCUGUGUGUAGGAGGGAUUUCGGCCUGAGAGCGGG...
 
 **BED** ::
 
     ENST00000240304.5	1178	1183	ENST00000240304.5	.	.
 
-In this case you should use GeneBed files (``--genes``) which look quite similar to
-the Constraints File but have as start position 0 and end position the length of
-the sequence. It is not important to use this file in the Rissmed_plfold call.
-However, it is essential for the RIssmed_collect_plfold_ step.
+In this case you should *ALWAYS* provide a 'local' GeneBed file (``--genes``) which looks quite similar to the Constraints File but genes start at position 0 and end at the length of the sequence. It is not important to use this file in the Rissmed_plfold call.
+
+However, it is essential for the `RIssmed_collect_plfold` step to generate valid genomic coordinate BED files as output.
 
 **GeneBED** ::
 
     ENST00000240304.5	0	5482	ENST00000240304.5	.	.
 
 
-
 RIssmed_collect_plfold
 ######################
 
-The methods mentioned in RIssmed_plfold_ example will
-produce output that can be processed by CollectConsResults. This will generate BED
-files storing the probability of being unpaired for overlapping spans of nucleotides around the
-constraint. Therefore simply call:
+The methods mentioned in the `RIssmed_plfold` example will
+produce output that can be processed by `CollectConsResults.py`. This will generate BED files storing the probability of being unpaired for spans of nucleotides around (not overlapping) the constraint. Make sure to provide a comma separated pattern for window and span as used in the `RIssmed_plfold` call (here SizeOfWindowToFold,BasepairSpan) and ulim either similar or lower than in the `RIssmed_plfold` call. Therefore simply call:
 
 .. code-block::
 
-    Rissmed_collect_plfold -d path/to/ConstraintPLFold/output -u 5 -g GeneBed --outdir path/to/outdir --unconstraint name
+    Rissmed_collect_plfold -d path/to/ConstraintPLFold/output -g GeneBed --outdir path/to/outdir --pattern SizeOfWindowToFold,BasepairSpan -u ulim
 
 .. note::
 
-    The collection step will only work if you provide coordinates of the gene or transcript via a **GeneBED**
+    The collection step will only work if you provide coordinates of the gene or transcript via a **GeneBED** file.
 
-Hereby it is essential that ``--unconstraint`` matches the unconstraint name provided at the ConstraintPLFold call.
-Further the ``-u`` parameter defines the span sizes that are used for the output BED files which might
+The ``-u`` parameter defines the span sizes that are used for the output BED files which might
 for example look like this for ``-u 5``:
 
 ::
@@ -113,22 +127,47 @@ for example look like this for ``-u 5``:
 
 .. note::
 
-    If you used different plfold parameters (-w, -l) in the RIssmed_plfold call, you have to specify a pattern using ``-p w,l``
+    If you used different plfold parameters (-w, -l) in the RIssmed_plfold call, you have to adapt the pattern accordingly
 
-
-A detailed description of that files columns can be found in the Output_ section.
 
 Output
-######
+#######
 
-WARNING Output missing
+`RIssmed_plfold`
+****************
+
+Per default, `RIssmed_plfold` prints to STDOUT, or dumps `numpy`_ arrays to disk following the naming provided by the user with the ``--unconstraint nameforunconstraint``, ``--paired nameforpaired`` and ``--unpaired nameforunpaired`` options. These `numpy`_ arrays are then used as input for `RIssmed_collect_plfold`.
+If the user prefers to also generate human readable files similar to `RNAplfold` output, the option `--save 1` has to be set. This will generate '.gz' files providing the same output as a commandline call to `RNAplfold`.
+
+.. _numpy: https://numpy.org/doc/stable/reference/generated/numpy.array.html
+
+The standard user will not want to work on this output directly but generate genomic coordinate BED files, summarizing the effect of ligand binding as will be explained next.
+
+`RIssmed_collect_plfold`
+************************
+
+The genomic coordinate BED file generated by `RIssmed_collect_plfold` contains the following columns:
+
+::
+
+    Chr    Start   End     Constraint      Accessibility_difference        Strand  Distance_to_constraint  Accessibility_no_constraint     Accessibility_constraint        Energy_Difference       Kd_change       Zscore  Accessibility_constraint_pos
+
+.. note::
+
+    The first 6 fields follow standard BED format, with the Difference in Accessibility in Column 5 and the constraint as well as its local and genomic coordinates as Identifier in Column4.
+    `Distance_to_constraint` shows the distance between the region that changed and the applied constraint
+    `Accessibility_no_constraint` is the accessibility of this region before the constraint was applied
+    `Accessibility_constraint` is the accessibility of this region after the constraint was applied
+    `Energy_Difference` is the change in 'Free Energy' of the structure after applying the constraint
+    `Kd_change` is the influence on the Kd of a potential binding partner after the constraint has been applied
+    `Zscore` is the Zscore of accessibility changes in this position after the constraint has been applied in comparison to all changes in all positions
+    `Accessibility_constraint_pos` shows the accessibility at the position that was constraint before the constraint was applied
+
 
 Further steps
 ##############
 
-The BED file created by CollectConsResults can be used to intersect with other known binding sites on the
-same gene/transcript. Thus, it is possible to see whether the changes in RNA structure upon binding of one ligand might
-affect the structure of binding site of other ligands.
+The BED file created by CollectConsResults can be used to intersect with other known binding sites on the same gene/transcript. Thus, it is possible to see whether the changes in RNA structure upon binding of one ligand might affect the structure of binding site of other ligands.
 
 
 RNAtweaks
@@ -152,14 +191,12 @@ uses the ViennaRNA API
     api_result = RNAtweaks.api_rnaplfold(sequence, window, span, region=region, temperature=37.0, constraint=[constraint])
     cmd_result = RNAtweaks.cmd_rnaplfold(sequence, window, span, region=region, temperature=37.0, constraint=[constraint])
 
-For now only paired and unpaired constraints are supported. The constraints must be a list of
-Tuples in the format ``("paired"/"unpaired", start, end)`` in contrast to the ViennaRNA constraints these are zero based.
+For now only paired and unpaired constraints are supported. The constraints must be a list of Tuples in the format ``("paired"/"unpaired", start, end)`` in contrast to the ViennaRNA constraints these are zero based.
 Both calls will produce an identical PLFoldOutput object that reflects the ViennaRNA `_lunp` file.
 
 PLFoldOutput
 **************
-Object that reflects the ViennaRNA `_lunp` file. The objects supports various functions to get different representations
-of the file. The recommended usage is to produce an numpy array as follows:
+Object that reflects the ViennaRNA `_lunp` file. The objects supports various functions to get different representations of the file. The recommended usage is to produce an numpy array as follows:
 
 .. code-block:: python
 
@@ -172,8 +209,7 @@ However, it is also possible to get the text representation of the file, which i
 
     array = api_result.get_text(nan="NA", truncated=False)
 
-Hereby nan replaced the non float values with ``"NA"`` and the truncated flag is used to either keep or drop the header
-lines beginning with "#".
+Hereby nan replaced the non float values with ``"NA"`` and the truncated flag is used to either keep or drop the header lines beginning with "#".
 
 
 

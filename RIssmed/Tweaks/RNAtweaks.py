@@ -14,7 +14,6 @@ import RNA
 import numpy as np
 
 from RIssmed.Tweaks.Collection import merge_dicts
-from RIssmed.Tweaks.FileProcessor import SCRIPTN
 
 ####################
 # ViennaRNA helper
