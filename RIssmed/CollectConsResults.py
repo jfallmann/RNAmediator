@@ -461,7 +461,7 @@ def judge_diff(
                 )
             )
 
-            accprecons = noc[ce]
+            accprecons = np.nanmean(noc[cs:ce])
             for pos in range(len(noc)):
                 if pos not in range(cs - padding + 1 - ulim, ce + padding + 1 + ulim):
                     if strand != "-":
