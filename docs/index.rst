@@ -11,10 +11,10 @@ The RNA Interaction via secondary structure mediation (RIssmed) tool suite analy
    :maxdepth: 2
    :caption: Contents:
 
-   getit
-   tutorial
-   modules
-   contribute
+   source/getit
+   source/tutorial
+   source/modules
+   source/contribute
 
 Indices and tables
 ==================
