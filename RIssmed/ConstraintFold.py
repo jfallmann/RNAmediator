@@ -806,7 +806,12 @@ def checkexisting(
         if os.path.exists(
             os.path.join(
                 temp_outdir,
-                "_".join([goi, chrom, strand, fname, const, window, span, temp]) + ".gz",
+                "_".join([goi, chrom, strand, unpaired, cons, window, span, temp]) + ".gz",
+            )
+        ) and os.path.exists(
+            os.path.join(
+                temp_outdir,
+                "_".join([goi, chrom, strand, paired, cons, window, span, temp]) + ".gz",
             )
         ):
             return True
