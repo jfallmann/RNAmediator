@@ -137,6 +137,13 @@ def parseargs_plcons():
         help="Length of region to constrain for sliding window",
     )
     parser.add_argument(
+        "-t",
+        "--temperature",
+        type=int,
+        default=37,
+        help="Temperature for structure prediction",
+    )
+    parser.add_argument(
         "--save",
         type=int,
         default=0,
@@ -223,6 +230,13 @@ def parseargs_collectpl():
         type=str,
         default="raw",
         help="same name as unconstraint provided at ConstraintPLFold -r",
+    )
+    parser.add_argument(
+        "-t",
+        "--temperature",
+        type=int,
+        default=37,
+        help="Temperature for structure prediction",
     )
     parser.add_argument("-o", "--outdir", type=str, default="", help="Directory to write to")
     parser.add_argument("-d", "--dir", type=str, default="", help="Directory to read from")

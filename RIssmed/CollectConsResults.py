@@ -114,6 +114,7 @@ def screen_genes(
     cutoff,
     border,
     ulim,
+    temperature,
     procs,
     unconstraint,
     outdir,
@@ -157,21 +158,21 @@ def screen_genes(
                 os.path.join(
                     dir,
                     goi,
-                    goi + f"*_{unconstraint}_*" + str(window) + "_" + str(span) + ".npy",
+                    goi + f"*_{unconstraint}_*{str(window)}_{str(span)}_{str(temperature)}.npy",
                 )
             )
             unpaired = os.path.abspath(
                 os.path.join(
                     dir,
                     goi,
-                    "StruCons_" + goi + "*_diffnu_*" + str(window) + "_" + str(span) + ".npy",
+                    f"StruCons_{goi}*_diffnu_*{str(window)}_{str(span)}_{str(temperature)}.npy",
                 )
             )
             paired = os.path.abspath(
                 os.path.join(
                     dir,
                     goi,
-                    "StruCons_" + goi + "*_diffnp_*" + str(window) + "_" + str(span) + ".npy",
+                    f"StruCons_{goi}*_diffnp_*{str(window)}_{str(span)}_{str(temperature)}.npy",
                 )
             )
 
@@ -201,6 +202,8 @@ def screen_genes(
                     + str(window)
                     + " and span "
                     + str(span)
+                    + " and temperature "
+                    + str(temperature)
                     + " Will skip"
                 )
                 continue
@@ -297,7 +300,7 @@ def judge_diff(
         if queue and level:
             configurer(queue, level)
         log.debug(f"{logid} RAW; {str(os.path.basename(raw)).replace(goi + '_', '')}")
-        chrom, strand, cons, reg, f, window, span = map(
+        chrom, strand, cons, reg, f, window, span, temperature = map(
             str, str(os.path.basename(raw)).replace(goi + "_", "").split(sep="_")
         )
         span = span.split(sep=".")[0]
@@ -312,7 +315,7 @@ def judge_diff(
                 "One of "
                 + str([cs, ce, ws, we])
                 + " lower than 0! this should not happen for "
-                + ",".join([goi, chrom, strand, cons, reg, f, window, span])
+                + ",".join([goi, chrom, strand, cons, reg, f, window, span, temperature])
             )
 
         if gstrand != "-":
@@ -339,6 +342,7 @@ def judge_diff(
                         f,
                         window,
                         span,
+                        temperature,
                         gs,
                         ge,
                         cs,
@@ -625,6 +629,7 @@ def main(args=None):
             args.cutoff,
             args.border,
             args.ulimit,
+            args.temperature,
             args.procs,
             args.unconstraint,
             args.outdir,

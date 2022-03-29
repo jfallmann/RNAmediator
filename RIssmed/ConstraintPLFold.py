@@ -111,6 +111,7 @@ def pl_fold(
     save,
     procs,
     outdir,
+    temperature,
     run_settings: Dict[str, SequenceSettings],
     pattern=None,
     queue=None,
@@ -199,6 +200,7 @@ def pl_fold(
                         region,
                         window,
                         span,
+                        temperature,
                         outdir,
                     ):
                         log.warning(logid + str(cons) + " Exists for " + str(seq_record.id) + "! Skipping!")
@@ -213,6 +215,7 @@ def pl_fold(
                             window,
                             span,
                             region,
+                            temperature,
                             multi,
                             save,
                             outdir,
@@ -266,6 +269,7 @@ def pl_fold(
                             region,
                             window,
                             span,
+                            temperature,
                             outdir,
                         ):
                             log.warning(logid + str(cons) + " Exists for " + str(seq_record.id) + "! Skipping!")
@@ -285,6 +289,7 @@ def pl_fold(
                                 window,
                                 span,
                                 region,
+                                temperature,
                                 multi,
                                 paired,
                                 unpaired,
@@ -338,6 +343,7 @@ def pl_fold(
                             region,
                             window,
                             span,
+                            temperature,
                             outdir,
                         ):
                             log.warning(logid + str(cons) + " Exists for " + str(seq_record.id) + "! Skipping!")
@@ -352,6 +358,7 @@ def pl_fold(
                                 window,
                                 span,
                                 region,
+                                temperature,
                                 multi,
                                 paired,
                                 unpaired,
@@ -386,6 +393,7 @@ def fold_unconstraint(
     region,
     window,
     span,
+    temperature,
     unconstraint,
     save,
     outdir,
@@ -403,8 +411,10 @@ def fold_unconstraint(
         if queue and level:
             configurer(queue, level)
 
-        log.debug(f"{SCRIPTNAME} Seqlength: {len(seq)}, Window: {window}, Span: {span}, Region: {region}")
-        plfold_output = api_rnaplfold(seq, window, span, region)
+        log.debug(
+            f"{SCRIPTNAME} Seqlength: {len(seq)}, Window: {window}, Span: {span}, Region: {region}, Temperature: {temperature}"
+        )
+        plfold_output = api_rnaplfold(seq, window, span, region, temperature)
 
         if locws is not None and locwe is not None:  # If we only need a subset of the folded sequence
             log.debug(logid + "Cutting RIO from fold with boundaries " + str(locws) + " and " + str(locwe))
@@ -420,6 +430,7 @@ def fold_unconstraint(
             int(region),
             str(window),
             str(span),
+            str(temperature),
             outdir,
             rawentry,
         )
@@ -443,6 +454,7 @@ def scan_seq(
     window,
     span,
     region,
+    temperature,
     multi,
     save,
     outdir,
@@ -484,7 +496,7 @@ def scan_seq(
             log.warning(logid + f"Constraint out of sequence bounds! skipping! {len(seq)}, {str(start)} - {str(end)}")
             return
 
-        if check_raw_existing(sid, unconstraint, cons, region, window, span, outdir):
+        if check_raw_existing(sid, unconstraint, cons, region, window, span, temperature, outdir):
             log.warning(logid + str(cons) + " Existst for " + str(sid) + "! Skipping!")
             return
 
@@ -518,7 +530,9 @@ def scan_seq(
         locws = locws - tostart
         locwe = locwe - tostart
 
-        plfold_unconstraint = fold_unconstraint(str(seq), sid, region, window, span, unconstraint, save, outdir)
+        plfold_unconstraint = fold_unconstraint(
+            str(seq), sid, region, window, span, temperature, unconstraint, save, outdir
+        )
 
         return 1
 
@@ -540,6 +554,7 @@ def constrain_seq(
     window,
     span,
     region,
+    temperature,
     multi,
     paired,
     unpaired,
@@ -587,7 +602,7 @@ def constrain_seq(
             )
             return
 
-        if checkexisting(sid, paired, unpaired, cons, region, window, span, outdir):
+        if checkexisting(sid, paired, unpaired, cons, region, window, span, temperature, outdir):
             log.warning(logid + str(cons) + " Existst for " + str(sid) + "! Skipping!")
             return
 
@@ -620,6 +635,7 @@ def constrain_seq(
             window,
             span,
             region,
+            temperature,
             constraint=[("paired", locstart, locend + 1)],
         )
         plfold_unpaired = api_rnaplfold(
@@ -627,6 +643,7 @@ def constrain_seq(
             window,
             span,
             region,
+            temperature,
             constraint=[("unpaired", locstart, locend + 1)],
         )
         # Cut sequence of interest from data, we no longer need the window extension as no effect outside of window
@@ -649,6 +666,7 @@ def constrain_seq(
             region,
             window,
             span,
+            temperature,
             unconstraint,
             save,
             outdir,
@@ -687,6 +705,7 @@ def constrain_seq(
             diff_np,
             str(window),
             str(span),
+            str(temperature)
             outdir,
         )
 
@@ -710,6 +729,7 @@ def constrain_seq_paired(
     window,
     span,
     region,
+    temperature,
     multi,
     paired,
     unpaired,
@@ -758,7 +778,7 @@ def constrain_seq_paired(
             )
             return
 
-        if checkexisting(sid, paired, unpaired, cons, region, window, span, outdir):
+        if checkexisting(sid, paired, unpaired, cons, region, window, span, temperature, outdir):
             log.warning(logid + str(cons) + " Existst for " + str(sid) + "! Skipping!")
             return
 
@@ -796,6 +816,7 @@ def constrain_seq_paired(
             window,
             span,
             region,
+            temperature,
             constraint=[
                 ("paired", flocstart, flocend + 1),
                 ("paired", locstart, locend + 1),
@@ -806,6 +827,7 @@ def constrain_seq_paired(
             window,
             span,
             region,
+            temperature,
             constraint=[
                 ("unpaired", flocstart, flocend + 1),
                 ("unpaired", locstart, locend + 1),
@@ -825,6 +847,7 @@ def constrain_seq_paired(
             region,
             window,
             span,
+            temperature,
             unconstraint,
             save,
             outdir,
@@ -859,6 +882,7 @@ def constrain_seq_paired(
             diff_np,
             str(window),
             str(span),
+            str(temperature),
             outdir,
         )
 
@@ -923,6 +947,7 @@ def write_unconstraint(
     region,
     window,
     span,
+    temperature,
     outdir,
     rawentry=None,
 ):
@@ -989,6 +1014,7 @@ def write_constraint(
     diff_np,
     window,
     span,
+    temperature,
     outdir,
 ):
 
@@ -1000,7 +1026,7 @@ def write_constraint(
         if paired != "STDOUT":
             if not os.path.exists(temp_outdir):
                 os.makedirs(temp_outdir)
-            filename = f"StruCons_{goi}_{chrom}_{strand}_{constrain}_{paired}_{window}_{span}.gz"
+            filename = f"StruCons_{goi}_{chrom}_{strand}_{constrain}_{paired}_{window}_{span}_{temperature}.gz"
             filepath = os.path.join(temp_outdir, filename)
             if save > 0 and not os.path.exists(filepath):
                 with gzip.open(filepath, "wb") as o:
@@ -1015,7 +1041,7 @@ def write_constraint(
         if unpaired != "STDOUT":
             if not os.path.exists(temp_outdir):
                 os.makedirs(temp_outdir)
-            filename = f"StruCons_{goi}_{chrom}_{strand}_{constrain}_{unpaired}_{window}_{span}.gz"
+            filename = f"StruCons_{goi}_{chrom}_{strand}_{constrain}_{unpaired}_{window}_{span}_{temperature}.gz"
             filepath = os.path.join(temp_outdir, filename)
             if save > 0 and not os.path.exists(filepath):
                 with gzip.open(filepath, "wb") as o:
@@ -1031,7 +1057,7 @@ def write_constraint(
             if unpaired != "STDOUT":
                 if not os.path.exists(temp_outdir):
                     os.makedirs(temp_outdir)
-                filename = f"StruCons_{goi}_{chrom}_{strand}_{constrain}_diffnu_{window}_{span}.npy"
+                filename = f"StruCons_{goi}_{chrom}_{strand}_{constrain}_diffnu_{window}_{span}_{temperature}.npy"
                 filepath = os.path.join(temp_outdir, filename)
                 if not os.path.exists(filepath):
                     printdiff(diff_nu, filepath)
@@ -1042,7 +1068,7 @@ def write_constraint(
             if unpaired != "STDOUT":
                 if not os.path.exists(temp_outdir):
                     os.makedirs(temp_outdir)
-                filename = f"StruCons_{goi}_{chrom}_{strand}_{constrain}_diffnp_{window}_{span}.npy"
+                filename = f"StruCons_{goi}_{chrom}_{strand}_{constrain}_diffnp_{window}_{span}_{temperature}.npy"
                 filepath = os.path.join(temp_outdir, filename)
                 if not os.path.exists(filepath):
                     printdiff(diff_np, filepath)
@@ -1086,7 +1112,7 @@ def write_constraint(
 #     return 1
 
 
-def checkexisting(sid, paired, unpaired, cons, region, window, span, outdir):
+def checkexisting(sid, paired, unpaired, cons, region, window, span, temperature, outdir):
 
     logid = SCRIPTNAME + ".checkexisting: "
     try:
@@ -1110,6 +1136,8 @@ def checkexisting(sid, paired, unpaired, cons, region, window, span, outdir):
                 + str(window)
                 + "_"
                 + str(span)
+                + "_"
+                + str(temperature)
                 + ".gz",
             )
         ) and os.path.exists(
@@ -1129,6 +1157,8 @@ def checkexisting(sid, paired, unpaired, cons, region, window, span, outdir):
                 + str(window)
                 + "_"
                 + str(span)
+                + "_"
+                + str(temperature)
                 + ".gz",
             )
         ):
@@ -1145,7 +1175,7 @@ def checkexisting(sid, paired, unpaired, cons, region, window, span, outdir):
         log.error(logid + "".join(tbe.format()))
 
 
-def check_raw_existing(sid, unconstraint, cons, region, window, span, outdir, rawentry=None):
+def check_raw_existing(sid, unconstraint, cons, region, window, span, temperature, outdir, rawentry=None):
 
     logid = SCRIPTNAME + ".check_raw_existing: "
     try:
@@ -1156,11 +1186,11 @@ def check_raw_existing(sid, unconstraint, cons, region, window, span, outdir, ra
         except IndexError:
             gr = "na"
         if rawentry:
-            filename = f"{goi}_{chrom}_{strand}_{rawentry}_{unconstraint}_{window}_{span}"
+            filename = f"{goi}_{chrom}_{strand}_{rawentry}_{unconstraint}_{window}_{span}_{temperature}"
             gz_filepath = os.path.join(temp_outdir, f"{filename}.gz")
             npy_filepath = os.path.join(temp_outdir, f"{filename}.npy")
         else:
-            filename = f"{goi}_{chrom}_{strand}_{gr}_{unconstraint}_{window}_{span}"
+            filename = f"{goi}_{chrom}_{strand}_{gr}_{unconstraint}_{window}_{span}_{temperature}"
             gz_filepath = os.path.join(temp_outdir, f"{filename}.gz")
             npy_filepath = os.path.join(temp_outdir, f"{filename}.npy")
 
@@ -1213,6 +1243,7 @@ def main(args=None):
             args.paired,
             args.save,
             args.procs,
+            args.temperature,
             outdir,
             run_settings,
             queue=queue,
