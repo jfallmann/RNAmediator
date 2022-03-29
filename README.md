@@ -148,7 +148,7 @@ GUCUUGUCGGCUCCUGUGUGUAGGAGGGAUUUCGGCCUGAGAGCGGGCCGAGGAGAUUGGCGACGGUGUCGCCCGUGUUU
 ```
 ##### Bed
 ```
-ENST00000240304.5	0	5482	ENST00000240304.5	.	.
+ENST00000240304.5	1178	1183	ENST00000240304.5	.	.
 ```
 In this case you should use GeneBed files (`--genes`) which look quite similar to 
 the Constraints File but have as start position 0 and end position the length of 
@@ -156,7 +156,7 @@ the sequence
 
 ##### GeneBed
 ```
-ENST00000240304.5	1178	1183	ENST00000240304.5	.	.
+ENST00000240304.5	0	5482	ENST00000240304.5	.	.
 ```
 
 ## CollectConsResults 
