@@ -20,6 +20,7 @@ dependencies:
     - sphinx_rtd_theme
     - pytest-sphinx
     - docutils
+    - doc8
     - autodoc
     - mathjax
     - recommonmark

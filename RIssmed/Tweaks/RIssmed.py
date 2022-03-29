@@ -1,4 +1,4 @@
-from __future__ import annotations  # It will become the default in Python 3.10.
+from __future__ import annotations
 from typing import Iterable, Tuple, Union, Dict, List
 from dataclasses import dataclass
 import logging

@@ -1,5 +1,4 @@
 from __future__ import annotations
-
 import gzip
 import logging
 import math
@@ -11,23 +10,10 @@ from collections import defaultdict
 from tempfile import NamedTemporaryFile, TemporaryDirectory
 from typing import Iterable, Tuple
 
-# set path for VRNA lib if necessary
-# not supported anymore needs to be added in the RNAtweaks file
-# if vrna:
-#     sys.path = [vrna] + sys.path
-#     global RNA
-#     RNA = importTweaks.import_module('RNA')
-#     globals().update(
-#         {n: getattr(RNA, n) for n in RNA.__all__}
-#         if hasattr(RNA, '__all__')
-#         else {k: v for (k, v) in RNA.__dict__.items() if not k.startswith('_')}
-#        )
-
 import RNA
 import numpy as np
 
 from RIssmed.Tweaks.Collection import merge_dicts
-from RIssmed.Tweaks.FileProcessor import SCRIPTN
 
 ####################
 # ViennaRNA helper
@@ -1348,6 +1334,7 @@ def cmd_rnaplfold(
     PLFoldOutput
         PLFoldOutput object
     """
+    logid = f"{scriptn}.cmd_rnaplfold"
     with TemporaryDirectory() as tmp_dir, NamedTemporaryFile(mode="r+") as constraint_file:
         constraint_string = ""
         if constraint is not None:

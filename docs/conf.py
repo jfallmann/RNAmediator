@@ -16,7 +16,7 @@ import sys
 sys.path.insert(0, os.path.abspath("."))
 sys.path.insert(0, os.path.abspath(".."))
 sys.path.insert(1, os.path.abspath("../RIssmed"))
-import _version
+from RIssmed import _version
 
 __version__ = _version.get_versions()["version"]
 
@@ -64,8 +64,17 @@ exclude_patterns = []
 # html_theme = 'classic'
 html_theme = "sphinx_rtd_theme"
 
+html_theme_options = {
+    # Toc options
+    "collapse_navigation": True,
+    "sticky_navigation": True,
+    "navigation_depth": 4,
+    "includehidden": True,
+    "titles_only": False,
+}
+
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ["source/_static"]
+html_static_path = ["html/_static"]
 pygments_style = "sphinx"
