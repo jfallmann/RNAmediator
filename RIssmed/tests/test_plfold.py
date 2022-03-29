@@ -3,6 +3,7 @@ import gzip
 import os
 from argparse import Namespace
 from tempfile import TemporaryDirectory
+import time
 import numpy as np
 import pytest
 from RIssmed.ConstraintPLFold import main as pl_main
@@ -34,18 +35,19 @@ def default_args():
         window=240,
         span=60,
         region=1,
+        temperature=37.0,
         multi=2,
         cutoff=0.01,
         unconstraint="STDOUT",
         unpaired="STDOUT",
         paired="STDOUT",
         length=100,
-        gc=0,
-        number=1,
+        # gc=0,
+        # number=1,
         constrain="sliding",
         conslength=1,
-        temprange="",
-        alphabet="AUCG",
+        # temprange="",
+        # alphabet="AUCG",
         save=0,
         outdir="",
         procs=1,
@@ -98,11 +100,7 @@ def compare_output_folders(test_path: str, expected_path: str):
 def compare_logs(test_log: str, expected_log: str):
     test_lines = set()
     substrings = [
-        "CLI:",
-        "JetBrains",
         "Running ConstraintPLFold on",
-        "/home/rabsch/Documents/RIssmed/",
-        "/tmp/",
     ]
     with open(test_log) as test_file:
         for line in test_file:
@@ -262,14 +260,15 @@ def test_multi_constraint(multi_constraint_args):
 
 
 @pytest.mark.parametrize(
-    "seq_id,region,window,span,unconstraint,save,outdir,seq",
+    "seq_id,region,window,span,temperature,unconstraint,save,outdir,seq",
     [
-        ("onlyA", 7, 100, 60, "raw", 1, "onlyA", "A" * 500),
+        ("onlyA", 7, 100, 60, 32, "raw", 1, "onlyA", "A" * 500),
         (
             "testseq2",
             7,
             100,
             60,
+            42,
             "raw",
             2,
             "testseq2",
@@ -277,17 +276,17 @@ def test_multi_constraint(multi_constraint_args):
         ),
     ],
 )
-def test_fold_unconstraint(seq_id, region, window, span, unconstraint, save, outdir, seq):
+def test_fold_unconstraint(seq_id, region, window, span, temperature, unconstraint, save, outdir, seq):
     if os.path.isfile(seq):
         seq = str(SeqIO.read(seq, format="fasta").seq)
     seq = seq.upper().replace("T", "U")
     outdir = os.path.join(TMP_TEST_DIR, outdir)
     # get the resulting np. array via the command line of RNAplfold
-    cmd_result = cmd_rnaplfold(seq, window, span, region=region)
+    cmd_result = cmd_rnaplfold(seq, window, span, temperature=temperature, region=region)
     cmd_array = cmd_result.numpy_array
 
     # runs RIssmed to produce output files using the same input as the command line
-    fold_unconstraint(seq, seq_id, region, window, span, unconstraint, save, outdir)
+    fold_unconstraint(seq, seq_id, region, window, span, temperature, unconstraint, save, outdir)
     test_file_path = os.path.join(outdir, seq_id)
     test_files = os.listdir(test_file_path)
     assert len(test_files) != 0, "fold_unconstraint  went wrong"
@@ -304,7 +303,7 @@ def test_fold_unconstraint(seq_id, region, window, span, unconstraint, save, out
 
 
 @pytest.mark.parametrize(
-    "seq_id,start,end,window,span,region,multi,paired,unpaired,save,outdir,unconstraint,seq",
+    "seq_id,start,end,window,span,region,temperature,multi,paired,unpaired,save,outdir,unconstraint,seq",
     [
         (
             "onlyA",
@@ -313,6 +312,7 @@ def test_fold_unconstraint(seq_id, region, window, span, unconstraint, save, out
             100,
             60,
             7,
+            42,
             1,
             "paired",
             "unpaired",
@@ -328,6 +328,7 @@ def test_fold_unconstraint(seq_id, region, window, span, unconstraint, save, out
             100,
             60,
             7,
+            37,
             1,
             "paired",
             "unpaired",
@@ -343,6 +344,7 @@ def test_fold_unconstraint(seq_id, region, window, span, unconstraint, save, out
             100,
             60,
             7,
+            40,
             2,
             "paired",
             "unpaired",
@@ -360,6 +362,7 @@ def test_fold_constraint(
     window,
     span,
     region,
+    temperature,
     multi,
     paired,
     unpaired,
@@ -386,6 +389,7 @@ def test_fold_constraint(
         window,
         span,
         region=region,
+        temperature=temperature,
         constraint=[("unpaired", locstart, locend + 1)],
     )
     cmd_unpaired.localize(locws, locwe + 1)
@@ -395,6 +399,7 @@ def test_fold_constraint(
         window,
         span,
         region=region,
+        temperature=temperature,
         constraint=[("paired", locstart, locend + 1)],
     )
     cmd_paired.localize(locws, locwe + 1)
@@ -408,6 +413,7 @@ def test_fold_constraint(
         window,
         span,
         region,
+        temperature,
         multi,
         paired,
         unpaired,

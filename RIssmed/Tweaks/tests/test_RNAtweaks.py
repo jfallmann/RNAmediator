@@ -67,12 +67,8 @@ def test_api_and_cmd_fold(seq, span, constraint, temp=37, coordinates=None):
     ],
 )
 def test_region_param(seq, window, span, constraint, regions):
-    api_result_r1 = api_rnaplfold(
-        seq, window, span, constraint=constraint, region=regions[0]
-    )
-    api_result_r2 = api_rnaplfold(
-        seq, window, span, constraint=constraint, region=regions[1]
-    )
+    api_result_r1 = api_rnaplfold(seq, window, span, constraint=constraint, region=regions[0])
+    api_result_r2 = api_rnaplfold(seq, window, span, constraint=constraint, region=regions[1])
     idx = min(regions)
     api_r1_array = api_result_r1.numpy_array[:, 0:idx]
     api_r2_array = api_result_r2.numpy_array[:, 0:idx]
@@ -96,9 +92,7 @@ def test_constraint_error(seq, window, span, constraint):
 
 
 def test_localization():
-    result = api_rnaplfold(
-        random_sequence(), 70, 70, region=7, constraint=[("p", 20, 30)]
-    )
+    result = api_rnaplfold(random_sequence(), 70, 70, region=7, constraint=[("p", 20, 30)])
     result_array = result.numpy_array
     result.localize(30, 50)
     test_array = result.numpy_array
@@ -106,15 +100,15 @@ def test_localization():
 
 
 @pytest.mark.parametrize(
-    "seq,window,span,constraint",
+    "seq,window,span,constraint,temperature",
     [
-        (random_sequence(4), 50, 50, ("p", 200, 207)),
-        (random_sequence(4), 50, 50, ("u", 200, 207)),
+        (random_sequence(4), 50, 50, ("p", 200, 207), 37),
+        (random_sequence(4), 50, 50, ("u", 200, 207), 40),
     ],
 )
-def test_constraint(seq, window, span, constraint):
+def test_constraint(seq, window, span, constraint, temperature):
     mode = constraint[0]
-    api_result = cmd_rnaplfold(seq, window, span, region=7, constraint=[constraint])
+    api_result = cmd_rnaplfold(seq, window, span, region=7, temperature=temperature, constraint=[constraint])
     api_result.localize(constraint[1], constraint[2])
     test = api_result.numpy_array[:, 0]
     if mode == "paired" or mode == "p":

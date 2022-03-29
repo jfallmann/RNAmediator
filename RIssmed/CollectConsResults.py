@@ -301,7 +301,7 @@ def judge_diff(
             configurer(queue, level)
         log.debug(f"{logid} RAW; {str(os.path.basename(raw)).replace(goi + '_', '')}")
         chrom, strand, cons, reg, f, window, span, temperature = map(
-            str, str(os.path.basename(raw)).replace(goi + "_", "").split(sep="_")
+            str, str(os.path.basename(raw)).replace(goi + "_", "", 1).split(sep="_")
         )
         span = span.split(sep=".")[0]
         cs, ce = map(int, cons.split(sep="-"))
@@ -377,7 +377,7 @@ def judge_diff(
         noc = _pl_to_array(raw, ulim)
         log.debug(logid + "RAW: " + str(raw) + "\t" + str(noc))
 
-        if abs(np.nanmean(noc[cs:ce])) > cutoff:
+        if abs(np.nanmean(noc[cs : ce + 1])) > cutoff:
             uc = _pl_to_array(u, ulim)  # This is the diffacc for unpaired constraint
             pc = _pl_to_array(p, ulim)  # This is the diffacc for paired constraint
 
@@ -465,7 +465,7 @@ def judge_diff(
                 )
             )
 
-            accprecons = np.nanmean(noc[cs:ce])
+            accprecons = np.nanmean(noc[cs : ce + 1])
             for pos in range(len(noc)):
                 if pos not in range(cs - padding + 1 - ulim, ce + padding + 1 + ulim):
                     if strand != "-":
