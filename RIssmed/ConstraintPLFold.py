@@ -688,7 +688,7 @@ def constrain_seq(
             log.warning(
                 logid
                 + "Constraint out of sequence bounds! skipping! "
-                + ",".join([len(seq), str(start) + "-" + str(end)])
+                + ",".join([str(len(seq)), str(start) + "-" + str(end)])
             )
             return
 
