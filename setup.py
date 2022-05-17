@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from setuptools import setup, find_packages
 import versioneer
 
@@ -30,13 +32,6 @@ setup(
             "RIssmed_visualize = RIssmed.visualize:main",
         ]
     },
-    license="LICENSE",
-    url="https://github.com/jfallmann/RIssmed",
-    description=DESCRIPTION,
-    long_description=open(
-        "RIssmed/Tweaks/README.md"
-    ).read(),  # Change this to include other RISSmed stuff
-    long_description_content_type="text/markdown",
     include_package_data=True,
     install_requires=[
         "numpy",
@@ -48,4 +43,10 @@ setup(
     ],
     setup_requires=["pytest-runner"],
     tests_require=["pytest"],
+    license="LICENSE",
+    url="https://github.com/jfallmann/RIssmed",
+    description=DESCRIPTION,
+    long_description=open("README.md").read(),
+    long_description_content_type="text/markdown",
+    zip_safe=False,
 )
