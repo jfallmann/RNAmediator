@@ -187,6 +187,7 @@ def pl_fold(
             # We check if we need to fold the whole seq or just a region around the constraints
             conslist = fasta_settings.constrainlist
             log.debug(logid + str(conslist))
+            calls = []
             for cons_tuple in conslist:
                 log.debug(logid + "ENTRY: " + str(cons_tuple))
                 if cons_tuple[0] is None:  # in case we just want to fold the sequence without constraints at all
@@ -229,8 +230,8 @@ def pl_fold(
                     pool.apply_async(
                         scan_seq,
                         args=(
-                            str(seq_record.id),
-                            str(seq_record.seq),
+                            seq_record.id,
+                            seq_record.seq,
                             start,
                             end,
                             window,
@@ -302,7 +303,7 @@ def pl_fold(
                             constrain_seq_paired,
                             args=(
                                 seq_record.id,
-                                str(seq_record.seq),
+                                seq_record.seq,
                                 fstart,
                                 fend,
                                 start,
@@ -370,8 +371,8 @@ def pl_fold(
                         pool.apply_async(
                             constrain_seq,
                             args=(
-                                str(seq_record.id),
-                                str(seq_record.seq),
+                                seq_record.id,
+                                seq_record.seq,
                                 start,
                                 end,
                                 window,
@@ -529,6 +530,8 @@ def scan_seq(
     -------
     Call to fold_unconstraint, 1 on success
     """
+    sid = str(sid)
+    seq = str(seq)
     logid = SCRIPTNAME + ".scan_seq: "
 
     try:
@@ -657,7 +660,8 @@ def constrain_seq(
     Call to write_constraint
     """
     logid = SCRIPTNAME + ".constrain_seq: "
-
+    seq = str(seq)
+    sid = str(sid)
     try:
         if queue and level:
             configurer(queue, level)
@@ -858,7 +862,7 @@ def constrain_seq_paired(
     -------
     Call to write_constraint
     """
-    seq = seq.upper().replace("T", "U")
+    seq = str(seq).upper().replace("T", "U")
     logid = SCRIPTNAME + ".constrain_seq_paired: "
     try:
         if queue and level:
