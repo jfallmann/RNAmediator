@@ -55,7 +55,7 @@ def default_args():
         pattern="",
         genes="",
         verbosity=0,
-        loglevel="DEBUG",
+        loglevel="WARNING",
         logdir="LOGS",
     )
 
