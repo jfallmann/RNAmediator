@@ -8,9 +8,9 @@
 ## Created: Thu Sep  6 09:02:18 2018 (+0200)
 ## Version:
 ## Package-Requires: ()
-## Last-Updated: Mon Dec 14 14:28:17 2020 (+0100)
+## Last-Updated: Sat Jun 25 15:14:04 2022 (+0200)
 ##           By: Joerg Fallmann
-##     Update #: 448
+##     Update #: 449
 ## URL:
 ## Doc URL:
 ## Keywords:
@@ -187,7 +187,6 @@ def pl_fold(
             # We check if we need to fold the whole seq or just a region around the constraints
             conslist = fasta_settings.constrainlist
             log.debug(logid + str(conslist))
-            calls = []
             for cons_tuple in conslist:
                 log.debug(logid + "ENTRY: " + str(cons_tuple))
                 if cons_tuple[0] is None:  # in case we just want to fold the sequence without constraints at all
