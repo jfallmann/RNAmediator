@@ -61,7 +61,6 @@
 ##
 ### Code:
 ### IMPORTS
-### TO USE THIS YOU NEED TO INSTALL PYBIGWIG FIRST
 
 # Logging
 import datetime
@@ -73,7 +72,6 @@ import multiprocessing
 # numpy
 import shlex
 from itertools import repeat
-from sys import ps1
 
 # others
 from natsort import natsorted
@@ -150,8 +148,6 @@ def scan_input(
             genes
         )  # get genomic coords to print to bed later, should always be just one set of coords per gene
 
-        genecoords.sort()
-
         log.debug(logid + str(genecoords))
 
         # Create process pool with processes
@@ -162,19 +158,19 @@ def scan_input(
         rawbigfw = rawbigre = unpbigfw = unpbigre = paibigfw = paibigre = None
 
         if unconstraint:
-            rawbigfw = pyBigWig.open(os.path.join([outdir, f"{unconstraint}.fw.bw"]), "w")
+            rawbigfw = pbw.open(os.path.join(outdir, f"{unconstraint}.fw.bw"), "w")
             rawbigfw.addHeader(header)
-            rawbigre = pyBigWig.open(os.path.join([outdir, f"{unconstraint}.re.bw"]), "w")
+            rawbigre = pbw.open(os.path.join(outdir, f"{unconstraint}.re.bw"), "w")
             rawbigre.addHeader(header)
         if unp:
-            unpbigfw = pyBigWig.open(os.path.join([outdir, f"{unp}.fw.bw"]), "w")
+            unpbigfw = pbw.open(os.path.join(outdir, f"{unp}.fw.bw"), "w")
             unpbigfw.addHeader(header)
-            unpbigre = pyBigWig.open(os.path.join([outdir, f"{unp}.re.bw"]), "w")
+            unpbigre = pbw.open(os.path.join(outdir, f"{unp}.re.bw"), "w")
             unpbigre.addHeader(header)
         if pai:
-            paibigfw = pyBigWig.open(os.path.join([outdir, f"{pai}.fw.bw"]), "w")
+            paibigfw = pbw.open(os.path.join(outdir, f"{pai}.fw.bw"), "w")
             paibigfw.addHeader(header)
-            paibigre = pyBigWig.open(os.path.join([outdir, f"{pai}.re.bw"]), "w")
+            paibigre = pbw.open(os.path.join(outdir, f"{pai}.re.bw"), "w")
             paibigre.addHeader(header)
 
         for goi in genecoords:
@@ -535,9 +531,15 @@ def getfiles(name, window, span, temperature, goi):
 
 
 def read_chromsize(cs):
+    logid = SCRIPTNAME + ".read_chromsize: "
     sizes = list()
-    with gzip.open(cs, "rt") as c:
-        sizes = txt_file.readlines()
+    if ".gzip" in os.path.basename(cs)[-6:]:
+        with gzip.open(cs, "rt") as c:
+            sizes = [tuple([str(x), int(y) for x,y in l.split("\t")]) for l in c]
+    else:
+        with open(cs, "r") as c:
+            sizes = [tuple([str(x), int(y) for x,y in l.split("\t")]) for l in c]
+    log.debug(f"{logid}+sizes")
     return sizes
 
 
@@ -556,7 +558,7 @@ def main(args=None):
 
     try:
         if not args:
-            args = parseargs_collectpl()
+            args = parseargs_browser()
 
         if args.version:
             sys.exit("Running RIssmed version " + __version__)

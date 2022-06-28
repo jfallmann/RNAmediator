@@ -289,14 +289,14 @@ def parseargs_browser():
         "--pattern",
         type=str,
         default="240,60",
-        help="Pattern for files and window, e.g. Seq1_30,250",
+        help="Pattern for and window and span, e.g. 30,250. Window can contain other strings for filtering, e.g. Seq1_30",
     )
     parser.add_argument(
         "-c",
         "--cutoff",
         type=float,
         default=1.0,
-        help="Cutoff for the definition of pairedness, if set to > 0 it will select only constraint regions with mean raw (unconstraint) probability of being unpaired <= cutoff for further processing(default: 1.0)",
+        help="Cutoff for the definition of pairedness, if set to < 1 it will select only constraint regions with mean raw (unconstraint) probability of being unpaired <= cutoff for further processing(default: 1.0)",
     )
     parser.add_argument(
         "-b",
@@ -322,16 +322,14 @@ def parseargs_browser():
     parser.add_argument(
         "-n",
         "--unpaired",
-        type=str,
-        default=None,
-        help="Name for unpaired provided at ConstraintPLFold -n",
+        action="store_true",
+        help="If unpaired files should be converted as well",
     )
     parser.add_argument(
         "-a",
         "--paired",
-        type=str,
-        default=None,
-        help="Name for paired provided at ConstraintPLFold -p",
+        action="store_true",
+        help="If paired files should be converted as well",
     )
     parser.add_argument(
         "-t",
@@ -349,7 +347,7 @@ def parseargs_browser():
         help="Genomic coordinates bed for genes in standard BED format",
     )
     parser.add_argument(
-        "-c",
+        "-s",
         "--chromsizes",
         type=str,
         help="Chromosome sizes file",

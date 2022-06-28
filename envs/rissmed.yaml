@@ -7,6 +7,7 @@ channels:
 dependencies:
   - python>=3.9
   - viennarna>=2.4.18
+  - pybigwig>=0.3.18
   - pip
   - pip:
     - numpy

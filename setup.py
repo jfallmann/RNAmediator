@@ -20,6 +20,7 @@ setup(
         "RIssmed/ConstraintFold.py",
         "RIssmed/CollectConsResults.py",
         "RIssmed/CollectWindowResults.py",
+        "RIssmed/GenerateBigWig.py",
     ],
     packages=["RIssmed.Tweaks", "RIssmed", "RIssmed.vis"],
     package_data={"RIssmed.vis": ["assets/*", "templates/*"]},
@@ -30,6 +31,7 @@ setup(
             "RIssmed_collect_fold = RIssmed.CollectWindowResults:main",
             "RIssmed_collect_plfold = RIssmed.CollectConsResults:main",
             "RIssmed_visualize = RIssmed.visualize:main",
+            "RIssmed_generate_bw = RIssmed.GenerateBigWig:main",
         ]
     },
     include_package_data=True,
@@ -38,6 +40,7 @@ setup(
         "biopython",
         "natsort",
         "pandas",
+        "pybigwig",
         "dash",
         "dash-bootstrap-components",
     ],
