@@ -105,21 +105,21 @@ def parseargs_plcons():
         "-r",
         "--unconstraint",
         type=str,
-        default="STDOUT",
+        default="raw",
         help="Print output of unconstraint folding to file with this name",
     )
     parser.add_argument(
         "-n",
         "--unpaired",
         type=str,
-        default="STDOUT",
+        default="unpaired",
         help="Print output of unpaired folding to file with this name",
     )
     parser.add_argument(
         "-p",
         "--paired",
         type=str,
-        default="STDOUT",
+        default="paired",
         help="Print output of paired folding to file with this name",
     )
     parser.add_argument(
@@ -207,8 +207,8 @@ def parseargs_collectpl():
         "-c",
         "--cutoff",
         type=float,
-        default=0.1,
-        help="Cutoff for the definition of pairedness, if set to > 0 it will select only constraint regions with mean raw (unconstraint) probability of being unpaired >= cutoff for further processing(default: 0.1)",
+        default=1.0,
+        help="Cutoff for the definition of pairedness, if set to > 0 it will select only constraint regions with mean raw (unconstraint) probability of being unpaired <= cutoff for further processing(default: 1.0)",
     )
     parser.add_argument(
         "-b",
@@ -229,7 +229,7 @@ def parseargs_collectpl():
         "--unconstraint",
         type=str,
         default="raw",
-        help="same name as unconstraint provided at ConstraintPLFold -r",
+        help="Name for unconstraint provided at ConstraintPLFold -r",
     )
     parser.add_argument(
         "-t",
@@ -275,6 +275,113 @@ def parseargs_collectpl():
         help="Print version",
     )
 
+    if len(sys.argv) == 1:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
+
+    return parser.parse_args()
+
+
+def parseargs_browser():
+    parser = argparse.ArgumentParser(description="Generates BigWig files for browsing from raw or constraint files")
+    parser.add_argument(
+        "-p",
+        "--pattern",
+        type=str,
+        default="240,60",
+        help="Pattern for files and window, e.g. Seq1_30,250",
+    )
+    parser.add_argument(
+        "-c",
+        "--cutoff",
+        type=float,
+        default=1.0,
+        help="Cutoff for the definition of pairedness, if set to > 0 it will select only constraint regions with mean raw (unconstraint) probability of being unpaired <= cutoff for further processing(default: 1.0)",
+    )
+    parser.add_argument(
+        "-b",
+        "--border",
+        type=float,
+        default=0.0,
+        help="Cutoff for the minimum change between unconstraint and constraint structure, regions below this cutoff will not be further evaluated.",
+    )
+    parser.add_argument(
+        "-u",
+        "--ulimit",
+        type=int,
+        default=1,
+        help="Stretch of nucleotides used during plfold run (-u option)",
+    )
+    parser.add_argument(
+        "-r",
+        "--unconstraint",
+        type=str,
+        default=None,
+        help="Name for unconstraint provided at ConstraintPLFold -r",
+    )
+    parser.add_argument(
+        "-n",
+        "--unpaired",
+        type=str,
+        default=None,
+        help="Name for unpaired provided at ConstraintPLFold -n",
+    )
+    parser.add_argument(
+        "-a",
+        "--paired",
+        type=str,
+        default=None,
+        help="Name for paired provided at ConstraintPLFold -p",
+    )
+    parser.add_argument(
+        "-t",
+        "--temperature",
+        type=int,
+        default=37,
+        help="Temperature for structure prediction",
+    )
+    parser.add_argument("-o", "--outdir", type=str, default="", help="Directory to write to")
+    parser.add_argument("-d", "--dir", type=str, default="", help="Directory to read from")
+    parser.add_argument(
+        "-g",
+        "--genes",
+        type=str,
+        help="Genomic coordinates bed for genes in standard BED format",
+    )
+    parser.add_argument(
+        "-c",
+        "--chromsizes",
+        type=str,
+        help="Chromosome sizes file",
+    )
+    parser.add_argument(
+        "-z",
+        "--procs",
+        type=int,
+        default=1,
+        help="Number of parallel processes to run this job with",
+    )
+    parser.add_argument(
+        "--loglevel",
+        type=str,
+        default="WARNING",
+        choices=["WARNING", "ERROR", "INFO", "DEBUG"],
+        help="Set log level",
+    )
+    parser.add_argument("--logdir", type=str, default="LOGS", help="Set log directory")
+    parser.add_argument(
+        "-w",
+        "--padding",
+        type=int,
+        default=1,
+        help="Padding around constraint that will be excluded from report, default is 1, "
+        "so directly overlapping effects will be ignored",
+    )
+    parser.add_argument(
+        "--version",
+        action="store_true",
+        help="Print version",
+    )
     if len(sys.argv) == 1:
         parser.print_help(sys.stderr)
         sys.exit(1)
@@ -347,7 +454,7 @@ def parseargs_foldcons():
         "--genes",
         type=str,
         default="",
-        help="Genomic coordinates bed for genes, either standard bed format or AnnotateBed.pl format",
+        help="Genomic coordinates bed for genes in standard BED format",
     )
     parser.add_argument(
         "--loglevel",

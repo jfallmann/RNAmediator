@@ -264,6 +264,8 @@ def screen_genes(
                     len(call_list),
                 ),
             )
+            pool.close()
+            pool.join()
         for entry in outlist:
             savelists(entry, outdir)
 
@@ -377,7 +379,7 @@ def judge_diff(
         noc = _pl_to_array(raw, ulim)
         log.debug(logid + "RAW: " + str(raw) + "\t" + str(noc))
 
-        if abs(np.nanmean(noc[cs : ce + 1])) > cutoff:
+        if abs(np.nanmean(noc[cs : ce + 1])) <= cutoff:
             uc = _pl_to_array(u, ulim)  # This is the diffacc for unpaired constraint
             pc = _pl_to_array(p, ulim)  # This is the diffacc for paired constraint
 

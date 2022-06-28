@@ -181,6 +181,43 @@ def parse_annotation_bed(bed, annotated=None):
         log.error(logid + "".join(tbe.format()))
 
 
+def parse_annotation_bed_withchrom(bed, annotated=None):
+    logid = SCRIPTN + ".parse_annotation_bed_withchrom: "
+    anno = defaultdict(list)
+    if os.path.isfile(os.path.abspath(bed)):
+        if ".gz" in bed:
+            f = gzip.open(os.path.abspath(bed), "rt")
+        else:
+            f = open(os.path.abspath(bed), "rt")
+    else:
+        raise FileNotFoundError(f"File {bed} not found")
+    try:
+        for line in f:
+            entries = line.rstrip().split("\t")
+            chrom = entries[0]
+            goi = entries[3]
+            strand = entries[5]
+            if annotated:
+                start = int(entries[10]) + 1
+                end = int(entries[11])
+                strand = entries[14]
+            else:
+                start = int(entries[1]) + 1
+                end = int(entries[2])
+            anno[str(goi)].append(
+                "|".join(["-".join([str(chrom), str(start), str(end)]), strand])
+            )  # Need strand info here!
+        return anno
+    except Exception:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+            exc_type,
+            exc_value,
+            exc_tb,
+        )
+        log.error(logid + "".join(tbe.format()))
+
+
 def read_constraints_from_bed(bed, linewise=None):
     logid = SCRIPTN + ".readConstraintsFromBed: "
     cons = defaultdict(list)
