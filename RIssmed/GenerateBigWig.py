@@ -363,13 +363,13 @@ def generate_bws(
 
         if raw:
             for i in range(len(raw)):
-                out.append(create_bw_entries(raw[i], goi, gstrand, cutoff, border))
+                out.append(create_bw_entries(raw[i], goi, gstrand, gs, ge, cutoff, border, ulim, padding))
         elif up:
             for i in range(len(up)):
-                out.append(create_bw_entries(up[i], goi, gstrand, cutoff, border))
+                out.append(create_bw_entries(up[i], goi, gstrand, gs, ge, cutoff, border, ulim, padding))
         elif pa:
             for i in range(len(pa)):
-                out.append(create_bw_entries(pa[i], goi, gstrand, cutoff, border))
+                out.append(create_bw_entries(pa[i], goi, gstrand, gs, ge, cutoff, border, ulim, padding))
         return out
 
     except Exception:
@@ -397,6 +397,7 @@ def writebws(out, bwlist):
     logid = SCRIPTNAME + ".writebws: "
 
     try:
+        log.debug(logid + f"out: {out}")
         if len(out["raw"]["fw"]["chrom"]) > 0:
             bw = bwlist[0]
             bw.addEntries(
@@ -552,21 +553,29 @@ def equalize_lists(listoflists):
     return listoflists
 
 
-def create_bw_entries(name, goi, gstrand, cutoff, border):
+def create_bw_entries(fname, goi, gstrand, gs, ge, cutoff, border, ulim, padding):
     """Create entries for BigWig files
 
     Parameters
     ----------
-    name : str
+    fname : str
         Filename to read from
     goi : str
         Gene of interest
     gstrand : str
         strand of goi
+    gs: int
+        gene start coordinates
+    ge: int
+        gene end coordinates
     cutoff : float
         Cutoff for the definition of pairedness, if set to < 1 it will select only constraint regions with mean raw (unconstraint) probability of being unpaired <= cutoff for further processing(default: 1.0)
     border : float
         Cutoff for the minimum change between unconstraint and constraint structure, regions below this cutoff will not be further evaluated.
+    ulim : int
+        Stretch of nucleotides used during plfold run (-u option)
+    padding : int
+        Padding around constraint that will be excluded from report, default is 1, so directly overlapping effects will be ignored
 
     Returns
     -------
@@ -579,13 +588,24 @@ def create_bw_entries(name, goi, gstrand, cutoff, border):
         _description_
     """
     try:
-        if "diff" in name:
-            repl = f"StruCons_{goi}"
+        logid = SCRIPTNAME + ".create_bw_entries: "
+        log.debug(logid + f"{fname}")
+        if "diff" in fname:
+            repl = "StruCons_" + str(goi)
+            log.debug(logid + f'{str(os.path.basename(fname).replace(repl + "_", "", 1))}')
+            chrom, strand, cons, reg, f, window, span, temperature = map(
+                str, str(os.path.basename(fname)).replace(repl + "_", "", 1).split(sep="_")
+            )
+
         else:
-            repl = goi
-        chrom, strand, cons, reg, f, window, span, temperature = map(
-            str, str(os.path.basename(name).replace(repl + "_", "", 1).split(sep="_"))
-        )
+            repl = str(goi)
+            reg = "0-0"
+            log.debug(logid + f'{str(os.path.basename(fname).replace(repl + "_", "", 1).split(sep="_"))}')
+            chrom, strand, cons, f, window, span, temperature = map(
+                str, str(os.path.basename(fname)).replace(repl + "_", "", 1).split(sep="_")
+            )
+
+        temperature = temperature.replace(".npy", "")
         span = span.split(sep=".")[0]
         cs, ce = map(int, cons.split(sep="-"))
         ws, we = map(int, reg.split(sep="-"))
@@ -650,69 +670,80 @@ def create_bw_entries(name, goi, gstrand, cutoff, border):
         )  # + ' and ' + str(border2))
 
         # Read in plfold output
-        noc = _pl_to_array(raw, ulim)
+        if not "diff" in fname:
+            noc = _pl_to_array(fname, ulim)
+        else:
+            uncons = str(fname).replace("diffnu_", "").replace("diffnp_", "")
+            fn = str.split("_", uncons)
+            fn[3] = "raw"
+            uncons = str.join("_", fn)
+            noc = _pl_to_array(uncons, ulim)
 
-        out = {}
-        out["r"] = {"fw": dict(), "re": dict()}
-        out["u"] = {"fw": dict(), "re": dict()}
-        out["p"] = {"fw": dict(), "re": dict()}
+        out = rec_dd()
 
-        if abs(np.nanmean(noc[cs : ce + 1])) <= cutoff:
-            if up:
-                uc = _pl_to_array(up, ulim)  # This is the diffacc for unpaired constraint
-                # Calculate raw prop unpaired for constraint diff file
-                uc = noc + uc
-            if pa:
-                pc = _pl_to_array(pa, ulim)  # This is the diffacc for paired constraint
-                # Calculate raw prop unpaired for constraint diff file
-                pc = noc + pc
+        log.debug(
+            logid
+            + f"out: {out}, noc: {noc[1:10]}, cs: {cs}, ce: {ce} ,nanmean: {np.nanmean(noc[cs : ce + 1])}, cutoff: {cutoff}"
+        )
+
+        if "diff" in fname and abs(np.nanmean(noc[cs : ce + 1])) <= cutoff:
+            if "diffnu" in fname or "diffnp" in fname:
+                oc = _pl_to_array(fname, ulim)  # This is the diffacc for unpaired constraint
+
+            # Calculate raw prop unpaired for constraint diff file
+            oc = noc + oc
+        else:
+            oc = None
+        """
+        Collect positions of interest with padding around constraint
+        Constraints are influencing close by positions strongest so strong influence of binding there is expected
+        """
+
+        for pos in range(len(noc)):
+            # if pos not in range(cs - padding + 1 - ulim, ce + padding + 1 + ulim):
+            if strand != "-":
+                gpos = pos + ws - ulim + 1  # already 0-based
+                gend = gpos + ulim  # 0-based half-open
+                orient = "fw"
+            else:
+                gpos = we - pos  # already 0-based
+                gend = gpos + ulim  # 0-based half-open
+                orient = "re"
 
             log.debug(
                 logid
-                + "unpaired: "
-                + str(up)
-                + " and paired: "
-                + str(pa)
-                + " Content: "
-                + str(uc[ulim : ulim + 10])
-                + " test "
-                + str(np.all(uc[ulim : ulim + 10]))
+                + f"gpos: {gpos}, gend: {gend}, strand: {orient}, position: {pos}, noc: {noc[pos]}, border: {border}"
             )
 
-            """
-            Collect positions of interest with padding around constraint
-            Constraints are influencing close by positions strongest so strong influence of binding there is expected
-            """
+            if border < abs(noc[pos]):
+                for x in ["chrom", "start", "end", "value"]:
+                    if not out["raw"][orient][x]:
+                        out["raw"][orient][x] = list()
 
-            for pos in range(len(noc)):
-                if pos not in range(cs - padding + 1 - ulim, ce + padding + 1 + ulim):
-                    if strand != "-":
-                        gpos = pos + ws - ulim + 1  # already 0-based
-                        gend = gpos + ulim  # 0-based half-open
-                        orient = "fw"
-                    else:
-                        gpos = we - pos  # already 0-based
-                        gend = gpos + ulim  # 0-based half-open
-                        orient = "re"
+                out["raw"][orient]["chrom"].append(str(chrom))
+                out["raw"][orient]["start"].append(str(gpos))
+                out["raw"][orient]["end"].append(str(gend))
+                out["raw"][orient]["value"].append(noc[pos])
 
-                    if border < abs(noc[pos]):
-                        out["raw"][orient]["chrom"].append(str(chrom))
-                        out["raw"][orient]["start"].append(str(gpos))
-                        out["raw"][orient]["end"].append(str(gend))
-                        out["raw"][orient]["value"].append(noc[pos])
+            if oc and "diffnu" in fname and border < abs(oc[pos]):
+                for x in ["chrom", "start", "end", "value"]:
+                    if not out["uc"][orient][x]:
+                        out["uc"][orient][x] = list()
+                out["uc"][orient]["chrom"].append(str(chrom))
+                out["uc"][orient]["start"].append(str(gpos))
+                out["uc"][orient]["end"].append(str(gend))
+                out["uc"][orient]["value"].append(oc[pos])
 
-                    if border < abs(uc[pos]):
-                        out["uc"][orient]["chrom"].append(str(chrom))
-                        out["uc"][orient]["start"].append(str(gpos))
-                        out["uc"][orient]["end"].append(str(gend))
-                        out["uc"][orient]["value"].append(uc[pos])
-
-                    if border < abs(uc[pos]):
-                        out["pc"][orient]["chrom"].append(str(chrom))
-                        out["pc"][orient]["start"].append(str(gpos))
-                        out["pc"][orient]["end"].append(str(gend))
-                        out["pc"][orient]["value"].append(pc[pos])
+            if oc and "diffnp" in fname and border < abs(oc[pos]):
+                for x in ["chrom", "start", "end", "value"]:
+                    if not out["pc"][orient][x]:
+                        out["pc"][orient][x] = list()
+                out["pc"][orient]["chrom"].append(str(chrom))
+                out["pc"][orient]["start"].append(str(gpos))
+                out["pc"][orient]["end"].append(str(gend))
+                out["pc"][orient]["value"].append(oc[pos])
         return out
+
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
@@ -721,6 +752,10 @@ def create_bw_entries(name, goi, gstrand, cutoff, border):
             exc_tb,
         )
         log.error(logid + "".join(tbe.format()))
+
+
+def rec_dd():
+    return defaultdict(rec_dd)
 
 
 def main(args=None):
