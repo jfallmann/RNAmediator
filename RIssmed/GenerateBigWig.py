@@ -534,12 +534,11 @@ def read_chromsize(cs):
     logid = SCRIPTNAME + ".read_chromsize: "
     sizes = list()
     if ".gzip" in os.path.basename(cs)[-6:]:
-        with gzip.open(cs, "rt") as c:
-            sizes = [tuple([str(x), int(y) for x,y in l.split("\t")]) for l in c]
+        sizes = gzip.open(cs, "rt").read().splitlines()
     else:
-        with open(cs, "r") as c:
-            sizes = [tuple([str(x), int(y) for x,y in l.split("\t")]) for l in c]
-    log.debug(f"{logid}+sizes")
+        sizes = open(cs, "r").read().splitlines()
+    sizes = [tuple((str(x), int(y))) for x, y in [l.split("\t") for l in sizes]]
+    log.debug(f"{logid} {sizes}")
     return sizes
 
 
