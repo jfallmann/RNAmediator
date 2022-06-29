@@ -100,11 +100,45 @@ SCRIPTNAME = os.path.basename(__file__).replace(".py", "")
 
 
 def starmap_with_kwargs(pool, fn, args_iter, kwargs_iter):
+    """Adds kwargs to starmap
+
+    Parameters
+    ----------
+    pool : multiprocessing.Pool
+        Worker Pool
+    fn : function
+        Funktion to call
+    args_iter : arguments
+        Arguments for function
+    kwargs_iter : keyword-arguments
+        Keyword arguments for function
+
+    Returns
+    -------
+    multiprocessing.Pool
+        Worker Pool starmap with args and kwargs
+    """
     args_for_starmap = zip(repeat(fn), args_iter, kwargs_iter)
     return pool.starmap(apply_args_and_kwargs, args_for_starmap)
 
 
 def apply_args_and_kwargs(fn, args, kwargs):
+    """Applies args and kwargs
+
+    Parameters
+    ----------
+    fn : function
+        Function
+    args : args
+        Arguments for function
+    kwargs : keyword-arguments
+        Keyword arguments for function
+
+    Returns
+    -------
+    Function
+        Function with variable number of args and kwargs
+    """
     return fn(*args, **kwargs)
 
 
@@ -122,12 +156,50 @@ def scan_input(
     unp,
     pai,
     outdir,
-    dir,
+    indir,
     genes,
     chromsizes,
     padding,
 ):
+    """Scan input for files of interest
 
+    Parameters
+    ----------
+    queue : Multiprocessing.Queue
+        Queue used for logging process
+    configurer : Function
+        Function to configure logging
+    level : str
+        Loglevel
+    pat : str
+        Pattern for and window and span, e.g. 30,250. Window can contain other strings for filtering, e.g. Seq1_30
+    cutoff : float
+        Cutoff for the definition of pairedness, if set to < 1 it will select only constraint regions with mean raw (unconstraint) probability of being unpaired <= cutoff for further processing(default: 1.0)
+    border : float
+        Cutoff for the minimum change between unconstraint and constraint structure, regions below this cutoff will not be further evaluated.
+    ulim : int
+        Stretch of nucleotides used during plfold run (-u option)
+    temperature : float
+        Temperature for structure prediction
+    procs : int
+        Number of parallel processes to run this job with
+    unconstraint : str
+        Name for unconstraint provided at ConstraintPLFold -r
+    unp : bool
+        If unpaired files should be converted as well
+    pai : bool
+        If paired files should be converted as well
+    outdir : str
+        Directory to write to
+    indir : str
+        Directory to read from
+    genes : str
+        Genomic coordinates bed for genes in standard BED format
+    chromsizes : str
+        Chromosome sizes file
+    padding : int
+        Padding around constraint that will be excluded from report, default is 1, so directly overlapping effects will be ignored
+    """
     logid = SCRIPTNAME + ".scan_input: "
     try:
         # set path for output
@@ -175,11 +247,11 @@ def scan_input(
 
         for goi in genecoords:
             log.info(logid + "Working on " + goi)
-            gs, ge, gstrand = get_location(genecoords[goi][0])
+            chrom, gs, ge, gstrand = get_location_withchrom(genecoords[goi][0])
 
-            raw = getfiles(unconstraint, window, span, temperature, goi)
-            unpaired = getfiles("diffnu", window, span, temperature, goi)
-            paired = getfiles("diffnp", window, span, temperature, goi)
+            raw = getfiles(unconstraint, window, span, temperature, goi, indir)
+            unpaired = getfiles("diffnu", window, span, temperature, goi, indir)
+            paired = getfiles("diffnp", window, span, temperature, goi, indir)
 
             filelist = [raw, unpaired, paired]
             bwlist = [rawbigfw, rawbigre, unpbigfw, unpbigre, paibigfw, paibigre]
@@ -188,7 +260,7 @@ def scan_input(
                 (
                     goi,
                     filelist,
-                    bwlist,
+                    chrom,
                     gs,
                     ge,
                     gstrand,
@@ -235,7 +307,7 @@ def scan_input(
 def generate_bws(
     goi,
     filelist,
-    bwlist,
+    chrom,
     gs,
     ge,
     gstrand,
@@ -248,7 +320,37 @@ def generate_bws(
     configurer=None,
     level=None,
 ):
+    """Generate BigWig entries
 
+    Parameters
+    ----------
+    filelist : list
+        List of files to work on
+    chrom: str
+        Chromosome
+    gs: int
+        Start coordinate of gene
+    ge: int
+        End coordinate of gene
+    gstrand: str
+        Strand of gene
+    ulim : int
+        Stretch of nucleotides used during plfold run (-u option)
+    cutoff : float
+        Cutoff for the definition of pairedness, if set to < 1 it will select only constraint regions with mean raw (unconstraint) probability of being unpaired <= cutoff for further processing(default: 1.0)
+    border : float
+        Cutoff for the minimum change between unconstraint and constraint structure, regions below this cutoff will not be further evaluated.
+    outdir : str
+        Directory to write to
+    padding : int
+        Padding around constraint that will be excluded from report, default is 1, so directly overlapping effects will be ignored
+    queue : Multiprocessing.Queue, optional
+        Queue used for logging process
+    configurer : Function, optional
+        Function to configure logging
+    level : str, optional
+        Loglevel
+    """
     logid = SCRIPTNAME + ".judge_diff: "
     try:
         if queue and level:
@@ -408,7 +510,17 @@ def generate_bws(
 
 
 def writebws(out, outdir, bwlist):
+    """Write BigWig entries to file
 
+    Parameters
+    ----------
+    out : Nested defaultdict
+        BigWig entries
+    outdir : str
+        Directory to write to
+    bwlist : list
+        List of BigWig filehandles
+    """
     logid = SCRIPTNAME + ".writebws: "
 
     try:
@@ -473,7 +585,7 @@ def writebws(out, outdir, bwlist):
         log.error(logid + "".join(tbe.format()))
 
 
-def getfiles(name, window, span, temperature, goi):
+def getfiles(name, window, span, temperature, goi, indir=None):
     """Retrieve files following specified pattern
 
     Parameters
@@ -488,13 +600,15 @@ def getfiles(name, window, span, temperature, goi):
         temperature used for folding
     goi : str
         Gene of interest
+    indir : str, optional
+        Path to directory of interest (default is None)
 
     Returns
     -------
     List
         List of files found folowing search pattern
     """
-
+    logid = SCRIPTNAME + ".getfiles: "
     ret = list()
     if not name:
         return None
@@ -502,17 +616,18 @@ def getfiles(name, window, span, temperature, goi):
         # get files with specified pattern
         lookfor = os.path.abspath(
             os.path.join(
-                dir,
+                indir,
                 goi,
                 f"*{goi}*_{name}_*{str(window)}_{str(span)}_{str(temperature)}.npy",
             )
         )
-        log.debug(logid + "PATHS: " + str(raw) + "\t" + str(paired) + "\t" + str(unpaired))
+        log.debug(logid + f"LOOKFOR: {lookfor}")
         collectall = natsorted(glob.glob(lookfor), key=lambda y: y.lower())
         # get absolute path for files
         fullname = [os.path.abspath(i) for i in collectall]
-        log.debug(logid + "PATHS: " + str(len(r)) + "\t" + str(len(p)) + "\t" + str(len(u)))
-        if not fullname:
+        log.debug(logid + f"PATHS: {fullname}")
+
+        if not fullname and not "diff" in name:
             log.warning(
                 logid
                 + "Could not find files for Gene "
@@ -531,6 +646,18 @@ def getfiles(name, window, span, temperature, goi):
 
 
 def read_chromsize(cs):
+    """Read chromosome sizes from file
+
+    Parameters
+    ----------
+    cs : str
+        File to read from
+
+    Returns
+    -------
+    sizes: list(tuple(str,int))
+        List of tuples with chromosome name and size
+    """
     logid = SCRIPTNAME + ".read_chromsize: "
     sizes = list()
     if ".gzip" in os.path.basename(cs)[-6:]:
@@ -550,7 +677,7 @@ def main(args=None):
 
     Returns
     -------
-    Call to screen_genes
+    Call to scan_input
     """
 
     logid = SCRIPTNAME + ".main: "

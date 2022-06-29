@@ -372,8 +372,7 @@ def parseargs_browser():
         "--padding",
         type=int,
         default=1,
-        help="Padding around constraint that will be excluded from report, default is 1, "
-        "so directly overlapping effects will be ignored",
+        help="Padding around constraint that will be excluded from report, default is 1, so directly overlapping effects will be ignored",
     )
     parser.add_argument(
         "--version",

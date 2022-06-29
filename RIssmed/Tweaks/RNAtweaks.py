@@ -635,6 +635,45 @@ def get_location(entry):
         log.error(logid + "".join(tbe.format()))
 
 
+def get_location_withchrom(entry):
+    """Returns location of folding window in genomic or local coordinates with chromosome
+
+    Parameters
+    ----------
+    entry : str
+        String containing chrom, start, end and strand of folding window
+
+    Returns
+    -------
+    ret: list(list(int,int,str))
+        List of start, end and strand for folding window
+    """
+
+    logid = scriptn + ".get_location: "
+    try:
+        ret = list()
+        chrom = start = end = strand = None
+        chrom = map(str, entry.split(sep="|")[0].split(sep="-")[0])
+        start, end = map(int, entry.split(sep="|")[0].split(sep="-")[1:])
+        strand = str(entry.split(sep="|")[1])
+        ret.extend([chrom, start, end, strand])
+
+        if any([x == None for x in ret]):
+            log.warning(logid + "Undefined variable: " + str(ret))
+
+        log.debug(logid + str.join(" ", [str(entry), str(ret)]))
+        return ret
+
+    except Exception:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+            exc_type,
+            exc_value,
+            exc_tb,
+        )
+        log.error(logid + "".join(tbe.format()))
+
+
 # Constraints
 
 
