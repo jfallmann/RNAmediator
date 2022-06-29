@@ -245,6 +245,8 @@ def scan_input(
             paibigre = pbw.open(os.path.join(outdir, f"{pai}.re.bw"), "w")
             paibigre.addHeader(header)
 
+        bwlist = [rawbigfw, rawbigre, unpbigfw, unpbigre, paibigfw, paibigre]
+
         for goi in genecoords:
             log.info(logid + "Working on " + goi)
             chrom, gs, ge, gstrand = get_location_withchrom(genecoords[goi][0])
@@ -253,8 +255,7 @@ def scan_input(
             unpaired = getfiles("diffnu", window, span, temperature, goi, indir)
             paired = getfiles("diffnp", window, span, temperature, goi, indir)
 
-            filelist = [raw, unpaired, paired]
-            bwlist = [rawbigfw, rawbigre, unpbigfw, unpbigre, paibigfw, paibigre]
+            filelist = equalize_lists([raw, unpaired, paired])
 
             call_list.append(
                 (
@@ -289,7 +290,8 @@ def scan_input(
             pool.close()
             pool.join()
         for entry in outlist:
-            writebws(entry, outdir, bwlist)
+            for e in entry:
+                writebws(e, bwlist)
 
         for bw in [rawbigfw, rawbigre, unpbigfw, unpbigre, paibigfw, paibigre]:
             bw.close()
@@ -355,149 +357,20 @@ def generate_bws(
     try:
         if queue and level:
             configurer(queue, level)
+
         raw, up, pa = filelist
+        out = list()
 
         if raw:
-            chrom, strand, cons, reg, f, window, span, temperature = map(
-                str, str(os.path.basename(raw)).replace(goi + "_", "", 1).split(sep="_")
-            )
+            for i in range(len(raw)):
+                out.append(create_bw_entries(raw[i], goi, gstrand, cutoff, border))
         elif up:
-            chrom, strand, cons, reg, f, window, span, temperature = map(
-                str, str(os.path.basename(up)).replace(f"StruCons_{goi}" + "_", "", 1).split(sep="_")
-            )
+            for i in range(len(up)):
+                out.append(create_bw_entries(up[i], goi, gstrand, cutoff, border))
         elif pa:
-            chrom, strand, cons, reg, f, window, span, temperature = map(
-                str, str(os.path.basename(pa)).replace(f"StruCons_{goi}" + "_", "", 1).split(sep="_")
-            )
-
-        span = span.split(sep=".")[0]
-        cs, ce = map(int, cons.split(sep="-"))
-        ws, we = map(int, reg.split(sep="-"))
-
-        cs = cs - ws  # fit to window and make 0-based
-        ce = ce - ws  # fit to window and make 0-based closed
-
-        if 0 > any([cs, ce, ws, we]):
-            raise Exception(
-                "One of "
-                + str([cs, ce, ws, we])
-                + " lower than 0! this should not happen for "
-                + ",".join([goi, chrom, strand, cons, reg, f, window, span, temperature])
-            )
-
-        if gstrand != "-":
-            ws = ws + gs - 2  # get genomic coords 0 based closed, ws and gs are 1 based
-            we = we + gs - 2
-
-        else:
-            wst = ws  # temp ws for we calc
-            ws = ge - we  # get genomic coords 0 based closed, ge and we are 1 based
-            we = ge - wst
-
-        log.debug(
-            logid
-            + "Coords: "
-            + " ".join(
-                map(
-                    str,
-                    [
-                        goi,
-                        chrom,
-                        strand,
-                        cons,
-                        reg,
-                        f,
-                        window,
-                        span,
-                        temperature,
-                        gs,
-                        ge,
-                        cs,
-                        ce,
-                        ws,
-                        we,
-                    ],
-                )
-            )
-        )
-
-        border = abs(border)  # defines how big a diff has to be to be of importance
-
-        log.info(
-            logid
-            + "Continuing "
-            + str(goi)
-            + " calculation with cutoff: "
-            + str(cutoff)
-            + " and border "
-            + str(border)
-        )  # + ' and ' + str(border2))
-
-        # Read in plfold output
-        noc = _pl_to_array(raw, ulim)
-
-        out = {}
-        out["r"] = {"fw": dict(), "re": dict()}
-        out["u"] = {"fw": dict(), "re": dict()}
-        out["p"] = {"fw": dict(), "re": dict()}
-
-        if abs(np.nanmean(noc[cs : ce + 1])) <= cutoff:
-            if up:
-                uc = _pl_to_array(up, ulim)  # This is the diffacc for unpaired constraint
-                # Calculate raw prop unpaired for constraint diff file
-                uc = noc + uc
-            if pa:
-                pc = _pl_to_array(pa, ulim)  # This is the diffacc for paired constraint
-                # Calculate raw prop unpaired for constraint diff file
-                pc = noc + pc
-
-            log.debug(
-                logid
-                + "unpaired: "
-                + str(up)
-                + " and paired: "
-                + str(pa)
-                + " Content: "
-                + str(uc[ulim : ulim + 10])
-                + " test "
-                + str(np.all(uc[ulim : ulim + 10]))
-            )
-
-            """
-            Collect positions of interest with padding around constraint
-            Constraints are influencing close by positions strongest so strong influence of binding there is expected
-            """
-
-            for pos in range(len(noc)):
-                if pos not in range(cs - padding + 1 - ulim, ce + padding + 1 + ulim):
-                    if strand != "-":
-                        gpos = pos + ws - ulim + 1  # already 0-based
-                        gend = gpos + ulim  # 0-based half-open
-                        orient = "fw"
-                    else:
-                        gpos = we - pos  # already 0-based
-                        gend = gpos + ulim  # 0-based half-open
-                        orient = "re"
-
-                    if border < abs(noc[pos]):
-                        out["raw"][orient]["chrom"].append(str(chrom))
-                        out["raw"][orient]["start"].append(str(gpos))
-                        out["raw"][orient]["end"].append(str(gend))
-                        out["raw"][orient]["value"].append(noc[pos])
-
-                    if border < abs(uc[pos]):
-                        out["uc"][orient]["chrom"].append(str(chrom))
-                        out["uc"][orient]["start"].append(str(gpos))
-                        out["uc"][orient]["end"].append(str(gend))
-                        out["uc"][orient]["value"].append(uc[pos])
-
-                    if border < abs(uc[pos]):
-                        out["pc"][orient]["chrom"].append(str(chrom))
-                        out["pc"][orient]["start"].append(str(gpos))
-                        out["pc"][orient]["end"].append(str(gend))
-                        out["pc"][orient]["value"].append(pc[pos])
-
-            return out
+            for i in range(len(pa)):
+                out.append(create_bw_entries(pa[i], goi, gstrand, cutoff, border))
+        return out
 
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -509,7 +382,7 @@ def generate_bws(
         log.error(logid + "".join(tbe.format()))
 
 
-def writebws(out, outdir, bwlist):
+def writebws(out, bwlist):
     """Write BigWig entries to file
 
     Parameters
@@ -667,6 +540,187 @@ def read_chromsize(cs):
     sizes = [tuple((str(x), int(y))) for x, y in [l.split("\t") for l in sizes]]
     log.debug(f"{logid} {sizes}")
     return sizes
+
+
+def equalize_lists(listoflists):
+    max_length = 0
+    for list in listoflists:
+        max_length = max(max_length, len(list))
+
+    for list in listoflists:
+        list += [None] * (max_length - len(list))
+    return listoflists
+
+
+def create_bw_entries(name, goi, gstrand, cutoff, border):
+    """Create entries for BigWig files
+
+    Parameters
+    ----------
+    name : str
+        Filename to read from
+    goi : str
+        Gene of interest
+    gstrand : str
+        strand of goi
+    cutoff : float
+        Cutoff for the definition of pairedness, if set to < 1 it will select only constraint regions with mean raw (unconstraint) probability of being unpaired <= cutoff for further processing(default: 1.0)
+    border : float
+        Cutoff for the minimum change between unconstraint and constraint structure, regions below this cutoff will not be further evaluated.
+
+    Returns
+    -------
+    _type_
+        _description_
+
+    Raises
+    ------
+    Exception
+        _description_
+    """
+    try:
+        if "diff" in name:
+            repl = f"StruCons_{goi}"
+        else:
+            repl = goi
+        chrom, strand, cons, reg, f, window, span, temperature = map(
+            str, str(os.path.basename(name).replace(repl + "_", "", 1).split(sep="_"))
+        )
+        span = span.split(sep=".")[0]
+        cs, ce = map(int, cons.split(sep="-"))
+        ws, we = map(int, reg.split(sep="-"))
+
+        cs = cs - ws  # fit to window and make 0-based
+        ce = ce - ws  # fit to window and make 0-based closed
+
+        if 0 > any([cs, ce, ws, we]):
+            raise Exception(
+                "One of "
+                + str([cs, ce, ws, we])
+                + " lower than 0! this should not happen for "
+                + ",".join([goi, chrom, strand, cons, reg, f, window, span, temperature])
+            )
+
+        if gstrand != "-":
+            ws = ws + gs - 2  # get genomic coords 0 based closed, ws and gs are 1 based
+            we = we + gs - 2
+
+        else:
+            wst = ws  # temp ws for we calc
+            ws = ge - we  # get genomic coords 0 based closed, ge and we are 1 based
+            we = ge - wst
+
+        log.debug(
+            logid
+            + "Coords: "
+            + " ".join(
+                map(
+                    str,
+                    [
+                        goi,
+                        chrom,
+                        strand,
+                        cons,
+                        reg,
+                        f,
+                        window,
+                        span,
+                        temperature,
+                        gs,
+                        ge,
+                        cs,
+                        ce,
+                        ws,
+                        we,
+                    ],
+                )
+            )
+        )
+
+        border = abs(border)  # defines how big a diff has to be to be of importance
+
+        log.info(
+            logid
+            + "Continuing "
+            + str(goi)
+            + " calculation with cutoff: "
+            + str(cutoff)
+            + " and border "
+            + str(border)
+        )  # + ' and ' + str(border2))
+
+        # Read in plfold output
+        noc = _pl_to_array(raw, ulim)
+
+        out = {}
+        out["r"] = {"fw": dict(), "re": dict()}
+        out["u"] = {"fw": dict(), "re": dict()}
+        out["p"] = {"fw": dict(), "re": dict()}
+
+        if abs(np.nanmean(noc[cs : ce + 1])) <= cutoff:
+            if up:
+                uc = _pl_to_array(up, ulim)  # This is the diffacc for unpaired constraint
+                # Calculate raw prop unpaired for constraint diff file
+                uc = noc + uc
+            if pa:
+                pc = _pl_to_array(pa, ulim)  # This is the diffacc for paired constraint
+                # Calculate raw prop unpaired for constraint diff file
+                pc = noc + pc
+
+            log.debug(
+                logid
+                + "unpaired: "
+                + str(up)
+                + " and paired: "
+                + str(pa)
+                + " Content: "
+                + str(uc[ulim : ulim + 10])
+                + " test "
+                + str(np.all(uc[ulim : ulim + 10]))
+            )
+
+            """
+            Collect positions of interest with padding around constraint
+            Constraints are influencing close by positions strongest so strong influence of binding there is expected
+            """
+
+            for pos in range(len(noc)):
+                if pos not in range(cs - padding + 1 - ulim, ce + padding + 1 + ulim):
+                    if strand != "-":
+                        gpos = pos + ws - ulim + 1  # already 0-based
+                        gend = gpos + ulim  # 0-based half-open
+                        orient = "fw"
+                    else:
+                        gpos = we - pos  # already 0-based
+                        gend = gpos + ulim  # 0-based half-open
+                        orient = "re"
+
+                    if border < abs(noc[pos]):
+                        out["raw"][orient]["chrom"].append(str(chrom))
+                        out["raw"][orient]["start"].append(str(gpos))
+                        out["raw"][orient]["end"].append(str(gend))
+                        out["raw"][orient]["value"].append(noc[pos])
+
+                    if border < abs(uc[pos]):
+                        out["uc"][orient]["chrom"].append(str(chrom))
+                        out["uc"][orient]["start"].append(str(gpos))
+                        out["uc"][orient]["end"].append(str(gend))
+                        out["uc"][orient]["value"].append(uc[pos])
+
+                    if border < abs(uc[pos]):
+                        out["pc"][orient]["chrom"].append(str(chrom))
+                        out["pc"][orient]["start"].append(str(gpos))
+                        out["pc"][orient]["end"].append(str(gend))
+                        out["pc"][orient]["value"].append(pc[pos])
+        return out
+    except Exception:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+            exc_type,
+            exc_value,
+            exc_tb,
+        )
+        log.error(logid + "".join(tbe.format()))
 
 
 def main(args=None):
