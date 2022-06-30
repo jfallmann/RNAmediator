@@ -231,12 +231,12 @@ def scan_input(
         rawbigfw = rawbigre = unpbigfw = unpbigre = paibigfw = paibigre = None
 
         filepaths = [
-            os.path.join(outdir, f"{unconstraint}.fw.bw"),
-            os.path.join(outdir, f"{unconstraint}.re.bw"),
-            os.path.join(outdir, f"{unp}.fw.bw"),
-            os.path.join(outdir, f"{unp}.re.bw"),
-            os.path.join(outdir, f"{pai}.fw.bw"),
-            os.path.join(outdir, f"{pai}.re.bw"),
+            os.path.join(outdir, f"{unconstraint}_{ulim}.fw.bw"),
+            os.path.join(outdir, f"{unconstraint}_{ulim}.re.bw"),
+            os.path.join(outdir, f"{unp}_{ulim}.fw.bw"),
+            os.path.join(outdir, f"{unp}_{ulim}.re.bw"),
+            os.path.join(outdir, f"{pai}_{ulim}.fw.bw"),
+            os.path.join(outdir, f"{pai}_{ulim}.re.bw"),
         ]  # need to save that to get rid of empty files later on
 
         if unconstraint:
