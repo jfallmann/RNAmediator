@@ -118,9 +118,10 @@ class Constraint:
     start: int
     end: int
     strand: str
+    type: str
 
     def __str__(self):
-        return f"{self.start}-{self.end}|{self.strand}"
+        return f"{self.start}-{self.end}|{self.strand}|{self.type}"
 
 
 @check_run
@@ -163,7 +164,9 @@ def get_gene_coords(genecoords: Union[None, Dict], goi: str, strand: str) -> Tup
 
 
 @check_run
-def set_run_settings_dict(sequence, constrain: str, conslength: int, genes: str) -> Dict[str, SequenceSettings]:
+def set_run_settings_dict(
+    sequence, constrain: str, conslength: int, genes: str, constype: str = "hard"
+) -> Dict[str, SequenceSettings]:
     """Use command line parameters to build the run settings dictionary.
 
     Parameters
@@ -174,6 +177,8 @@ def set_run_settings_dict(sequence, constrain: str, conslength: int, genes: str)
         The file location of constrain file
      conslength : int
          Length of the constraint, only used if constrain is sliding
+    constype : str, optional
+         Type of constraint, default is hard
      genes:
          The file location of the genomic coordinates bed file
 
