@@ -70,6 +70,7 @@ import glob
 import multiprocessing
 
 # numpy
+import numpy as np
 import shlex
 from itertools import repeat
 
@@ -229,20 +230,29 @@ def scan_input(
         header = read_chromsize(chromsizes)
         rawbigfw = rawbigre = unpbigfw = unpbigre = paibigfw = paibigre = None
 
+        filepaths = [
+            os.path.join(outdir, f"{unconstraint}.fw.bw"),
+            os.path.join(outdir, f"{unconstraint}.re.bw"),
+            os.path.join(outdir, f"{unp}.fw.bw"),
+            os.path.join(outdir, f"{unp}.re.bw"),
+            os.path.join(outdir, f"{pai}.fw.bw"),
+            os.path.join(outdir, f"{pai}.re.bw"),
+        ]  # need to save that to get rid of empty files later on
+
         if unconstraint:
-            rawbigfw = pbw.open(os.path.join(outdir, f"{unconstraint}.fw.bw"), "w")
+            rawbigfw = pbw.open(filepaths[0], "w")
             rawbigfw.addHeader(header)
-            rawbigre = pbw.open(os.path.join(outdir, f"{unconstraint}.re.bw"), "w")
+            rawbigre = pbw.open(filepaths[1], "w")
             rawbigre.addHeader(header)
         if unp:
-            unpbigfw = pbw.open(os.path.join(outdir, f"{unp}.fw.bw"), "w")
+            unpbigfw = pbw.open(filepaths[2], "w")
             unpbigfw.addHeader(header)
-            unpbigre = pbw.open(os.path.join(outdir, f"{unp}.re.bw"), "w")
+            unpbigre = pbw.open(filepaths[3], "w")
             unpbigre.addHeader(header)
         if pai:
-            paibigfw = pbw.open(os.path.join(outdir, f"{pai}.fw.bw"), "w")
+            paibigfw = pbw.open(filepaths[4], "w")
             paibigfw.addHeader(header)
-            paibigre = pbw.open(os.path.join(outdir, f"{pai}.re.bw"), "w")
+            paibigre = pbw.open(filepaths[5], "w")
             paibigre.addHeader(header)
 
         bwlist = [rawbigfw, rawbigre, unpbigfw, unpbigre, paibigfw, paibigre]
@@ -289,12 +299,8 @@ def scan_input(
             )
             pool.close()
             pool.join()
-        for entry in outlist:
-            for e in entry:
-                writebws(e, bwlist)
 
-        for bw in [rawbigfw, rawbigre, unpbigfw, unpbigre, paibigfw, paibigre]:
-            bw.close()
+        writebws(outlist, bwlist, filepaths)
 
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -382,72 +388,80 @@ def generate_bws(
         log.error(logid + "".join(tbe.format()))
 
 
-def writebws(out, bwlist):
+def writebws(outlist, listofbws, filepaths):
     """Write BigWig entries to file
 
     Parameters
     ----------
-    out : Nested defaultdict
+    outlist : Nested defaultdict
         BigWig entries
-    outdir : str
-        Directory to write to
-    bwlist : list
+    listofbws : list
         List of BigWig filehandles
+    filepaths : list
+        List of BigWig file paths for cleanup of empty files
     """
     logid = SCRIPTNAME + ".writebws: "
 
     try:
-        log.debug(logid + f"out: {out}")
-        if len(out["raw"]["fw"]["chrom"]) > 0:
-            bw = bwlist[0]
-            bw.addEntries(
-                out["raw"]["fw"]["chrom"],
-                out["raw"]["fw"]["start"],
-                ends=out["raw"]["fw"]["end"],
-                values=out["raw"]["fw"]["value"],
-            )
-        if len(out["raw"]["re"]["chrom"]) > 0:
-            bw = bwlist[1]
-            bw.addEntries(
-                out["raw"]["re"]["chrom"],
-                out["raw"]["re"]["start"],
-                ends=out["raw"]["re"]["end"],
-                values=out["raw"]["re"]["value"],
-            )
-
-        if len(out["uc"]["fw"]["chrom"]) > 0:
-            bw = bwlist[2]
-            bw.addEntries(
-                out["uc"]["fw"]["chrom"],
-                out["uc"]["fw"]["start"],
-                ends=out["uc"]["fw"]["end"],
-                values=out["uc"]["fw"]["value"],
-            )
-        if len(out["uc"]["re"]["chrom"]) > 0:
-            bw = bwlist[3]
-            bw.addEntries(
-                out["uc"]["re"]["chrom"],
-                out["uc"]["re"]["start"],
-                ends=out["uc"]["re"]["end"],
-                values=out["uc"]["re"]["value"],
-            )
-
-        if len(out["pc"]["fw"]["chrom"]) > 0:
-            bw = bwlist[4]
-            bw.addEntries(
-                out["pc"]["fw"]["chrom"],
-                out["pc"]["fw"]["start"],
-                ends=out["pc"]["fw"]["end"],
-                values=out["pc"]["fw"]["value"],
-            )
-        if len(out["pc"]["re"]["chrom"]) > 0:
-            bw = bwlist[0]
-            bw.addEntries(
-                out["pc"]["re"]["chrom"],
-                out["pc"]["re"]["start"],
-                ends=out["pc"]["re"]["end"],
-                values=out["pc"]["re"]["value"],
-            )
+        log.debug(logid + f"bwlist:{listofbws}")
+        for entry in outlist:
+            for out in entry:
+                log.debug(logid + f"out: {out}")
+                if len(out["raw"]["fw"]["chrom"]) > 0:
+                    listofbws[0].addEntries(
+                        out["raw"]["fw"]["chrom"],
+                        out["raw"]["fw"]["start"],
+                        ends=out["raw"]["fw"]["end"],
+                        values=out["raw"]["fw"]["value"],
+                    )
+                if len(out["raw"]["re"]["chrom"]) > 0:
+                    listofbws[1].addEntries(
+                        out["raw"]["re"]["chrom"],
+                        out["raw"]["re"]["start"],
+                        ends=out["raw"]["re"]["end"],
+                        values=out["raw"]["re"]["value"],
+                    )
+                if len(out["uc"]["fw"]["chrom"]) > 0:
+                    listofbws[2].addEntries(
+                        out["uc"]["fw"]["chrom"],
+                        out["uc"]["fw"]["start"],
+                        ends=out["uc"]["fw"]["end"],
+                        values=out["uc"]["fw"]["value"],
+                    )
+                if len(out["uc"]["re"]["chrom"]) > 0:
+                    listofbws[3].addEntries(
+                        out["uc"]["re"]["chrom"],
+                        out["uc"]["re"]["start"],
+                        ends=out["uc"]["re"]["end"],
+                        values=out["uc"]["re"]["value"],
+                    )
+                if len(out["pc"]["fw"]["chrom"]) > 0:
+                    listofbws[4].addEntries(
+                        out["pc"]["fw"]["chrom"],
+                        out["pc"]["fw"]["start"],
+                        ends=out["pc"]["fw"]["end"],
+                        values=out["pc"]["fw"]["value"],
+                    )
+                if len(out["pc"]["re"]["chrom"]) > 0:
+                    listofbws[5].addEntries(
+                        out["pc"]["re"]["chrom"],
+                        out["pc"]["re"]["start"],
+                        ends=out["pc"]["re"]["end"],
+                        values=out["pc"]["re"]["value"],
+                    )
+        log.debug(logid + f"bwlist_after:{listofbws}")
+        for i in range(len(listofbws)):
+            bw = listofbws[i]
+            if bw:
+                bw.close()
+                bw = pbw.open(filepaths[i], "r")
+                if bw.header()["nBasesCovered"] != 0:
+                    log.info(logid + f"{bw} is valid: {bw.isBigWig()}")
+                    bw.close()
+                else:
+                    bw.close()
+                    os.remove(filepaths[i])
+                    log.warning(logid + f"File {bw} is empty, was deleted.")
 
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -519,13 +533,15 @@ def getfiles(name, window, span, temperature, goi, indir=None):
             return fullname
 
 
-def read_chromsize(cs):
+def read_chromsize(cs, limit=32):
     """Read chromosome sizes from file
 
     Parameters
     ----------
     cs : str
         File to read from
+    limit: int
+        Max length for chrom names, only 32 characters allowed by ucsc
 
     Returns
     -------
@@ -539,6 +555,16 @@ def read_chromsize(cs):
     else:
         sizes = open(cs, "r").read().splitlines()
     sizes = [tuple((str(x), int(y))) for x, y in [l.split("\t") for l in sizes]]
+    for i in range(len(sizes)):
+        l = list(sizes[i])
+        if l[0][:2] != "chr":  # UCSC needs chr in chromname
+            if l[0][:2] == "CHR":
+                l[0][:2] = "chr"
+            else:
+                l[0] = "chr" + l[0]
+        if len(l[0]) > limit:  # UCSC only allows 32char lenght strings
+            l[0] = l[0][:limit]
+        sizes[i] = tuple(l)
     log.debug(f"{logid} {sizes}")
     return sizes
 
@@ -547,7 +573,6 @@ def equalize_lists(listoflists):
     max_length = 0
     for list in listoflists:
         max_length = max(max_length, len(list))
-
     for list in listoflists:
         list += [None] * (max_length - len(list))
     return listoflists
@@ -605,6 +630,12 @@ def create_bw_entries(fname, goi, gstrand, gs, ge, cutoff, border, ulim, padding
                 str, str(os.path.basename(fname)).replace(repl + "_", "", 1).split(sep="_")
             )
 
+        if chrom[:2] != "chr":  # UCSC needs chr in chromname
+            if chrom[:2] == "CHR":
+                chrom[:2] = "chr"
+            else:
+                chrom = "chr" + chrom
+
         temperature = temperature.replace(".npy", "")
         span = span.split(sep=".")[0]
         cs, ce = map(int, cons.split(sep="-"))
@@ -639,7 +670,7 @@ def create_bw_entries(fname, goi, gstrand, gs, ge, cutoff, border, ulim, padding
                     [
                         goi,
                         chrom,
-                        strand,
+                        gstrand,
                         cons,
                         reg,
                         f,
@@ -701,13 +732,13 @@ def create_bw_entries(fname, goi, gstrand, gs, ge, cutoff, border, ulim, padding
 
         for pos in range(len(noc)):
             # if pos not in range(cs - padding + 1 - ulim, ce + padding + 1 + ulim):
-            if strand != "-":
+            if gstrand != "-":
                 gpos = pos + ws - ulim + 1  # already 0-based
-                gend = gpos + ulim  # 0-based half-open
+                gend = gpos + 1  # 0-based half-open
                 orient = "fw"
             else:
                 gpos = we - pos  # already 0-based
-                gend = gpos + ulim  # 0-based half-open
+                gend = gpos + 1  # 0-based half-open
                 orient = "re"
 
             log.debug(
@@ -715,33 +746,33 @@ def create_bw_entries(fname, goi, gstrand, gs, ge, cutoff, border, ulim, padding
                 + f"gpos: {gpos}, gend: {gend}, strand: {orient}, position: {pos}, noc: {noc[pos]}, border: {border}"
             )
 
-            if border < abs(noc[pos]):
+            if border < abs(noc[pos]) and not np.isnan(noc[pos]):
                 for x in ["chrom", "start", "end", "value"]:
                     if not out["raw"][orient][x]:
                         out["raw"][orient][x] = list()
 
                 out["raw"][orient]["chrom"].append(str(chrom))
-                out["raw"][orient]["start"].append(str(gpos))
-                out["raw"][orient]["end"].append(str(gend))
-                out["raw"][orient]["value"].append(noc[pos])
+                out["raw"][orient]["start"].append(int(gpos))
+                out["raw"][orient]["end"].append(int(gend))
+                out["raw"][orient]["value"].append(float(noc[pos]))
 
-            if oc and "diffnu" in fname and border < abs(oc[pos]):
+            if oc and "diffnu" in fname and border < abs(oc[pos]) and not np.isnan(oc[pos]):
                 for x in ["chrom", "start", "end", "value"]:
                     if not out["uc"][orient][x]:
                         out["uc"][orient][x] = list()
                 out["uc"][orient]["chrom"].append(str(chrom))
-                out["uc"][orient]["start"].append(str(gpos))
-                out["uc"][orient]["end"].append(str(gend))
-                out["uc"][orient]["value"].append(oc[pos])
+                out["uc"][orient]["start"].append(int(gpos))
+                out["uc"][orient]["end"].append(int(gend))
+                out["uc"][orient]["value"].append(float(oc[pos]))
 
-            if oc and "diffnp" in fname and border < abs(oc[pos]):
+            if oc and "diffnp" in fname and border < abs(oc[pos]) and not np.isnan(oc[pos]):
                 for x in ["chrom", "start", "end", "value"]:
                     if not out["pc"][orient][x]:
                         out["pc"][orient][x] = list()
                 out["pc"][orient]["chrom"].append(str(chrom))
-                out["pc"][orient]["start"].append(str(gpos))
-                out["pc"][orient]["end"].append(str(gend))
-                out["pc"][orient]["value"].append(oc[pos])
+                out["pc"][orient]["start"].append(int(gpos))
+                out["pc"][orient]["end"].append(int(gend))
+                out["pc"][orient]["value"].append(float(oc[pos]))
         return out
 
     except Exception:
