@@ -100,13 +100,13 @@ def parseargs_plcons():
     parser.add_argument("-w", "--window", type=int, default=240, help="Size of window")
     parser.add_argument("-l", "--span", type=int, default=60, help="Length of bp span")
     parser.add_argument("-u", "--region", type=int, default=1, help="Length of region")
-    parser.add_argument("-m", "--multi", type=int, default=2, help="Multiplyer for window expansion")
+    parser.add_argument("-m", "--multi", type=int, default=2, help="Multiplier for window expansion")
     parser.add_argument(
         "-r",
-        "--unconstraint",
+        "--unconstrained",
         type=str,
         default="raw",
-        help="Print output of unconstraint folding to file with this name",
+        help="Print output of unconstrained folding to file with this name",
     )
     parser.add_argument(
         "-n",
@@ -175,6 +175,13 @@ def parseargs_plcons():
         "--version",
         action="store_true",
         help="Print version",
+    )
+    parser.add_argument(
+        "--constype",
+        type = str,
+        default = 'hard',
+        choices = ['hard', 'soft', 'mutate']
+        help="Choose what type of constraint to apply, can be ['hard'(Default), 'soft'(not implemented yet), 'mutate']",
     )
     parser.add_argument(
         "--loglevel",
