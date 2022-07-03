@@ -118,10 +118,13 @@ class Constraint:
     start: int
     end: int
     strand: str
-    type: str
+    type: str = ""
 
     def __str__(self):
-        return f"{self.start}-{self.end}|{self.strand}|{self.type}"
+        if self.type != "":
+            return f"{self.start}-{self.end}|{self.strand}|{self.type}"
+        else:
+            return f"{self.start}-{self.end}|{self.strand}"
 
 
 @check_run

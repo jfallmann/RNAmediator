@@ -51,6 +51,11 @@ def command_line_constraint():
 
 
 @pytest.fixture
+def command_line_mutate_constraint():
+    return "50-51:A"
+
+
+@pytest.fixture
 def paired_constraints():
     return os.path.join(TESTDATAPATH, "paired_constraints.bed")
 
@@ -118,6 +123,16 @@ def minus_constraint():
 
 
 @pytest.fixture
+def mutate_constraint():
+    return Constraint(10, 1, "+", "G")
+
+
+@pytest.fixture
+def mutate_minus_constraint():
+    return Constraint(5, 6, "-", "C")
+
+
+@pytest.fixture
 def basic_constraintlist():
     cons_a = (Constraint(10, 20, "+"),)
     cons_b = (Constraint(50, 70, "+"), Constraint(10, 20, "+"))
@@ -128,6 +143,20 @@ def basic_constraintlist():
 def basic_minus_constraintlist():
     cons_a = (Constraint(10, 20, "-"),)
     cons_b = (Constraint(50, 70, "-"), Constraint(10, 20, "-"))
+    return [cons_a, cons_b]
+
+
+@pytest.fixture
+def mutate_constraintlist():
+    cons_a = (Constraint(10, 20, "+", "A"),)
+    cons_b = (Constraint(50, 70, "+", "U"), Constraint(10, 20, "+", "T"))
+    return [cons_a, cons_b]
+
+
+@pytest.fixture
+def mutate_minus_constraintlist():
+    cons_a = (Constraint(10, 20, "-", "A"),)
+    cons_b = (Constraint(50, 70, "-", "U"), Constraint(10, 20, "-", "T"))
     return [cons_a, cons_b]
 
 
@@ -162,6 +191,19 @@ def test_sequence_settings_auto_strand(sequence_string, caplog):
     ],
 )
 def test_sequence_settings_add_constraint(constraint, seqsettings, request):
+    constraint = request.getfixturevalue(constraint)
+    seqsettings = request.getfixturevalue(seqsettings)
+    seqsettings.add_constraints([constraint])
+
+
+@pytest.mark.parametrize(
+    "seqsettings, constraint",
+    [
+        ("basic_sequence_settings", "mutate_constraint"),
+        ("na_strand_sequence_settings", "mutate_minus_constraint"),
+    ],
+)
+def test_sequence_settings_add_mutate_constraint(constraint, seqsettings, request):
     constraint = request.getfixturevalue(constraint)
     seqsettings = request.getfixturevalue(seqsettings)
     seqsettings.add_constraints([constraint])
@@ -239,6 +281,7 @@ def test_get_gene_coords_missing_entry(gene_coords_dict, caplog):
     "sequence, constrain, genomic_coords, conslength",
     [
         ("sequence_string", "3-5", None, 1),
+        ("sequence_string", "3-5:A", None, 1),
         ("single_sequence_fasta", "ono,10-15", "genomic_coords_file", 1),
         ("stringio_fasta", "single_bedfile", "genomic_coords_file", 1),
         ("stringio_fasta", "sliding", "genomic_coords_file", 3),
