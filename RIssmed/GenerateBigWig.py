@@ -1,47 +1,6 @@
 #!/usr/bin/env python3
 ### GenerateBigWig.py ---
-##
-## Filename: GenerateBigWig.py
-## Description:
-## Author: Joerg Fallmann
-## Maintainer:
-## Created: Thu Sep  6 09:02:18 2018 (+0200)
-## Version:
-## Package-Requires: ()
-## Last-Updated: Wed May 26 13:43:17 2021 (+0200)
-##           By: Joerg Fallmann
-##     Update #: 460
-## URL:
-## Doc URL:
-## Keywords:
-## Compatibility:
-##
-######################################################################
-##
-### Commentary:
-###import os, sys, inspect
-# # realpath() will make your script run, even if you symlink it :)
-# cmd_folder = os.path.dirname(os.path.realpath(os.path.abspath( inspect.getfile( inspect.currentframe() )) ))
-# if cmd_folder not in sys.path:
-#     sys.path.insert(0, cmd_folder)
-#
-# # Use this if you want to include modules from a subfolder
-# cmd_subfolder = os.path.join(os.path.dirname(os.path.realpath(os.path.abspath( inspect.getfile( inspect.currentframe() )) )),"lib")
-# if cmd_subfolder not in sys.path:
-#     sys.path.insert(0, cmd_subfolder)
-#
-# # Info:
-# # cmd_folder = os.path.dirname(os.path.abspath(__file__)) # DO NOT USE __file__ !!!
-# # __file__ fails if the script is called in different ways on Windows.
-# # __file__ fails if someone does os.chdir() before.
-# # sys.argv[0] also fails, because it doesn't not always contains the path.
-##
-##
-######################################################################
-##
-### Change Log:
-##
-##
+
 ######################################################################
 ##
 ## This program is free software: you can redistribute it and/or modify
@@ -76,6 +35,7 @@ from itertools import repeat
 
 # others
 from natsort import natsorted
+from pandas import Int32Dtype
 import pyBigWig as pbw
 
 from RIssmed.Tweaks.logger import (
@@ -632,7 +592,7 @@ def create_bw_entries(fname, goi, gstrand, gs, ge, cutoff, border, ulim, padding
 
         if chrom[:2] != "chr":  # UCSC needs chr in chromname
             if chrom[:2] == "CHR":
-                chrom[:2] = "chr"
+                chrom = "chr" + chrom[3:]
             else:
                 chrom = "chr" + chrom
 
@@ -730,6 +690,11 @@ def create_bw_entries(fname, goi, gstrand, gs, ge, cutoff, border, ulim, padding
         Constraints are influencing close by positions strongest so strong influence of binding there is expected
         """
 
+        chroms = defaultdict(list)
+        starts = defaultdict(list)
+        ends = defaultdict(list)
+        values = defaultdict(list)
+
         for pos in range(len(noc)):
             # if pos not in range(cs - padding + 1 - ulim, ce + padding + 1 + ulim):
             if gstrand != "-":
@@ -743,36 +708,30 @@ def create_bw_entries(fname, goi, gstrand, gs, ge, cutoff, border, ulim, padding
 
             log.debug(
                 logid
-                + f"gpos: {gpos}, gend: {gend}, strand: {orient}, position: {pos}, noc: {noc[pos]}, border: {border}"
+                + f"chrom: {chrom}, gpos: {gpos}, gend: {gend}, strand: {orient}, position: {pos}, noc: {noc[pos]}, border: {border}"
             )
 
             if border < abs(noc[pos]) and not np.isnan(noc[pos]):
-                for x in ["chrom", "start", "end", "value"]:
-                    if not out["raw"][orient][x]:
-                        out["raw"][orient][x] = list()
-
-                out["raw"][orient]["chrom"].append(str(chrom))
-                out["raw"][orient]["start"].append(int(gpos))
-                out["raw"][orient]["end"].append(int(gend))
-                out["raw"][orient]["value"].append(float(noc[pos]))
+                chroms["raw"].append(chrom)
+                starts["raw"].append(gpos)
+                ends["raw"].append(gend)
+                values["raw"].append(noc[pos])
 
             if oc and "diffnu" in fname and border < abs(oc[pos]) and not np.isnan(oc[pos]):
-                for x in ["chrom", "start", "end", "value"]:
-                    if not out["uc"][orient][x]:
-                        out["uc"][orient][x] = list()
-                out["uc"][orient]["chrom"].append(str(chrom))
-                out["uc"][orient]["start"].append(int(gpos))
-                out["uc"][orient]["end"].append(int(gend))
-                out["uc"][orient]["value"].append(float(oc[pos]))
+                chroms["uc"].append(chrom)
+                starts["uc"].append(gpos)
+                ends["uc"].append(gend)
+                values["uc"].append(oc[pos])
 
             if oc and "diffnp" in fname and border < abs(oc[pos]) and not np.isnan(oc[pos]):
-                for x in ["chrom", "start", "end", "value"]:
-                    if not out["pc"][orient][x]:
-                        out["pc"][orient][x] = list()
-                out["pc"][orient]["chrom"].append(str(chrom))
-                out["pc"][orient]["start"].append(int(gpos))
-                out["pc"][orient]["end"].append(int(gend))
-                out["pc"][orient]["value"].append(float(oc[pos]))
+                chroms["pc"].append(chrom)
+                starts["pc"].append(gpos)
+                ends["pc"].append(gend)
+                values["pc"].append(oc[pos])
+
+        for t in ["raw", "uc", "pc"]:
+            out = fill_array(out, t, orient, chroms, starts, ends, values)
+
         return out
 
     except Exception:
@@ -787,6 +746,26 @@ def create_bw_entries(fname, goi, gstrand, gs, ge, cutoff, border, ulim, padding
 
 def rec_dd():
     return defaultdict(rec_dd)
+
+
+def fill_array(out, which, orient, chroms, starts, ends, values):
+    try:
+        logid = f"{SCRIPTNAME}.fill_array: "
+        log.debug(f"{logid} {which}-{orient}:{chroms}:{starts}-{ends}:{values}")
+        out[which][orient]["chrom"] = np.array(chroms[which], np.str)
+        out[which][orient]["start"] = np.array(starts[which], np.int32)
+        out[which][orient]["end"] = np.array(ends[which], np.int32)
+        out[which][orient]["value"] = np.array(values[which], np.float32)
+        return out
+
+    except Exception:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+            exc_type,
+            exc_value,
+            exc_tb,
+        )
+        log.error(logid + "".join(tbe.format()))
 
 
 def main(args=None):

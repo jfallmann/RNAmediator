@@ -178,9 +178,9 @@ def parseargs_plcons():
     )
     parser.add_argument(
         "--constype",
-        type = str,
-        default = 'hard',
-        choices = ['hard', 'soft', 'mutate']
+        type=str,
+        default="hard",
+        choices=["hard", "soft", "mutate"],
         help="Choose what type of constraint to apply, can be ['hard'(Default), 'soft'(not implemented yet), 'mutate']",
     )
     parser.add_argument(
