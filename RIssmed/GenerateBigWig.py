@@ -177,11 +177,11 @@ def scan_input(
         window = int(pattern[0])
         span = int(pattern[1])
 
-        genecoords = parse_annotation_bed_withchrom(
+        genecoords = parse_annotation_bed_by_coordinates(
             genes
         )  # get genomic coords to print to bed later, should always be just one set of coords per gene
 
-        log.debug(logid + str(genecoords))
+        log.debug(f"{logid} COORDINATES: {genecoords}")
 
         # Create process pool with processes
         num_processes = procs or 1
@@ -488,7 +488,7 @@ def getfiles(name, window, span, temperature, goi, indir=None):
                 + str(temperature)
                 + " Will skip"
             )
-            return None
+            return list()
         else:
             return fullname
 
@@ -519,7 +519,7 @@ def read_chromsize(cs, limit=32):
         l = list(sizes[i])
         if l[0][:2] != "chr":  # UCSC needs chr in chromname
             if l[0][:2] == "CHR":
-                l[0][:2] = "chr"
+                l[0] = "chr" + l[3:]
             else:
                 l[0] = "chr" + l[0]
         if len(l[0]) > limit:  # UCSC only allows 32char lenght strings
@@ -530,6 +530,11 @@ def read_chromsize(cs, limit=32):
 
 
 def equalize_lists(listoflists):
+    logid = f"{SCRIPTNAME}.equalize_lists: "
+    log.debug(f"{logid} {listoflists}")
+    if all([len(x) == 0 for x in listoflists]):
+        log.error("No files found, exiting!")
+        sys.exit()
     max_length = 0
     for list in listoflists:
         max_length = max(max_length, len(list))
