@@ -614,10 +614,11 @@ def get_location(entry):
     logid = scriptn + ".get_location: "
     try:
         ret = list()
-        start = end = strand = None
+        start = end = strand = value = None
         start, end = map(int, entry.split(sep="|")[0].split(sep="-"))
         strand = str(entry.split(sep="|")[1])
-        ret.extend([start, end, strand])
+        value = str(entry.split(sep="|")[2]) if len(entry.split(sep="|") > 2) else "."
+        ret.extend([start, end, strand, value])
 
         if any([x == None for x in ret]):
             log.warning(logid + "Undefined variable: " + str(ret))
@@ -656,7 +657,8 @@ def get_location_withchrom(entry):
         chrom = map(str, entry.split(sep="|")[0].split(sep="-")[0])
         start, end = map(int, entry.split(sep="|")[0].split(sep="-")[1:])
         strand = str(entry.split(sep="|")[1])
-        ret.extend([chrom, start, end, strand])
+        value = str(entry.split(sep="|")[2]) if len(entry.split(sep="|") > 2) else "."
+        ret.extend([chrom, start, end, strand, value])
 
         if any([x == None for x in ret]):
             log.warning(logid + "Undefined variable: " + str(ret))
@@ -688,9 +690,9 @@ def _constrain_paired(fc, start, end, fstart=None, fend=None):
         Start of constraint
     end : int
         End of constraint
-    fstart : int
+    fstart : int, optional
         Start of second constraint
-    fend : int
+    fend : int, optional
         End of second constraint
 
     Returns
@@ -730,9 +732,9 @@ def _constrain_unpaired(fc, start, end, fstart=None, fend=None):
         Start of constraint
     end : int
         End of constraint
-    fstart : int
+    fstart : int, optional
         Start of second constraint
-    fend : int
+    fend : int, optional
         End of second constraint
 
     Returns
@@ -749,6 +751,135 @@ def _constrain_unpaired(fc, start, end, fstart=None, fend=None):
             for x in range(fstart + 1, fend + 1):
                 fc.hc_add_up(x)
         return fc
+    except Exception:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+            exc_type,
+            exc_value,
+            exc_tb,
+        )
+        log.error(logid + "".join(tbe.format()))
+
+
+def _constrain_paired_soft(fc, start, end, value, fstart=None, fend=None):
+    """Adds hard constraint paired to region
+
+    Parameters
+    ----------
+    fc : RNA.fold_compound object
+        ViennaRNA fold_compound object
+    start : int
+        Start of constraint
+    end : int
+        End of constraint
+    value : float
+        Softconstraint to apply
+    fstart : int, optional
+        Start of second constraint
+    fend : int, optional
+        End of second constraint
+
+    Returns
+    -------
+    fc: RNA.fold_compound object
+        ViennaRNA fold_compound object with constraint
+    """
+
+    logid = scriptn + ".constrain_paired: "
+    try:
+        for x in range(start + 1, end + 1):
+            # 0 means without direction
+            # ( $ d < 0 $: pairs upstream, $ d > 0 $: pairs downstream, $ d == 0 $: no direction)
+            fc.sc_add_bp(x, 0)
+        if fstart and fend:
+            for x in range(fstart + 1, fend + 1):
+                fc.sc_add_bp(x, 0)
+        return fc
+    except Exception:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+            exc_type,
+            exc_value,
+            exc_tb,
+        )
+        log.error(logid + "".join(tbe.format()))
+
+
+def _constrain_unpaired_soft(fc, start, end, value, fstart=None, fend=None):
+    """Adds hard constraint unpaired to region
+
+    Parameters
+    ----------
+    fc : RNA.fold_compound object
+        ViennaRNA fold_compound object
+    start : int
+        Start of constraint
+    end : int
+        End of constraint
+    value : float
+        Softconstraint to apply
+    fstart : int, optional
+        Start of second constraint
+    fend : int, optional
+        End of second constraint
+
+    Returns
+    -------
+    fc: RNA.fold_compound object
+        ViennaRNA fold_compound object with constraint
+    """
+
+    logid = scriptn + ".constrain_unpaired: "
+    try:
+        for x in range(start + 1, end + 1):
+            fc.sc_add_up(x, value)
+        if fstart and fend:
+            for x in range(fstart + 1, fend + 1):
+                fc.sc_add_up(x, value)
+        return fc
+    except Exception:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+            exc_type,
+            exc_value,
+            exc_tb,
+        )
+        log.error(logid + "".join(tbe.format()))
+
+
+def _mutate(seq, start, end, value, fstart=None, fend=None):
+    """Mutates sequence according to value
+
+    Parameters
+    ----------
+    seq : str
+        Sequence to fold
+    start : int
+        Start of mutation
+    end : int
+        End of mutation
+    value : str
+        Mutation to apply
+    fstart : int, optional
+        Start of second mutation
+    fend : int, optional
+        End of second mutation
+
+    Returns
+    -------
+    fc: RNA.fold_compound object
+        ViennaRNA fold_compound object with constraint
+    """
+
+    logid = scriptn + ".constrain_unpaired: "
+    try:
+        seq = list(seq)
+        for x in range(start + 1, end + 1):
+            seq[x] = value[end + 1 - x]
+        if fstart and fend:
+            for x in range(fstart + 1, fend + 1):
+                seq[x] = value[fend + 1 - x]
+        return str(seq)
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
@@ -1436,26 +1567,31 @@ def api_rnaplfold(
     span: int,
     region: int = 30,
     temperature: float = 37,
+    constype: str = "hard",
+    consval: str = "",
     constraint: Iterable[Tuple[str, int, int]] = None,
 ) -> PLFoldOutput:
     """api wrapper for RNAplfold
 
     Parameters
     ----------
-     sequence : str
+    sequence : str
         string representation of the sequence either RNA or DNA
-     window : int
+    window : int
         RNAplfold window option
-     span: int
-         RNAplfold span option
-     region: int, optional
-         RNAplfold region (u) option (default is 30)
-     temperature: float
-         RNAplfold temperature setting
-     constraint: Iterable[Tuple[str, int, int]], optional
+    span: int
+        RNAplfold span option
+    region: int, optional
+        RNAplfold region (u) option (default is 30)
+    temperature: float
+        RNAplfold temperature setting
+    constype : str
+        Type of constraint to apply, can be ['hard'(Default), 'soft'(not implemented yet), 'mutate']
+    consval : str
+        Value for constraint to apply, ignored when constype is 'hard'
+    constraint: Iterable[Tuple[str, int, int]], optional
          Constraints as Tuple in format (paired(p)/unpaired(u), start, end) (default is None)
          !!Warning!! ZERO BASED !!Warning!!
-
     Returns
     -------
     PLFoldOutput
@@ -1484,14 +1620,23 @@ def api_rnaplfold(
     if constraint is not None:
         seqlen = len(sequence)
         for entry in constraint:
-            mode = entry[0]
+            mode = entry[0] if constype in ["hard", "soft"] else "mutate"
             start = entry[1]
             end = entry[2]
+            value = consval
             _check_constraint(seqlen, start, end)
-            if mode == "paired" or mode == "p":
+            if mode == "paired" or mode == "p" and constype == "hard":
                 fc = _constrain_paired(fc, start, end)
-            elif mode == "unpaired" or mode == "u":
+            elif mode == "unpaired" or mode == "u" and constype == "hard":
                 fc = _constrain_unpaired(fc, start, end)
+            elif mode == "mutate":
+                seq = _mutate(str(sequence), start, end, value)
+                fc = RNA.fold_compound(str(seq), md, RNA.OPTION_WINDOW)
+            elif mode == "unpaired" or mode == "u" and constype == "soft":
+                fc = _constrain_unpaired_soft(fc, start, end, value)
+            elif mode == "paired" or mode == "p" and constype == "soft":
+                raise NotImplementedError("Soft constraints for paired sequences need specific basepairs")
+                fc = _constrain_paired_soft(fc, start, end, value)
             else:
                 raise ValueError("Constraint wrongly formatted. Has to be ('paired(p)'/'unpaired(u)', start, end)")
 
@@ -1510,6 +1655,8 @@ def cmd_rnafold(
     span: int,
     region: int = 30,
     temperature: float = 37,
+    constype: str = "hard",
+    consval: str = "",
     constraint: Iterable[Tuple[str, int, int]] = None,
     FoldOut: FoldOutput = None,
 ) -> PLFoldOutput:
@@ -1517,19 +1664,23 @@ def cmd_rnafold(
 
     Parameters
     ----------
-     sequence : str
+    sequence : str
         string representation of the sequence either RNA or DNA
-     window : int
+    window : int
         RNAplfold window option
-     span: int
-         RNAplfold span option
-     region: int, optional
-         RNAplfold region (u) option (default is 30)
-     temperature: float
-         RNAplfold temperature setting
-     constraint: Iterable[Tuple[str, int, int]], optional
-         Constraints as Tuple in format (paired(p)/unpaired(u), start, end) (default is None)
-         !!Warning!! ZERO BASED !!Warning!!
+    span: int
+        RNAplfold span option
+    region: int, optional
+        RNAplfold region (u) option (default is 30)
+    temperature: float
+        RNAplfold temperature setting
+    constype : str
+        Type of constraint to apply, can be ['hard'(Default), 'soft'(not implemented yet), 'mutate']
+    consval : str
+        Value for constraint to apply, ignored when constype is 'hard'
+    constraint: Iterable[Tuple[str, int, int]], optional
+        Constraints as Tuple in format (paired(p)/unpaired(u), start, end) (default is None)
+        !!Warning!! ZERO BASED !!Warning!!
      FoldOut: FoldOutput, optional
         FoldOutput object to work on
 

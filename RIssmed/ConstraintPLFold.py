@@ -186,7 +186,9 @@ def pl_fold(
             an = [np.nan]
             # We check if we need to fold the whole seq or just a region around the constraints
             conslist = fasta_settings.constrainlist
-            log.debug(logid + str(conslist))
+            constype = fasta_settings.constraintype
+            log.debug(f"{logid} {conslist} {constype}")
+
             for cons_tuple in conslist:
                 log.debug(logid + "ENTRY: " + str(cons_tuple))
                 if cons_tuple[0] is None:  # in case we just want to fold the sequence without constraints at all
@@ -264,6 +266,7 @@ def pl_fold(
                             [fstart, fend], [start, end] = [
                                 [ge - x for x in get_location(cn)[:2][::-1]] for cn in cons.split(":", 1)
                             ]
+                        consval = str([get_location(cn)[3] for cn in cons.split(":", 1)])
                         cons = str(fstart) + "-" + str(fend) + ":" + str(start) + "-" + str(end)
                         if start < 0 or fstart < 0 or end > len(seq_record.seq) or fend > len(seq_record.seq):
                             log.warning(
@@ -317,6 +320,8 @@ def pl_fold(
                                 save,
                                 outdir,
                                 unconstraint,
+                                constype,
+                                consval,
                             ),
                             kwds={
                                 "queue": queue,
@@ -335,6 +340,7 @@ def pl_fold(
                             start, end = [ge - x for x in get_location(cons)[:2][::-1]]
 
                         tostart, toend = expand_pl_window(start, end, window, multi, len(seq_record.seq))
+                        consval = str([get_location(cn)[3] for cn in cons.split(":", 1)])
                         cons = str(start) + "-" + str(end) + "_" + str(tostart) + "-" + str(toend)
                         log.debug(logid + str.join(" ", [goi, cons, gstrand]))
 
@@ -383,6 +389,8 @@ def pl_fold(
                                 unpaired,
                                 save,
                                 outdir,
+                                constype,
+                                consval,
                             ),
                             kwds={
                                 "unconstraint": unconstraint,
@@ -627,6 +635,8 @@ def constrain_seq(
     unpaired,
     save,
     outdir,
+    constype,
+    consval,
     unconstraint=None,
     queue=None,
     configurer=None,
@@ -649,15 +659,24 @@ def constrain_seq(
     unpaired: str Suffix for ouput files of unpaired constraint
     save: bool Should npy or npy and gz output be saved
     outdir : str Location of the Outpu directory. If it is an empty string os.cwd() is used
-    unconstraint: str Suffix for ouput files of unconstraint folding
-    queue: multiprocessing_queue Logging process queue
-    configurer: multiprocessing_config for Logging processes
-    level: logging.level Level for log process
+    constype : str
+        Type of constraint to apply, can be ['hard' (Default), 'soft'(not implemented yet), 'mutate']
+    consval : str
+        Value for constraint to apply, ignored when constype is 'hard'
+    unconstraint: str, optional
+        Suffix for ouput files of unconstraint folding
+    queue: multiprocessing_queue, optional
+        Logging process queue
+    configurer: multiprocessing_config, optional
+        Config for Logging processes
+    level: logging.level, optional
+        Level for log process
 
     Returns
     -------
     Call to write_constraint
     """
+
     logid = SCRIPTNAME + ".constrain_seq: "
     seq = str(seq)
     sid = str(sid)
@@ -702,6 +721,7 @@ def constrain_seq(
         # get local start,ends 0 based closed
         locstart = start - tostart
         locend = end - tostart
+        value = consval if constype != "hard" else None
 
         log.debug(
             " ".join(
@@ -718,41 +738,18 @@ def constrain_seq(
                         locstart,
                         locend,
                         toend,
+                        value,
                     ],
                 )
             )
         )
 
-        plfold_paired = api_rnaplfold(
-            seqtofold,
-            window,
-            span,
-            region,
-            temperature,
-            constraint=[("paired", locstart, locend + 1)],
-        )
-        plfold_unpaired = api_rnaplfold(
-            seqtofold,
-            window,
-            span,
-            region,
-            temperature,
-            constraint=[("unpaired", locstart, locend + 1)],
-        )
         # Cut sequence of interest from data, we no longer need the window extension as no effect outside of window
         # is visible with plfold anyways
         # get local start,ends 0 based closed
         locws = locws - tostart
         locwe = locwe - tostart
 
-        plfold_paired.localize(locws, locwe + 1)
-        plfold_unpaired.localize(locws, locwe + 1)
-
-        ap = plfold_paired.get_rissmed_np_array()
-        au = plfold_unpaired.get_rissmed_np_array()
-        # Calculating accessibility difference between unconstraint and constraint fold, <0 means less accessible
-        # with constraint, >0 means more accessible upon constraint
-        log.debug(logid + "Need to refold unconstraint sequence")
         plfold_unconstraint = fold_unconstraint(
             str(seqtofold),
             sid,
@@ -769,17 +766,49 @@ def constrain_seq(
         )
         an = plfold_unconstraint.get_rissmed_np_array()  # create numpy array from output
 
+        # fold constrained
+        plfold_unpaired = api_rnaplfold(
+            seqtofold,
+            window,
+            span,
+            region,
+            temperature,
+            constype,
+            consval,
+            constraint=[("unpaired", locstart, locend + 1)],
+        )
+        plfold_unpaired.localize(locws, locwe + 1)
+        au = plfold_unpaired.get_rissmed_np_array()
+
+        if constype in ["hard", "soft"]:
+            plfold_paired = api_rnaplfold(
+                seqtofold,
+                window,
+                span,
+                region,
+                temperature,
+                constype,
+                consval,
+                constraint=[("paired", locstart, locend + 1)],
+            )
+            plfold_paired.localize(locws, locwe + 1)
+            ap = plfold_paired.get_rissmed_np_array()
+        else:
+            plfold_paired = None
+
+        # Calculating accessibility difference between unconstraint and constraint fold, <0 means less accessible
+        # with constraint, >0 means more accessible upon constraint
+
         if not np.array_equal(an, au):
             diff_nu = au - an
         else:
-            log.info(logid + "No influence on structure with unpaired constraint at " + cons)
+            log.info(logid + "No influence on Structure with unpaired constraint at " + cons)
             diff_nu = None
-
-        if not np.array_equal(an, ap):
+        if not np.array_equal(an, ap) and constype in ["hard", "soft"]:
             diff_np = ap - an
-
         else:
-            log.info(logid + "No influence on structure with paired constraint at " + cons)
+            if constype in ["hard", "soft"]:
+                log.info(logid + "No influence on Structure with paired constraint at " + cons)
             diff_np = None
 
         seqtoprint = seqtofold[locws - 1 : locwe]
@@ -828,7 +857,9 @@ def constrain_seq_paired(
     unpaired,
     save,
     outdir,
-    unconstraint,
+    constype,
+    consval,
+    unconstraint=None,
     queue=None,
     configurer=None,
     level=None,
@@ -852,20 +883,33 @@ def constrain_seq_paired(
     unpaired: str Suffix for ouput files of unpaired constraint
     save: bool Should npy or npy and gz output be saved
     outdir : str Location of the Outpu directory. If it is an empty string os.cwd() is used
-    unconstraint: str Suffix for ouput files of unconstraint folding
-    queue: multiprocessing_queue Logging process queue
-    configurer: multiprocessing_config for Logging processes
-    level: logging.level Level for log process
-
+    constype : str
+        Type of constraint to apply, can be ['hard' (Default), 'soft'(not implemented yet), 'mutate']
+    consval : str
+        Value for constraint to apply, ignored when constype is 'hard'
+    unconstraint: str, optional
+        Suffix for ouput files of unconstraint folding
+    queue: multiprocessing_queue, optional
+        Logging process queue
+    configurer: multiprocessing_config, optional
+        Config for Logging processes
+    level: logging.level, optional
+        Level for log process
     Returns
     -------
     Call to write_constraint
     """
-    seq = str(seq).upper().replace("T", "U")
+
     logid = SCRIPTNAME + ".constrain_seq_paired: "
+    seq = str(seq)
+    sid = str(sid)
     try:
         if queue and level:
             configurer(queue, level)
+
+        seq = str(seq).upper().replace("T", "U")
+        goi, chrom, strand = idfromfa(sid)
+        log.debug(logid + "CONSTRAINING PAIRWISE with " + str(start) + " " + str(end))
 
         # we no longer fold the whole sequence but only the constraint region +- window size
         tostart, toend = expand_pl_window(start, fend, window, multi, len(seq))
@@ -898,16 +942,15 @@ def constrain_seq_paired(
             return
 
         if checkexisting(sid, paired, unpaired, cons, region, window, span, temperature, outdir):
-            log.warning(logid + str(cons) + " Existst for " + str(sid) + "! Skipping!")
+            log.warning(logid + str(cons) + " Exists for " + str(sid) + "! Skipping!")
             return
 
-        # refresh model details
-        # RNA = importTweaks.import_module('RNA')
         # get local start,ends 0 based closed
         locstart = start - tostart
         locend = end - tostart
         flocstart = fstart - tostart
         flocend = fend - tostart
+        value = consval if constype != "hard" else None
 
         log.debug(
             " ".join(
@@ -924,42 +967,16 @@ def constrain_seq_paired(
                         locstart,
                         locend,
                         toend,
+                        value,
                     ],
                 )
             )
         )
 
-        # enforce paired constraint 1
-        plfold_paired = api_rnaplfold(
-            seqtofold,
-            window,
-            span,
-            region,
-            temperature,
-            constraint=[
-                ("paired", flocstart, flocend + 1),
-                ("paired", locstart, locend + 1),
-            ],
-        )
-        plfold_unpaired = api_rnaplfold(
-            seqtofold,
-            window,
-            span,
-            region,
-            temperature,
-            constraint=[
-                ("unpaired", flocstart, flocend + 1),
-                ("unpaired", locstart, locend + 1),
-            ],
-        )
         locws = locws - tostart
         locwe = locwe - tostart
-        plfold_paired.localize(locws, locwe + 1)
-        plfold_unpaired.localize(locws, locwe + 1)
-        ap = plfold_paired.get_rissmed_np_array()
-        au = plfold_unpaired.get_rissmed_np_array()
 
-        # Calculating accessibility difference between unconstraint and constraint fold, <0 means less accessible with constraint, >0 means more accessible upon constraint
+        # fold unconstrained
         plfold_unconstraint = fold_unconstraint(
             str(seqtofold),
             sid,
@@ -976,16 +993,56 @@ def constrain_seq_paired(
         )
         an = plfold_unconstraint.get_rissmed_np_array()
 
+        # fold constrained
+        plfold_unpaired = api_rnaplfold(
+            seqtofold,
+            window,
+            span,
+            region,
+            temperature,
+            constype,
+            consval,
+            constraint=[
+                ("unpaired", flocstart, flocend + 1),
+                ("unpaired", locstart, locend + 1),
+            ],
+        )
+        plfold_unpaired.localize(locws, locwe + 1)
+        au = plfold_unpaired.get_rissmed_np_array()
+
+        if constype in ["hard", "soft"]:
+            plfold_paired = api_rnaplfold(
+                seqtofold,
+                window,
+                span,
+                region,
+                temperature,
+                constype,
+                consval,
+                constraint=[
+                    ("paired", flocstart, flocend + 1),
+                    ("paired", locstart, locend + 1),
+                ],
+            )
+            plfold_paired.localize(locws, locwe + 1)
+            ap = plfold_paired.get_rissmed_np_array()
+        else:
+            plfold_paired = None
+        # Calculating accessibility difference between unconstraint and constraint fold, <0 means less accessible with constraint, >0 means more accessible upon constraint
+
         if not np.array_equal(an, au):
             diff_nu = au - an
         else:
             log.info(logid + "No influence on Structure with unpaired constraint at " + cons)
             diff_nu = None
-        if not np.array_equal(an, ap):
+        if not np.array_equal(an, ap) and constype in ["hard", "soft"]:
             diff_np = ap - an
         else:
-            log.info(logid + "No influence on Structure with paired constraint at " + cons)
+            if constype in ["hard", "soft"]:
+                log.info(logid + "No influence on Structure with paired constraint at " + cons)
             diff_np = None
+
+        seqtoprint = seqtofold[locws - 1 : locwe]
 
         write_constraint(
             save,
@@ -1178,20 +1235,21 @@ def write_constraint(
         goi, chrom, strand = idfromfa(sid)
         temp_outdir = os.path.join(outdir, goi)
         # print outputs to file or STDERR
-        if paired != "STDOUT":
-            if not os.path.exists(temp_outdir):
-                os.makedirs(temp_outdir)
-            filename = f"StruCons_{goi}_{chrom}_{strand}_{constrain}_{paired}_{window}_{span}_{temperature}.gz"
-            filepath = os.path.join(temp_outdir, filename)
-            if save > 0 and not os.path.exists(filepath):
-                with gzip.open(filepath, "wb") as o:
-                    out = data_p.get_text(nan="nan", truncated=True)
-                    if out and len(out) > 1:
-                        o.write(bytes(out, encoding="UTF-8"))
-                    else:
-                        log.error("No output produced " + sid)
-        else:
-            print(data_p.get_text(nan="nan", truncated=True))
+        if data_p:
+            if paired != "STDOUT":
+                if not os.path.exists(temp_outdir):
+                    os.makedirs(temp_outdir)
+                filename = f"StruCons_{goi}_{chrom}_{strand}_{constrain}_{paired}_{window}_{span}_{temperature}.gz"
+                filepath = os.path.join(temp_outdir, filename)
+                if save > 0 and not os.path.exists(filepath):
+                    with gzip.open(filepath, "wb") as o:
+                        out = data_p.get_text(nan="nan", truncated=True)
+                        if out and len(out) > 1:
+                            o.write(bytes(out, encoding="UTF-8"))
+                        else:
+                            log.error("No output produced " + sid)
+            else:
+                print(data_p.get_text(nan="nan", truncated=True))
 
         if unpaired != "STDOUT":
             if not os.path.exists(temp_outdir):
@@ -1422,7 +1480,9 @@ def main(args=None):
         log.info(logid + "Running " + SCRIPTNAME + " on " + str(args.procs) + " cores.")
 
         log.info(logid + "CLI: " + sys.argv[0] + " " + "{}".format(" ".join([shlex.quote(s) for s in sys.argv[1:]])))
-        run_settings, outdir = preprocess(args.sequence, args.constrain, args.conslength, args.outdir, args.genes)
+        run_settings, outdir = preprocess(
+            args.sequence, args.constrain, args.conslength, args.constype, args.outdir, args.genes
+        )
         pl_fold(
             args.window,
             args.span,

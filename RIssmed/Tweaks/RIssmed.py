@@ -53,6 +53,8 @@ class SequenceSettings:
          List of constraint objects. (default is None)
      genomic_coords: Constraint, optional optional
          genomic coordinates of the sequence record (default is None)
+     constraintype: str, optional
+        Type of constraint to apply, can be ['hard'(Default), 'soft'(not implemented yet), 'mutate']
     """
 
     @check_run
@@ -63,6 +65,7 @@ class SequenceSettings:
         chrom: str = "nochrom",
         strand: str = "+",
         constrainlist: Iterable[Tuple[Constraint]] = None,
+        constraintype: str = "hard",
         genomic_coords: Constraint = None,
     ):
         sequence_record.seq = Seq(
@@ -78,6 +81,7 @@ class SequenceSettings:
         self.chromosome = chrom
         self.gene = gene
         self.genomic_coords = genomic_coords
+        self._constraintype = constraintype
 
         self._check_strands()
 
@@ -107,10 +111,20 @@ class SequenceSettings:
 
         self._constrainlist += [constraints]
 
+    @check_run
+    def set_constraintype(self, ctype: str):
+        """sets constraint type"""
+        self._constraintype = ctype
+
     @property
     def constrainlist(self):
         """getter method for constraintlist attribute"""
         return self._constrainlist
+
+    @property
+    def constraintype(self):
+        """getter method for constraintype attribute"""
+        return self._constraintype
 
 
 @dataclass(frozen=True)
@@ -180,8 +194,8 @@ def set_run_settings_dict(
         The file location of constrain file
      conslength : int
          Length of the constraint, only used if constrain is sliding
-    constype : str, optional
-         Type of constraint, default is hard
+     constype : str
+         Type of constraint to apply, can be ['hard'(Default), 'soft'(not implemented yet), 'mutate']
      genes:
          The file location of the genomic coordinates bed file
 
@@ -196,26 +210,26 @@ def set_run_settings_dict(
     sequence = parseseq(sequence)
     if "ono" == str(constrain.split(",")[0]):
         constrain = constrain.split(",")[1]  # 0-based
-        constraintlist = read_constraints(constrain, linewise=True)
+        constraintlist = read_constraints(constrain, linewise=True, ctype=constype)
         for x, record in enumerate(SeqIO.parse(sequence, "fasta")):
             goi, chrom, strand = idfromfa(record.id)
             cons = constraintlist["lw"][x]
-            run_settings = add_rissmed_constraint(run_settings, cons, record, goi, chrom, strand)
+            run_settings = add_rissmed_constraint(run_settings, cons, record, goi, chrom, strand, ctype=constype)
     elif constrain == "sliding":
         for record in SeqIO.parse(sequence, "fasta"):
             goi, chrom, strand = idfromfa(record.id)
             for start in range(1, len(record.seq) - conslength + 2):  # 0-based
                 end = start + conslength - 1
                 cons = str(start) + "-" + str(end) + "|" + str(strand)
-                run_settings = add_rissmed_constraint(run_settings, cons, record, goi, chrom, strand)
+                run_settings = add_rissmed_constraint(run_settings, cons, record, goi, chrom, strand, ctype=constype)
     else:
-        constraintlist = read_constraints(constrain=constrain)
+        constraintlist = read_constraints(constrain=constrain, ctype=constype)
         for x, record in enumerate(SeqIO.parse(sequence, "fasta")):
             goi, chrom, strand = idfromfa(record.id)
             cons = constraintlist[goi] if type(constraintlist) == defaultdict else constraintlist
             log.debug(f"{logid} Setting {goi} {chrom} {strand} constraint {cons}")
             for entry in cons:
-                run_settings = add_rissmed_constraint(run_settings, entry, record, goi, chrom, strand)
+                run_settings = add_rissmed_constraint(run_settings, entry, record, goi, chrom, strand, ctype=constype)
     if genes != "":
         # get genomic coords to print to bed later, should always be just one set of coords per gene
         genecoords = parse_annotation_bed(genes)
@@ -238,6 +252,7 @@ def add_rissmed_constraint(
     goi: str = "nogene",
     chrom: str = "nochrom",
     sequence_strand: str = "+",
+    constype: str = "hard",
 ):
     """Adds constraints in string format to the goi in the run settings dict. Creates sequence settings if missing
 
@@ -255,6 +270,8 @@ def add_rissmed_constraint(
          chromosome of the sequence
      sequence_strand:
         strand of the sequence
+     constype: str, optional
+        Type of constraint to apply, can be ['hard'(Default), 'soft'(not implemented yet), 'mutate']
 
     Returns
     -------
@@ -273,9 +290,10 @@ def add_rissmed_constraint(
             cons_list.append(None)
         else:
             cons_strand = cons[1] if len(cons) > 1 else sequence_strand
+            cons_type_value = cons[2] if len(cons) > 2 else "hard"
             cons = cons[0]
             cons_start, cons_end = cons.split("-")
-            cons_list.append(Constraint(int(cons_start), int(cons_end), cons_strand))
+            cons_list.append(Constraint(int(cons_start), int(cons_end), cons_strand, cons_type_value))
     cons_tuple = tuple(cons_list)
     if record.id in run_settings:
         run_settings[record.id].add_constraints(cons_tuple)
@@ -283,6 +301,7 @@ def add_rissmed_constraint(
         settings = SequenceSettings(
             record,
             constrainlist=[cons_tuple],
+            constraintype=constype,
             chrom=chrom,
             gene=goi,
             strand=sequence_strand,
@@ -293,16 +312,18 @@ def add_rissmed_constraint(
 
 # put this into Fileprocessing ?
 @check_run
-def read_constraints(constrain: str, linewise: bool = False) -> Dict[str, List[str]]:
+def read_constraints(constrain: str, linewise: bool = False, ctype="hard") -> Dict[str, List[str]]:
     """Reads constraints from the constraints file
 
     Parameters
     ----------
-     constrain : Union[None, Dict]
+    constrain : Union[None, Dict]
         file location of the constrains file
-     linewise : bool, optional
+    linewise : bool, optional
         does not add the gene identifier to the returned cinstrantslist dictionary is set to True
         (default is False)
+    ctype : str, optional
+        sets type of constraint (default is 'hard)
 
     Returns
     -------
@@ -320,21 +341,21 @@ def read_constraints(constrain: str, linewise: bool = False) -> Dict[str, List[s
             else:
                 f = open(constrain, "rt")
             if "paired" in constrain:
-                constraintlist = read_paired_constraints_from_bed(f, linewise)
+                constraintlist = read_paired_constraints_from_bed(f, linewise, ctype)
             else:
-                constraintlist = read_constraints_from_bed(f, linewise)
+                constraintlist = read_constraints_from_bed(f, linewise, ctype)
         elif ".csv" in constrain:
             if ".gz" in constrain:
                 f = gzip.open(constrain, "rt")
             else:
                 f = open(constrain, "rt")
-            constraintlist = read_constraints_from_csv(f, linewise)
+            constraintlist = read_constraints_from_csv(f, linewise, ctype)
         else:
             if ".gz" in constrain:
                 f = gzip.open(constrain, "rt")
             else:
                 f = open(constrain, "rt")
-            constraintlist = read_constraints_from_generic(f, linewise)
+            constraintlist = read_constraints_from_generic(f, linewise, ctype)
         f.close()
     # elif constrain == "file" or constrain == "paired":
     #    log.info(
@@ -368,7 +389,7 @@ def read_constraints(constrain: str, linewise: bool = False) -> Dict[str, List[s
 
 
 @check_run
-def preprocess(sequence: str, constrain: str, conslength: int, outdir: str, genes: str):
+def preprocess(sequence: str, constrain: str, conslength: int, constype: str, outdir: str, genes: str):
     """builds the run settings dict and creates the output directory
 
     Parameters
@@ -379,6 +400,8 @@ def preprocess(sequence: str, constrain: str, conslength: int, outdir: str, gene
         The file location of constrain file
      conslength : int
          Length of the constraint, only used if constrain is sliding
+     constype : str
+         Type of constraint to apply, can be ['hard'(Default), 'soft'(not implemented yet), 'mutate']
      outdir : str
          Location of the Outpu directory. If it is an empty string os.cwd() is used
      genes:
@@ -399,7 +422,7 @@ def preprocess(sequence: str, constrain: str, conslength: int, outdir: str, gene
         else:
             outdir = os.path.abspath(os.getcwd())
 
-        run_settings = set_run_settings_dict(sequence, constrain, conslength, genes)
+        run_settings = set_run_settings_dict(sequence, constrain, conslength, genes, constype)
 
         return run_settings, outdir
 

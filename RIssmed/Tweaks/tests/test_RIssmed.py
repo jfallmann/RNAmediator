@@ -281,7 +281,7 @@ def test_get_gene_coords_missing_entry(gene_coords_dict, caplog):
     "sequence, constrain, genomic_coords, conslength",
     [
         ("sequence_string", "3-5", None, 1),
-        ("sequence_string", "3-5:A", None, 1),
+        ("sequence_string", "3-4|A", None, 1),
         ("single_sequence_fasta", "ono,10-15", "genomic_coords_file", 1),
         ("stringio_fasta", "single_bedfile", "genomic_coords_file", 1),
         ("stringio_fasta", "sliding", "genomic_coords_file", 3),
