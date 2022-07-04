@@ -617,7 +617,7 @@ def get_location(entry):
         start = end = strand = value = None
         start, end = map(int, entry.split(sep="|")[0].split(sep="-"))
         strand = str(entry.split(sep="|")[1])
-        value = str(entry.split(sep="|")[2]) if len(entry.split(sep="|") > 2) else "."
+        value = str(entry.split(sep="|")[2]) if len(entry.split(sep="|")) > 2 else "."
         ret.extend([start, end, strand, value])
 
         if any([x == None for x in ret]):
@@ -1479,25 +1479,31 @@ def cmd_rnaplfold(
     span: int,
     region: int = 30,
     temperature: float = 37,
+    constype: str = "hard",
+    consval: str = "",
     constraint: Iterable[Tuple[str, int, int]] = None,
 ) -> PLFoldOutput:
     """command line wrapper for RNAplfold
 
     Parameters
     ----------
-     sequence : str
+    sequence : str
         string representation of the sequence either RNA or DNA
-     window : int
+    window : int
         RNAplfold window option
-     span: int
-         RNAplfold span option
-     region: int, optional
-         RNAplfold region (u) option (default is 30)
-     temperature: float
-         RNAplfold temperature setting
-     constraint: Iterable[Tuple[str, int, int]], optional
-         Constraints as Tuple in format (paired(p)/unpaired(u), start, end) (default is None)
-         !!Warning!! ZERO BASED !!Warning!!
+    span: int
+        RNAplfold span option
+    region: int, optional
+        RNAplfold region (u) option (default is 30)
+    temperature: float
+        RNAplfold temperature setting
+    constype : str
+        Type of constraint to apply, can be ['hard'(Default), 'soft'(not implemented yet), 'mutate']
+    consval : str
+        Value for constraint to apply, ignored when constype is 'hard'
+    constraint: Iterable[Tuple[str, int, int]], optional
+        Constraints as Tuple in format (paired(p)/unpaired(u), start, end) (default is None)
+        !!Warning!! ZERO BASED !!Warning!!
 
     Returns
     -------
@@ -1513,14 +1519,28 @@ def cmd_rnaplfold(
                 mode = entry[0]
                 start = entry[1]
                 end = entry[2]
+                value = consval
                 _check_constraint(seqlen, start, end)
                 if mode == "paired" or mode == "p":
                     const = "F"
                 elif mode == "unpaired" or mode == "u":
                     const = "P"
+                elif mode == "mutate":
+                    seq = _mutate(str(sequence), start, end, value)
+                elif mode == "unpaired" or mode == "u" and constype == "soft":
+                    const = "E"
+                elif mode == "paired" or mode == "p" and constype == "soft":
+                    raise NotImplementedError("Soft constraints for paired sequences need specific basepairs")
+
                 else:
                     raise ValueError("Constraint wrongly formatted. Has to be ('paired(p)'/'unpaired(u)', start, end)")
-                constraint_string += f"{const} {start+1} {0} {end - start}\n"
+                constraint_string += (
+                    f"{const} {start+1} {0} {end - start}\n"
+                    if mode != "mutate"
+                    else f"{const} {start+1} {0} {end - start} {value}\n"
+                )
+        else:
+            mode = "unconstrained"
         constraint_file.write(constraint_string)
         constraint_file.seek(0)
         # check for window and span length
@@ -1534,27 +1554,48 @@ def cmd_rnaplfold(
             span = window
         ENVBIN = sys.exec_prefix
         BIN = os.path.join(ENVBIN, "bin", "RNAplfold")
-        rnaplfold = subprocess.Popen(
-            [
-                BIN,
-                "-W",
-                str(window),
-                "-L",
-                str(span),
-                "--commands",
-                constraint_file.name,
-                "--auto-id",
-                "-u",
-                str(region),
-                "-T",
-                str(temperature),
-            ],
-            stderr=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stdin=subprocess.PIPE,
-            cwd=tmp_dir,
-        )
-        stdout, stderr = rnaplfold.communicate(sequence.encode("utf-8"))
+        if mode != "mutate":
+            rnaplfold = subprocess.Popen(
+                [
+                    BIN,
+                    "-W",
+                    str(window),
+                    "-L",
+                    str(span),
+                    "--commands",
+                    constraint_file.name,
+                    "--auto-id",
+                    "-u",
+                    str(region),
+                    "-T",
+                    str(temperature),
+                ],
+                stderr=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stdin=subprocess.PIPE,
+                cwd=tmp_dir,
+            )
+            stdout, stderr = rnaplfold.communicate(sequence.encode("utf-8"))
+        else:
+            rnaplfold = subprocess.Popen(
+                [
+                    BIN,
+                    "-W",
+                    str(window),
+                    "-L",
+                    str(span),
+                    "--auto-id",
+                    "-u",
+                    str(region),
+                    "-T",
+                    str(temperature),
+                ],
+                stderr=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stdin=subprocess.PIPE,
+                cwd=tmp_dir,
+            )
+            stdout, stderr = rnaplfold.communicate(seq.encode("utf-8"))
         assert stderr == b"", f"call to RNApfold went wrong: \n {stderr.decode()}"
         file = os.path.join(tmp_dir, "sequence_0001_lunp")
         rnaplfold_output = PLFoldOutput.from_file(file)

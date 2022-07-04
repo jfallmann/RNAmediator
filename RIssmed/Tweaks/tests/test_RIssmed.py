@@ -90,6 +90,26 @@ def single_bedfile():
     os.remove(tmp_bedfile.name)
 
 
+@pytest.fixture()
+def single_longmutate_bedfile():
+    bed = """chr1	26	35	ENSG00000270742	ACTCAGACT	+"""
+    tmp_bedfile = NamedTemporaryFile("wt", suffix=".bed", delete=False)
+    tmp_bedfile.write(bed)
+    tmp_bedfile.close()
+    yield tmp_bedfile.name
+    os.remove(tmp_bedfile.name)
+
+
+@pytest.fixture()
+def single_snp_bedfile():
+    bed = """chr1	26	27	ENSG00000270742	A	+"""
+    tmp_bedfile = NamedTemporaryFile("wt", suffix=".bed", delete=False)
+    tmp_bedfile.write(bed)
+    tmp_bedfile.close()
+    yield tmp_bedfile.name
+    os.remove(tmp_bedfile.name)
+
+
 @pytest.fixture
 def multi_bedfile():
     return os.path.join(TESTDATAPATH, "test_constraints.bed")
@@ -250,8 +270,8 @@ def none_fixture():
 @pytest.mark.parametrize("strand", ["+", "-"])
 @pytest.mark.parametrize("goi", ["gene1", "gene2", "gene3", "gene4"])
 def test_get_gene_coords_with_annotation(gene_coords_dict, goi, strand, caplog):
-    expected_strand = gene_coords_dict[goi][0].split("|")[-1]
-    genomic_start, genomic_end, genomic_strand = get_gene_coords(gene_coords_dict, goi, strand)
+    expected_strand = gene_coords_dict[goi][0].split("|")[1]
+    genomic_start, genomic_end, genomic_strand, value = get_gene_coords(gene_coords_dict, goi, strand)
     assert expected_strand == genomic_strand
     if expected_strand != strand:
         assert "Strand values differ" in caplog.text
@@ -262,7 +282,7 @@ def test_get_gene_coords_with_annotation(gene_coords_dict, goi, strand, caplog):
 @pytest.mark.parametrize("strand", ["+", "-"])
 @pytest.mark.parametrize("goi", ["gene1", "gene2", "gene3", "gene4"])
 def test_get_gene_coords_default(none_fixture, goi, strand, caplog):
-    genomic_start, genomic_end, genomic_strand = get_gene_coords(none_fixture, goi, "+")
+    genomic_start, genomic_end, genomic_strand, value = get_gene_coords(none_fixture, goi, "+")
     assert "No coords found for gene" in caplog.text
     assert genomic_start == 0
     assert genomic_end == 0
@@ -270,7 +290,7 @@ def test_get_gene_coords_default(none_fixture, goi, strand, caplog):
 
 
 def test_get_gene_coords_missing_entry(gene_coords_dict, caplog):
-    genomic_start, genomic_end, genomic_strand = get_gene_coords(gene_coords_dict, "foo", "+")
+    genomic_start, genomic_end, genomic_strand, value = get_gene_coords(gene_coords_dict, "foo", "+")
     assert "No coords found for gene" in caplog.text
     assert genomic_start == 0
     assert genomic_end == 0
@@ -278,24 +298,26 @@ def test_get_gene_coords_missing_entry(gene_coords_dict, caplog):
 
 
 @pytest.mark.parametrize(
-    "sequence, constrain, genomic_coords, conslength",
+    "sequence, constrain, genomic_coords, conslength, constraintype",
     [
-        ("sequence_string", "3-5", None, 1),
-        ("sequence_string", "3-4|A", None, 1),
-        ("single_sequence_fasta", "ono,10-15", "genomic_coords_file", 1),
-        ("stringio_fasta", "single_bedfile", "genomic_coords_file", 1),
-        ("stringio_fasta", "sliding", "genomic_coords_file", 3),
+        ("sequence_string", "3-5", None, 1, "hard"),
+        ("sequence_string", "3-4|A", None, 1, "mutate"),
+        ("single_sequence_fasta", "ono,10-15", "genomic_coords_file", 1, "hard"),
+        ("stringio_fasta", "single_bedfile", "genomic_coords_file", 1, "hard"),
+        ("stringio_fasta", "sliding", "genomic_coords_file", 3, "hard"),
     ],
 )
-def test_set_run_settings_dict(sequence, constrain, conslength, genomic_coords, request):
+def test_set_run_settings_dict(sequence, constrain, conslength, constraintype, genomic_coords, request, caplog):
     sequence = request.getfixturevalue(sequence)
     try:
         constrain = request.getfixturevalue(constrain)
     except pytest.FixtureLookupError:
         pass
     genomic_coords = request.getfixturevalue(genomic_coords) if genomic_coords is not None else ""
-    run_settings = set_run_settings_dict(sequence, constrain, conslength, genomic_coords)
+    constraintype = constraintype if constraintype is not None else "hard"
+    run_settings = set_run_settings_dict(sequence, constrain, conslength, genomic_coords, constraintype)
     for entry in run_settings:
+
         assert isinstance(run_settings[entry], SequenceSettings)
 
 
@@ -347,7 +369,7 @@ def test_add_rissmed_constraint(cons1, cons2, expected_length, sequence_string):
 
 @pytest.mark.parametrize("outdir", ["", os.path.join(TMP_TEST_DIR, "preprocess")])
 def test_preprocess(single_sequence_fasta, single_bedfile, outdir):
-    run_settings, outdir = preprocess(single_sequence_fasta, single_bedfile, 1, outdir, "")
+    run_settings, outdir = preprocess(single_sequence_fasta, single_bedfile, 1, "hard", outdir, "")
     assert os.path.isdir(outdir)
     assert isinstance(run_settings, dict)
 

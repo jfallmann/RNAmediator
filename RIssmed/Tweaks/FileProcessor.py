@@ -252,7 +252,7 @@ def read_constraints_from_bed(bed, linewise=None, ctype="hard"):
         log.error(logid + "".join(tbe.format()))
 
 
-def read_paired_constraints_from_bed(bed, linewise=None, ctype="hard"):
+def read_paired_constraints_from_bed(bed, linewise=None, constraintype="hard"):
     logid = SCRIPTN + ".readPairedConstraintsFromBed: "
     cons = defaultdict(list)
     try:
@@ -269,7 +269,7 @@ def read_paired_constraints_from_bed(bed, linewise=None, ctype="hard"):
                 start_one = int(entries[1]) + 1
                 end_one = entries[2]
                 goi = entries[3]
-                value = entries[4] if ctype != "hard" else "."
+                value = entries[4] if constraintype != "hard" else "."
                 strand = entries[5]
                 start_two = int(entries[second]) + 1
                 end_two = int(entries[second + 1])
@@ -302,7 +302,7 @@ def read_paired_constraints_from_bed(bed, linewise=None, ctype="hard"):
         log.error(logid + "".join(tbe.format()))
 
 
-def read_constraints_from_csv(csv, linewise=None, ctype="hard"):
+def read_constraints_from_csv(csv, linewise=None, constraintype="hard"):
     logid = SCRIPTN + ".readConstraintsCSV: "
     cons: DefaultDict[any, List] = defaultdict(list)
     try:
@@ -311,7 +311,7 @@ def read_constraints_from_csv(csv, linewise=None, ctype="hard"):
             start = entries[1]
             end = entries[2]
             goi = entries[3]
-            value = entries[4] if ctype != "hard" else "."
+            value = entries[4] if constraintype != "hard" else "."
             strand = entries[5]
             if linewise:
                 cons["lw"].append("|".join(["-".join([str(start), str(end)]), strand, value]))
@@ -328,7 +328,7 @@ def read_constraints_from_csv(csv, linewise=None, ctype="hard"):
         log.error(logid + "".join(tbe.format()))
 
 
-def read_constraints_from_generic(generic, linewise=None, ctype="hard"):
+def read_constraints_from_generic(generic, linewise=None, constraintype="hard"):
     logid = SCRIPTN + ".readConstraintsFromGeneric: "
     cons: DefaultDict[any, List] = defaultdict(list)
 
@@ -339,7 +339,7 @@ def read_constraints_from_generic(generic, linewise=None, ctype="hard"):
                 goi = entries[1]
                 start = entries[2]
                 end = entries[3]
-                value = entries[4] if ctype != "hard" else "."
+                value = entries[4] if constraintype != "hard" else "."
                 strand = entries[5]
                 if linewise:
                     cons["lw"].append("|".join(["-".join([str(start), str(end)]), strand, value]))

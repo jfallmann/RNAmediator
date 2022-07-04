@@ -133,6 +133,7 @@ def single_constraint_args(default_args):
     default_args.unpaired = "unpaired"
     default_args.paired = "paired"
     default_args.unconstraint = "raw"
+    default_args.constype = "hard"
     default_args.outdir = os.path.join(TMP_TEST_DIR, "single_constraint_test")
     default_args.save = 1
     default_args.logdir = os.path.join(TMP_TEST_DIR, "LOG_SINGLE")
@@ -151,6 +152,7 @@ def paired_constraint_args(default_args):
     default_args.unpaired = "unpaired"
     default_args.paired = "paired"
     default_args.unconstraint = "raw"
+    default_args.constype = "hard"
     default_args.outdir = os.path.join(TMP_TEST_DIR, "paired_constraint_test")
     default_args.save = 1
     default_args.logdir = os.path.join(TMP_TEST_DIR, "LOG_PAIRED")
@@ -185,6 +187,7 @@ def sliding_args(default_args):
     default_args.unpaired = "unpaired"
     default_args.paired = "paired"
     default_args.unconstraint = "raw"
+    default_args.constype = "hard"
     default_args.outdir = os.path.join(TMP_TEST_DIR, "sliding_test")
     default_args.logdir = os.path.join(TMP_TEST_DIR, "LOG_SLIDING")
     default_args.version = None
@@ -199,6 +202,7 @@ def parafold_args(default_args):
     default_args.unpaired = "unpaired"
     default_args.paired = "paired"
     default_args.unconstraint = "raw"
+    default_args.constype = "hard"
     default_args.outdir = os.path.join(TMP_TEST_DIR, "parafold_test")
     default_args.logdir = os.path.join(TMP_TEST_DIR, "LOG_PARAFOLD")
     default_args.constrain = f"ono,{constrain}"
@@ -303,24 +307,9 @@ def test_fold_unconstraint(seq_id, region, window, span, temperature, unconstrai
 
 
 @pytest.mark.parametrize(
-    "seq_id,start,end,window,span,region,temperature,multi,paired,unpaired,save,outdir,unconstraint,seq",
+    "seq_id,start,end,window,span,region,temperature,multi,paired,unpaired,save,outdir,unconstraint,seq, constype, consval",
     [
-        (
-            "onlyA",
-            200,
-            207,
-            100,
-            60,
-            7,
-            42,
-            1,
-            "paired",
-            "unpaired",
-            1,
-            "onlyA",
-            "raw",
-            "A" * 500,
-        ),
+        ("onlyA", 200, 207, 100, 60, 7, 42, 1, "paired", "unpaired", 1, "onlyA", "raw", "A" * 500, "hard", "."),
         (
             "testseq2",
             200,
@@ -336,6 +325,8 @@ def test_fold_unconstraint(seq_id, region, window, span, temperature, unconstrai
             "testseq2",
             "raw",
             os.path.join(TESTDATAPATH, "test_single.fa"),
+            "hard",
+            ".",
         ),
         (
             "testseq3",
@@ -352,6 +343,26 @@ def test_fold_unconstraint(seq_id, region, window, span, temperature, unconstrai
             "testseq3",
             "raw",
             os.path.join(TESTDATAPATH, "test_single.fa"),
+            "hard",
+            ".",
+        ),
+        (
+            "testseq3",
+            200,
+            207,
+            100,
+            60,
+            7,
+            40,
+            2,
+            "paired",
+            "unpaired",
+            1,
+            "testseq3",
+            "raw",
+            "A" * 500,
+            "mutate",
+            "UUUUUUU",
         ),
     ],
 )
@@ -370,6 +381,8 @@ def test_fold_constraint(
     outdir,
     unconstraint,
     seq,
+    constype,
+    consval,
 ):
     if os.path.isfile(seq):
         seq = str(SeqIO.read(seq, format="fasta").seq)
@@ -390,6 +403,8 @@ def test_fold_constraint(
         span,
         region=region,
         temperature=temperature,
+        constype=constype,
+        consval=consval,
         constraint=[("unpaired", locstart, locend + 1)],
     )
     cmd_unpaired.localize(locws, locwe + 1)
@@ -400,6 +415,8 @@ def test_fold_constraint(
         span,
         region=region,
         temperature=temperature,
+        constype=constype,
+        consval=consval,
         constraint=[("paired", locstart, locend + 1)],
     )
     cmd_paired.localize(locws, locwe + 1)
@@ -420,6 +437,8 @@ def test_fold_constraint(
         save,
         outdir,
         unconstraint=unconstraint,
+        constype=constype,
+        consval=consval,
     )
     test_file_path = os.path.join(outdir, seq_id)
     test_files = os.listdir(test_file_path)
