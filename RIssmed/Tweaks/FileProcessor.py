@@ -234,11 +234,13 @@ def read_constraints_from_bed(bed, linewise=None):
             start = int(entries[1]) + 1
             end = entries[2]
             goi = entries[3]
+            value = entries[4]
             strand = entries[5]
+
             if linewise:
-                cons["lw"].append("|".join(["-".join([str(start), str(end)]), strand]))
+                cons["lw"].append("|".join(["-".join([str(start), str(end)]), strand, value]))
             else:
-                cons[str(goi)].append("|".join(["-".join([str(start), str(end)]), strand]))
+                cons[str(goi)].append("|".join(["-".join([str(start), str(end)]), strand, value]))
         return cons
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -267,6 +269,7 @@ def read_paired_constraints_from_bed(bed, linewise=None):
                 start_one = int(entries[1]) + 1
                 end_one = entries[2]
                 goi = entries[3]
+                value = entries[4]
                 strand = entries[5]
                 start_two = int(entries[second]) + 1
                 end_two = int(entries[second + 1])
@@ -274,8 +277,8 @@ def read_paired_constraints_from_bed(bed, linewise=None):
                     cons["lw"].append(
                         ":".join(
                             [
-                                "|".join(["-".join([str(start_one), str(end_one)]), strand]),
-                                "|".join(["-".join([str(start_two), str(end_two)]), strand]),
+                                "|".join(["-".join([str(start_one), str(end_one)]), strand, value]),
+                                "|".join(["-".join([str(start_two), str(end_two)]), strand, value]),
                             ]
                         )
                     )
@@ -283,8 +286,8 @@ def read_paired_constraints_from_bed(bed, linewise=None):
                     cons[str(goi)].append(
                         ":".join(
                             [
-                                "|".join(["-".join([str(start_one), str(end_one)]), strand]),
-                                "|".join(["-".join([str(start_two), str(end_two)]), strand]),
+                                "|".join(["-".join([str(start_one), str(end_one)]), strand, value]),
+                                "|".join(["-".join([str(start_two), str(end_two)]), strand, value]),
                             ]
                         )
                     )
@@ -307,11 +310,13 @@ def read_constraints_from_csv(csv, linewise=None):
             entries = line.rstrip().split(",")
             start = entries[1]
             end = entries[2]
+            goi = entries[3]
+            value = entries[4]
             strand = entries[5]
             if linewise:
-                cons["lw"].append("|".join(["-".join([str(start), str(end)]), strand]))
+                cons["lw"].append("|".join(["-".join([str(start), str(end)]), strand, value]))
             else:
-                cons[entries[3]].append("|".join(["-".join([str(start), str(end)]), strand]))
+                cons[entries[3]].append("|".join(["-".join([str(start), str(end)]), strand, value]))
         return cons
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -331,21 +336,25 @@ def read_constraints_from_generic(generic, linewise=None):
         for line in generic:
             entries = re.split(r'[ ,|;"]+', line.rstrip())
             if len(entries) > 3:
+                goi = entries[1]
                 start = entries[2]
                 end = entries[3]
+                value = entries[4]
                 strand = entries[5]
                 if linewise:
-                    cons["lw"].append("|".join(["-".join([str(start), str(end)]), strand]))
+                    cons["lw"].append("|".join(["-".join([str(start), str(end)]), strand, value]))
                 else:
                     cons[entries[0]].append("|".join(["-".join([str(start), str(end)]), strand]))
             else:
+                goi = entries[1]
                 start = entries[2]
                 end = entries[3]
+                value = ""
                 strand = "."
                 if linewise:
-                    cons["lw"].append("|".join(["-".join([str(start), str(end)]), strand]))
+                    cons["lw"].append("|".join(["-".join([str(start), str(end)]), strand, value]))
                 else:
-                    cons["generic"].append("|".join(["-".join([str(start), str(end)]), strand]))
+                    cons["generic"].append("|".join(["-".join([str(start), str(end)]), strand, value]))
         return cons
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
