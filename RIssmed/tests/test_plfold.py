@@ -134,7 +134,7 @@ def single_constraint_args(default_args):
     default_args.unpaired = "unpaired"
     default_args.paired = "paired"
     default_args.unconstraint = "raw"
-    default_args.constype = ("hard",)
+    default_args.constype = "hard"
     default_args.outdir = os.path.join(TMP_TEST_DIR, "single_constraint_test")
     default_args.save = 1
     default_args.logdir = os.path.join(TMP_TEST_DIR, "LOG_SINGLE")
@@ -153,7 +153,7 @@ def paired_constraint_args(default_args):
     default_args.unpaired = "unpaired"
     default_args.paired = "paired"
     default_args.unconstraint = "raw"
-    default_args.constype = ("hard",)
+    default_args.constype = "hard"
     default_args.outdir = os.path.join(TMP_TEST_DIR, "paired_constraint_test")
     default_args.save = 1
     default_args.logdir = os.path.join(TMP_TEST_DIR, "LOG_PAIRED")
@@ -172,7 +172,7 @@ def multi_constraint_args(default_args):
     default_args.unpaired = "unpaired"
     default_args.paired = "paired"
     default_args.unconstraint = "raw"
-    default_args.constype = ("hard",)
+    default_args.constype = "hard"
     default_args.outdir = os.path.join(TMP_TEST_DIR, "multi_constraint_test")
     default_args.save = 1
     default_args.logdir = os.path.join(TMP_TEST_DIR, "LOG_MULTI")
@@ -189,7 +189,7 @@ def sliding_args(default_args):
     default_args.unpaired = "unpaired"
     default_args.paired = "paired"
     default_args.unconstraint = "raw"
-    default_args.constype = ("hard",)
+    default_args.constype = "hard"
     default_args.outdir = os.path.join(TMP_TEST_DIR, "sliding_test")
     default_args.logdir = os.path.join(TMP_TEST_DIR, "LOG_SLIDING")
     default_args.version = None
@@ -204,7 +204,7 @@ def parafold_args(default_args):
     default_args.unpaired = "unpaired"
     default_args.paired = "paired"
     default_args.unconstraint = "raw"
-    default_args.constype = ("hard",)
+    default_args.constype = "hard"
     default_args.outdir = os.path.join(TMP_TEST_DIR, "parafold_test")
     default_args.logdir = os.path.join(TMP_TEST_DIR, "LOG_PARAFOLD")
     default_args.constrain = f"ono,{constrain}"
