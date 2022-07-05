@@ -847,12 +847,12 @@ def _constrain_unpaired_soft(fc, start, end, value, fstart=None, fend=None):
         log.error(logid + "".join(tbe.format()))
 
 
-def _mutate(seq, start, end, value, fstart=None, fend=None):
+def _mutate(sequence, start, end, value, fstart=None, fend=None):
     """Mutates sequence according to value
 
     Parameters
     ----------
-    seq : str
+    sequence : str
         Sequence to fold
     start : int
         Start of mutation
@@ -873,13 +873,13 @@ def _mutate(seq, start, end, value, fstart=None, fend=None):
 
     logid = scriptn + ".constrain_unpaired: "
     try:
-        seq = list(seq)
-        for x in range(start + 1, end + 1):
-            seq[x] = value[end + 1 - x]
+        seq = list(sequence)
+        for x in range(start, end):
+            seq[x] = value[x - start]
         if fstart and fend:
-            for x in range(fstart + 1, fend + 1):
-                seq[x] = value[fend + 1 - x]
-        return str(seq)
+            for x in range(fstart, fend):
+                seq[x] = value[x - fstart]
+        return "".join(seq)
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
@@ -1516,7 +1516,7 @@ def cmd_rnaplfold(
         if constraint is not None:
             seqlen = len(sequence)
             for entry in constraint:
-                mode = entry[0]
+                mode = entry[0] if constype in ["hard", "soft"] else "mutate"
                 start = entry[1]
                 end = entry[2]
                 value = consval
@@ -1526,7 +1526,7 @@ def cmd_rnaplfold(
                 elif mode == "unpaired" or mode == "u":
                     const = "P"
                 elif mode == "mutate":
-                    seq = _mutate(str(sequence), start, end, value)
+                    sequence = str(_mutate(sequence, start, end - 1, value))
                 elif mode == "unpaired" or mode == "u" and constype == "soft":
                     const = "E"
                 elif mode == "paired" or mode == "p" and constype == "soft":
@@ -1534,11 +1534,7 @@ def cmd_rnaplfold(
 
                 else:
                     raise ValueError("Constraint wrongly formatted. Has to be ('paired(p)'/'unpaired(u)', start, end)")
-                constraint_string += (
-                    f"{const} {start+1} {0} {end - start}\n"
-                    if mode != "mutate"
-                    else f"{const} {start+1} {0} {end - start} {value}\n"
-                )
+                constraint_string += f"{const} {start+1} {0} {end - start}\n" if mode != "mutate" else ""
         else:
             mode = "unconstrained"
         constraint_file.write(constraint_string)
@@ -1554,48 +1550,29 @@ def cmd_rnaplfold(
             span = window
         ENVBIN = sys.exec_prefix
         BIN = os.path.join(ENVBIN, "bin", "RNAplfold")
-        if mode != "mutate":
-            rnaplfold = subprocess.Popen(
-                [
-                    BIN,
-                    "-W",
-                    str(window),
-                    "-L",
-                    str(span),
-                    "--commands",
-                    constraint_file.name,
-                    "--auto-id",
-                    "-u",
-                    str(region),
-                    "-T",
-                    str(temperature),
-                ],
-                stderr=subprocess.PIPE,
-                stdout=subprocess.PIPE,
-                stdin=subprocess.PIPE,
-                cwd=tmp_dir,
-            )
-            stdout, stderr = rnaplfold.communicate(sequence.encode("utf-8"))
-        else:
-            rnaplfold = subprocess.Popen(
-                [
-                    BIN,
-                    "-W",
-                    str(window),
-                    "-L",
-                    str(span),
-                    "--auto-id",
-                    "-u",
-                    str(region),
-                    "-T",
-                    str(temperature),
-                ],
-                stderr=subprocess.PIPE,
-                stdout=subprocess.PIPE,
-                stdin=subprocess.PIPE,
-                cwd=tmp_dir,
-            )
-            stdout, stderr = rnaplfold.communicate(seq.encode("utf-8"))
+
+        rnaplfold = subprocess.Popen(
+            [
+                BIN,
+                "-W",
+                str(window),
+                "-L",
+                str(span),
+                "--commands",
+                constraint_file.name,
+                "--auto-id",
+                "-u",
+                str(region),
+                "-T",
+                str(temperature),
+            ],
+            stderr=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stdin=subprocess.PIPE,
+            cwd=tmp_dir,
+        )
+        stdout, stderr = rnaplfold.communicate(sequence.encode("utf-8"))
+
         assert stderr == b"", f"call to RNApfold went wrong: \n {stderr.decode()}"
         file = os.path.join(tmp_dir, "sequence_0001_lunp")
         rnaplfold_output = PLFoldOutput.from_file(file)
@@ -1671,8 +1648,8 @@ def api_rnaplfold(
             elif mode == "unpaired" or mode == "u" and constype == "hard":
                 fc = _constrain_unpaired(fc, start, end)
             elif mode == "mutate":
-                seq = _mutate(str(sequence), start, end, value)
-                fc = RNA.fold_compound(str(seq), md, RNA.OPTION_WINDOW)
+                sequence = _mutate(str(sequence), start, end - 1, value)
+                fc = RNA.fold_compound(str(sequence), md, RNA.OPTION_WINDOW)
             elif mode == "unpaired" or mode == "u" and constype == "soft":
                 fc = _constrain_unpaired_soft(fc, start, end, value)
             elif mode == "paired" or mode == "p" and constype == "soft":

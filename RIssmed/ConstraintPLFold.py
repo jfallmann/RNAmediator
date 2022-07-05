@@ -780,7 +780,7 @@ def constrain_seq(
         plfold_unpaired.localize(locws, locwe + 1)
         au = plfold_unpaired.get_rissmed_np_array()
 
-        if constype in ["hard", "soft"]:
+        if constype in ["hard", "mutate"]:
             plfold_paired = api_rnaplfold(
                 seqtofold,
                 window,
@@ -804,10 +804,10 @@ def constrain_seq(
         else:
             log.info(logid + "No influence on Structure with unpaired constraint at " + cons)
             diff_nu = None
-        if not np.array_equal(an, ap) and constype in ["hard", "soft"]:
+        if not np.array_equal(an, ap) and constype in ["hard", "mutate"]:
             diff_np = ap - an
         else:
-            if constype in ["hard", "soft"]:
+            if constype in ["hard", "mutate"]:
                 log.info(logid + "No influence on Structure with paired constraint at " + cons)
             diff_np = None
 

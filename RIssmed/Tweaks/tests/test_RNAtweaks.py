@@ -13,6 +13,7 @@ from RIssmed.Tweaks.RNAtweaks import (
     printdiff,
     _npprint,
     _calc_gibbs,
+    _mutate,
 )
 import pytest
 import RNA
@@ -28,6 +29,11 @@ TMP_TEST_DIR = TMP_DIR.name
 def random_sequence(seed: int = 1):
     random.seed(seed)
     return "".join(random.choices(["A", "C", "U", "G"], k=350))
+
+
+@pytest.fixture
+def sequence_string():
+    return "AAATTTTTGGGGUUUUUUUCCCCTTTTTttt"
 
 
 @pytest.mark.parametrize(
@@ -189,6 +195,21 @@ def test_read_precalc_plfold(pl_fold_file, pl_fold_test_sequence):
     for line in data:
         assert len(line) != 0
         assert type(line) == list
+
+
+@pytest.mark.parametrize(
+    "sequence, start, end, value",
+    [("sequence_string", 5, 6, "A"), ("A" * 500, 100, 107, "UUUUUUU")],
+)
+def test_mutate(sequence, start, end, value, request, caplog):
+    if not type(sequence) is str:
+        sequence = request.getfixturevalue(sequence)
+    assert isinstance(sequence, str)
+    mutseq = _mutate(sequence, start, end, value)
+    print(f"{mutseq} {value}")
+    assert isinstance(mutseq, str)
+    assert len(sequence) == len(mutseq)
+    assert mutseq[start:end] == value
 
 
 @pytest.mark.parametrize(

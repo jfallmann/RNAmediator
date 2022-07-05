@@ -46,6 +46,7 @@ def default_args():
         # number=1,
         constrain="sliding",
         conslength=1,
+        constype="hard",
         # temprange="",
         # alphabet="AUCG",
         save=0,
@@ -133,7 +134,7 @@ def single_constraint_args(default_args):
     default_args.unpaired = "unpaired"
     default_args.paired = "paired"
     default_args.unconstraint = "raw"
-    default_args.constype = "hard"
+    default_args.constype = ("hard",)
     default_args.outdir = os.path.join(TMP_TEST_DIR, "single_constraint_test")
     default_args.save = 1
     default_args.logdir = os.path.join(TMP_TEST_DIR, "LOG_SINGLE")
@@ -152,7 +153,7 @@ def paired_constraint_args(default_args):
     default_args.unpaired = "unpaired"
     default_args.paired = "paired"
     default_args.unconstraint = "raw"
-    default_args.constype = "hard"
+    default_args.constype = ("hard",)
     default_args.outdir = os.path.join(TMP_TEST_DIR, "paired_constraint_test")
     default_args.save = 1
     default_args.logdir = os.path.join(TMP_TEST_DIR, "LOG_PAIRED")
@@ -171,6 +172,7 @@ def multi_constraint_args(default_args):
     default_args.unpaired = "unpaired"
     default_args.paired = "paired"
     default_args.unconstraint = "raw"
+    default_args.constype = ("hard",)
     default_args.outdir = os.path.join(TMP_TEST_DIR, "multi_constraint_test")
     default_args.save = 1
     default_args.logdir = os.path.join(TMP_TEST_DIR, "LOG_MULTI")
@@ -187,7 +189,7 @@ def sliding_args(default_args):
     default_args.unpaired = "unpaired"
     default_args.paired = "paired"
     default_args.unconstraint = "raw"
-    default_args.constype = "hard"
+    default_args.constype = ("hard",)
     default_args.outdir = os.path.join(TMP_TEST_DIR, "sliding_test")
     default_args.logdir = os.path.join(TMP_TEST_DIR, "LOG_SLIDING")
     default_args.version = None
@@ -202,7 +204,7 @@ def parafold_args(default_args):
     default_args.unpaired = "unpaired"
     default_args.paired = "paired"
     default_args.unconstraint = "raw"
-    default_args.constype = "hard"
+    default_args.constype = ("hard",)
     default_args.outdir = os.path.join(TMP_TEST_DIR, "parafold_test")
     default_args.logdir = os.path.join(TMP_TEST_DIR, "LOG_PARAFOLD")
     default_args.constrain = f"ono,{constrain}"
@@ -216,6 +218,7 @@ def test_data_available():
     assert os.path.exists(os.path.join(TESTDATAPATH, "test_single.fa")), "Test data not available"
     assert os.path.isfile(os.path.join(TESTDATAPATH, "test_single_constraint.bed"))
     assert os.path.isfile(os.path.join(TESTDATAPATH, "test_constraints.bed"))
+    assert os.path.isfile(os.path.join(TESTDATAPATH, "test_mutate.bed"))
     assert os.path.isfile(os.path.join(TESTDATAPATH, "parafold_test.bed"))
     assert os.path.isfile(os.path.join(TESTDATAPATH, "parafold_test.fa"))
 
@@ -224,6 +227,7 @@ def test_paired_constraint(paired_constraint_args):
     pl_main(paired_constraint_args)
     expected_path = os.path.join(EXPECTED_RESULTS, "paired_constraint_result")
     test_path = paired_constraint_args.outdir
+    # assert False, f"{os.path.abspath(test_path)} {os.path.abspath(expected_path)}"
     compare_output_folders(test_path=test_path, expected_path=expected_path)
     # TODO: Not done yet but settings for paired constraints work now
 
@@ -233,7 +237,7 @@ def test_parafold(parafold_args):
     expected_path = os.path.join(EXPECTED_RESULTS, "parafold_result")
     test_path = parafold_args.outdir
     compare_output_folders(test_path=test_path, expected_path=expected_path)
-    # Here only files are compared as the parafold function seems to be a bit buggy
+    # Here only files are compared
 
 
 def test_single_constraint(single_constraint_args):
@@ -347,7 +351,7 @@ def test_fold_unconstraint(seq_id, region, window, span, temperature, unconstrai
             ".",
         ),
         (
-            "testseq3",
+            "onlyAs",
             200,
             207,
             100,
@@ -358,7 +362,7 @@ def test_fold_unconstraint(seq_id, region, window, span, temperature, unconstrai
             "paired",
             "unpaired",
             1,
-            "testseq3",
+            "onlyAs",
             "raw",
             "A" * 500,
             "mutate",
@@ -383,6 +387,7 @@ def test_fold_constraint(
     seq,
     constype,
     consval,
+    caplog,
 ):
     if os.path.isfile(seq):
         seq = str(SeqIO.read(seq, format="fasta").seq)
@@ -436,12 +441,13 @@ def test_fold_constraint(
         unpaired,
         save,
         outdir,
-        unconstraint=unconstraint,
         constype=constype,
         consval=consval,
+        unconstraint=unconstraint,
     )
     test_file_path = os.path.join(outdir, seq_id)
     test_files = os.listdir(test_file_path)
+
     assert len(test_files) >= 3, "constrain seq went wrong"
     for test_file in test_files:
         test_file = os.path.join(test_file_path, test_file)
