@@ -21,13 +21,12 @@ import shutil
 
 def listener_configurer(logfile, loglevel):
     root = logging.getLogger()
+    root.propagate = True
     if root.hasHandlers():
         root.handlers.clear()
     file_handler = logging.FileHandler(logfile, "a")
     console_handler = logging.StreamHandler()
-    formatter = logging.Formatter(
-        "%(asctime)s %(processName)-10s %(name)s %(levelname)-8s %(message)s"
-    )
+    formatter = logging.Formatter("%(asctime)s %(processName)-10s %(name)s %(levelname)-8s %(message)s")
     file_handler.setFormatter(formatter)
     formatter = logging.Formatter("%(asctime)s %(levelname)-8s %(message)s")
     console_handler.setFormatter(formatter)
@@ -47,6 +46,7 @@ def listener_process(queue, configurer, logfile, loglevel):
             if record is None:
                 break  # We send this as a sentinel to tell the listener to quit.
             logger = logging.getLogger(record.name)
+            logger.propagate = True
             logger.handle(record)  # No level or filter logic applied - just do it!
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -67,6 +67,7 @@ def worker_configurer(queue, loglevel):
         root.handlers.clear()
     root.addHandler(h)
     root.setLevel(loglevel)
+    root.propagate = True
 
 
 # Example worker process with arguments comandline-args, list of todos to parallelize, what to execute in parallel
@@ -82,9 +83,7 @@ def worker(args, todolist, whattodo):
 
     #  Multiprocessing with spawn
     nthreads = args.cores or 2
-    multiprocessing.set_start_method(
-        "spawn"
-    )  # set multiprocessing start method to safe spawn
+    multiprocessing.set_start_method("spawn")  # set multiprocessing start method to safe spawn
     pool = multiprocessing.Pool(processes=nthreads, maxtasksperchild=1)
 
     queue = multiprocessing.Manager().Queue(-1)
@@ -100,9 +99,7 @@ def worker(args, todolist, whattodo):
     # log.info(logid+'CLI: '+sys.argv[0]+' '+'{}'.format(' '.join( [shlex.quote(s) for s in sys.argv[1:]] )))
 
     for todo in todolist:
-        pool.apply_async(
-            whattodo, args=(queue, worker_configurer, args.loglevel, todo, args)
-        )
+        pool.apply_async(whattodo, args=(queue, worker_configurer, args.loglevel, todo, args))
     pool.close()
     pool.join()
     queue.put_nowait(None)
@@ -137,16 +134,12 @@ def makelogfile(logfile):
         open(logfile, "a").close()
     else:
         ts = str(
-            datetime.datetime.fromtimestamp(
-                os.path.getmtime(os.path.abspath(logfile))
-            ).strftime("%Y%m%d_%H_%M_%S_%f")
+            datetime.datetime.fromtimestamp(os.path.getmtime(os.path.abspath(logfile))).strftime("%Y%m%d_%H_%M_%S_%f")
         )
         shutil.move(logfile, logfile.replace(".log", "") + "_" + ts + ".log")
 
 
-def setup_logger(
-    name, log_file, filemode="a", logformat=None, datefmt=None, level="WARNING"
-):
+def setup_logger(name, log_file, filemode="a", logformat=None, datefmt=None, level="WARNING"):
     """Function setup as many loggers as you want"""
 
     log = logging.getLogger(name)

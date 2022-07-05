@@ -33,6 +33,7 @@ import multiprocessing
 
 
 log = logging.getLogger(__name__)  # use module name
+log.propagate = True
 SCRIPTNAME = os.path.basename(__file__).replace(".py", "")
 
 
@@ -184,7 +185,7 @@ def get_gene_coords(genecoords: Union[None, Dict], goi: str, strand: str) -> Tup
 
 @check_run
 def set_run_settings_dict(
-    sequence, constrain: str, conslength: int, genes: str, constraintype: str = "hard"
+    sequence, constraint: str, conslength: int, genes: str, constraintype: str = "hard"
 ) -> Dict[str, SequenceSettings]:
     """Use command line parameters to build the run settings dictionary.
 
@@ -192,7 +193,7 @@ def set_run_settings_dict(
     ----------
      sequence : str
         The file location of the sequence
-     constrain : str
+     constraint : str
         The file location of constrain file
      conslength : int
         Length of the constraint, only used if constrain is sliding
@@ -208,18 +209,19 @@ def set_run_settings_dict(
         object
     """
     logid = SCRIPTNAME + ".set_run_settings_dict: "
+    log.debug(f"{logid} seq:{sequence} constraint:{constraint} genes:{genes} constraintype:{constraintype}")
     run_settings: Dict[str, SequenceSettings] = dict()
     sequence = parseseq(sequence)
-    if "ono" == str(constrain.split(",")[0]):
-        constrain = constrain.split(",")[1]  # 0-based
-        constraintlist = read_constraints(constrain, linewise=True, constraintype=constraintype)
+    if "ono" == str(constraint.split(",")[0]):
+        constraint = constraint.split(",")[1]  # 0-based
+        constraintlist = read_constraints(constraint, linewise=True, constraintype=constraintype)
         for x, record in enumerate(SeqIO.parse(sequence, "fasta")):
             goi, chrom, strand = idfromfa(record.id)
             cons = constraintlist["lw"][x]
             run_settings = add_rissmed_constraint(
                 run_settings, cons, record, goi, chrom, strand, constraintype=constraintype
             )
-    elif constrain == "sliding":
+    elif constraint == "sliding":
         for record in SeqIO.parse(sequence, "fasta"):
             goi, chrom, strand = idfromfa(record.id)
             for start in range(1, len(record.seq) - conslength + 2):  # 0-based
@@ -229,7 +231,7 @@ def set_run_settings_dict(
                     run_settings, cons, record, goi, chrom, strand, constraintype=constraintype
                 )
     else:
-        constraintlist = read_constraints(constrain=constrain, constraintype=constraintype)
+        constraintlist = read_constraints(constraint=constraint, constraintype=constraintype)
         for x, record in enumerate(SeqIO.parse(sequence, "fasta")):
             goi, chrom, strand = idfromfa(record.id)
             cons = constraintlist[goi] if type(constraintlist) == defaultdict else constraintlist
@@ -320,12 +322,12 @@ def add_rissmed_constraint(
 
 # put this into Fileprocessing ?
 @check_run
-def read_constraints(constrain: str, linewise: bool = False, constraintype: str = "hard") -> Dict[str, List[str]]:
+def read_constraints(constraint: str, linewise: bool = False, constraintype: str = "hard") -> Dict[str, List[str]]:
     """Reads constraints from the constraints file
 
     Parameters
     ----------
-    constrain : Union[None, Dict]
+    constraint : Union[None, Dict]
         file location of the constrains file
     linewise : bool, optional
         does not add the gene identifier to the returned cinstrantslist dictionary is set to True
@@ -341,28 +343,29 @@ def read_constraints(constrain: str, linewise: bool = False, constraintype: str 
     """
     constraintlist = []
     logid = f"{SCRIPTNAME}.read_constraints: "
-    if os.path.isfile(constrain):
-        if ".bed" in constrain:
-            log.info(logid + "Parsing constraints from Bed " + constrain)
-            if ".gz" in constrain:
-                f = gzip.open(constrain, "rt")
+    log.debug(f"{logid} constraint:{constraint}, linewise:{linewise} constype:{constraintype}")
+    if os.path.isfile(constraint):
+        if ".bed" in constraint:
+            log.info(logid + "Parsing constraints from Bed " + constraint)
+            if ".gz" in constraint:
+                f = gzip.open(constraint, "rt")
             else:
-                f = open(constrain, "rt")
-            if "paired" in constrain:
+                f = open(constraint, "rt")
+            if "paired" in constraint:
                 constraintlist = read_paired_constraints_from_bed(f, linewise, constraintype)
             else:
                 constraintlist = read_constraints_from_bed(f, linewise, constraintype)
-        elif ".csv" in constrain:
-            if ".gz" in constrain:
-                f = gzip.open(constrain, "rt")
+        elif ".csv" in constraint:
+            if ".gz" in constraint:
+                f = gzip.open(constraint, "rt")
             else:
-                f = open(constrain, "rt")
+                f = open(constraint, "rt")
             constraintlist = read_constraints_from_csv(f, linewise, constraintype)
         else:
-            if ".gz" in constrain:
-                f = gzip.open(constrain, "rt")
+            if ".gz" in constraint:
+                f = gzip.open(constraint, "rt")
             else:
-                f = open(constrain, "rt")
+                f = open(constraint, "rt")
             constraintlist = read_constraints_from_generic(f, linewise, constraintype)
         f.close()
     # elif constrain == "file" or constrain == "paired":
@@ -374,15 +377,15 @@ def read_constraints(constrain: str, linewise: bool = False, constraintype: str 
     #    with open(goi + "_constraints", "rt") as o:
     #        for line in o:
     #            conslist.append(line.rstrip())
-    elif constrain == "scanning":
+    elif constraint == "scanning":
         constraintlist = ["NOCONS"]
-    elif constrain == "sliding":
+    elif constraint == "sliding":
         constraintlist = list()
-    elif "-" in constrain:
-        log.info(logid + "Calculating probs for constraint " + constrain)
+    elif "-" in constraint:
+        log.info(logid + "Calculating probs for constraint " + constraint)
         if linewise is False:
             constraintlist = list()
-            for x in constrain.split(","):
+            for x in constraint.split(","):
                 a = x.split("|")
                 if len(a) < 2:
                     a.extend([".", "."])
@@ -398,7 +401,7 @@ def read_constraints(constrain: str, linewise: bool = False, constraintype: str 
                 constraintlist.append(x)
         else:
             constraintlist = defaultdict(list)
-            for x in constrain.split(","):
+            for x in constraint.split(","):
                 a = x.split("|")
                 for i in [2, 3]:
                     if len(a) < 2:
@@ -414,24 +417,24 @@ def read_constraints(constrain: str, linewise: bool = False, constraintype: str 
                 x = "|".join(a)
                 constraintlist["lw"].append(x)
 
-    elif constrain == "temperature":
+    elif constraint == "temperature":
         raise NotImplementedError("Temperature range folding needs to be reimplemented")
     else:
-        log.error(logid + "Could not compute constraints from input " + str(constrain))
+        log.error(logid + "Could not compute constraints from input " + str(constraint))
         sys.exit()
     log.debug(f"{logid} Constraintlist: {constraintlist}")
     return constraintlist
 
 
 @check_run
-def preprocess(sequence: str, constrain: str, conslength: int, constype: str, outdir: str, genes: str):
+def preprocess(sequence: str, constraint: str, conslength: int, constype: str, outdir: str, genes: str):
     """builds the run settings dict and creates the output directory
 
     Parameters
     ----------
      sequence : str
         The file location of the sequence
-     constrain : str
+     constraint : str
         The file location of constrain file
      conslength : int
          Length of the constraint, only used if constrain is sliding
@@ -457,7 +460,7 @@ def preprocess(sequence: str, constrain: str, conslength: int, constype: str, ou
         else:
             outdir = os.path.abspath(os.getcwd())
 
-        run_settings = set_run_settings_dict(sequence, constrain, conslength, genes, constype)
+        run_settings = set_run_settings_dict(sequence, constraint, conslength, genes, constype)
 
         return run_settings, outdir
 

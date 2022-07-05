@@ -873,6 +873,7 @@ def _mutate(sequence, start, end, value, fstart=None, fend=None):
 
     logid = scriptn + ".constrain_unpaired: "
     try:
+        log.debug(f"{logid} seq:{sequence} start:{start} end: {end} fstart:{fstart} fend:{fend} value:{value}")
         seq = list(sequence)
         for x in range(start, end):
             seq[x] = value[x - start]
@@ -1618,6 +1619,11 @@ def api_rnaplfold(
 
     logid = f"{scriptn}.api_rnaplfold"
     sequence = sequence.upper().replace("T", "U")
+    signature = ", ".join(
+        [str(x) for x in [sequence, window, span, region, temperature, constype, consval, constraint]]
+    )
+    log.debug(f"{logid} called with {signature}")
+
     data = {"up": []}
     # check for window and span length
     if window > len(sequence):

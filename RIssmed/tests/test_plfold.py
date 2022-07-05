@@ -6,6 +6,7 @@ from tempfile import TemporaryDirectory
 import time
 import numpy as np
 import pytest
+import logging
 from RIssmed.ConstraintPLFold import main as pl_main
 from RIssmed.ConstraintPLFold import fold_unconstraint, constrain_seq
 from Bio import SeqIO
@@ -55,7 +56,6 @@ def default_args():
         vrna="",
         pattern="",
         genes="",
-        verbosity=0,
         loglevel="WARNING",
         logdir="LOGS",
     )
@@ -157,6 +157,8 @@ def paired_constraint_args(default_args):
     default_args.outdir = os.path.join(TMP_TEST_DIR, "paired_constraint_test")
     default_args.save = 1
     default_args.logdir = os.path.join(TMP_TEST_DIR, "LOG_PAIRED")
+    # default_args.logdir = "LOG_PAIRED"
+    # default_args.loglevel = "DEBUG"
     default_args.version = None
     return default_args
 
@@ -223,11 +225,11 @@ def test_data_available():
     assert os.path.isfile(os.path.join(TESTDATAPATH, "parafold_test.fa"))
 
 
-def test_paired_constraint(paired_constraint_args):
+def test_paired_constraint(paired_constraint_args, caplog):
     pl_main(paired_constraint_args)
+    # assert False, f"{caplog.records}"
     expected_path = os.path.join(EXPECTED_RESULTS, "paired_constraint_result")
     test_path = paired_constraint_args.outdir
-    # assert False, f"{os.path.abspath(test_path)} {os.path.abspath(expected_path)}"
     compare_output_folders(test_path=test_path, expected_path=expected_path)
     # TODO: Not done yet but settings for paired constraints work now
 

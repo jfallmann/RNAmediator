@@ -273,12 +273,13 @@ def read_paired_constraints_from_bed(bed, linewise=None, constraintype="hard"):
                 strand = entries[5]
                 start_two = int(entries[second]) + 1
                 end_two = int(entries[second + 1])
+                value_two = entries[second + 3] if constraintype != "hard" else "."
                 if linewise:
                     cons["lw"].append(
                         ":".join(
                             [
                                 "|".join(["-".join([str(start_one), str(end_one)]), strand, value]),
-                                "|".join(["-".join([str(start_two), str(end_two)]), strand, value]),
+                                "|".join(["-".join([str(start_two), str(end_two)]), strand, value_two]),
                             ]
                         )
                     )
@@ -287,7 +288,7 @@ def read_paired_constraints_from_bed(bed, linewise=None, constraintype="hard"):
                         ":".join(
                             [
                                 "|".join(["-".join([str(start_one), str(end_one)]), strand, value]),
-                                "|".join(["-".join([str(start_two), str(end_two)]), strand, value]),
+                                "|".join(["-".join([str(start_two), str(end_two)]), strand, value_two]),
                             ]
                         )
                     )

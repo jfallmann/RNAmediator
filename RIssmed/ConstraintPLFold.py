@@ -97,6 +97,7 @@ from RIssmed.Tweaks.NPtweaks import *
 # Biopython stuff
 
 log = logging.getLogger(__name__)  # use module name
+log.propagate = True
 SCRIPTNAME = os.path.basename(__file__).replace(".py", "")
 
 
@@ -319,9 +320,9 @@ def pl_fold(
                                 unpaired,
                                 save,
                                 outdir,
-                                unconstraint,
                                 constype,
                                 consval,
+                                unconstraint,
                             ),
                             kwds={
                                 "queue": queue,
@@ -908,6 +909,9 @@ def constrain_seq_paired(
             configurer(queue, level)
 
         seq = str(seq).upper().replace("T", "U")
+        log.debug(
+            f"{logid} i:{sid} s:{seq} f:{fstart} e:{fend} s:{start} e:{end} w:{window} s:{span} u:{region} t:{temperature} m:{multi} p:{paired} u:{unpaired} a:{save} o:{outdir} c:{constype} v:{consval}"
+        )
         goi, chrom, strand = idfromfa(sid)
         log.debug(logid + "CONSTRAINING PAIRWISE with " + str(start) + " " + str(end))
 
@@ -1010,7 +1014,7 @@ def constrain_seq_paired(
         plfold_unpaired.localize(locws, locwe + 1)
         au = plfold_unpaired.get_rissmed_np_array()
 
-        if constype in ["hard", "soft"]:
+        if constype in ["hard", "mutate"]:
             plfold_paired = api_rnaplfold(
                 seqtofold,
                 window,
@@ -1035,10 +1039,10 @@ def constrain_seq_paired(
         else:
             log.info(logid + "No influence on Structure with unpaired constraint at " + cons)
             diff_nu = None
-        if not np.array_equal(an, ap) and constype in ["hard", "soft"]:
+        if not np.array_equal(an, ap) and constype in ["hard", "mutate"]:
             diff_np = ap - an
         else:
-            if constype in ["hard", "soft"]:
+            if constype in ["hard", "mutate"]:
                 log.info(logid + "No influence on Structure with paired constraint at " + cons)
             diff_np = None
 
@@ -1461,6 +1465,8 @@ def main(args=None):
 
     Parameters
     ----------
+    args: str, optional
+        Arguments for main run
 
     Returns
     -------
