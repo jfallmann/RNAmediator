@@ -373,6 +373,7 @@ def writebws(outlist, listofbws, filepaths):
                         out["raw"]["fw"]["start"],
                         ends=out["raw"]["fw"]["end"],
                         values=out["raw"]["fw"]["value"],
+                        validate=False,
                     )
                 if len(out["raw"]["re"]["chrom"]) > 0:
                     listofbws[1].addEntries(
@@ -380,6 +381,7 @@ def writebws(outlist, listofbws, filepaths):
                         out["raw"]["re"]["start"],
                         ends=out["raw"]["re"]["end"],
                         values=out["raw"]["re"]["value"],
+                        validate=False,
                     )
                 if len(out["uc"]["fw"]["chrom"]) > 0:
                     listofbws[2].addEntries(
@@ -387,6 +389,7 @@ def writebws(outlist, listofbws, filepaths):
                         out["uc"]["fw"]["start"],
                         ends=out["uc"]["fw"]["end"],
                         values=out["uc"]["fw"]["value"],
+                        validate=False,
                     )
                 if len(out["uc"]["re"]["chrom"]) > 0:
                     listofbws[3].addEntries(
@@ -394,6 +397,7 @@ def writebws(outlist, listofbws, filepaths):
                         out["uc"]["re"]["start"],
                         ends=out["uc"]["re"]["end"],
                         values=out["uc"]["re"]["value"],
+                        validate=False,
                     )
                 if len(out["pc"]["fw"]["chrom"]) > 0:
                     listofbws[4].addEntries(
@@ -401,6 +405,7 @@ def writebws(outlist, listofbws, filepaths):
                         out["pc"]["fw"]["start"],
                         ends=out["pc"]["fw"]["end"],
                         values=out["pc"]["fw"]["value"],
+                        validate=False,
                     )
                 if len(out["pc"]["re"]["chrom"]) > 0:
                     listofbws[5].addEntries(
@@ -408,6 +413,7 @@ def writebws(outlist, listofbws, filepaths):
                         out["pc"]["re"]["start"],
                         ends=out["pc"]["re"]["end"],
                         values=out["pc"]["re"]["value"],
+                        validate=False,
                     )
         log.debug(logid + f"bwlist_after:{listofbws}")
         for i in range(len(listofbws)):
