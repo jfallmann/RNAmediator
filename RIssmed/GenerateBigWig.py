@@ -219,7 +219,7 @@ def scan_input(
 
         for goi in genecoords:
             log.info(logid + "Working on " + goi)
-            chrom, gs, ge, gstrand = get_location_withchrom(genecoords[goi][0])
+            chrom, gs, ge, gstrand, _ = get_location_withchrom(genecoords[goi][0])
 
             raw = getfiles(unconstraint, window, span, temperature, goi, indir)
             unpaired = getfiles("diffnu", window, span, temperature, goi, indir)

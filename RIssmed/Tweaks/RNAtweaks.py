@@ -657,7 +657,7 @@ def get_location_withchrom(entry):
         chrom = map(str, entry.split(sep="|")[0].split(sep="-")[0])
         start, end = map(int, entry.split(sep="|")[0].split(sep="-")[1:])
         strand = str(entry.split(sep="|")[1])
-        value = str(entry.split(sep="|")[2]) if len(entry.split(sep="|") > 2) else "."
+        value = str(entry.split(sep="|")[2]) if len(entry.split(sep="|")) > 2 else "."
         ret.extend([chrom, start, end, strand, value])
 
         if any([x == None for x in ret]):
