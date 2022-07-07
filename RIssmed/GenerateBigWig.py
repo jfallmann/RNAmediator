@@ -225,7 +225,7 @@ def scan_input(
             unpaired = getfiles("diffnu", window, span, temperature, goi, indir)
             paired = getfiles("diffnp", window, span, temperature, goi, indir)
 
-            filelist = equalize_lists([raw, unpaired, paired])
+            filelist = equalize_lists([raw, unpaired, paired], goi)
 
             call_list.append(
                 (
@@ -535,12 +535,11 @@ def read_chromsize(cs, limit=32):
     return sizes
 
 
-def equalize_lists(listoflists):
+def equalize_lists(listoflists, id=None):
     logid = f"{SCRIPTNAME}.equalize_lists: "
     log.debug(f"{logid} {listoflists}")
     if all([len(x) == 0 for x in listoflists]):
-        log.error("No files found, exiting!")
-        sys.exit()
+        log.warnig(f"No files found for {id}, skipping!")
     max_length = 0
     for list in listoflists:
         max_length = max(max_length, len(list))
