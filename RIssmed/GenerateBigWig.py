@@ -201,19 +201,19 @@ def scan_input(
 
         if unconstraint:
             rawbigfw = pbw.open(filepaths[0], "w")
-            rawbigfw.addHeader(header)
+            rawbigfw.addHeader(header, maxZooms=10)
             rawbigre = pbw.open(filepaths[1], "w")
-            rawbigre.addHeader(header)
+            rawbigre.addHeader(header, maxZooms=10)
         if unp:
             unpbigfw = pbw.open(filepaths[2], "w")
-            unpbigfw.addHeader(header)
+            unpbigfw.addHeader(header, maxZooms=10)
             unpbigre = pbw.open(filepaths[3], "w")
-            unpbigre.addHeader(header)
+            unpbigre.addHeader(header, maxZooms=10)
         if pai:
             paibigfw = pbw.open(filepaths[4], "w")
-            paibigfw.addHeader(header)
+            paibigfw.addHeader(header, maxZooms=10)
             paibigre = pbw.open(filepaths[5], "w")
-            paibigre.addHeader(header)
+            paibigre.addHeader(header, maxZooms=10)
 
         bwlist = [rawbigfw, rawbigre, unpbigfw, unpbigre, paibigfw, paibigre]
 
