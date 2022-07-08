@@ -763,9 +763,9 @@ def fill_array(out, which, orient, chroms, starts, ends, values):
         logid = f"{SCRIPTNAME}.fill_array: "
         log.debug(f"{logid} {which}-{orient}:{chroms}:{starts}-{ends}:{values}")
         out[which][orient]["chrom"] = np.array(chroms[which], np.str)
-        out[which][orient]["start"] = np.array(starts[which], np.int32)
-        out[which][orient]["end"] = np.array(ends[which], np.int32)
-        out[which][orient]["value"] = np.array(values[which], np.float32)
+        out[which][orient]["start"] = np.array(starts[which], np.int64)
+        out[which][orient]["end"] = np.array(ends[which], np.int64)
+        out[which][orient]["value"] = np.array(values[which], np.float64)
         return out
 
     except Exception:
