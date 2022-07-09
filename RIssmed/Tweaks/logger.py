@@ -21,7 +21,6 @@ import shutil
 
 def listener_configurer(logfile, loglevel):
     root = logging.getLogger()
-    root.propagate = True
     if root.hasHandlers():
         root.handlers.clear()
     file_handler = logging.FileHandler(logfile, "a")
@@ -41,12 +40,13 @@ def listener_configurer(logfile, loglevel):
 def listener_process(queue, configurer, logfile, loglevel):
     try:
         configurer(logfile, loglevel)
+
         while True:
             record = queue.get()
             if record is None:
                 break  # We send this as a sentinel to tell the listener to quit.
             logger = logging.getLogger(record.name)
-            logger.propagate = True
+            # logger.propagate = True
             logger.handle(record)  # No level or filter logic applied - just do it!
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -67,7 +67,7 @@ def worker_configurer(queue, loglevel):
         root.handlers.clear()
     root.addHandler(h)
     root.setLevel(loglevel)
-    root.propagate = True
+    # root.propagate = True
 
 
 # Example worker process with arguments comandline-args, list of todos to parallelize, what to execute in parallel

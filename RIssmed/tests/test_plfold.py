@@ -199,6 +199,23 @@ def sliding_args(default_args):
 
 
 @pytest.fixture()
+def random_args(default_args):
+    default_args.window = 100
+    default_args.procs = os.cpu_count() - 1 or 1
+    default_args.conslength = 7
+    default_args.region = 7
+    default_args.unpaired = "unpaired"
+    default_args.paired = "paired"
+    default_args.unconstraint = "raw"
+    default_args.constype = "hard"
+    default_args.constrain = "random,5"
+    default_args.outdir = os.path.join(TMP_TEST_DIR, "sliding_test")
+    default_args.logdir = os.path.join(TMP_TEST_DIR, "LOG_SLIDING")
+    default_args.version = None
+    return default_args
+
+
+@pytest.fixture()
 def parafold_args(default_args):
     default_args.sequence = os.path.join(TESTDATAPATH, "parafold_test.fa")
     constrain = os.path.join(TESTDATAPATH, "parafold_test.bed")
@@ -258,6 +275,14 @@ def test_sliding_window(sliding_args):
     compare_output_folders(test_path=test_path, expected_path=expected_path)
     test_log = os.path.join(sliding_args.logdir, os.listdir(sliding_args.logdir)[0])
     expected_log = os.path.join(EXPECTED_LOGS, "Sliding_Constraint.log")
+
+
+def test_random_constraint(random_args):
+    pl_main(random_args)
+    test_log = os.path.join(random_args.logdir, os.listdir(random_args.logdir)[0])
+    assert os.path.exists(test_log)
+    with open(test_log, "r") as l:
+        assert not ("ERROR") in l.readlines()
 
 
 def test_multi_constraint(multi_constraint_args):

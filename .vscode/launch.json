@@ -11,7 +11,20 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "args": [
-                "-h"
+                "-s","testgenes.fa.gz",
+                "-w","60",
+                "-l","60",
+                "-u","5",
+                "-o","test_random",
+                "-x","random,5",
+                "-y","3",
+                "-z","1",
+                "-g","testgenes.bed.gz",
+                "-r","raw",
+                "-n","unpaired",
+                "-p","paired",
+                "--save","1",
+                "--loglevel","DEBUG"
             ]
         },
         {

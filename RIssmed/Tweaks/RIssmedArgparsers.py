@@ -97,51 +97,57 @@ def parseargs_plcons():
         description="Calculate base pairing probabilities with and without constraints for sequences with given window size, span and region."
     )
     parser.add_argument("-s", "--sequence", type=str, help="Sequence to fold")
-    parser.add_argument("-w", "--window", type=int, default=240, help="Size of window")
-    parser.add_argument("-l", "--span", type=int, default=60, help="Length of bp span")
-    parser.add_argument("-u", "--region", type=int, default=1, help="Length of region")
-    parser.add_argument("-m", "--multi", type=int, default=2, help="Multiplier for window expansion")
+    parser.add_argument("-w", "--window", type=int, default=240, help="Size of window, default 240")
+    parser.add_argument("-l", "--span", type=int, default=60, help="Length of basepair span, default 60")
+    parser.add_argument("-u", "--region", type=int, default=1, help="Length of region, default 1")
+    parser.add_argument(
+        "-m",
+        "--multi",
+        type=int,
+        default=2,
+        help="Multiplier for window expansion to mitigate border effects, default 2",
+    )
     parser.add_argument(
         "-r",
         "--unconstrained",
         type=str,
         default="raw",
-        help="Print output of unconstrained folding to file with this name",
+        help="Print output of unconstrained folding to file with this name, default 'raw', choice=['STDOUT', any str]",
     )
     parser.add_argument(
         "-n",
         "--unpaired",
         type=str,
         default="unpaired",
-        help="Print output of unpaired folding to file with this name",
+        help="Print output of unpaired folding to file with this name, default 'unpaired', choice=['STDOUT', any str]",
     )
     parser.add_argument(
         "-p",
         "--paired",
         type=str,
         default="paired",
-        help="Print output of paired folding to file with this name",
+        help="Print output of paired folding to file with this name, default 'paired', choice=['STDOUT', any str]",
     )
     parser.add_argument(
         "-x",
         "--constrain",
         type=str,
         default="sliding",
-        help="Region to constrain, either sliding window (default) or region to constrain (e.g. 1-10) or path to file containing constraint regions, can be BED file or the string 'file'. Latter requires that a file following the naming pattern $fastaID_constraints e.g. Sequence1_constraints can be found. If 'paired', the first entry of the constraint file will become a fixed constraint and paired with all the others, If 'ono' one line of constraint file is used per line of sequence in the sequence file. Choose 'scanning' to fold sequence without constraint. choices = [scanning, sliding, the string 'file' or a filename, paired, or simply 1-10,2-11 or 1-10;15-20,2-11;16-21 for paired or ono(oneonone),filename to use one line of constraint file for one sequence from fasta]",
+        help="Region to constrain, either sliding window (default together with conslength to set length of constraints) or region to constrain (e.g. 1-10) or path to file containing constraint regions, can be BED file or the string 'file'. Latter requires that a file following the naming pattern $fastaID_constraints e.g. Sequence1_constraints can be found. If 'paired', the first entry of the constraint file will become a fixed constraint and paired with all the others, If 'ono' one line of constraint file is used per line of sequence in the sequence file. Choose 'scanning' to fold sequence without constraint or 'random,x' together with '--conslength y' to apply 'x' random constraints of length 'y'. Choices = [scanning, sliding, the string 'file' or a filename, paired, or simply 1-10,2-11 or 1-10;15-20,2-11;16-21 for paired or ono(oneonone),filename to use one line of constraint file for one sequence from fasta. For random constraint use random,x together with the conslength option]",
     )
     parser.add_argument(
         "-y",
         "--conslength",
         type=int,
         default=1,
-        help="Length of region to constrain for sliding window",
+        help="Length of region to constrain for sliding window and random constraints",
     )
     parser.add_argument(
         "-t",
         "--temperature",
-        type=int,
-        default=37,
-        help="Temperature for structure prediction",
+        type=float,
+        default=37.0,
+        help="Temperature for structure prediction, default 37.0",
     )
     parser.add_argument(
         "--save",
@@ -150,26 +156,26 @@ def parseargs_plcons():
         choices=[0, 1],
         help="Save the output as numpy files only [0] or also as gzipped text files [1]",
     )
-    parser.add_argument("-o", "--outdir", type=str, default="", help="Directory to write to")
+    parser.add_argument("-o", "--outdir", type=str, default="", help="Directory to write to, default cwd")
     parser.add_argument(
         "-z",
         "--procs",
         type=int,
         default=1,
-        help="Number of parallel processes to run this job with",
+        help="Number of parallel processes to run this job with, default 1",
     )
     parser.add_argument(
         "--vrna",
         type=str,
-        default="",
-        help="Append path to vrna RNA module to sys.path",
+        default=None,
+        help="Append path to vrna RNA module to sys.path, default None",
     )
     parser.add_argument(
         "-g",
         "--genes",
         type=str,
         default="",
-        help="Genomic coordinates bed for genes, either standard bed format or AnnotateBed.pl format",
+        help="Genomic coordinates bed for genes, either standard bed format or paired bed format",
     )
     parser.add_argument(
         "--version",
@@ -181,7 +187,7 @@ def parseargs_plcons():
         type=str,
         default="hard",
         choices=["hard", "soft", "mutate"],
-        help="Choose what type of constraint to apply, can be ['hard'(Default), 'soft'(not implemented yet), 'mutate']",
+        help="Choose what type of constraint to apply, can be ['hard'(Default), 'soft'(not fully implemented yet), 'mutate']",
     )
     parser.add_argument(
         "--loglevel",

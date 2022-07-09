@@ -97,7 +97,7 @@ from RIssmed.Tweaks.NPtweaks import *
 # Biopython stuff
 
 log = logging.getLogger(__name__)  # use module name
-log.propagate = True
+# log.propagate = True
 SCRIPTNAME = os.path.basename(__file__).replace(".py", "")
 
 
@@ -141,11 +141,11 @@ def pl_fold(
     level: logging.level Level for log process
 
     """
-    logid = SCRIPTNAME + ".fold: "
+    logid = SCRIPTNAME + ".plfold: "
     try:
+        print(f"q:{queue} c:{configurer} l:{level} r:{run_settings}")
         if queue and level:
             configurer(queue, level)
-
         # Create process pool with processes
         num_processes = procs or 1
         # with get_context("spawn").Pool(processes=num_processes-1, maxtasksperchild=1) as pool:
@@ -322,9 +322,9 @@ def pl_fold(
                                 outdir,
                                 constype,
                                 consval,
-                                unconstraint,
                             ),
                             kwds={
+                                "unconstraint": unconstraint,
                                 "queue": queue,
                                 "configurer": configurer,
                                 "level": level,
@@ -374,6 +374,7 @@ def pl_fold(
                         ):
                             log.warning(logid + str(cons) + " Exists for " + str(seq_record.id) + "! Skipping!")
                             continue
+
                         pool.apply_async(
                             constrain_seq,
                             args=(
@@ -1478,17 +1479,29 @@ def main(args=None):
         if not args:
             args = parseargs_plcons()
 
+        print(f"{args}")
+
         if args.version:
             sys.exit("Running RIssmed version " + __version__)
 
+        print(
+            f"{args.window} {args.span} {args.region} {args.temperature} {args.multi} {args.unconstraint} {args.unpaired} {args.paired} {args.save} {args.procs} {args.outdir} {args.loglevel}"
+        )
+
         queue, listener, worker_configurer = rissmed_logging_setup(args.logdir, args.loglevel, SCRIPTNAME)
 
-        log.info(logid + "Running " + SCRIPTNAME + " on " + str(args.procs) + " cores.")
+        # log.info(logid + "Running " + SCRIPTNAME + " on " + str(args.procs) + " cores.")
 
-        log.info(logid + "CLI: " + sys.argv[0] + " " + "{}".format(" ".join([shlex.quote(s) for s in sys.argv[1:]])))
+        # log.info(logid + "CLI: " + sys.argv[0] + " " + "{}".format(" ".join([shlex.quote(s) for s in sys.argv[1:]])))
+
+        sys.exit(
+            f"r: {run_settings} q:{queue}, l:{listener}, w:{worker_configurer} {args.window} {args.span} {args.region} {args.temperature} {args.multi} {args.unconstraint} {args.unpaired} {args.paired} {args.save} {args.procs} {outdir} {args.loglevel}"
+        )
+
         run_settings, outdir = preprocess(
             args.sequence, args.constrain, args.conslength, args.constype, args.outdir, args.genes
         )
+
         pl_fold(
             args.window,
             args.span,
@@ -1516,7 +1529,10 @@ def main(args=None):
             exc_value,
             exc_tb,
         )
-        log.error(logid + "".join(tbe.format()))
+        if log:
+            log.error(logid + "".join(tbe.format()))
+        else:
+            print(f'ERROR: {logid} {"".join(tbe.format())}')
 
 
 ####################
@@ -1536,6 +1552,9 @@ if __name__ == "__main__":
             outer_exc_value,
             outer_exc_tb,
         )
-        log.error(outer_logid + "".join(outer_tbe.format()))
+        if log:
+            log.error(outer_logid + "".join(outer_tbe.format()))
+        else:
+            print(f'ERROR: {logid} {"".join(outer_tbe.format())}')
 
     # ConstraintPLFold.py ends here

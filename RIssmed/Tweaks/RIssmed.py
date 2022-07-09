@@ -6,6 +6,7 @@ import datetime
 import os
 import sys
 import traceback as tb
+from random import sample
 from Bio import SeqIO
 from Bio.Seq import Seq
 from collections import defaultdict
@@ -33,7 +34,7 @@ import multiprocessing
 
 
 log = logging.getLogger(__name__)  # use module name
-log.propagate = True
+# log.propagate = True
 SCRIPTNAME = os.path.basename(__file__).replace(".py", "")
 
 
@@ -210,48 +211,74 @@ def set_run_settings_dict(
     """
     logid = SCRIPTNAME + ".set_run_settings_dict: "
     log.debug(f"{logid} seq:{sequence} constraint:{constraint} genes:{genes} constraintype:{constraintype}")
-    run_settings: Dict[str, SequenceSettings] = dict()
-    sequence = parseseq(sequence)
-    if "ono" == str(constraint.split(",")[0]):
-        constraint = constraint.split(",")[1]  # 0-based
-        constraintlist = read_constraints(constraint, linewise=True, constraintype=constraintype)
-        for x, record in enumerate(SeqIO.parse(sequence, "fasta")):
-            goi, chrom, strand = idfromfa(record.id)
-            cons = constraintlist["lw"][x]
-            run_settings = add_rissmed_constraint(
-                run_settings, cons, record, goi, chrom, strand, constraintype=constraintype
-            )
-    elif constraint == "sliding":
-        for record in SeqIO.parse(sequence, "fasta"):
-            goi, chrom, strand = idfromfa(record.id)
-            for start in range(1, len(record.seq) - conslength + 2):  # 0-based
-                end = start + conslength - 1
-                cons = str(start) + "-" + str(end) + "|" + str(strand)
+    try:
+        run_settings: Dict[str, SequenceSettings] = dict()
+        sequence = parseseq(sequence)
+        if "ono" == str(constraint.split(",")[0]):
+            constraint = constraint.split(",")[1]  # 0-based
+            constraintlist = read_constraints(constraint, linewise=True, constraintype=constraintype)
+            for x, record in enumerate(SeqIO.parse(sequence, "fasta")):
+                goi, chrom, strand = idfromfa(record.id)
+                cons = constraintlist["lw"][x]
                 run_settings = add_rissmed_constraint(
                     run_settings, cons, record, goi, chrom, strand, constraintype=constraintype
                 )
-    else:
-        constraintlist = read_constraints(constraint=constraint, constraintype=constraintype)
-        for x, record in enumerate(SeqIO.parse(sequence, "fasta")):
-            goi, chrom, strand = idfromfa(record.id)
-            cons = constraintlist[goi] if type(constraintlist) == defaultdict else constraintlist
-            log.debug(f"{logid} Setting {goi} {chrom} {strand} constraint {cons}")
-            for entry in cons:
-                run_settings = add_rissmed_constraint(
-                    run_settings, entry, record, goi, chrom, strand, constraintype=constraintype
-                )
-    if genes != "":
-        # get genomic coords to print to bed later, should always be just one set of coords per gene
-        genecoords = parse_annotation_bed(genes)
-    else:
-        genecoords = None
-    for entry in run_settings:
-        fasta_settings = run_settings[entry]
-        goi, chrom, strand = idfromfa(fasta_settings.sequence_record.id)
-        genomic_start, genomic_end, genomic_strand, value = get_gene_coords(genecoords, goi, strand)
-        fasta_settings.genomic_coords = Constraint(genomic_start, genomic_end, genomic_strand, value)
+        elif constraint == "sliding":
+            for record in SeqIO.parse(sequence, "fasta"):
+                goi, chrom, strand = idfromfa(record.id)
+                for start in range(1, len(record.seq) - conslength + 2):  # 0-based
+                    end = start + conslength - 1
+                    cons = str(start) + "-" + str(end) + "|" + str(strand)
+                    run_settings = add_rissmed_constraint(
+                        run_settings, cons, record, goi, chrom, strand, constraintype=constraintype
+                    )
+        elif constraint[:7] == "random,":
+            if constraintype != "hard":
+                raise NotImplementedError("Random constraints are currently only supported for hard constraints")
 
-    return run_settings
+            nr_cons = int(constraint.split(",")[1]) - 1
+
+            for record in SeqIO.parse(sequence, "fasta"):
+                goi, chrom, strand = idfromfa(record.id)
+                items = [x for x in range(len(record.seq) - conslength + 2)]
+                randstarts = sample(items, nr_cons)
+                for start in randstarts:  # 0-based
+                    end = start + conslength - 1
+                    cons = str(start) + "-" + str(end) + "|" + str(strand)
+                    run_settings = add_rissmed_constraint(
+                        run_settings, cons, record, goi, chrom, strand, constraintype=constraintype
+                    )
+        else:
+            constraintlist = read_constraints(constraint=constraint, constraintype=constraintype)
+            for x, record in enumerate(SeqIO.parse(sequence, "fasta")):
+                goi, chrom, strand = idfromfa(record.id)
+                cons = constraintlist[goi] if type(constraintlist) == defaultdict else constraintlist
+                log.debug(f"{logid} Setting {goi} {chrom} {strand} constraint {cons}")
+                for entry in cons:
+                    run_settings = add_rissmed_constraint(
+                        run_settings, entry, record, goi, chrom, strand, constraintype=constraintype
+                    )
+        if genes != "":
+            # get genomic coords to print to bed later, should always be just one set of coords per gene
+            genecoords = parse_annotation_bed(genes)
+        else:
+            genecoords = None
+        for entry in run_settings:
+            fasta_settings = run_settings[entry]
+            goi, chrom, strand = idfromfa(fasta_settings.sequence_record.id)
+            genomic_start, genomic_end, genomic_strand, value = get_gene_coords(genecoords, goi, strand)
+            fasta_settings.genomic_coords = Constraint(genomic_start, genomic_end, genomic_strand, value)
+
+        return run_settings
+
+    except Exception:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+            exc_type,
+            exc_value,
+            exc_tb,
+        )
+        log.error(logid + "".join(tbe.format()))
 
 
 @check_run
@@ -497,6 +524,7 @@ def rissmed_logging_setup(logdir: str, loglevel: str, runscript: str):
     logfile = str.join(os.sep, [os.path.abspath(logdir), runscript + "_" + ts + ".log"])
     makelogdir(logdir)
     makelogfile(logfile)
+
     if multiprocessing.get_start_method(allow_none=True) != "spawn":
         multiprocessing.set_start_method("spawn")
     queue = multiprocessing.Manager().Queue(-1)
