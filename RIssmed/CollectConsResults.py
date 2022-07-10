@@ -116,7 +116,7 @@ def screen_genes(
     ulim,
     temperature,
     procs,
-    unconstraint,
+    unconstrained,
     outdir,
     dir,
     genes,
@@ -158,7 +158,7 @@ def screen_genes(
                 os.path.join(
                     dir,
                     goi,
-                    goi + f"*_{unconstraint}_*{str(window)}_{str(span)}_{str(temperature)}.npy",
+                    goi + f"*_{unconstrained}_*{str(window)}_{str(span)}_{str(temperature)}.npy",
                 )
             )
             unpaired = os.path.abspath(
@@ -633,7 +633,7 @@ def main(args=None):
             args.ulimit,
             args.temperature,
             args.procs,
-            args.unconstraint,
+            args.unconstrained,
             args.outdir,
             args.dir,
             args.genes,

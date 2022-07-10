@@ -58,10 +58,10 @@ def parseargs():
     )
     parser.add_argument(
         "-r",
-        "--unconstraint",
+        "--unconstrained",
         type=str,
         default="STDOUT",
-        help="Print output of unconstraint folding to file with this name",
+        help="Print output of unconstrained folding to file with this name",
     )
     parser.add_argument(
         "-n",
@@ -77,9 +77,7 @@ def parseargs():
         default="STDOUT",
         help="Print output of paired folding to file with this name",
     )
-    parser.add_argument(
-        "-e", "--length", type=int, default=100, help="Length of randseq"
-    )
+    parser.add_argument("-e", "--length", type=int, default=100, help="Length of randseq")
     parser.add_argument(
         "-g",
         "--gc",
@@ -87,9 +85,7 @@ def parseargs():
         default=0,
         help="GC content, needs to be %2==0 or will be rounded",
     )
-    parser.add_argument(
-        "-b", "--number", type=int, default=1, help="Number of random seqs to generate"
-    )
+    parser.add_argument("-b", "--number", type=int, default=1, help="Number of random seqs to generate")
     parser.add_argument(
         "-x",
         "--constrain",
@@ -111,9 +107,7 @@ def parseargs():
         default="",
         help="Temperature range for structure prediction (e.g. 37-60)",
     )
-    parser.add_argument(
-        "-a", "--alphabet", type=str, default="AUCG", help="alphabet for random seqs"
-    )
+    parser.add_argument("-a", "--alphabet", type=str, default="AUCG", help="alphabet for random seqs")
     parser.add_argument(
         "--plot",
         type=str,
@@ -121,12 +115,8 @@ def parseargs():
         choices=["0", "svg", "png"],
         help="Create image of the (un-)constraint sequence, you can select the file format here (svg,png). These images can later on be animated with ImageMagick like `convert -delay 120 -loop 0 *.svg animated.gif`.",
     )
-    parser.add_argument(
-        "--save", type=int, default=1, help="Save the output as gz files"
-    )
-    parser.add_argument(
-        "-o", "--outdir", type=str, default="", help="Directory to write to"
-    )
+    parser.add_argument("--save", type=int, default=1, help="Save the output as gz files")
+    parser.add_argument("-o", "--outdir", type=str, default="", help="Directory to write to")
     parser.add_argument(
         "-z",
         "--procs",
@@ -163,7 +153,7 @@ def fold(
     window,
     span,
     region,
-    unconstraint,
+    unconstrained,
     unpaired,
     paired,
     length,
@@ -195,9 +185,7 @@ def fold(
     if vrna:
         sys.path = [vrna] + sys.path
     else:
-        sys.path = [
-            "/scratch/fall/VRNA/243_alpha2/lib/python3.6/site-packages"
-        ] + sys.path
+        sys.path = ["/scratch/fall/VRNA/243_alpha2/lib/python3.6/site-packages"] + sys.path
     try:
         global RNA
         RNA = importTweaks.import_module("RNA")
@@ -236,16 +224,12 @@ def fold(
             goi, chrom = fa.id.split(":")[::2]
             strand = str(fa.id.split(":")[3].split("(")[1][0])
         except:
-            printlog(
-                "Fasta header is not in expected format, you will loose information on strand and chromosome"
-            )
+            printlog("Fasta header is not in expected format, you will loose information on strand and chromosome")
         try:
             goi = fa.id
             chrom, strand = ["na", "na"]
         except:
-            printlog(
-                "Could not assign any value from fasta header, please check your fasta files"
-            )
+            printlog("Could not assign any value from fasta header, please check your fasta files")
 
         if pattern and pattern not in goi:
             next
@@ -267,21 +251,10 @@ def fold(
             data = {"up": []}
             an = [None]
             # We check if we need to fold the whole seq or just a region around the constraints
-            if (
-                constrain == "sliding" or constrain == "temperature"
-            ):  # here we fold the whole seq
+            if constrain == "sliding" or constrain == "temperature":  # here we fold the whole seq
                 # if not already available, run raw fold for whole sequence as we have a sliding window constraint
                 check = (
-                    str(goi)
-                    + "_"
-                    + str(chrom)
-                    + "_"
-                    + str(strand)
-                    + "_"
-                    + unconstraint
-                    + "_"
-                    + str(window)
-                    + ".gz"
+                    str(goi) + "_" + str(chrom) + "_" + str(strand) + "_" + unconstrained + "_" + str(window) + ".gz"
                 )
                 if not (os.path.isfile(check)):
                     # set model details
@@ -295,14 +268,12 @@ def fold(
                     # 			fc.probs_window(region, RNA.PROBS_WINDOW_BPP, bpp_callback, data)
                     # print plfold output
                     if save:
-                        write_unconstraint(
-                            fa, unconstraint, data, int(region), str(window), outdir
-                        )
+                        write_unconstraint(fa, unconstrained, data, int(region), str(window), outdir)
                 else:
                     # The hard work of folding this has already been done, so we just read in the results
                     printlog(
                         "Found "
-                        + str(goi + "_" + unconstraint + "_" + str(window) + ".gz")
+                        + str(goi + "_" + unconstrained + "_" + str(window) + ".gz")
                         + ", will read in data and not recalculate"
                     )
                     data["up"] = read_precalc_fold(data["up"], check, fa)
@@ -351,18 +322,13 @@ def fold(
                 pool = multiprocessing.Pool(processes=num_processes)
                 processes = []
                 probeargs = temprange.split(",")
-                printlog(
-                    "Calculating cutoff probs for temperature constraint "
-                    + probeargs[0]
-                )
+                printlog("Calculating cutoff probs for temperature constraint " + probeargs[0])
                 ts, te = map(int, probeargs[0].split("-"))
                 if (
                     len(fa.seq) > window * 4
                 ):  # If the sequence is very large and we only need a proxy of changes to get a border for the cutoff of CalcConsDiffs we randomly select 10 regions of size window of the sequence for folding
                     selection = ""
-                    if probeargs[
-                        1
-                    ]:  # if we have constraints we choose windows around the constraints for tempprobing
+                    if probeargs[1]:  # if we have constraints we choose windows around the constraints for tempprobing
                         for const in probeargs[1:]:
                             conss, conse = map(int, const.split("-"))
                             strt = conss - window * 2
@@ -373,31 +339,18 @@ def fold(
                                 endt = len(fa.seq)
                             selection = selection + str(fa.seq[strt:endt])
                     else:
-                        for chosen in range(
-                            1, 11
-                        ):  # we randomly choose 10 windows from the sequence
+                        for chosen in range(1, 11):  # we randomly choose 10 windows from the sequence
                             items = range(window, len(fa.seq) - window - 1)
                             sel = choice(items)
                             selection = selection + (fa.seq[sel : sel + window])
                     fa.seq = Seq(str(selection))
                 # we check if we already have the raw seq folded
                 check = (
-                    str(goi)
-                    + "_"
-                    + str(chrom)
-                    + "_"
-                    + str(strand)
-                    + "_"
-                    + unconstraint
-                    + "_"
-                    + str(window)
-                    + ".gz"
+                    str(goi) + "_" + str(chrom) + "_" + str(strand) + "_" + unconstrained + "_" + str(window) + ".gz"
                 )
                 if os.path.isfile(check):
                     # The hard work of folding this has already been done, so we just read in the results
-                    printlog(
-                        "Found " + check + ", will read in data and not recalculate"
-                    )
+                    printlog("Found " + check + ", will read in data and not recalculate")
                     data["up"] = read_precalc_fold(data["up"], check, fa)
                     # convert to array for fast diff	calc
                     an = up_to_array(data["up"], int(region), len(fa.seq))
@@ -456,10 +409,7 @@ def fold(
                         for line in o:
                             conslist.append(line.rstrip())
                 elif constrain == "file" or constrain == "paired":
-                    printlog(
-                        "Calculating probs for constraint from file "
-                        + str(goi + "_constraints")
-                    )
+                    printlog("Calculating probs for constraint from file " + str(goi + "_constraints"))
                     with open(goi + "_constraints", "rt") as o:
                         for line in o:
                             conslist.append(line.rstrip())
@@ -474,9 +424,7 @@ def fold(
                     conslist = constrain.split(",")
 
                 for entry in conslist:
-                    if (
-                        entry == "NOCONS"
-                    ):  # in case we just want to fold the sequence without constraints at all
+                    if entry == "NOCONS":  # in case we just want to fold the sequence without constraints at all
                         md = RNA.md()
                         md.max_bp_span = span
                         md.window_size = window
@@ -486,9 +434,7 @@ def fold(
                         # call prop window calculation
                         data = {"up": []}
                         fc.probs_window(region, RNA.PROBS_WINDOW_UP, up_callback, data)
-                        write_unconstraint(
-                            fa, unconstraint, data, int(region), str(window), outdir
-                        )
+                        write_unconstraint(fa, unconstrained, data, int(region), str(window), outdir)
 
                     else:
                         # we now have a list of constraints and for the raw seq comparison we only need to fold windows around these constraints
@@ -497,8 +443,7 @@ def fold(
                         data = {"up": []}
                         if constrain == "paired" or ":" in entry:
                             [fstart, fend], [start, end] = [
-                                [int(x) for x in cn.split("-", 1)]
-                                for cn in entry.split(":", 1)
+                                [int(x) for x in cn.split("-", 1)] for cn in entry.split(":", 1)
                             ]
                             tostart = fstart - 4 * window
                             if tostart < 0:
@@ -506,15 +451,7 @@ def fold(
                             toend = fend + 4 * window + 1
                             if toend > len(fa.seq):
                                 toend = len(fa.seq)
-                            cons = (
-                                str(fstart)
-                                + "-"
-                                + str(fend)
-                                + ":"
-                                + str(start)
-                                + "-"
-                                + str(end)
-                            )
+                            cons = str(fstart) + "-" + str(fend) + ":" + str(start) + "-" + str(end)
                         else:
                             start, end = map(int, entry.split("-", 1))
                             # for all constraints we now extract subsequences to compare against
@@ -527,9 +464,7 @@ def fold(
                                 toend = len(fa.seq)
                             cons = str(start) + "-" + str(end)
 
-                        if checkexisting(
-                            fa, paired, unpaired, cons, region, window, outdir
-                        ):
+                        if checkexisting(fa, paired, unpaired, cons, region, window, outdir):
                             # 							printlog(cons + ' EXIST')
                             continue
 
@@ -549,9 +484,7 @@ def fold(
                         # In case we have paired constraint we want to set the first constraint as default
                         # call prop window calculation
                         data_t = {"up": []}
-                        fc.probs_window(
-                            region, RNA.PROBS_WINDOW_UP, up_callback, data_t
-                        )
+                        fc.probs_window(region, RNA.PROBS_WINDOW_UP, up_callback, data_t)
                         # for easier handling we now extend the array before and after the constraint region to the total length of the raw sequence
                         for i in range(0, tostart):
                             data["up"].append([None, 0.0])
@@ -563,9 +496,7 @@ def fold(
                         an = up_to_array(data["up"], int(region), len(fa.seq))
 
                         if fstart is not None and fend is not None:
-                            printlog(
-                                "Constraining to " + str(fstart) + " and " + str(fend)
-                            )
+                            printlog("Constraining to " + str(fstart) + " and " + str(fend))
                             try:
                                 goi, chrom = fa.id.split(":")[::2]
                                 strand = str(fa.id.split(":")[3].split("(")[1][0])
@@ -730,33 +661,9 @@ def constrain_seq(
         chrom, strand = ["na", "na"]
 
     if os.path.exists(
-        "StruCons_"
-        + goi
-        + "_"
-        + chrom
-        + "_"
-        + strand
-        + "_"
-        + cons
-        + "_"
-        + paired
-        + "_"
-        + str(window)
-        + ".gz"
+        "StruCons_" + goi + "_" + chrom + "_" + strand + "_" + cons + "_" + paired + "_" + str(window) + ".gz"
     ) and os.path.exists(
-        "StruCons_"
-        + goi
-        + "_"
-        + chrom
-        + "_"
-        + strand
-        + "_"
-        + cons
-        + "_"
-        + unpaired
-        + "_"
-        + str(window)
-        + ".gz"
+        "StruCons_" + goi + "_" + chrom + "_" + strand + "_" + cons + "_" + unpaired + "_" + str(window) + ".gz"
     ):
         return
 
@@ -798,7 +705,7 @@ def constrain_seq(
     # 	with open('bla','a') as h:
     # 		print(str(tostart)+'\t'+str(toend)+'\t'+str(len(data['up']))+cons+'\n'+str(data['up'][tostart:toend])+'\n'+str(data_pn['up'][:window+window+end-start+1])+'\n'+str(data_un['up'][:window+window+end-start+1]), file=h)
 
-    # we now fill the list with values from the unconstraint sequence to get the same length
+    # we now fill the list with values from the unconstrained sequence to get the same length
     data_p = {"up": []}
     data_u = {"up": []}
 
@@ -900,9 +807,7 @@ def constrain_seq_paired(
         )  # 0 means without direction  ( $ d < 0 $: pairs upstream, $ d > 0 $: pairs downstream, $ d == 0 $: no direction)
         # enforce paired
     for x in range(fstart - tostart, fend - tostart + 1):
-        fc_p.hc_add_bp_nonspecific(
-            x, 0
-        )  # 0 means without direction  ( $ d < 0 $: pairs upstream, $ d >
+        fc_p.hc_add_bp_nonspecific(x, 0)  # 0 means without direction  ( $ d < 0 $: pairs upstream, $ d >
 
     # enforce unpaired
     for x in range(start - tostart, end - tostart + 1):
@@ -921,7 +826,7 @@ def constrain_seq_paired(
     # 	with open('bla','a') as h:
     # 		print(str(tostart)+'\t'+str(toend)+'\t'+str(len(data['up']))+'\n'+str(data['up'][tostart:toend])+'\n'+str(data_pn['up'][:window+window+end-start+1])+'\n'+str(data_un['up'][:window+window+end-start+1]), file=h)
 
-    # we now fill the list with values from the unconstraint sequence to get the same length
+    # we now fill the list with values from the unconstrained sequence to get the same length
     data_p = {"up": []}
     data_u = {"up": []}
 
@@ -973,9 +878,7 @@ def constrain_seq_paired(
         )
 
 
-def constrain_temp(
-    fa, temp, window, span, region, an, animations, xs, save, outdir, plot
-):
+def constrain_temp(fa, temp, window, span, region, an, animations, xs, save, outdir, plot):
     # 	print('FOLDING ' + str(fa.seq) + ' at temp ' + str(temp))
     # refresh model details
     md = RNA.md()
@@ -1019,7 +922,7 @@ def plot_data(fa, raw, consu, consp, const, xs, cons, saveas, outdir):
     ax2 = ax1.twiny()
     # 	line, = ax.plot([], [], lw=2)
     plt.title(
-        "Blue-- = Unconstraint, Green-. = Unpaired, Red = Paired, Gray = Constraint",
+        "Blue-- = unconstrained, Green-. = Unpaired, Red = Paired, Gray = Constraint",
         y=1.075,
     )
     ax1.set_ylabel("Prob unpaired")
@@ -1080,9 +983,7 @@ def plot_temp(fa, raw, temp, xs, saveas, outdir):
 
 def bpp_callback(v, v_size, i, maxsize, what, data):
     if what & RNA.PROBS_WINDOW_BPP:
-        data["bpp"].extend(
-            [{"i": i, "j": j, "p": p} for j, p in enumerate(v) if (p is not None)]
-        )  # and (p >= 0.01)])
+        data["bpp"].extend([{"i": i, "j": j, "p": p} for j, p in enumerate(v) if (p is not None)])  # and (p >= 0.01)])
 
 
 def up_callback(v, v_size, i, maxsize, what, data):
@@ -1128,9 +1029,7 @@ def print_region_up(data=None, seqlength=None, region=None):
                 else:
                     data[i][x] = round(data[i][x], 7)
 
-            ups += (
-                str(i + 1) + "\t" + "\t".join(map(str, data[i][1 : region + 1])) + "\n"
-            )
+            ups += str(i + 1) + "\t" + "\t".join(map(str, data[i][1 : region + 1])) + "\n"
         return ups
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -1152,11 +1051,7 @@ def up_to_array(data=None, region=None, seqlength=None):
             seqlength = len(data)
 
         for i in range(seqlength):
-            if (
-                data[i][region] is None
-                or data[i][region] is "NA"
-                or data[i][region] is "nan"
-            ):
+            if data[i][region] is None or data[i][region] is "NA" or data[i][region] is "nan":
                 data[i][region] = np.nan
                 entries.append(data[i][region])
             else:
@@ -1196,7 +1091,7 @@ def npprint(a, o=None):  # , format_string ='{0:.2f}'):
             print("".join(tbe.format()), file=h)
 
 
-def write_unconstraint(fa, unconstraint, data, region, window, outdir):
+def write_unconstraint(fa, unconstrained, data, region, window, outdir):
     # 	pp = pprint.PrettyPrinter(indent=4)#use with pp.pprint(datastructure)
     # 	pp.pprint(data['up'][1:10])
     try:
@@ -1207,39 +1102,15 @@ def write_unconstraint(fa, unconstraint, data, region, window, outdir):
         chrom, strand = ["na", "na"]
 
     try:
-        if unconstraint != "STDOUT":
+        if unconstrained != "STDOUT":
             bakdir = os.path.abspath(os.getcwd())
             os.chdir(outdir)
-            if not os.path.exists(
-                str(
-                    goi
-                    + "_"
-                    + chrom
-                    + "_"
-                    + strand
-                    + "_"
-                    + unconstraint
-                    + "_"
-                    + window
-                    + ".gz"
-                )
-            ):
+            if not os.path.exists(str(goi + "_" + chrom + "_" + strand + "_" + unconstrained + "_" + window + ".gz")):
                 o = gzip.open(
-                    goi
-                    + "_"
-                    + chrom
-                    + "_"
-                    + strand
-                    + "_"
-                    + unconstraint
-                    + "_"
-                    + window
-                    + ".gz",
+                    goi + "_" + chrom + "_" + strand + "_" + unconstrained + "_" + window + ".gz",
                     "wb",
                 )
-                o.write(
-                    bytes(print_up(data["up"], len(fa.seq), region), encoding="UTF-8")
-                )
+                o.write(bytes(print_up(data["up"], len(fa.seq), region), encoding="UTF-8"))
             os.chdir(bakdir)
         else:
             print(print_up(data, len(fa.seq), region))
@@ -1284,19 +1155,7 @@ def write_constraint(
             bakdir = os.path.abspath(os.getcwd())
             os.chdir(outdir)
             if not os.path.exists(
-                "StruCons_"
-                + goi
-                + "_"
-                + chrom
-                + "_"
-                + strand
-                + "_"
-                + constrain
-                + "_"
-                + paired
-                + "_"
-                + window
-                + ".gz"
+                "StruCons_" + goi + "_" + chrom + "_" + strand + "_" + constrain + "_" + paired + "_" + window + ".gz"
             ):
                 o = gzip.open(
                     "StruCons_"
@@ -1314,9 +1173,7 @@ def write_constraint(
                     + ".gz",
                     "wb",
                 )
-                o.write(
-                    bytes(print_up(data_p["up"], len(fa.seq), region), encoding="UTF-8")
-                )
+                o.write(bytes(print_up(data_p["up"], len(fa.seq), region), encoding="UTF-8"))
             os.chdir(bakdir)
         else:
             print(print_up(data_p["up"], len(fa.seq), region))
@@ -1355,9 +1212,7 @@ def write_constraint(
                     + ".gz",
                     "wb",
                 )
-                o.write(
-                    bytes(print_up(data_u["up"], len(fa.seq), region), encoding="UTF-8")
-                )
+                o.write(bytes(print_up(data_u["up"], len(fa.seq), region), encoding="UTF-8"))
             os.chdir(bakdir)
         else:
             print(print_up(data_u["up"], len(fa.seq), region))
@@ -1367,30 +1222,10 @@ def write_constraint(
                 bakdir = os.path.abspath(os.getcwd())
                 os.chdir(outdir)
                 if not os.path.exists(
-                    "StruCons_"
-                    + goi
-                    + "_"
-                    + chrom
-                    + "_"
-                    + strand
-                    + "_"
-                    + constrain
-                    + "_diffnu_"
-                    + window
-                    + ".gz"
+                    "StruCons_" + goi + "_" + chrom + "_" + strand + "_" + constrain + "_diffnu_" + window + ".gz"
                 ):
                     o = gzip.open(
-                        "StruCons_"
-                        + goi
-                        + "_"
-                        + chrom
-                        + "_"
-                        + strand
-                        + "_"
-                        + constrain
-                        + "_diffnu_"
-                        + window
-                        + ".gz",
+                        "StruCons_" + goi + "_" + chrom + "_" + strand + "_" + constrain + "_diffnu_" + window + ".gz",
                         "wb",
                     )
                     npprint(diff_nu, o)
@@ -1403,30 +1238,10 @@ def write_constraint(
                 bakdir = os.path.abspath(os.getcwd())
                 os.chdir(outdir)
                 if not os.path.exists(
-                    "StruCons_"
-                    + goi
-                    + "_"
-                    + chrom
-                    + "_"
-                    + strand
-                    + "_"
-                    + constrain
-                    + "_diffnp_"
-                    + window
-                    + ".gz"
+                    "StruCons_" + goi + "_" + chrom + "_" + strand + "_" + constrain + "_diffnp_" + window + ".gz"
                 ):
                     o = gzip.open(
-                        "StruCons_"
-                        + goi
-                        + "_"
-                        + chrom
-                        + "_"
-                        + strand
-                        + "_"
-                        + constrain
-                        + "_diffnp_"
-                        + window
-                        + ".gz",
+                        "StruCons_" + goi + "_" + chrom + "_" + strand + "_" + constrain + "_diffnp_" + window + ".gz",
                         "wb",
                     )
                     npprint(diff_np, o)
@@ -1458,60 +1273,18 @@ def write_temp(fa, temp, data, region, diff, window, outdir):
         bakdir = os.path.abspath(os.getcwd())
         os.chdir(outdir)
 
-        if not os.path.exists(
-            "TempCons_"
-            + goi
-            + "_"
-            + chrom
-            + "_"
-            + strand
-            + "_"
-            + temp
-            + "_temp_"
-            + window
-            + ".gz"
-        ):
+        if not os.path.exists("TempCons_" + goi + "_" + chrom + "_" + strand + "_" + temp + "_temp_" + window + ".gz"):
             o = gzip.open(
-                "TempCons_"
-                + goi
-                + "_"
-                + chrom
-                + "_"
-                + strand
-                + "_"
-                + temp
-                + "_temp_"
-                + window
-                + ".gz",
+                "TempCons_" + goi + "_" + chrom + "_" + strand + "_" + temp + "_temp_" + window + ".gz",
                 "wb",
             )
             o.write(bytes(print_up(data["up"], len(fa.seq), region), encoding="UTF-8"))
             o.close()
             if not os.path.exists(
-                "TempCons_"
-                + goi
-                + "_"
-                + chrom
-                + "_"
-                + strand
-                + "_"
-                + temp
-                + "_difft_"
-                + window
-                + ".gz"
+                "TempCons_" + goi + "_" + chrom + "_" + strand + "_" + temp + "_difft_" + window + ".gz"
             ):
                 o = gzip.open(
-                    "TempCons_"
-                    + goi
-                    + "_"
-                    + chrom
-                    + "_"
-                    + strand
-                    + "_"
-                    + temp
-                    + "_difft_"
-                    + window
-                    + ".gz",
+                    "TempCons_" + goi + "_" + chrom + "_" + strand + "_" + temp + "_difft_" + window + ".gz",
                     "wb",
                 )
                 npprint(diff, o)
@@ -1563,33 +1336,9 @@ def checkexisting(fa, paired, unpaired, cons, region, window, outdir):
         chrom, strand = ["na", "na"]
     try:
         if os.path.exists(
-            "StruCons_"
-            + goi
-            + "_"
-            + chrom
-            + "_"
-            + strand
-            + "_"
-            + cons
-            + "_"
-            + paired
-            + "_"
-            + str(window)
-            + ".gz"
+            "StruCons_" + goi + "_" + chrom + "_" + strand + "_" + cons + "_" + paired + "_" + str(window) + ".gz"
         ) and os.path.exists(
-            "StruCons_"
-            + goi
-            + "_"
-            + chrom
-            + "_"
-            + strand
-            + "_"
-            + cons
-            + "_"
-            + unpaired
-            + "_"
-            + str(window)
-            + ".gz"
+            "StruCons_" + goi + "_" + chrom + "_" + strand + "_" + cons + "_" + unpaired + "_" + str(window) + ".gz"
         ):
             return True
         else:
@@ -1612,7 +1361,7 @@ if __name__ == "__main__":
         args.window,
         args.span,
         args.region,
-        args.unconstraint,
+        args.unconstrained,
         args.unpaired,
         args.paired,
         args.length,

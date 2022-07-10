@@ -221,14 +221,14 @@ def parseargs_collectpl():
         "--cutoff",
         type=float,
         default=1.0,
-        help="Cutoff for the definition of pairedness, if set to > 0 it will select only constraint regions with mean raw (unconstraint) probability of being unpaired <= cutoff for further processing(default: 1.0)",
+        help="Cutoff for the definition of pairedness, if set to > 0 it will select only constraint regions with mean raw (unconstrained) probability of being unpaired <= cutoff for further processing(default: 1.0)",
     )
     parser.add_argument(
         "-b",
         "--border",
         type=float,
         default=0.0,
-        help="Cutoff for the minimum change between unconstraint and constraint structure, regions below this cutoff will not be further evaluated.",
+        help="Cutoff for the minimum change between unconstrained and constraint structure, regions below this cutoff will not be further evaluated.",
     )
     parser.add_argument(
         "-u",
@@ -239,10 +239,10 @@ def parseargs_collectpl():
     )
     parser.add_argument(
         "-r",
-        "--unconstraint",
+        "--unconstrained",
         type=str,
         default="raw",
-        help="Name for unconstraint provided at ConstraintPLFold -r",
+        help="Name for unconstrained provided at ConstraintPLFold -r",
     )
     parser.add_argument(
         "-t",
@@ -309,14 +309,14 @@ def parseargs_browser():
         "--cutoff",
         type=float,
         default=1.0,
-        help="Cutoff for the definition of pairedness, if set to < 1 it will select only constraint regions with mean raw (unconstraint) probability of being unpaired <= cutoff for further processing(default: 1.0)",
+        help="Cutoff for the definition of pairedness, if set to < 1 it will select only constraint regions with mean raw (unconstrained) probability of being unpaired <= cutoff for further processing(default: 1.0)",
     )
     parser.add_argument(
         "-b",
         "--border",
         type=float,
         default=0.0,
-        help="Cutoff for the minimum change between unconstraint and constraint structure, regions below this cutoff will not be further evaluated.",
+        help="Cutoff for the minimum change between unconstrained and constraint structure, regions below this cutoff will not be further evaluated.",
     )
     parser.add_argument(
         "-u",
@@ -327,10 +327,10 @@ def parseargs_browser():
     )
     parser.add_argument(
         "-r",
-        "--unconstraint",
+        "--unconstrained",
         type=str,
         default=None,
-        help="Name for unconstraint provided at ConstraintPLFold -r",
+        help="Name for unconstrained provided at ConstraintPLFold -r",
     )
     parser.add_argument(
         "-n",
@@ -503,7 +503,7 @@ def parseargs_collect_window():
         "--border",
         type=str,
         default="-inf,inf",
-        help="Cutoff for the minimum change between unconstraint and constraint structure, regions below this cutoff will not be returned as list of regions with most impact on structure.",
+        help="Cutoff for the minimum change between unconstrained and constraint structure, regions below this cutoff will not be returned as list of regions with most impact on structure.",
     )
     parser.add_argument("-o", "--outdir", type=str, default="", help="Directory to write to")
     parser.add_argument(
@@ -563,7 +563,7 @@ def parseargs_collect_windowdiff():
         "--cutoff",
         type=str,
         default="-inf,inf",
-        help="Cutoff for the minimum change between unconstraint and constraint structure,"
+        help="Cutoff for the minimum change between unconstrained and constraint structure,"
         " regions below this cutoff will not be returned as list of regions with most "
         "impact on structure.",
     )

@@ -113,7 +113,7 @@ def scan_input(
     ulim,
     temperature,
     procs,
-    unconstraint,
+    unconstrained,
     unp,
     pai,
     outdir,
@@ -135,17 +135,17 @@ def scan_input(
     pat : str
         Pattern for and window and span, e.g. 30,250. Window can contain other strings for filtering, e.g. Seq1_30
     cutoff : float
-        Cutoff for the definition of pairedness, if set to < 1 it will select only constraint regions with mean raw (unconstraint) probability of being unpaired <= cutoff for further processing(default: 1.0)
+        Cutoff for the definition of pairedness, if set to < 1 it will select only constraint regions with mean raw (unconstrained) probability of being unpaired <= cutoff for further processing(default: 1.0)
     border : float
-        Cutoff for the minimum change between unconstraint and constraint structure, regions below this cutoff will not be further evaluated.
+        Cutoff for the minimum change between unconstrained and constraint structure, regions below this cutoff will not be further evaluated.
     ulim : int
         Stretch of nucleotides used during plfold run (-u option)
     temperature : float
         Temperature for structure prediction
     procs : int
         Number of parallel processes to run this job with
-    unconstraint : str
-        Name for unconstraint provided at ConstraintPLFold -r
+    unconstrained : str
+        Name for unconstrained provided at ConstraintPLFold -r
     unp : bool
         If unpaired files should be converted as well
     pai : bool
@@ -191,15 +191,15 @@ def scan_input(
         rawbigfw = rawbigre = unpbigfw = unpbigre = paibigfw = paibigre = None
 
         filepaths = [
-            os.path.join(outdir, f"{unconstraint}_{ulim}.fw.bw"),
-            os.path.join(outdir, f"{unconstraint}_{ulim}.re.bw"),
+            os.path.join(outdir, f"{unconstrained}_{ulim}.fw.bw"),
+            os.path.join(outdir, f"{unconstrained}_{ulim}.re.bw"),
             os.path.join(outdir, f"{unp}_{ulim}.fw.bw"),
             os.path.join(outdir, f"{unp}_{ulim}.re.bw"),
             os.path.join(outdir, f"{pai}_{ulim}.fw.bw"),
             os.path.join(outdir, f"{pai}_{ulim}.re.bw"),
         ]  # need to save that to get rid of empty files later on
 
-        if unconstraint:
+        if unconstrained:
             rawbigfw = pbw.open(filepaths[0], "w")
             rawbigfw.addHeader(header, maxZooms=10)
             rawbigre = pbw.open(filepaths[1], "w")
@@ -221,7 +221,7 @@ def scan_input(
             log.info(logid + "Working on " + goi)
             chrom, gs, ge, gstrand, _ = get_location_withchrom(genecoords[goi][0])
 
-            raw = getfiles(unconstraint, window, span, temperature, goi, indir)
+            raw = getfiles(unconstrained, window, span, temperature, goi, indir)
             unpaired = getfiles("diffnu", window, span, temperature, goi, indir)
             paired = getfiles("diffnp", window, span, temperature, goi, indir)
 
@@ -305,9 +305,9 @@ def generate_bws(
     ulim : int
         Stretch of nucleotides used during plfold run (-u option)
     cutoff : float
-        Cutoff for the definition of pairedness, if set to < 1 it will select only constraint regions with mean raw (unconstraint) probability of being unpaired <= cutoff for further processing(default: 1.0)
+        Cutoff for the definition of pairedness, if set to < 1 it will select only constraint regions with mean raw (unconstrained) probability of being unpaired <= cutoff for further processing(default: 1.0)
     border : float
-        Cutoff for the minimum change between unconstraint and constraint structure, regions below this cutoff will not be further evaluated.
+        Cutoff for the minimum change between unconstrained and constraint structure, regions below this cutoff will not be further evaluated.
     outdir : str
         Directory to write to
     padding : int
@@ -564,9 +564,9 @@ def create_bw_entries(fname, goi, gstrand, gs, ge, cutoff, border, ulim, padding
     ge: int
         gene end coordinates
     cutoff : float
-        Cutoff for the definition of pairedness, if set to < 1 it will select only constraint regions with mean raw (unconstraint) probability of being unpaired <= cutoff for further processing(default: 1.0)
+        Cutoff for the definition of pairedness, if set to < 1 it will select only constraint regions with mean raw (unconstrained) probability of being unpaired <= cutoff for further processing(default: 1.0)
     border : float
-        Cutoff for the minimum change between unconstraint and constraint structure, regions below this cutoff will not be further evaluated.
+        Cutoff for the minimum change between unconstrained and constraint structure, regions below this cutoff will not be further evaluated.
     ulim : int
         Stretch of nucleotides used during plfold run (-u option)
     padding : int
@@ -829,7 +829,7 @@ def main(args=None):
             args.ulimit,
             args.temperature,
             args.procs,
-            args.unconstraint,
+            args.unconstrained,
             args.unpaired,
             args.paired,
             args.outdir,

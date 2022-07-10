@@ -387,7 +387,7 @@ def make_outdir(outdir):
 
 # TODO: This is in the ConstraintPLFold File isnt it?
 # Write results
-# def prepare_write_ucons(save, sid, seq, unconstraint, data, region, window, span, outdir, rawentry=None):
+# def prepare_write_ucons(save, sid, seq, unconstrained, data, region, window, span, outdir, rawentry=None):
 #     logid = f"{SCRIPTN}.prepare write_ucons"
 #     try:
 #         goi, chrom, strand = idfromfa(sid)
@@ -405,16 +405,16 @@ def make_outdir(outdir):
 #         gr = 'na'
 #
 #     try:
-#         if unconstraint != 'STDOUT':
+#         if unconstrained != 'STDOUT':
 #             if not os.path.exists(temp_outdir):
 #                 os.makedirs(temp_outdir)
 #             if rawentry:
 #                 if save > 0 and not os.path.exists(os.path.join(temp_outdir, str(
-#                         goi + '_' + chrom + '_' + strand + '_' + unconstraint + '_' + rawentry + '_' +
+#                         goi + '_' + chrom + '_' + strand + '_' + unconstrained + '_' + rawentry + '_' +
 #                         window + '_' + str(
 #                             span) + '.gz'))):
 #                     with gzip.open(os.path.join(temp_outdir,
-#                                                 goi + '_' + chrom + '_' + strand + '_' + unconstraint + '_' +
+#                                                 goi + '_' + chrom + '_' + strand + '_' + unconstrained + '_' +
 #                                                 rawentry + '_' + window + '_' + str(
 #                                                     span) + '.gz'), 'wb') as o:
 #                         out = print_up(data['up'], len(seq), region)
@@ -424,10 +424,10 @@ def make_outdir(outdir):
 #                             log.error(logid + "No output produced " + sid)
 #             else:
 #                 if save > 0 and not os.path.exists(os.path.join(temp_outdir, str(
-#                         goi + '_' + chrom + '_' + strand + '_' + unconstraint + '_' + str(
+#                         goi + '_' + chrom + '_' + strand + '_' + unconstrained + '_' + str(
 #                             gr) + '_' + window + '_' + str(span) + '.gz'))):
 #                     with gzip.open(os.path.join(temp_outdir,
-#                                                 goi + '_' + chrom + '_' + strand + '_' + unconstraint + '_' + str(
+#                                                 goi + '_' + chrom + '_' + strand + '_' + unconstrained + '_' + str(
 #                                                     gr) + '_' + window + '_' + str(span) + '.gz'), 'wb') as o:
 #                         out = print_up(data['up'], len(seq), region)
 #                         if out and len(out) > 1:

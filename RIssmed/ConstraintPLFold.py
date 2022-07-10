@@ -107,7 +107,7 @@ def pl_fold(
     region,
     temperature,
     multi,
-    unconstraint,
+    unconstrained,
     unpaired,
     paired,
     save,
@@ -128,7 +128,7 @@ def pl_fold(
     region: int -u Option of RNAplfold
     temp: float Temperature
     multi: int Multiplyer for Window extension
-    unconstraint: str Suffix for ouput files of unconstraint folding
+    unconstrained: str Suffix for ouput files of unconstrained folding
     unpaired: str Suffix for ouput files of unpaired constraint
     paired: str Suffix for output files of paired constraint
     save: bool Should npy or npy and gz output be saved
@@ -219,7 +219,7 @@ def pl_fold(
                         continue
                     if check_raw_existing(
                         str(seq_record.id),
-                        unconstraint,
+                        unconstrained,
                         cons,
                         region,
                         window,
@@ -245,7 +245,7 @@ def pl_fold(
                             outdir,
                         ),
                         kwds={
-                            "unconstraint": unconstraint,
+                            "unconstrained": unconstrained,
                             "queue": queue,
                             "configurer": configurer,
                             "level": level,
@@ -324,7 +324,7 @@ def pl_fold(
                                 consval,
                             ),
                             kwds={
-                                "unconstraint": unconstraint,
+                                "unconstrained": unconstrained,
                                 "queue": queue,
                                 "configurer": configurer,
                                 "level": level,
@@ -395,7 +395,7 @@ def pl_fold(
                                 consval,
                             ),
                             kwds={
-                                "unconstraint": unconstraint,
+                                "unconstrained": unconstrained,
                                 "queue": queue,
                                 "configurer": configurer,
                                 "level": level,
@@ -423,7 +423,7 @@ def fold_unconstraint(
     window,
     span,
     temperature,
-    unconstraint,
+    unconstrained,
     save,
     outdir,
     rawentry=None,
@@ -443,7 +443,7 @@ def fold_unconstraint(
     window: int Size of window to fold
     span: int Maximum base-pair span to be evaluated
     temperature: float Temperature
-    unconstraint: str Suffix for ouput files of unconstraint folding
+    unconstrained: str Suffix for ouput files of unconstrained folding
     save: bool Should npy or npy and gz output be saved
     outdir : str Location of the Outpu directory. If it is an empty string os.cwd() is used
     rawentry: str Name for raw file to pass to write_unconstraint
@@ -477,7 +477,7 @@ def fold_unconstraint(
             save,
             str(id),
             str(seq),
-            unconstraint,
+            unconstrained,
             plfold_output,
             int(region),
             str(window),
@@ -510,7 +510,7 @@ def scan_seq(
     multi,
     save,
     outdir,
-    unconstraint=None,
+    unconstrained=None,
     queue=None,
     configurer=None,
     level=None,
@@ -530,7 +530,7 @@ def scan_seq(
     multi: int Multiplyer for window extension
     save: bool Should npy or npy and gz output be saved
     outdir : str Location of the Outpu directory. If it is an empty string os.cwd() is used
-    unconstraint: str Suffix for ouput files of unconstraint folding
+    unconstrained: str Suffix for ouput files of unconstrained folding
     queue: multiprocessing_queue Logging process queue
     configurer: multiprocessing_config for Logging processes
     level: logging.level Level for log process
@@ -573,7 +573,7 @@ def scan_seq(
             log.warning(logid + f"Constraint out of sequence bounds! skipping! {len(seq)}, {str(start)} - {str(end)}")
             return
 
-        if check_raw_existing(sid, unconstraint, cons, region, window, span, temperature, outdir):
+        if check_raw_existing(sid, unconstrained, cons, region, window, span, temperature, outdir):
             log.warning(logid + str(cons) + " Existst for " + str(sid) + "! Skipping!")
             return
 
@@ -608,7 +608,7 @@ def scan_seq(
         locwe = locwe - tostart
 
         plfold_unconstraint = fold_unconstraint(
-            str(seq), sid, region, window, span, temperature, unconstraint, save, outdir
+            str(seq), sid, region, window, span, temperature, unconstrained, save, outdir
         )
 
         return 1
@@ -639,7 +639,7 @@ def constrain_seq(
     outdir,
     constype,
     consval,
-    unconstraint=None,
+    unconstrained=None,
     queue=None,
     configurer=None,
     level=None,
@@ -665,8 +665,8 @@ def constrain_seq(
         Type of constraint to apply, can be ['hard' (Default), 'soft'(not implemented yet), 'mutate']
     consval : str
         Value for constraint to apply, ignored when constype is 'hard'
-    unconstraint: str, optional
-        Suffix for ouput files of unconstraint folding
+    unconstrained: str, optional
+        Suffix for ouput files of unconstrained folding
     queue: multiprocessing_queue, optional
         Logging process queue
     configurer: multiprocessing_config, optional
@@ -759,7 +759,7 @@ def constrain_seq(
             window,
             span,
             temperature,
-            unconstraint,
+            unconstrained,
             save,
             outdir,
             cons,
@@ -798,7 +798,7 @@ def constrain_seq(
         else:
             plfold_paired = None
 
-        # Calculating accessibility difference between unconstraint and constraint fold, <0 means less accessible
+        # Calculating accessibility difference between unconstrained and constraint fold, <0 means less accessible
         # with constraint, >0 means more accessible upon constraint
 
         if not np.array_equal(an, au):
@@ -861,7 +861,7 @@ def constrain_seq_paired(
     outdir,
     constype,
     consval,
-    unconstraint=None,
+    unconstrained=None,
     queue=None,
     configurer=None,
     level=None,
@@ -889,8 +889,8 @@ def constrain_seq_paired(
         Type of constraint to apply, can be ['hard' (Default), 'soft'(not implemented yet), 'mutate']
     consval : str
         Value for constraint to apply, ignored when constype is 'hard'
-    unconstraint: str, optional
-        Suffix for ouput files of unconstraint folding
+    unconstrained: str, optional
+        Suffix for ouput files of unconstrained folding
     queue: multiprocessing_queue, optional
         Logging process queue
     configurer: multiprocessing_config, optional
@@ -989,7 +989,7 @@ def constrain_seq_paired(
             window,
             span,
             temperature,
-            unconstraint,
+            unconstrained,
             save,
             outdir,
             cons,
@@ -1033,7 +1033,7 @@ def constrain_seq_paired(
             ap = plfold_paired.get_rissmed_np_array()
         else:
             plfold_paired = None
-        # Calculating accessibility difference between unconstraint and constraint fold, <0 means less accessible with constraint, >0 means more accessible upon constraint
+        # Calculating accessibility difference between unconstrained and constraint fold, <0 means less accessible with constraint, >0 means more accessible upon constraint
 
         if not np.array_equal(an, au):
             diff_nu = au - an
@@ -1123,7 +1123,7 @@ def write_unconstraint(
     save,
     sid,
     seq,
-    unconstraint,
+    unconstrained,
     data: PLFoldOutput,
     region,
     window,
@@ -1139,7 +1139,7 @@ def write_unconstraint(
     save: bool Should npy or npy and gz output be saved
     sid: str Id for Sequence
     seq: str Sequence to fold
-    unconstraint: str Suffix for ouput files of unconstraint folding
+    unconstrained: str Suffix for ouput files of unconstrained folding
     data: PLFoldOutput Output of call to fold_unconstraint
     region: int -u Option of RNAplfold
     window: int Size of window to fold
@@ -1160,7 +1160,7 @@ def write_unconstraint(
         except IndexError:
             gr = "na"
 
-        if unconstraint != "STDOUT":
+        if unconstrained != "STDOUT":
             if not os.path.exists(temp_outdir):
                 try:
                     # Multiprocessing can lead to 'did not just yet exist but suddenly does' error and
@@ -1170,11 +1170,11 @@ def write_unconstraint(
                     if e.errno != errno.EEXIST:
                         raise
             if rawentry:
-                filename = f"{goi}_{chrom}_{strand}_{rawentry}_{unconstraint}_{window}_{span}_{temperature}"
+                filename = f"{goi}_{chrom}_{strand}_{rawentry}_{unconstrained}_{window}_{span}_{temperature}"
                 gz_filepath = os.path.join(temp_outdir, f"{filename}.gz")
                 npy_filepath = os.path.join(temp_outdir, f"{filename}.npy")
             else:
-                filename = f"{goi}_{chrom}_{strand}_{gr}_{unconstraint}_{window}_{span}_{temperature}"
+                filename = f"{goi}_{chrom}_{strand}_{gr}_{unconstrained}_{window}_{span}_{temperature}"
                 gz_filepath = os.path.join(temp_outdir, f"{filename}.gz")
                 npy_filepath = os.path.join(temp_outdir, f"{filename}.npy")
             if save > 0 and not os.path.exists(gz_filepath):
@@ -1227,8 +1227,8 @@ def write_constraint(
     data_p: PLFoldOutput Output of call to fold_unconstraint for paired constraint
     constraint: str Id od constraint
     region: int -u Option of RNAplfold
-    diff_nu: np.array Diff between unconstraint and constraint unpaired
-    diff_np: np.array Diff between unconstraint and constraint paired
+    diff_nu: np.array Diff between unconstrained and constraint unpaired
+    diff_np: np.array Diff between unconstrained and constraint paired
     window: int Size of window to fold
     span: int Maximum base-pair span to be evaluated
     temperature: float Temperature
@@ -1411,13 +1411,13 @@ def checkexisting(sid, paired, unpaired, cons, region, window, span, temperature
         log.error(logid + "".join(tbe.format()))
 
 
-def check_raw_existing(sid, unconstraint, cons, region, window, span, temperature, outdir, rawentry=None):
-    """Check if output file from unconstraint folding exists
+def check_raw_existing(sid, unconstrained, cons, region, window, span, temperature, outdir, rawentry=None):
+    """Check if output file from unconstrained folding exists
 
     Parameters
     ----------
     sid: str Id for Sequence
-    unconstraint: str Suffix for ouput files of unconstraint folding
+    unconstrained: str Suffix for ouput files of unconstrained folding
     cons: str Id od constraint
     region: int -u Option of RNAplfold
     window: int Size of window to fold
@@ -1439,11 +1439,11 @@ def check_raw_existing(sid, unconstraint, cons, region, window, span, temperatur
         except IndexError:
             gr = "na"
         if rawentry:
-            filename = f"{goi}_{chrom}_{strand}_{rawentry}_{unconstraint}_{window}_{span}_{temperature}"
+            filename = f"{goi}_{chrom}_{strand}_{rawentry}_{unconstrained}_{window}_{span}_{temperature}"
             gz_filepath = os.path.join(temp_outdir, f"{filename}.gz")
             npy_filepath = os.path.join(temp_outdir, f"{filename}.npy")
         else:
-            filename = f"{goi}_{chrom}_{strand}_{gr}_{unconstraint}_{window}_{span}_{temperature}"
+            filename = f"{goi}_{chrom}_{strand}_{gr}_{unconstrained}_{window}_{span}_{temperature}"
             gz_filepath = os.path.join(temp_outdir, f"{filename}.gz")
             npy_filepath = os.path.join(temp_outdir, f"{filename}.npy")
 
@@ -1485,18 +1485,16 @@ def main(args=None):
             sys.exit("Running RIssmed version " + __version__)
 
         print(
-            f"{args.window} {args.span} {args.region} {args.temperature} {args.multi} {args.unconstraint} {args.unpaired} {args.paired} {args.save} {args.procs} {args.outdir} {args.loglevel}"
+            f"{args.window} {args.span} {args.region} {args.temperature} {args.multi} {args.unconstrained} {args.unpaired} {args.paired} {args.save} {args.procs} {args.outdir} {args.loglevel}"
         )
 
         queue, listener, worker_configurer = rissmed_logging_setup(args.logdir, args.loglevel, SCRIPTNAME)
 
-        # log.info(logid + "Running " + SCRIPTNAME + " on " + str(args.procs) + " cores.")
+        log.info(logid + "Running " + SCRIPTNAME + " on " + str(args.procs) + " cores.")
 
-        # log.info(logid + "CLI: " + sys.argv[0] + " " + "{}".format(" ".join([shlex.quote(s) for s in sys.argv[1:]])))
+        log.info(logid + "CLI: " + sys.argv[0] + " " + "{}".format(" ".join([shlex.quote(s) for s in sys.argv[1:]])))
 
-        sys.exit(
-            f"r: {run_settings} q:{queue}, l:{listener}, w:{worker_configurer} {args.window} {args.span} {args.region} {args.temperature} {args.multi} {args.unconstraint} {args.unpaired} {args.paired} {args.save} {args.procs} {outdir} {args.loglevel}"
-        )
+        # sys.exit(f"r: {run_settings} q:{queue}, l:{listener}, w:{worker_configurer} {args.window} {args.span} {args.region} {args.temperature} {args.multi} {args.unconstrained} {args.unpaired} {args.paired} {args.save} {args.procs} {outdir} {args.loglevel}")
 
         run_settings, outdir = preprocess(
             args.sequence, args.constrain, args.conslength, args.constype, args.outdir, args.genes
@@ -1508,7 +1506,7 @@ def main(args=None):
             args.region,
             args.temperature,
             args.multi,
-            args.unconstraint,
+            args.unconstrained,
             args.unpaired,
             args.paired,
             args.save,

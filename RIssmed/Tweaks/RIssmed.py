@@ -6,7 +6,7 @@ import datetime
 import os
 import sys
 import traceback as tb
-from random import sample
+from numpy.random import default_rng
 from Bio import SeqIO
 from Bio.Seq import Seq
 from collections import defaultdict
@@ -145,7 +145,7 @@ class Constraint:
 
 
 @check_run
-def get_gene_coords(genecoords: Union[None, Dict], goi: str, strand: str) -> Tuple[int, int, str]:
+def get_gene_coords(genecoords: Union[None, Dict], goi: str, strand: str) -> Tuple[int, int, str, str]:
     """Get genomic coordinates for a gene (goi) from the genecoords dict or returns  default values
 
     Parameters
@@ -159,7 +159,7 @@ def get_gene_coords(genecoords: Union[None, Dict], goi: str, strand: str) -> Tup
 
     Returns
     -------
-    Tuple[int, int, str]
+    Tuple[int, int, str, str]
         genomic start, end, strand retrieved from genecoords dict or a default value (0, 0, '.')
     """
     logid = f"{SCRIPTNAME}.get_gene_coords "
@@ -214,6 +214,11 @@ def set_run_settings_dict(
     try:
         run_settings: Dict[str, SequenceSettings] = dict()
         sequence = parseseq(sequence)
+        if genes != "":
+            # get genomic coords to print to bed later, should always be just one set of coords per gene
+            genecoords = parse_annotation_bed(genes)
+        else:
+            genecoords = None
         if "ono" == str(constraint.split(",")[0]):
             constraint = constraint.split(",")[1]  # 0-based
             constraintlist = read_constraints(constraint, linewise=True, constraintype=constraintype)
@@ -237,11 +242,12 @@ def set_run_settings_dict(
                 raise NotImplementedError("Random constraints are currently only supported for hard constraints")
 
             nr_cons = int(constraint.split(",")[1]) - 1
-
+            rng = default_rng()
             for record in SeqIO.parse(sequence, "fasta"):
                 goi, chrom, strand = idfromfa(record.id)
-                items = [x for x in range(len(record.seq) - conslength + 2)]
-                randstarts = sample(items, nr_cons)
+                genomic_start, genomic_end, genomic_strand, value = get_gene_coords(genecoords, goi, strand)
+                log.debug(f"{logid} CHECKCOORDS: {genomic_start}, {genomic_end}, {genomic_strand}, {value}")
+                randstarts = rng.integers(low=genomic_start, high=genomic_end - conslength + 2, size=nr_cons)
                 for start in randstarts:  # 0-based
                     end = start + conslength - 1
                     cons = str(start) + "-" + str(end) + "|" + str(strand)
@@ -258,11 +264,6 @@ def set_run_settings_dict(
                     run_settings = add_rissmed_constraint(
                         run_settings, entry, record, goi, chrom, strand, constraintype=constraintype
                     )
-        if genes != "":
-            # get genomic coords to print to bed later, should always be just one set of coords per gene
-            genecoords = parse_annotation_bed(genes)
-        else:
-            genecoords = None
         for entry in run_settings:
             fasta_settings = run_settings[entry]
             goi, chrom, strand = idfromfa(fasta_settings.sequence_record.id)

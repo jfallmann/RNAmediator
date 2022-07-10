@@ -39,7 +39,7 @@ def default_args():
         temperature=37.0,
         multi=2,
         cutoff=0.01,
-        unconstraint="STDOUT",
+        unconstrained="STDOUT",
         unpaired="STDOUT",
         paired="STDOUT",
         length=100,
@@ -133,7 +133,7 @@ def single_constraint_args(default_args):
     default_args.region = 7
     default_args.unpaired = "unpaired"
     default_args.paired = "paired"
-    default_args.unconstraint = "raw"
+    default_args.unconstrained = "raw"
     default_args.constype = "hard"
     default_args.outdir = os.path.join(TMP_TEST_DIR, "single_constraint_test")
     default_args.save = 1
@@ -152,7 +152,7 @@ def paired_constraint_args(default_args):
     default_args.region = 7
     default_args.unpaired = "unpaired"
     default_args.paired = "paired"
-    default_args.unconstraint = "raw"
+    default_args.unconstrained = "raw"
     default_args.constype = "hard"
     default_args.outdir = os.path.join(TMP_TEST_DIR, "paired_constraint_test")
     default_args.save = 1
@@ -173,7 +173,7 @@ def multi_constraint_args(default_args):
     default_args.region = 7
     default_args.unpaired = "unpaired"
     default_args.paired = "paired"
-    default_args.unconstraint = "raw"
+    default_args.unconstrained = "raw"
     default_args.constype = "hard"
     default_args.outdir = os.path.join(TMP_TEST_DIR, "multi_constraint_test")
     default_args.save = 1
@@ -190,7 +190,7 @@ def sliding_args(default_args):
     default_args.region = 7
     default_args.unpaired = "unpaired"
     default_args.paired = "paired"
-    default_args.unconstraint = "raw"
+    default_args.unconstrained = "raw"
     default_args.constype = "hard"
     default_args.outdir = os.path.join(TMP_TEST_DIR, "sliding_test")
     default_args.logdir = os.path.join(TMP_TEST_DIR, "LOG_SLIDING")
@@ -206,7 +206,7 @@ def random_args(default_args):
     default_args.region = 7
     default_args.unpaired = "unpaired"
     default_args.paired = "paired"
-    default_args.unconstraint = "raw"
+    default_args.unconstrained = "raw"
     default_args.constype = "hard"
     default_args.constrain = "random,5"
     default_args.outdir = os.path.join(TMP_TEST_DIR, "sliding_test")
@@ -222,7 +222,7 @@ def parafold_args(default_args):
     default_args.window = 100
     default_args.unpaired = "unpaired"
     default_args.paired = "paired"
-    default_args.unconstraint = "raw"
+    default_args.unconstrained = "raw"
     default_args.constype = "hard"
     default_args.outdir = os.path.join(TMP_TEST_DIR, "parafold_test")
     default_args.logdir = os.path.join(TMP_TEST_DIR, "LOG_PARAFOLD")
@@ -295,7 +295,7 @@ def test_multi_constraint(multi_constraint_args):
 
 
 @pytest.mark.parametrize(
-    "seq_id,region,window,span,temperature,unconstraint,save,outdir,seq",
+    "seq_id,region,window,span,temperature,unconstrained,save,outdir,seq",
     [
         ("onlyA", 7, 100, 60, 32, "raw", 1, "onlyA", "A" * 500),
         (
@@ -311,7 +311,7 @@ def test_multi_constraint(multi_constraint_args):
         ),
     ],
 )
-def test_fold_unconstraint(seq_id, region, window, span, temperature, unconstraint, save, outdir, seq):
+def test_fold_unconstraint(seq_id, region, window, span, temperature, unconstrained, save, outdir, seq):
     if os.path.isfile(seq):
         seq = str(SeqIO.read(seq, format="fasta").seq)
     seq = seq.upper().replace("T", "U")
@@ -321,7 +321,7 @@ def test_fold_unconstraint(seq_id, region, window, span, temperature, unconstrai
     cmd_array = cmd_result.numpy_array
 
     # runs RIssmed to produce output files using the same input as the command line
-    fold_unconstraint(seq, seq_id, region, window, span, temperature, unconstraint, save, outdir)
+    fold_unconstraint(seq, seq_id, region, window, span, temperature, unconstrained, save, outdir)
     test_file_path = os.path.join(outdir, seq_id)
     test_files = os.listdir(test_file_path)
     assert len(test_files) != 0, "fold_unconstraint  went wrong"
@@ -338,7 +338,7 @@ def test_fold_unconstraint(seq_id, region, window, span, temperature, unconstrai
 
 
 @pytest.mark.parametrize(
-    "seq_id,start,end,window,span,region,temperature,multi,paired,unpaired,save,outdir,unconstraint,seq, constype, consval",
+    "seq_id,start,end,window,span,region,temperature,multi,paired,unpaired,save,outdir,unconstrained,seq, constype, consval",
     [
         ("onlyA", 200, 207, 100, 60, 7, 42, 1, "paired", "unpaired", 1, "onlyA", "raw", "A" * 500, "hard", "."),
         (
@@ -410,7 +410,7 @@ def test_fold_constraint(
     unpaired,
     save,
     outdir,
-    unconstraint,
+    unconstrained,
     seq,
     constype,
     consval,
@@ -470,7 +470,7 @@ def test_fold_constraint(
         outdir,
         constype=constype,
         consval=consval,
-        unconstraint=unconstraint,
+        unconstrained=unconstrained,
     )
     test_file_path = os.path.join(outdir, seq_id)
     test_files = os.listdir(test_file_path)

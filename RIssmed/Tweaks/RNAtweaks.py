@@ -238,7 +238,7 @@ def _calc_ddg(ddgs):
         cons_up = ddgs["constraint_unpaired"]
         sec_cons_up = ddgs["secondconstraint_unpaired"]
         both_cons_up = ddgs["bothconstraint_unpaired"]
-        uncons = ddgs["unconstraint"]
+        uncons = ddgs["unconstrained"]
         ddg = cons_up + sec_cons_up - both_cons_up - uncons
 
         log.debug(logid + str(ddg))
@@ -1139,7 +1139,7 @@ class FoldOutput(defaultdict):
 
     def __init__(
         self,
-        condition: str = "unconstraint",
+        condition: str = "unconstrained",
         anno: str = None,
         gibbs: float = None,
         constraint: str = None,
@@ -1168,7 +1168,7 @@ class FoldOutput(defaultdict):
         nrg : float, optional
             Folding Pseudo-Energy, by default None
         ddg : float, optional
-            Delta-delta-Gibbs to unconstraint, by default None
+            Delta-delta-Gibbs to unconstrained, by default None
         dnrg : float, optional
             Delta-Folding Pseudo-Energy, by default None
         """
@@ -1177,7 +1177,7 @@ class FoldOutput(defaultdict):
             any(
                 condition == x
                 for x in [
-                    "unconstraint",
+                    "unconstrained",
                     "constraint",
                     "pairedconstraint",
                     "constraint_unpaired",
@@ -1234,7 +1234,7 @@ class FoldOutput(defaultdict):
             return False
 
     @classmethod
-    def from_RNAfold_file(cls, file_path: str, condition: str = "unconstraint", constraint: str = None):
+    def from_RNAfold_file(cls, file_path: str, condition: str = "unconstrained", constraint: str = None):
         """creates FoldOutput from a file
 
          Parameters
@@ -1256,7 +1256,7 @@ class FoldOutput(defaultdict):
             any(
                 condition == x
                 for x in [
-                    "unconstraint",
+                    "unconstrained",
                     "constraint",
                     "pairedconstraint",
                     "constraint_unpaired",
@@ -1284,7 +1284,7 @@ class FoldOutput(defaultdict):
     def from_rissmed_fold_compound(
         self,
         fc,
-        condition: str = "unconstraint",
+        condition: str = "unconstrained",
         constr: str = None,
         start: int = None,
         end: int = None,
@@ -1315,7 +1315,7 @@ class FoldOutput(defaultdict):
         assert any(
             condition == x
             for x in [
-                "unconstraint",
+                "unconstrained",
                 "constraint",
                 "pairedconstraint",
                 "constraint_unpaired",
@@ -1347,9 +1347,9 @@ class FoldOutput(defaultdict):
         nrg = _calc_nrg(bpp)
         self[condition].update({"nrg": nrg})
 
-        if self.get("unconstraint") and condition != "unconstraint":
-            self[condition].update({"ddg": self["unconstraint"]["gibbs"] - gibbs})
-            self[condition].update({"dnrg": self["unconstraint"]["nrg"] - nrg})
+        if self.get("unconstrained") and condition != "unconstrained":
+            self[condition].update({"ddg": self["unconstrained"]["gibbs"] - gibbs})
+            self[condition].update({"dnrg": self["unconstrained"]["nrg"] - nrg})
         else:
             self[condition].update({"ddg": 0})
             self[condition].update({"dnrg": 0})
@@ -1380,7 +1380,7 @@ class FoldOutput(defaultdict):
         array_string = "\n".join(["\t".join([str(x + 1)] + [str(num) for num in array[x]]) for x in range(len(array))])
         return array_string
 
-    def __set_array(self, array: np.ndarray, condition: str = "unconstraint"):
+    def __set_array(self, array: np.ndarray, condition: str = "unconstrained"):
         """sets numpy array and ensures data type is float
 
         Parameters
@@ -1388,14 +1388,14 @@ class FoldOutput(defaultdict):
         array : np.ndarray
             Numpy array
         condition : str, optional
-            Condition used for folding, by default 'unconstraint'
+            Condition used for folding, by default 'unconstrained'
         """
 
         assert (
             any(
                 condition == x
                 for x in [
-                    "unconstraint",
+                    "unconstrained",
                     "constraint",
                     "pairedconstraint",
                     "constraint_unpaired",
@@ -1903,7 +1903,7 @@ def api_rnafold(
             FoldOut.from_rissmed_fold_compound(fc, mode, printcons, 0, len(sequence))
 
     else:
-        consstr = mode = "unconstraint"
+        consstr = mode = "unconstrained"
         if not FoldOut:
             log.warning(logid + "Creating new FoldOutput object")
             FoldOut = FoldOutput("none", mode)
