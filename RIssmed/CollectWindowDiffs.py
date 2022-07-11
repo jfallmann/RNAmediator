@@ -128,7 +128,7 @@ def screen_diffs(queue, configurer, level, window, span, ulim, cutoff, procs, ou
 
         for goi in genecoords:
             log.info(logid + "Working on " + goi)
-            gs, ge, gstrand = get_location(genecoords[goi][0])
+            gs, ge, gstrand, value = get_location(genecoords[goi][0])
 
             # get files with specified pattern
             for pair in patterns:

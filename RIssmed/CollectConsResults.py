@@ -148,10 +148,10 @@ def screen_genes(
         # Create process pool with processes
         num_processes = procs or 1
         call_list = []
-
+        temperature = re.sub("[.,]", "", str(temperature))
         for goi in genecoords:
             log.info(logid + "Working on " + goi)
-            gs, ge, gstrand = get_location(genecoords[goi][0])
+            gs, ge, gstrand, value = get_location(genecoords[goi][0])
 
             # get files with specified pattern
             raw = os.path.abspath(
@@ -377,9 +377,11 @@ def judge_diff(
         log.debug(logid + "RT is " + str(RT))
 
         noc = _pl_to_array(raw, ulim)
-        log.debug(logid + "RAW: " + str(raw) + "\t" + str(noc))
+        log.debug(logid + f"RAW: {raw} {noc} {cs} {ce}")
 
-        if abs(np.nanmean(noc[cs : ce + 1])) <= cutoff:
+        if np.all(noc[cs : ce + 1] != noc[cs : ce + 1]):
+            return out
+        elif abs(np.nanmean(noc[cs : ce + 1])) <= cutoff:
             uc = _pl_to_array(u, ulim)  # This is the diffacc for unpaired constraint
             pc = _pl_to_array(p, ulim)  # This is the diffacc for paired constraint
 

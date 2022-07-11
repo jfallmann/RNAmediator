@@ -374,6 +374,7 @@ def make_outdir(outdir):
             outdir = os.path.abspath(outdir)
         if not os.path.exists(outdir):
             os.makedirs(outdir)
+        log.debug(f"{logid} OUTDIR: {outdir}")
         return outdir
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()

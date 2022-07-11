@@ -127,7 +127,7 @@ def screen_genes(queue, configurer, level, pat, border, procs, outdir, genes):
         for goi in genecoords:
 
             log.info(logid + "Working on " + goi)
-            gs, ge, gstrand = get_location(genecoords[goi][0])
+            gs, ge, gstrand, value = get_location(genecoords[goi][0])
 
             # get files with specified pattern
             paired = os.path.abspath(

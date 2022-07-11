@@ -373,7 +373,7 @@ def constrain_seq(
             return
 
         if genecoords and goi and goi in genecoords:
-            gs, ge, gstrand = get_location(genecoords[goi][0])
+            gs, ge, gstrand, value = get_location(genecoords[goi][0])
             if gstrand != strand:
                 log.warning(
                     logid

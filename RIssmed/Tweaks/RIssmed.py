@@ -242,7 +242,8 @@ def set_run_settings_dict(
                 raise NotImplementedError("Random constraints are currently only supported for hard constraints")
 
             nr_cons = int(constraint.split(",")[1]) - 1
-            rng = default_rng()
+            seed = int(constraint.split(",")[2]) if len(constraint.split(",")) > 2 else None
+            rng = default_rng(seed)
             for record in SeqIO.parse(sequence, "fasta"):
                 goi, chrom, strand = idfromfa(record.id)
                 genomic_start, genomic_end, genomic_strand, value = get_gene_coords(genecoords, goi, strand)
@@ -469,7 +470,7 @@ def preprocess(sequence: str, constraint: str, conslength: int, constype: str, o
      constype : str
          Type of constraint to apply, can be ['hard'(Default), 'soft'(not implemented yet), 'mutate']
      outdir : str
-         Location of the Outpu directory. If it is an empty string os.cwd() is used
+         Location of the Output directory. If it is an empty string os.cwd() is used
      genes:
          The file location of the genomic coordinates bed file
 
