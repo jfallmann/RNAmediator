@@ -187,16 +187,18 @@ def screen_genes(
             # get absolute path for files
             nocons = []
 
+            raw = paired = unpaired = None
+
             raw = [os.path.abspath(i) for i in r]
             paired = [os.path.abspath(i) for i in p]
             unpaired = [os.path.abspath(i) for i in u]
 
             log.debug(logid + "PATHS: " + str(len(r)) + "\t" + str(len(p)) + "\t" + str(len(u)))
 
-            if not raw or not paired or not unpaired:
+            if not raw:
                 log.warning(
                     logid
-                    + "Could not find files for Gene "
+                    + "Could not find raw files for Gene "
                     + str(goi)
                     + " and window "
                     + str(window)
@@ -207,18 +209,63 @@ def screen_genes(
                     + " Will skip"
                 )
                 continue
+            if not unpaired:
+                log.warning(
+                    logid
+                    + "Could not find unpaired files for Gene "
+                    + str(goi)
+                    + " and window "
+                    + str(window)
+                    + " and span "
+                    + str(span)
+                    + " and temperature "
+                    + str(temperature)
+                    + " Will skip"
+                )
+                continue
+            if not paired:
+                log.warning(
+                    logid
+                    + "Could not find paired files for Gene "
+                    + str(goi)
+                    + " and window "
+                    + str(window)
+                    + " and span "
+                    + str(span)
+                    + " and temperature "
+                    + str(temperature)
+                    + " Will skip"
+                )
 
             try:
                 for uncons in raw:
                     unpa = uncons.replace("raw", "diffnu").replace(goi + "_", "StruCons_" + goi + "_", 1)
-                    pair = uncons.replace("raw", "diffnp").replace(goi + "_", "StruCons_" + goi + "_", 1)
-                    if unpa in unpaired and pair in paired:
+                    if paired:
+                        pair = uncons.replace("raw", "diffnp").replace(goi + "_", "StruCons_" + goi + "_", 1)
+                        if unpa in unpaired and pair in paired:
+                            call_list.append(
+                                (
+                                    goi,
+                                    uncons,
+                                    unpa,
+                                    pair,
+                                    gs,
+                                    ge,
+                                    gstrand,
+                                    ulim,
+                                    cutoff,
+                                    border,
+                                    outdir,
+                                    padding,
+                                ),
+                            )
+                    elif unpa in unpaired:
                         call_list.append(
                             (
                                 goi,
                                 uncons,
                                 unpa,
-                                pair,
+                                None,
                                 gs,
                                 ge,
                                 gstrand,
@@ -370,8 +417,8 @@ def judge_diff(
         )  # + ' and ' + str(border2))
 
         out = {}
-        out["p"] = []
         out["u"] = []
+        out["p"] = []
 
         RT = (-1.9872041 * 10 ** (-3)) * (37 + 273.15)
         log.debug(logid + "RT is " + str(RT))
@@ -383,7 +430,7 @@ def judge_diff(
             return out
         elif abs(np.nanmean(noc[cs : ce + 1])) <= cutoff:
             uc = _pl_to_array(u, ulim)  # This is the diffacc for unpaired constraint
-            pc = _pl_to_array(p, ulim)  # This is the diffacc for paired constraint
+            pc = _pl_to_array(p, ulim) if p else None  # This is the diffacc for paired constraint if available
 
             log.debug(
                 logid
@@ -399,19 +446,22 @@ def judge_diff(
 
             epsilon = 10 ** -50
             preaccu = noc + uc + epsilon
-            preaccp = noc + pc + epsilon
+            preaccp = noc + pc + epsilon if p else None
 
             np.seterr(divide="ignore")  # ignore 0 for LOGS
             nrgdiffu = np.array(RT * np.log(abs(uc)))
-            nrgdiffp = np.array(RT * np.log(abs(pc)))
+            nrgdiffp = np.array(RT * np.log(abs(pc))) if p else None
             np.seterr(divide="warn")
 
             # replace -inf with nan
             nrgdiffu[np.isneginf(nrgdiffu)] = np.nan
-            nrgdiffp[np.isneginf(nrgdiffp)] = np.nan
+            if nrgdiffp:
+                nrgdiffp[np.isneginf(nrgdiffp)] = np.nan
 
             kdu = np.exp(nrgdiffu / RT)  # math.exp(np.array(nrgdiffu//RT))) ### THIS IS BASICALLY ACCESSIBILITY AGAIN
-            kdp = np.exp(nrgdiffp / RT)  # math.exp(np.array(nrgdiffp//RT))) ### THIS IS BASICALLY ACCESSIBILITY AGAIN
+            kdp = (
+                np.exp(nrgdiffp / RT) if p else None
+            )  # math.exp(np.array(nrgdiffp//RT))) ### THIS IS BASICALLY ACCESSIBILITY AGAIN
 
             log.debug(logid + "NRG: " + str(nrgdiffu[:10]))
             log.debug(
@@ -427,19 +477,24 @@ def judge_diff(
                     where=np.nanstd(kdu, ddof=0) != 0,
                 )
             )  # np.array(zsc(kdu[~np.isnan(kdu)]))
-            zscoresp = np.array(
-                np.divide(
-                    kdp - np.nanmean(kdp),
-                    np.nanstd(kdp, ddof=0),
-                    out=np.zeros_like(kdp - np.nanmean(kdp)),
-                    where=np.nanstd(kdp, ddof=0) != 0,
+            zscoresp = (
+                np.array(
+                    np.divide(
+                        kdp - np.nanmean(kdp),
+                        np.nanstd(kdp, ddof=0),
+                        out=np.zeros_like(kdp - np.nanmean(kdp)),
+                        where=np.nanstd(kdp, ddof=0) != 0,
+                    )
                 )
+                if p
+                else None
             )  # np.array((kdp - np.nanmean(kdp))/np.nanstd(kdp,ddof=0))#np.array(zsc(kdp[~np.isnan(kdp)]))
             np.seterr(divide="warn")
 
             # replace -inf with nan
             zscoresu[np.isneginf(zscoresu)] = np.nan
-            zscoresp[np.isneginf(zscoresp)] = np.nan
+            if zscoresp:
+                zscoresp[np.isneginf(zscoresp)] = np.nan
 
             log.debug(logid + "zscore: " + str(zscoresu[:10]))
 
@@ -517,7 +572,7 @@ def judge_diff(
                                 )
                             )
 
-                    if border < abs(pc[pos]):
+                    if pc and border < abs(pc[pos]):
                         if ce < pos:  # get distance up or downstream
                             dist = (pos - ce) * -1  # no -1 or we have 0 overlap
                         else:
