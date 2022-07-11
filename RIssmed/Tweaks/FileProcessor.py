@@ -184,7 +184,7 @@ def parse_annotation_bed(bed, annotated=None):
 def parse_annotation_bed_by_coordinates(bed, annotated=None):
     logid = SCRIPTN + ".parse_annotation_bed_withchrom: "
     anno = defaultdict(list)
-    tmp = defaultdict(list)
+    # tmp = defaultdict(list)
     if os.path.isfile(os.path.abspath(bed)):
         if ".gz" in bed:
             f = gzip.open(os.path.abspath(bed), "rt")
@@ -205,15 +205,15 @@ def parse_annotation_bed_by_coordinates(bed, annotated=None):
             else:
                 start = int(entries[1]) + 1
                 end = int(entries[2])
-            tmp[str(goi)].append(
+            # tmp[str(goi)].append("|".join(["-".join([str(chrom), str(start), str(end)]), strand]))  # Need strand info here!
+            anno[str(goi)].append(
                 "|".join(["-".join([str(chrom), str(start), str(end)]), strand])
-            )  # Need strand info here!
+            )  # Need strand info here! WE ASSUME SORTED, GETS TOO COMPLICATED OTHERWISE
         # We now want to sort by chrom, start to have sorted list in the end, otherwise bigwig will not be generated
-        sortedkeys = sorted(
-            tmp.keys(), key=lambda x: (tmp[x][0].split("|")[0].split("-")[0], tmp[x][0].split("|")[0].split("-")[1])
-        )
-        for k in sortedkeys:
-            anno[k] = tmp[k]
+        # sortedkeys = sorted(tmp.keys(), key=lambda x: (tmp[x][0].split("|")[0].split("-")[0], tmp[x][0].split("|")[0].split("-")[1]))
+        # log.debug(f"{logid} SORTED:{sortedkeys}")
+        # for k in sortedkeys:
+        #    anno[k] = tmp[k]
         return anno
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()

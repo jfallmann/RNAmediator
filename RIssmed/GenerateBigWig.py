@@ -259,7 +259,7 @@ def scan_input(
             )
             pool.close()
             pool.join()
-
+        # outlist = sortout(outlist)
         writebws(outlist, bwlist, filepaths)
 
     except Exception:
@@ -346,6 +346,47 @@ def generate_bws(
             exc_tb,
         )
         log.error(logid + "".join(tbe.format()))
+
+
+def sortout(outlist):
+    """Sort List of nested dicts
+
+    Parameters
+    ----------
+    outlist : list
+        List of nested dicts with coordinates
+    """
+    logid = SCRIPTNAME + ".sortout: "
+
+    try:
+        tmp = list()
+        for entry in outlist:
+            tmpent = rec_dd()
+            for out in entry:
+                log.debug(logid + f"out: {out}")
+                for t in ["raw", ["uc"], ["pc"]]:
+                    for o in ["fw", "re"]:
+                        if len(out[t][o]["chrom"]) > 0:
+                            ind = np.argsort(out[t][o]["chr"])
+                            tmpent[t][o]["chrom"] = np.empty(1, np.str)
+                            for f in ["start", "end", "values"]:
+                                tmpent[t][o][f] = np.empty(1, np.int64)
+                            for i in ind:
+                                for f in ["chrom", "start", "end", "values"]:
+                                    tmpent[t][o][f].append(out[t][o][f][i])
+            tmp.append(tmpent)
+        return tmp
+
+    except Exception:
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        tbe = tb.TracebackException(
+            exc_type,
+            exc_value,
+            exc_tb,
+        )
+        log.error(logid + "".join(tbe.format()))
+
+    return outlist
 
 
 def writebws(outlist, listofbws, filepaths):
@@ -682,10 +723,7 @@ def create_bw_entries(fname, goi, gstrand, gs, ge, cutoff, border, ulim, padding
 
         out = rec_dd()
 
-        log.debug(
-            logid
-            + f"out: {out}, noc: {noc[1:10]}, cs: {cs}, ce: {ce} ,nanmean: {np.nanmean(noc[cs : ce + 1])}, cutoff: {cutoff}"
-        )
+        log.debug(logid + f"out: {out}, noc: {noc[1:10]}, cs: {cs}, ce: {ce}, cutoff: {cutoff}")
 
         if "diff" in fname and abs(np.nanmean(noc[cs : ce + 1])) <= cutoff:
             if "diffnu" in fname or "diffnp" in fname:
