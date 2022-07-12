@@ -94,7 +94,7 @@ class SequenceSettings:
             for constraint_tuple in self._constrainlist:
                 for entry in constraint_tuple:
                     if entry is not None:
-                        if self.strand in ["+", "-"]:
+                        if self.strand in ["+", "-"] and entry.strand in ["+", "-"]:
                             assert (
                                 entry.strand == self.strand
                             ), "strand values of constraint does not match the strand from the sequence"
@@ -333,6 +333,9 @@ def add_rissmed_constraint(
             cons = cons[0]
             cons_start, cons_end = cons.split("-")
             cons_list.append(Constraint(int(cons_start), int(cons_end), cons_strand, cons_type_value))
+            if sequence_strand in ["+", "-"] and cons_strand == ".":
+                cons_strand = sequence_strand
+
     cons_tuple = tuple(cons_list)
     if record.id in run_settings:
         run_settings[record.id].add_constraints(cons_tuple)

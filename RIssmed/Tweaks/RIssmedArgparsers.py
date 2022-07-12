@@ -126,14 +126,14 @@ def parseargs_plcons():
         "--paired",
         type=str,
         default=None,
-        help="Print output of paired folding to file with this name, default None (will not be computed), choice=['STDOUT', any str]",
+        help="Print output of paired folding to file with this name, default None (will not be computed), choice=[None, 'STDOUT', any str]",
     )
     parser.add_argument(
         "-x",
         "--constrain",
         type=str,
         default="sliding",
-        help="Region to constrain, either sliding window (default together with conslength to set length of constraints) or region to constrain (e.g. 1-10) or path to file containing constraint regions, can be BED file or the string 'file'. Latter requires that a file following the naming pattern $fastaID_constraints e.g. Sequence1_constraints can be found. If 'paired', the first entry of the constraint file will become a fixed constraint and paired with all the others, If 'ono' one line of constraint file is used per line of sequence in the sequence file. Choose 'scanning' to fold sequence without constraint or 'random,x' together with '--conslength y' to apply 'x' random constraints of length 'y'. Choices = [scanning, sliding, the string 'file' or a filename, paired, or simply 1-10,2-11 or 1-10;15-20,2-11;16-21 for paired or ono(oneonone),filename to use one line of constraint file for one sequence from fasta. For random constraint use random,x together with the conslength option, if you need a fixed seed for reproducing results use random,x,seed]",
+        help="Region to constrain, either sliding window (default together with conslength to set length of constraints) or region to constrain (e.g. 1-10) or path to file containing constraint regions, can be BED file or the string 'file'. Latter requires that a file following the naming pattern $fastaID_constraints e.g. Sequence1_constraints can be found. If 'paired', the first entry of the constraint file will become a fixed constraint and paired with all the others, If 'ono' one line of constraint file is used per line of sequence in the sequence file. Choose 'scanning' to fold sequence without constraint or 'random,x' together with '--conslength y' to apply 'x' random constraints of length 'y'. Choices = [scanning, sliding, the string 'file' or a filename, paired, or simply 1-10,2-11 or 1-10:15-20,2-11:16-21 for paired or ono(oneonone), filename to use one line of constraint file for one sequence from fasta. For random constraint use random,x together with the conslength option, if you need a fixed seed for reproducing results use random,x,seed. For soft constraints you can append the value to the constraint via pipe, 20-22|2.5]",
     )
     parser.add_argument(
         "-y",

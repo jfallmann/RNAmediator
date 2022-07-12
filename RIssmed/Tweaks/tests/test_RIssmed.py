@@ -35,6 +35,16 @@ def sequence_string():
 
 
 @pytest.fixture
+def onlyA_string():
+    return "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+
+
+@pytest.fixture
+def onlyA_mutate_string():
+    return "AAAAAAAAAAAAAATAAAAAAAAAAAAAAAAAAAAAA"
+
+
+@pytest.fixture
 def stringio_fasta():
     fasta = (
         ">ENSG00000270742::chr1:61124732-61125202(+)\n"
@@ -52,7 +62,12 @@ def command_line_constraint():
 
 @pytest.fixture
 def command_line_mutate_constraint():
-    return "50-51:A"
+    return "14-15:A"
+
+
+@pytest.fixture
+def command_line_soft_constraint():
+    return "14-15:-2.5"
 
 
 @pytest.fixture
@@ -134,22 +149,32 @@ def na_strand_sequence_settings(sequence_string):
 
 @pytest.fixture
 def basic_constraint():
-    return Constraint(10, 50, "+")
+    return Constraint(10, 50, "+", ".")
 
 
 @pytest.fixture
 def minus_constraint():
-    return Constraint(5, 20, "-")
+    return Constraint(5, 20, "-", ".")
 
 
 @pytest.fixture
 def mutate_constraint():
-    return Constraint(10, 1, "+", "G")
+    return Constraint(20, 21, "+", "G")
 
 
 @pytest.fixture
 def mutate_minus_constraint():
     return Constraint(5, 6, "-", "C")
+
+
+@pytest.fixture
+def soft_constraint():
+    return Constraint(20, 11, "+", "-2.5")
+
+
+@pytest.fixture
+def soft_minus_constraint():
+    return Constraint(5, 6, "-", "-2.5")
 
 
 @pytest.fixture
@@ -232,6 +257,19 @@ def test_sequence_settings_add_mutate_constraint(constraint, seqsettings, reques
 @pytest.mark.parametrize(
     "seqsettings, constraint",
     [
+        ("basic_sequence_settings", "soft_constraint"),
+        ("na_strand_sequence_settings", "soft_minus_constraint"),
+    ],
+)
+def test_sequence_settings_add_mutate_constraint(constraint, seqsettings, request):
+    constraint = request.getfixturevalue(constraint)
+    seqsettings = request.getfixturevalue(seqsettings)
+    seqsettings.add_constraints([constraint])
+
+
+@pytest.mark.parametrize(
+    "seqsettings, constraint",
+    [
         ("basic_sequence_settings", "minus_constraint"),
     ],
 )
@@ -243,12 +281,25 @@ def test_sequence_settings_add_constraints_assertions(seqsettings, constraint, r
     assert "AssertionError" in out
 
 
-def test_constraint(basic_constraint):
-    string_repr = str(basic_constraint)
-    coords, strand = string_repr.split("|")
+@pytest.mark.parametrize(
+    "constraint",
+    [
+        "basic_constraint",
+        "minus_constraint",
+        "mutate_constraint",
+        "mutate_minus_constraint",
+        "soft_constraint",
+        "soft_minus_constraint",
+    ],
+)
+def test_constraint(constraint, request, capsys):
+    constraint = request.getfixturevalue(constraint)
+    string_repr = str(constraint)
+    coords, strand, value = string_repr.split("|")
     start, end = [int(x) for x in coords.split("-")]
-    assert start == basic_constraint.start
-    assert end == basic_constraint.end
+    assert any(value == x for x in ["G", "C", ".", "-2.5"])
+    assert start == constraint.start
+    assert end == constraint.end
 
 
 @pytest.fixture
