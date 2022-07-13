@@ -786,6 +786,8 @@ def _constrain_paired_soft(fc, start, end, value, fstart=None, fend=None):
     """
 
     logid = scriptn + ".constrain_paired: "
+    log.error("Not implemented yet")
+    raise NotImplementedError("Soft constraints for paired sequences need specific basepairs")
     try:
         for x in range(start + 1, end + 1):
             # 0 means without direction
@@ -1528,9 +1530,10 @@ def cmd_rnaplfold(
                     const = "P"
                 elif mode == "mutate":
                     sequence = str(_mutate(sequence, start, end - 1, value))
-                elif mode == "unpaired" or mode == "u" and constype == "soft":
+                elif (mode == "unpaired" or mode == "u") and constype == "soft":
                     const = "E"
-                elif mode == "paired" or mode == "p" and constype == "soft":
+                elif (mode == "paired" or mode == "p") and constype == "soft":
+                    log.error("Soft constraints for paired sequences need specific basepairs")
                     raise NotImplementedError("Soft constraints for paired sequences need specific basepairs")
 
                 else:

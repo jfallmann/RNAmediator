@@ -52,7 +52,7 @@ class SequenceSettings:
      strand: str, optional
          strand of the gene (default is +)
     constraintype: str, optional
-        Type of constraint to apply, can be ['hard'(Default), 'soft'(not implemented yet), 'mutate']
+        Type of constraint to apply, can be ['hard'(Default), 'soft', 'mutate']
      constrainlist: Iterable[Tuple[Constraint]], optional
          List of constraint objects. (default is None)
      genomic_coords: Constraint, optional optional
@@ -201,7 +201,7 @@ def set_run_settings_dict(
     genes:
         The file location of the genomic coordinates bed file
      constraintype : str, optional
-        Type of constraint to apply, can be ['hard'(Default), 'soft'(not implemented yet), 'mutate']
+        Type of constraint to apply, can be ['hard'(Default), 'soft', 'mutate']
 
     Returns
     -------
@@ -310,7 +310,7 @@ def add_rnamediator_constraint(
      sequence_strand:
         strand of the sequence
      constraintype: str, optional
-        Type of constraint to apply, can be ['hard'(Default), 'soft'(not implemented yet), 'mutate']
+        Type of constraint to apply, can be ['hard'(Default), 'soft', 'mutate']
 
     Returns
     -------
@@ -471,7 +471,7 @@ def preprocess(sequence: str, constraint: str, conslength: int, constype: str, o
      conslength : int
          Length of the constraint, only used if constrain is sliding
      constype : str
-         Type of constraint to apply, can be ['hard'(Default), 'soft'(not implemented yet), 'mutate']
+         Type of constraint to apply, can be ['hard'(Default), 'soft', 'mutate']
      outdir : str
          Location of the Output directory. If it is an empty string os.cwd() is used
      genes:

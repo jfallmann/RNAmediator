@@ -798,6 +798,7 @@ def constrain_seq(
         else:
             plfold_paired = None
             ap = np.empty(au.shape)
+            raise NotImplementedError("Soft constraints for paired sequences need specific basepairs")
 
         # Calculating accessibility difference between unconstrained and constraint fold, <0 means less accessible
         # with constraint, >0 means more accessible upon constraint
