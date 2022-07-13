@@ -3,8 +3,8 @@
 from setuptools import setup, find_packages
 import versioneer
 
-NAME = "RIssmed"
-DESCRIPTION = "The RNA Interaction via secondary structure mediation (RIssmed) tool suite analyses the change of RNA secondary structure upon binding other molecules."
+NAME = "RNAmediator"
+DESCRIPTION = "The RNA Interaction via secondary structure mediation (RNAmediator) tool suite analyses the change of RNA secondary structure upon binding other molecules."
 
 # Set __version__ done by versioneer
 # exec(open("NextSnakes/__init__.py").read())
@@ -16,22 +16,22 @@ setup(
     author="Joerg Fallmann",
     author_email="fall@bioinf.uni-leipzig.de",
     scripts=[
-        "RIssmed/ConstraintPLFold.py",
-        "RIssmed/ConstraintFold.py",
-        "RIssmed/CollectConsResults.py",
-        "RIssmed/CollectWindowResults.py",
-        "RIssmed/GenerateBigWig.py",
+        "RNAmediator/ConstraintPLFold.py",
+        "RNAmediator/ConstraintFold.py",
+        "RNAmediator/CollectConsResults.py",
+        "RNAmediator/CollectWindowResults.py",
+        "RNAmediator/GenerateBigWig.py",
     ],
-    packages=["RIssmed.Tweaks", "RIssmed", "RIssmed.vis"],
-    package_data={"RIssmed.vis": ["assets/*", "templates/*"]},
+    packages=["RNAmediator.Tweaks", "RNAmediator", "RNAmediator.vis"],
+    package_data={"RNAmediator.vis": ["assets/*", "templates/*"]},
     entry_points={
         "console_scripts": [
-            "RIssmed_fold = RIssmed.ConstraintFold:main",
-            "RIssmed_plfold = RIssmed.ConstraintPLFold:main",
-            "RIssmed_collect_fold = RIssmed.CollectWindowResults:main",
-            "RIssmed_collect_plfold = RIssmed.CollectConsResults:main",
-            "RIssmed_visualize = RIssmed.visualize:main",
-            "RIssmed_generate_bw = RIssmed.GenerateBigWig:main",
+            "RNAmediator_fold = RNAmediator.ConstraintFold:main",
+            "RNAmediator_plfold = RNAmediator.ConstraintPLFold:main",
+            "RNAmediator_collect_fold = RNAmediator.CollectWindowResults:main",
+            "RNAmediator_collect_plfold = RNAmediator.CollectConsResults:main",
+            "RNAmediator_visualize = RNAmediator.visualize:main",
+            "RNAmediator_generate_bw = RNAmediator.GenerateBigWig:main",
         ]
     },
     include_package_data=True,
@@ -47,7 +47,7 @@ setup(
     setup_requires=["pytest-runner"],
     tests_require=["pytest"],
     license="LICENSE",
-    url="https://github.com/jfallmann/RIssmed",
+    url="https://github.com/jfallmann/RNAmediator",
     description=DESCRIPTION,
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",

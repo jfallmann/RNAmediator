@@ -1,5 +1,5 @@
 name:
-  rissmed
+  rnamediator
 channels:
   - conda-forge
   - defaults

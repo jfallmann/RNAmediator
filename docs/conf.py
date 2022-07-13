@@ -15,15 +15,15 @@ import sys
 
 sys.path.insert(0, os.path.abspath("."))
 sys.path.insert(0, os.path.abspath(".."))
-sys.path.insert(1, os.path.abspath("../RIssmed"))
-from RIssmed import _version
+sys.path.insert(1, os.path.abspath("../RNAmediator"))
+from RNAmediator import _version
 
 __version__ = _version.get_versions()["version"]
 
 
 # -- Project information -----------------------------------------------------
 
-project = "RIssmed"
+project = "RNAmediator"
 copyright = "2021, Joerg Fallmann"
 author = "Joerg Fallmann"
 

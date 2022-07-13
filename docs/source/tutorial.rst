@@ -1,7 +1,7 @@
 Tutorial
 ========
 
-RIssmed_plfold
+RNAmediator_plfold
 ################
 
 Using Genes
@@ -24,13 +24,13 @@ A FASTA File with header following this format can easily be generated using `ge
 
 .. _BedTools: https://bedtools.readthedocs.io/en/latest/content/tools/getfasta.html
 
-The command line call for this simple scenario is supposed to look like this, where `window`, `span` and `ulim` are options for RNAplfold_ and will be used to collect and summarize results in the the `RIssmed_collect_plfold` step:
+The command line call for this simple scenario is supposed to look like this, where `window`, `span` and `ulim` are options for RNAplfold_ and will be used to collect and summarize results in the the `RNAmediator_collect_plfold` step:
 
 .. _RNAplfold: https://www.tbi.univie.ac.at/RNA/RNAplfold.1.html
 
 .. code-block:: shell
 
-    RIssmed_plfold -s FASTA -x BedFile --window SizeOfWindowToFold --span BasepairSpan -u ulim
+    RNAmediator_plfold -s FASTA -x BedFile --window SizeOfWindowToFold --span BasepairSpan -u ulim
 
 
 By default all results are printed to stdout. The first output is the folded sequence without constraints. This output can be redirected to a file using ``--unconstraint nameforunconstraint``. The following outputs are the matrices for an unpaired constraint and for an paired constraint. These matrices can also be redirected to a file using ``--paired nameforpaired`` or ``--unpaired nameforunpaired``. The folder to which these files should be saved is determined via the ``--outdir`` flag.
@@ -54,21 +54,21 @@ This file can be passed using the ``--genes GeneBedFile`` and should look like:
 Folding without constraint
 **************************
 
-In case you simply want to fold sequences without applying any constraints you can use the `scanning` mode of `RIssmed_plfold` which will only create ``--unconstraint nameforunconstraint`` ouput as follows:
+In case you simply want to fold sequences without applying any constraints you can use the `scanning` mode of `RNAmediator_plfold` which will only create ``--unconstraint nameforunconstraint`` ouput as follows:
 
 .. code-block:: shell
 
-    RIssmed_plfold -s FASTA -x scanning --window SizeOfWindowToFold --span BasepairSpan -u ulim
+    RNAmediator_plfold -s FASTA -x scanning --window SizeOfWindowToFold --span BasepairSpan -u ulim
 
 
 Folding with sliding window constraint
 **************************************
 
-In case you want to fold sequences without specific constraint positions you can use the `sliding` mode of `RIssmed_plfold` (DEFAULT) which will generate a list of constraints covering every nucleotide of the input sequence and fold each independently. This will take long and produce large amounts of output, so make sure this is really what you want. It does, however, provide one with the opportunity to scan for regions with largest impact on structure along a given sequence, e.g. to identify potential miRNA or antagonist binding sites:
+In case you want to fold sequences without specific constraint positions you can use the `sliding` mode of `RNAmediator_plfold` (DEFAULT) which will generate a list of constraints covering every nucleotide of the input sequence and fold each independently. This will take long and produce large amounts of output, so make sure this is really what you want. It does, however, provide one with the opportunity to scan for regions with largest impact on structure along a given sequence, e.g. to identify potential miRNA or antagonist binding sites:
 
 .. code-block:: shell
 
-    RIssmed_plfold -s FASTA -x sliding --window SizeOfWindowToFold --span BasepairSpan -u ulim
+    RNAmediator_plfold -s FASTA -x sliding --window SizeOfWindowToFold --span BasepairSpan -u ulim
 
 
 Using Transcripts or single gene features
@@ -91,18 +91,18 @@ If using single exon or intron sequences, make sure they have unique identifiers
 
 In this case you should *ALWAYS* provide a 'local' GeneBed file (``--genes``) which looks quite similar to the Constraints File but genes start at position 0 and end at the length of the sequence. It is not important to use this file in the Rissmed_plfold call.
 
-However, it is essential for the `RIssmed_collect_plfold` step to generate valid genomic coordinate BED files as output.
+However, it is essential for the `RNAmediator_collect_plfold` step to generate valid genomic coordinate BED files as output.
 
 **GeneBED** ::
 
     ENST00000240304.5	0	5482	ENST00000240304.5	.	.
 
 
-RIssmed_collect_plfold
+RNAmediator_collect_plfold
 ######################
 
-The methods mentioned in the `RIssmed_plfold` example will
-produce output that can be processed by `CollectConsResults.py`. This will generate BED files storing the probability of being unpaired for spans of nucleotides around (not overlapping) the constraint. Make sure to provide a comma separated pattern for window and span as used in the `RIssmed_plfold` call (here SizeOfWindowToFold,BasepairSpan) and ulim either similar or lower than in the `RIssmed_plfold` call. Therefore simply call:
+The methods mentioned in the `RNAmediator_plfold` example will
+produce output that can be processed by `CollectConsResults.py`. This will generate BED files storing the probability of being unpaired for spans of nucleotides around (not overlapping) the constraint. Make sure to provide a comma separated pattern for window and span as used in the `RNAmediator_plfold` call (here SizeOfWindowToFold,BasepairSpan) and ulim either similar or lower than in the `RNAmediator_plfold` call. Therefore simply call:
 
 .. code-block::
 
@@ -127,26 +127,26 @@ for example look like this for ``-u 5``:
 
 .. note::
 
-    If you used different plfold parameters (-w, -l) in the RIssmed_plfold call, you have to adapt the pattern accordingly
+    If you used different plfold parameters (-w, -l) in the RNAmediator_plfold call, you have to adapt the pattern accordingly
 
 
 Output
 #######
 
-`RIssmed_plfold`
+`RNAmediator_plfold`
 ****************
 
-Per default, `RIssmed_plfold` prints to STDOUT, or dumps `numpy`_ arrays to disk following the naming provided by the user with the ``--unconstraint nameforunconstraint``, ``--paired nameforpaired`` and ``--unpaired nameforunpaired`` options. These `numpy`_ arrays are then used as input for `RIssmed_collect_plfold`.
+Per default, `RNAmediator_plfold` prints to STDOUT, or dumps `numpy`_ arrays to disk following the naming provided by the user with the ``--unconstraint nameforunconstraint``, ``--paired nameforpaired`` and ``--unpaired nameforunpaired`` options. These `numpy`_ arrays are then used as input for `RNAmediator_collect_plfold`.
 If the user prefers to also generate human readable files similar to `RNAplfold` output, the option `--save 1` has to be set. This will generate '.gz' files providing the same output as a commandline call to `RNAplfold`.
 
 .. _numpy: https://numpy.org/doc/stable/reference/generated/numpy.array.html
 
 The standard user will not want to work on this output directly but generate genomic coordinate BED files, summarizing the effect of ligand binding as will be explained next.
 
-`RIssmed_collect_plfold`
+`RNAmediator_collect_plfold`
 ************************
 
-The genomic coordinate BED file generated by `RIssmed_collect_plfold` contains the following columns:
+The genomic coordinate BED file generated by `RNAmediator_collect_plfold` contains the following columns:
 
 ::
 
@@ -182,7 +182,7 @@ uses the ViennaRNA API
 
 .. code-block:: python
 
-    from RIssmed.RNAtweaks import RNAtweaks
+    from RNAmediator.RNAtweaks import RNAtweaks
     sequence = "AAATTTTGGGGGGCCCC"
     window = 3  # winsize option of RNAplfold
     span = 3   # span option of RNAplfold

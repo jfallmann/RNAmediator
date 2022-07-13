@@ -1,21 +1,21 @@
-RIssmed.tests package
+RNAmediator.tests package
 =====================
 
 Submodules
 ----------
 
-RIssmed.tests.ManualTestAPIvsCLI module
+RNAmediator.tests.ManualTestAPIvsCLI module
 ---------------------------------------
 
-.. automodule:: RIssmed.tests.ManualTestAPIvsCLI
+.. automodule:: RNAmediator.tests.ManualTestAPIvsCLI
    :members:
    :undoc-members:
    :show-inheritance:
 
-RIssmed.tests.test\_plfold module
+RNAmediator.tests.test\_plfold module
 ---------------------------------
 
-.. automodule:: RIssmed.tests.test_plfold
+.. automodule:: RNAmediator.tests.test_plfold
    :members:
    :undoc-members:
    :show-inheritance:
@@ -23,7 +23,7 @@ RIssmed.tests.test\_plfold module
 Module contents
 ---------------
 
-.. automodule:: RIssmed.tests
+.. automodule:: RNAmediator.tests
    :members:
    :undoc-members:
    :show-inheritance:

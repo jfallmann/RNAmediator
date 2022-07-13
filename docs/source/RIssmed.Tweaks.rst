@@ -1,77 +1,77 @@
-RIssmed.Tweaks package
+RNAmediator.Tweaks package
 ======================
 
 Submodules
 ----------
 
-RIssmed.Tweaks.Collection module
+RNAmediator.Tweaks.Collection module
 --------------------------------
 
-.. automodule:: RIssmed.Tweaks.Collection
+.. automodule:: RNAmediator.Tweaks.Collection
    :members:
    :undoc-members:
    :show-inheritance:
 
-RIssmed.Tweaks.DStweaks module
+RNAmediator.Tweaks.DStweaks module
 ------------------------------
 
-.. automodule:: RIssmed.Tweaks.DStweaks
+.. automodule:: RNAmediator.Tweaks.DStweaks
    :members:
    :undoc-members:
    :show-inheritance:
 
-RIssmed.Tweaks.FileProcessor module
+RNAmediator.Tweaks.FileProcessor module
 -----------------------------------
 
-.. automodule:: RIssmed.Tweaks.FileProcessor
+.. automodule:: RNAmediator.Tweaks.FileProcessor
    :members:
    :undoc-members:
    :show-inheritance:
 
-RIssmed.Tweaks.NPtweaks module
+RNAmediator.Tweaks.NPtweaks module
 ------------------------------
 
-.. automodule:: RIssmed.Tweaks.NPtweaks
+.. automodule:: RNAmediator.Tweaks.NPtweaks
    :members:
    :undoc-members:
    :show-inheritance:
 
-RIssmed.Tweaks.Plots module
+RNAmediator.Tweaks.Plots module
 ---------------------------
 
-.. automodule:: RIssmed.Tweaks.Plots
+.. automodule:: RNAmediator.Tweaks.Plots
    :members:
    :undoc-members:
    :show-inheritance:
 
-RIssmed.Tweaks.RIssmed module
+RNAmediator.Tweaks.RNAmediator module
 -----------------------------
 
-.. automodule:: RIssmed.Tweaks.RIssmed
+.. automodule:: RNAmediator.Tweaks.RNAmediator
    :members:
    :undoc-members:
    :show-inheritance:
 
-RIssmed.Tweaks.RIssmedArgparsers module
+RNAmediator.Tweaks.RNAmediatorArgparsers module
 ---------------------------------------
 
-.. automodule:: RIssmed.Tweaks.RIssmedArgparsers
+.. automodule:: RNAmediator.Tweaks.RNAmediatorArgparsers
    :members:
    :undoc-members:
    :show-inheritance:
 
-RIssmed.Tweaks.RNAtweaks module
+RNAmediator.Tweaks.RNAtweaks module
 -------------------------------
 
-.. automodule:: RIssmed.Tweaks.RNAtweaks
+.. automodule:: RNAmediator.Tweaks.RNAtweaks
    :members:
    :undoc-members:
    :show-inheritance:
 
-RIssmed.Tweaks.logger module
+RNAmediator.Tweaks.logger module
 ----------------------------
 
-.. automodule:: RIssmed.Tweaks.logger
+.. automodule:: RNAmediator.Tweaks.logger
    :members:
    :undoc-members:
    :show-inheritance:
@@ -79,7 +79,7 @@ RIssmed.Tweaks.logger module
 Module contents
 ---------------
 
-.. automodule:: RIssmed.Tweaks
+.. automodule:: RNAmediator.Tweaks
    :members:
    :undoc-members:
    :show-inheritance:

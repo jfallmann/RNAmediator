@@ -1,7 +1,7 @@
-RIssmed
+RNAmediator
 =======
 
 .. toctree::
    :maxdepth: 4
 
-   RIssmed
+   RNAmediator

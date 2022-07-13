@@ -20,7 +20,7 @@ Installation should be as easy as running:
 
 .. code-block ::
 
-    conda install -c conda-forge -c bioconda rissmed
+    conda install -c conda-forge -c bioconda rnamediator
 
 .. note::
 
@@ -28,7 +28,7 @@ Installation should be as easy as running:
 
     .. code-block ::
 
-        conda create -n rissmed -c conda-forge -c bioconda rissmed
+        conda create -n rnamediator -c conda-forge -c bioconda rnamediator
 
 
 Pip
@@ -38,7 +38,7 @@ Installation via Pip is simple. Just type:
 
 .. code-block ::
 
-    pip install rissmed
+    pip install rnamediator
 
 .. note::
 

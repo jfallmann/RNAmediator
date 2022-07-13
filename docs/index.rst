@@ -1,10 +1,10 @@
 =====================
-RIssmed Documentation
+RNAmediator Documentation
 =====================
 
-The RNA Interaction via secondary structure mediation (RIssmed) tool suite analyses the change of RNA secondary structure upon binding other molecules. It is available as suite of commandline tools, the source code of RIssmed is open source and available via GitHub_ (License GPL-3).
+The RNA Interaction via secondary structure mediation (RNAmediator) tool suite analyses the change of RNA secondary structure upon binding other molecules. It is available as suite of commandline tools, the source code of RNAmediator is open source and available via GitHub_ (License GPL-3).
 
-.. _GitHub: https://github.com/jfallmann/RIssmed
+.. _GitHub: https://github.com/jfallmann/RNAmediator
 
 
 .. toctree::
@@ -23,4 +23,4 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
-RIssmed.rst (END)
+RNAmediator.rst (END)

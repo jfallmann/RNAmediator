@@ -1,4 +1,4 @@
-RIssmed package
+RNAmediator package
 ===============
 
 Subpackages
@@ -7,64 +7,64 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
-   RIssmed.Tweaks
-   RIssmed.tests
+   RNAmediator.Tweaks
+   RNAmediator.tests
 
 Submodules
 ----------
 
-RIssmed.CollectConsResults module
+RNAmediator.CollectConsResults module
 ---------------------------------
 
-.. automodule:: RIssmed.CollectConsResults
+.. automodule:: RNAmediator.CollectConsResults
    :members:
    :undoc-members:
    :show-inheritance:
 
-RIssmed.CollectWindowResults module
+RNAmediator.CollectWindowResults module
 -----------------------------------
 
-.. automodule:: RIssmed.CollectWindowResults
+.. automodule:: RNAmediator.CollectWindowResults
    :members:
    :undoc-members:
    :show-inheritance:
 
-RIssmed.ConstraintFold module
+RNAmediator.ConstraintFold module
 -----------------------------
 
-.. automodule:: RIssmed.ConstraintFold
+.. automodule:: RNAmediator.ConstraintFold
    :members:
    :undoc-members:
    :show-inheritance:
 
-RIssmed.ConstraintPLFold module
+RNAmediator.ConstraintPLFold module
 -------------------------------
 
-.. automodule:: RIssmed.ConstraintPLFold
+.. automodule:: RNAmediator.ConstraintPLFold
    :members:
    :undoc-members:
    :show-inheritance:
 
-RIssmed.conftest module
+RNAmediator.conftest module
 -----------------------
 
-.. automodule:: RIssmed.conftest
+.. automodule:: RNAmediator.conftest
    :members:
    :undoc-members:
    :show-inheritance:
 
-RIssmed.risvis module
+RNAmediator.risvis module
 ---------------------
 
-.. automodule:: RIssmed.risvis
+.. automodule:: RNAmediator.risvis
    :members:
    :undoc-members:
    :show-inheritance:
 
-RIssmed.visualize module
+RNAmediator.visualize module
 ------------------------
 
-.. automodule:: RIssmed.visualize
+.. automodule:: RNAmediator.visualize
    :members:
    :undoc-members:
    :show-inheritance:
@@ -72,7 +72,7 @@ RIssmed.visualize module
 Module contents
 ---------------
 
-.. automodule:: RIssmed
+.. automodule:: RNAmediator
    :members:
    :undoc-members:
    :show-inheritance:

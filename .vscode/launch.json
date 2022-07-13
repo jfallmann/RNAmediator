@@ -29,9 +29,9 @@
             ]
         },
         {
-            "name": "Rissmed single",
+            "name": "RNAmediator single",
             "type": "python",
-            "cwd": "~/Work/Tests/RIssmed",
+            "cwd": "~/Work/Tests/RNAmediator",
             "request": "attach",
             "connect": {
                 "host": "localhost",
@@ -39,7 +39,7 @@
               }
         },
         {
-            "name": "Rissmed sliding",
+            "name": "RNAmediator sliding",
             "type": "python",
             "request": "launch",
             "program": "${file}",
@@ -49,7 +49,7 @@
                 "-x sliding",
                 "-y 10"
             ],
-            "cwd": "~/Work/Tests/RIssmed"
+            "cwd": "~/Work/Tests/RNAmediator"
         },
         {
             "name": "Python: Current File (Integrated Terminal)",

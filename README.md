@@ -1,25 +1,25 @@
-# RIssmed  
-[![PyPI Latest Release](https://img.shields.io/pypi/v/RIssmed.svg)](https://pypi.org/project/RIssmed/) [![GitHub](https://img.shields.io/github/tag/jfallmann/RIssmed.svg)](https://github.com/jfallmann/RIssmed) [![Build Status](https://github.com/jfallmann/RIssmed/.github/workflows/python-app.yml/badge.svg?branch=main)](https://github.com/jfallmann/RIssmed/actions) [![Bioconda](https://anaconda.org/bioconda/RIssmed/badges/version.svg)](https://anaconda.org/bioconda/RIssmed)
+# RNAmediator  
+[![PyPI Latest Release](https://img.shields.io/pypi/v/RNAmediator.svg)](https://pypi.org/project/RNAmediator/) [![GitHub](https://img.shields.io/github/tag/jfallmann/RNAmediator.svg)](https://github.com/jfallmann/RNAmediator) [![Build Status](https://github.com/jfallmann/RNAmediator/.github/workflows/python-app.yml/badge.svg?branch=main)](https://github.com/jfallmann/RNAmediator/actions) [![Bioconda](https://anaconda.org/bioconda/RNAmediator/badges/version.svg)](https://anaconda.org/bioconda/RNAmediator)
 
-The RNA Interaction via secondary structure mediation (RIssmed) tool suite
+The RNA Interaction via secondary structure mediation (RNAmediator) tool suite
 analyses the change of RNA secondary structure upon binding other molecules.
 
-It is available as suite of commandline tools, the source code of RIssmed is open source and available via GitHub (License GPL-3).
+It is available as suite of commandline tools, the source code of RNAmediator is open source and available via GitHub (License GPL-3).
 
 ### <u>Installation via bioconda - recommended</u>
 
-RIssmed can be installed with all tool dependencies via [conda](https://conda.io/docs/install/quick.html). Once you have conda installed simply type:
+RNAmediator can be installed with all tool dependencies via [conda](https://conda.io/docs/install/quick.html). Once you have conda installed simply type:
 
-    conda create -n RIssmed -c conda-forge -c bioconda RIssmed
+    conda create -n RNAmediator -c conda-forge -c bioconda rnamediator
 
-Activate the environment in which RIssmed was installed to use it:
+Activate the environment in which RNAmediator was installed to use it:
 
-    conda activate RIssmed
+    conda activate RNAmediator
 
 
 ### <u>Usage</u>
     
-RIssmed provides different tools to answer different research questions. We will discuss the target application of the tools
+RNAmediator provides different tools to answer different research questions. We will discuss the target application of the tools
 and the required input in the following points. 
 
 * CalcTempDiffs.py
