@@ -1,5 +1,5 @@
 # RNAmediator  
-[![PyPI Latest Release](https://img.shields.io/pypi/v/RNAmediator.svg)](https://pypi.org/project/RNAmediator/) [![GitHub](https://img.shields.io/github/tag/jfallmann/RNAmediator.svg)](https://github.com/jfallmann/RNAmediator) [![Build Status](https://github.com/jfallmann/RNAmediator/.github/workflows/python-app.yml/badge.svg?branch=main)](https://github.com/jfallmann/RNAmediator/actions) [![Bioconda](https://anaconda.org/bioconda/RNAmediator/badges/version.svg)](https://anaconda.org/bioconda/RNAmediator)
+[![PyPI Latest Release](https://img.shields.io/pypi/v/RNAmediator.svg)](https://pypi.org/project/RNAmediator/) [![GitHub](https://img.shields.io/github/tag/jfallmann/RNAmediator.svg)](https://github.com/jfallmann/RNAmediator) [![Build Status](https://github.com/jfallmann/RNAmediator/actions/workflows/python-app.yml/badge.svg?branch=main)](https://github.com/jfallmann/RNAmediator/actions) [![Bioconda](https://anaconda.org/bioconda/RNAmediator/badges/version.svg)](https://anaconda.org/bioconda/RNAmediator) [![PRs](https://img.shields.io/badge/PRs-welcome-blue)] 
 
 The RNA Interaction via secondary structure mediation (RNAmediator) tool suite
 analyses the change of RNA secondary structure upon binding other molecules.
@@ -22,34 +22,6 @@ Activate the environment in which RNAmediator was installed to use it:
 RNAmediator provides different tools to answer different research questions. We will discuss the target application of the tools
 and the required input in the following points. 
 
-* CalcTempDiffs.py
-
-    Analyses how the positions-wise probability of base-pairing changes for an RNA sequence upon temperature change. 
-    
-    * Input: Sequence string
-    
-    * Output: Plot of relative position-wise probability change
-    
-
-* CollectConsResults.py
- 
-    Computes statistics for change of position-wise probability of being base-paired, with binding constraint for a set of provided genes.
-    
-    * Input:
-    
-    * Output:
-
-
-* CollectWindowResults.py 
-
-    Computes statistics for change of position-wise probability of being base-paired, using windows, with binding constraint for a set of provided genes.
-    
-    * Input:
-    
-    * Output:
-
-
-
 * ConstraintFold.py
     
     Computes RNA secondary structure prediction with defined hard binding constraint for a set of sequences.
@@ -67,10 +39,18 @@ and the required input in the following points.
     
     * Output:
 
+* CollectConsResults.py
+ 
+    Computes statistics for change of position-wise probability of being base-paired, with binding constraint for a set of provided genes.
+    
+    * Input:
+    
+    * Output:
 
-* FoldWindows.py 
 
-    Calculate base pairing probs of given seqs or random seqs for given window size, span and region
+* CollectWindowResults.py 
+
+    Computes statistics for change of position-wise probability of being base-paired, using windows, with binding constraint for a set of provided genes.
     
     * Input:
     
