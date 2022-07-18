@@ -226,7 +226,7 @@ def soft_args(default_args):
     default_args.constrain = "40-42|-2.5"
     default_args.outdir = os.path.join(TMP_TEST_DIR, "soft_test")
     default_args.logdir = os.path.join(TMP_TEST_DIR, "LOG_SOFT")
-    default_args.loglevel = "DEBUG"
+    # default_args.loglevel = "DEBUG"
     default_args.version = None
     return default_args
 
