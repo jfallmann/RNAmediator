@@ -414,6 +414,7 @@ def pl_fold(
             exc_tb,
         )
         log.error(logid + "".join(tbe.format()))
+        sys.exit(1)
 
 
 def fold_unconstraint(
@@ -1533,6 +1534,7 @@ def main(args=None):
             log.error(logid + "".join(tbe.format()))
         else:
             print(f'ERROR: {logid} {"".join(tbe.format())}')
+        sys.exit(1)
 
 
 ####################
