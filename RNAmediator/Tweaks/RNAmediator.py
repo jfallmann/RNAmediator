@@ -135,11 +135,11 @@ class Constraint:
     start: int
     end: int
     strand: str
-    type: str = ""
+    value: str = ""
 
     def __str__(self):
-        if self.type != "":
-            return f"{self.start}-{self.end}|{self.strand}|{self.type}"
+        if self.value != "":
+            return f"{self.start}-{self.end}|{self.strand}|{self.value}"
         else:
             return f"{self.start}-{self.end}|{self.strand}"
 
@@ -192,15 +192,15 @@ def set_run_settings_dict(
 
     Parameters
     ----------
-     sequence : str
+    sequence : str
         The file location of the sequence
-     constraint : str
+    constraint : str
         The file location of constrain file
-     conslength : int
+    conslength : int
         Length of the constraint, only used if constrain is sliding
     genes:
         The file location of the genomic coordinates bed file
-     constraintype : str, optional
+    constraintype : str, optional
         Type of constraint to apply, can be ['hard'(Default), 'soft', 'mutate']
 
     Returns
@@ -247,6 +247,8 @@ def set_run_settings_dict(
             for record in SeqIO.parse(sequence, "fasta"):
                 goi, chrom, strand = idfromfa(record.id)
                 genomic_start, genomic_end, genomic_strand, value = get_gene_coords(genecoords, goi, strand)
+                if genomic_end == 0:
+                    genomic_end = len(record.seq)
                 log.debug(f"{logid} CHECKCOORDS: {genomic_start}, {genomic_end}, {genomic_strand}, {value}")
                 randstarts = rng.integers(low=genomic_start, high=genomic_end - conslength + 2, size=nr_cons)
                 for start in randstarts:  # 0-based

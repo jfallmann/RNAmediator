@@ -414,6 +414,7 @@ def pl_fold(
             exc_tb,
         )
         log.error(logid + "".join(tbe.format()))
+        sys.exit(1)
 
 
 def fold_unconstraint(
@@ -741,6 +742,8 @@ def constrain_seq(
                         locend,
                         toend,
                         value,
+                        unpaired,
+                        paired,
                     ],
                 )
             )
@@ -782,23 +785,25 @@ def constrain_seq(
         plfold_unpaired.localize(locws, locwe + 1)
         au = plfold_unpaired.get_rnamediator_np_array()
 
-        if constype in ["hard", "mutate"] and paired:
-            plfold_paired = api_rnaplfold(
-                seqtofold,
-                window,
-                span,
-                region,
-                temperature,
-                constype,
-                consval,
-                constraint=[("paired", locstart, locend + 1)],
-            )
-            plfold_paired.localize(locws, locwe + 1)
-            ap = plfold_paired.get_rnamediator_np_array()
+        if paired:
+            if constype in ["hard", "mutate"]:
+                plfold_paired = api_rnaplfold(
+                    seqtofold,
+                    window,
+                    span,
+                    region,
+                    temperature,
+                    constype,
+                    consval,
+                    constraint=[("paired", locstart, locend + 1)],
+                )
+                plfold_paired.localize(locws, locwe + 1)
+                ap = plfold_paired.get_rnamediator_np_array()
+            else:
+                raise NotImplementedError("Soft constraints for paired sequences need specific basepairs")
         else:
             plfold_paired = None
             ap = np.empty(au.shape)
-            raise NotImplementedError("Soft constraints for paired sequences need specific basepairs")
 
         # Calculating accessibility difference between unconstrained and constraint fold, <0 means less accessible
         # with constraint, >0 means more accessible upon constraint
@@ -1533,6 +1538,7 @@ def main(args=None):
             log.error(logid + "".join(tbe.format()))
         else:
             print(f'ERROR: {logid} {"".join(tbe.format())}')
+        sys.exit(1)
 
 
 ####################
