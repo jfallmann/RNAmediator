@@ -12,6 +12,7 @@
 #
 import os
 import sys
+import re
 
 sys.path.insert(0, os.path.abspath("."))
 sys.path.insert(0, os.path.abspath(".."))
@@ -43,10 +44,13 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.doctest",
     "sphinx.ext.mathjax",
+    "sphinx.ext.autosummary",
+    'sphinx.ext.intersphinx',
     "recommonmark",
     "sphinx_rtd_theme",
 ]
 
+autosummary_generate = True
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["source/_templates"]
 
@@ -78,3 +82,16 @@ html_theme_options = {
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["html/_static"]
 pygments_style = "sphinx"
+autosummary_mock_imports = [
+    'RNAmediator.conftest',
+]
+
+def autodoc_skip_member_handler(app, what, name, obj, skip, options):
+    # Basic approach; you might want a regex instead#
+    pattern = re.compile(".{0,}test.{0,}")
+    return bool(pattern.match(name))
+
+# Automatically called by sphinx at startup
+def setup(app):
+    # Connect the autodoc-skip-member event from apidoc to the callback
+    app.connect('autodoc-skip-member', autodoc_skip_member_handler)
