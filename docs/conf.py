@@ -12,6 +12,7 @@
 #
 import os
 import sys
+import re
 
 sys.path.insert(0, os.path.abspath("."))
 sys.path.insert(0, os.path.abspath(".."))
@@ -43,10 +44,13 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.doctest",
     "sphinx.ext.mathjax",
+    "sphinx.ext.autosummary",
+    'sphinx.ext.intersphinx',
     "recommonmark",
     "sphinx_rtd_theme",
 ]
 
+autosummary_generate = True
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["source/_templates"]
 
@@ -78,3 +82,6 @@ html_theme_options = {
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["html/_static"]
 pygments_style = "sphinx"
+autosummary_mock_imports = [
+    'RNAmediator.conftest',
+]
