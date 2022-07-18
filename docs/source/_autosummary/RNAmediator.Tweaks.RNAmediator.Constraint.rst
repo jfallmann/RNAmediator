@@ -25,7 +25,7 @@
 
    .. autosummary::
    
-      ~Constraint.type
+      ~Constraint.value
       ~Constraint.start
       ~Constraint.end
       ~Constraint.strand
