@@ -85,13 +85,3 @@ pygments_style = "sphinx"
 autosummary_mock_imports = [
     'RNAmediator.conftest',
 ]
-
-def autodoc_skip_member_handler(app, what, name, obj, skip, options):
-    # Basic approach; you might want a regex instead#
-    pattern = re.compile(".{0,}test.{0,}")
-    return bool(pattern.match(name))
-
-# Automatically called by sphinx at startup
-def setup(app):
-    # Connect the autodoc-skip-member event from apidoc to the callback
-    app.connect('autodoc-skip-member', autodoc_skip_member_handler)

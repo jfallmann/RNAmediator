@@ -34,6 +34,7 @@
    RNAmediator.ConstraintFold
    RNAmediator.ConstraintPLFold
    RNAmediator.GenerateBigWig
+   RNAmediator.Tweaks
    RNAmediator.risvis
    RNAmediator.visualize
 
