@@ -5,15 +5,11 @@ channels:
   - defaults
   - bioconda
 dependencies:
-  - viennarna=2.4.18
   - pip
   - pip:
-    - numpy
     - biopython
     - pandas
     - natsort
-    - dash
-    - dash-bootstrap-components
     - sphinx
     - sphinxcontrib-napoleon
     - sphinx-argparse

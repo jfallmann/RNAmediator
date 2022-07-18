@@ -84,4 +84,16 @@ html_static_path = ["html/_static"]
 pygments_style = "sphinx"
 autosummary_mock_imports = [
     'RNAmediator.conftest',
+    "RNAmediator.visualize",
+    "pyBigWig",
+    "RNA",
+    "numpy",
+    "Bio",
+    "pandas",
+    "dash",
+    "Bio"
+
+]
+autodoc_mock_imports = [
+    "pyBigWig"
 ]
