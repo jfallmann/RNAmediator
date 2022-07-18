@@ -157,8 +157,6 @@ def paired_constraint_args(default_args):
     default_args.outdir = os.path.join(TMP_TEST_DIR, "paired_constraint_test")
     default_args.save = 1
     default_args.logdir = os.path.join(TMP_TEST_DIR, "LOG_PAIRED")
-    # default_args.logdir = "LOG_PAIRED"
-    # default_args.loglevel = "DEBUG"
     default_args.version = None
     return default_args
 
@@ -221,13 +219,14 @@ def soft_args(default_args):
     default_args.procs = os.cpu_count() - 1 or 1
     default_args.conslength = 2
     default_args.region = 7
-    default_args.unpaired = "unpaired"
-    default_args.paired = None  # soft does not work with paired yet
+    default_args.unpaired = "paired"
+    default_args.paired = None
     default_args.unconstrained = "raw"
     default_args.constype = "soft"
-    default_args.constrain = "20-22|-2.5"
+    default_args.constrain = "40-42|-2.5"
     default_args.outdir = os.path.join(TMP_TEST_DIR, "soft_test")
     default_args.logdir = os.path.join(TMP_TEST_DIR, "LOG_SOFT")
+    default_args.loglevel = "DEBUG"
     default_args.version = None
     return default_args
 
@@ -239,10 +238,10 @@ def soft_args_defunc(default_args):
     default_args.conslength = 2
     default_args.region = 7
     default_args.unpaired = "unpaired"
-    default_args.paired = "paired"  # soft does not work with paired yet
+    default_args.paired = "paired"
     default_args.unconstrained = "raw"
     default_args.constype = "soft"
-    default_args.constrain = "20-22|-2.5"
+    default_args.constrain = "40-42|-2.5"
     default_args.outdir = os.path.join(TMP_TEST_DIR, "soft_test")
     default_args.logdir = os.path.join(TMP_TEST_DIR, "LOG_SOFT")
     default_args.version = None
@@ -316,21 +315,24 @@ def test_random_constraint(random_args):
     test_log = os.path.join(random_args.logdir, os.listdir(random_args.logdir)[0])
     assert os.path.exists(test_log)
     with open(test_log, "r") as l:
-        assert not ("ERROR") in l.readlines()
+        assert not ("ERROR") in l.read()
 
 
-def test_soft_constraint(soft_args, soft_args_defunc, capsys):
+def test_soft_constraint(soft_args):
     pl_main(soft_args)
     test_log = os.path.join(soft_args.logdir, os.listdir(soft_args.logdir)[0])
     assert os.path.exists(test_log)
     with open(test_log, "r") as l:
-        assert not ("ERROR") in l.readlines()
-    os.remove(test_log)
+        assert not ("ERROR") in l.read()
+
+
+def test_soft_constraint_err(soft_args_defunc):
+    # with pytest.raises(NotImplementedError):
     pl_main(soft_args_defunc)
-    test_log_err = os.path.join(soft_args_defunc.logdir, os.listdir(soft_args_defunc.logdir)[0])
-    assert os.path.exists(test_log_err)
-    with open(test_log_err, "r") as l:
-        assert not ("ERROR") in l.readlines()
+    test_log = os.path.join(soft_args_defunc.logdir, os.listdir(soft_args_defunc.logdir)[0])
+    assert os.path.exists(test_log)
+    with open(test_log, "r") as l:
+        assert ("NotImplementedError") in l.read()
 
 
 def test_multi_constraint(multi_constraint_args):
@@ -409,6 +411,24 @@ def test_fold_unconstraint(seq_id, region, window, span, temperature, unconstrai
         ),
         (
             "testseq3",
+            200,
+            207,
+            100,
+            60,
+            7,
+            40,
+            2,
+            "paired",
+            "unpaired",
+            1,
+            "testseq3",
+            "raw",
+            os.path.join(TESTDATAPATH, "test_single.fa"),
+            "hard",
+            ".",
+        ),
+        (
+            "testseq4",
             200,
             207,
             100,
