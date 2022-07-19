@@ -7,9 +7,6 @@ channels:
 dependencies:
   - pip
   - pip:
-    - biopython
-    - pandas
-    - natsort
     - sphinx
     - sphinxcontrib-napoleon
     - sphinx-argparse
