@@ -91,8 +91,9 @@ autosummary_mock_imports = [
     "Bio",
     "pandas",
     "dash",
-    "Bio"
-
+    "Bio",
+    "natsort",
+    "flask"
 ]
 autodoc_mock_imports = [
     "pyBigWig"
