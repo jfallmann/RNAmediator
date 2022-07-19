@@ -580,7 +580,7 @@ def equalize_lists(listoflists, id=None):
     logid = f"{SCRIPTNAME}.equalize_lists: "
     log.debug(f"{logid} {listoflists}")
     if all([len(x) == 0 for x in listoflists]):
-        log.warnig(f"No files found for {id}, skipping!")
+        log.warning(f"No files found for {id}, skipping!")
     max_length = 0
     for list in listoflists:
         max_length = max(max_length, len(list))
