@@ -182,9 +182,8 @@ def parse_annotation_bed(bed, annotated=None):
 
 
 def parse_annotation_bed_by_coordinates(bed, annotated=None):
-    logid = SCRIPTN + ".parse_annotation_bed_withchrom: "
+    logid = SCRIPTN + ".parse_annotation_bed_by_coordinates: "
     anno = defaultdict(list)
-    # tmp = defaultdict(list)
     if os.path.isfile(os.path.abspath(bed)):
         if ".gz" in bed:
             f = gzip.open(os.path.abspath(bed), "rt")
@@ -205,7 +204,7 @@ def parse_annotation_bed_by_coordinates(bed, annotated=None):
             else:
                 start = int(entries[1]) + 1
                 end = int(entries[2])
-            # tmp[str(goi)].append("|".join(["-".join([str(chrom), str(start), str(end)]), strand]))  # Need strand info here!
+
             anno[str(goi)].append(
                 "|".join(["-".join([str(chrom), str(start), str(end)]), strand])
             )  # Need strand info here! WE ASSUME SORTED, GETS TOO COMPLICATED OTHERWISE
