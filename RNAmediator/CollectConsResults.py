@@ -455,7 +455,7 @@ def judge_diff(
 
             # replace -inf with nan
             nrgdiffu[np.isneginf(nrgdiffu)] = np.nan
-            if nrgdiffp:
+            if nrgdiffp is not None:
                 nrgdiffp[np.isneginf(nrgdiffp)] = np.nan
 
             kdu = np.exp(nrgdiffu / RT)  # math.exp(np.array(nrgdiffu//RT))) ### THIS IS BASICALLY ACCESSIBILITY AGAIN
@@ -493,7 +493,7 @@ def judge_diff(
 
             # replace -inf with nan
             zscoresu[np.isneginf(zscoresu)] = np.nan
-            if zscoresp:
+            if zscoresp is not None:
                 zscoresp[np.isneginf(zscoresp)] = np.nan
 
             log.debug(logid + "zscore: " + str(zscoresu[:10]))
@@ -572,7 +572,7 @@ def judge_diff(
                                 )
                             )
 
-                    if pc and border < abs(pc[pos]):
+                    if pc is not None and border < abs(pc[pos]):
                         if ce < pos:  # get distance up or downstream
                             dist = (pos - ce) * -1  # no -1 or we have 0 overlap
                         else:
