@@ -249,6 +249,10 @@ def set_run_settings_dict(
                 genomic_start, genomic_end, genomic_strand, value = get_gene_coords(genecoords, goi, strand)
                 if genomic_end == 0:
                     genomic_end = len(record.seq)
+                if genomic_end - conslength < 0:
+                    sys.exit(
+                        f"{logid} ERROR Constraintlength {conslength} is not fit for sequence length {genomic_end}"
+                    )
                 log.debug(f"{logid} CHECKCOORDS: {genomic_start}, {genomic_end}, {genomic_strand}, {value}")
                 randstarts = rng.integers(low=genomic_start, high=genomic_end - conslength + 2, size=nr_cons)
                 for start in randstarts:  # 0-based
@@ -455,7 +459,7 @@ def read_constraints(constraint: str, linewise: bool = False, constraintype: str
         raise NotImplementedError("Temperature range folding needs to be reimplemented")
     else:
         log.error(logid + "Could not compute constraints from input " + str(constraint))
-        sys.exit()
+        sys.exit("Could not compute constraints from input " + str(constraint))
     log.debug(f"{logid} Constraintlist: {constraintlist}")
     return constraintlist
 
