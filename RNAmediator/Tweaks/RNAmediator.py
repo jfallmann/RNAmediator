@@ -254,7 +254,7 @@ def set_run_settings_dict(
                         f"{logid} ERROR Constraintlength {conslength} is not fit for sequence length {genomic_end}"
                     )
                 log.debug(f"{logid} CHECKCOORDS: {genomic_start}, {genomic_end}, {genomic_strand}, {value}")
-                randstarts = rng.integers(low=genomic_start, high=genomic_end - conslength + 2, size=nr_cons)
+                randstarts = rng.integers(low=genomic_start, high=genomic_end - (conslength + 2), size=nr_cons)
                 for start in randstarts:  # 0-based
                     end = start + conslength - 1
                     cons = str(start) + "-" + str(end) + "|" + str(strand)
