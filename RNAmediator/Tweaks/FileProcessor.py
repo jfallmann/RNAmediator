@@ -46,10 +46,14 @@
 # Code:
 
 import gzip
+import inspect
+
+# own
 import logging
 import os
 import re
 import sys
+import traceback as tb
 from collections import defaultdict
 from io import StringIO
 from typing import DefaultDict, List
@@ -65,7 +69,6 @@ log = logging.getLogger(__name__)  # use module name
 # log.propagate = True
 SCRIPTNAME = os.path.basename(__file__).replace(".py", "")
 
-
 @check_run
 def backup(file):
     logid = SCRIPTNAME + ".backup: "
@@ -76,8 +79,17 @@ def backup(file):
 @check_run
 def parseseq(sequence):
     logid = SCRIPTNAME + ".parseseq: "
+    if isinstance(sequence, StringIO):
+        seq = sequence
 
-    if isinstance(sequence, str) and os.path.isfile(sequence):
+    # elif ( isinstance(sequence, str) and sequence == 'random' ):
+    #     rand = "\n".join(createrandseq(length, gc, number, alphabet))
+    #     seq = StringIO(rand)
+    #     o = gzip.open('Random.fa.gz','wb')
+    #     o.write(bytes(rand,encoding='UTF-8'))
+    #     o.close()
+
+    elif isinstance(sequence, str) and os.path.isfile(sequence):
         if ".gz" in sequence:
             seq = gzip.open(sequence, "rt")
         else:
@@ -86,18 +98,6 @@ def parseseq(sequence):
         header = ">Seq1:default:nochrom:(.)"
         s = sequence.upper()
         seq = StringIO("{header}\n{s}".format(header=header, s=s))
-    log.debug(f"{logid} SEQUENCE: {seq}")
-
-    if isinstance(sequence, StringIO):
-        return sequence
-    for record in SeqIO.parse(seq):
-        id = record.id
-        test_sequence = record.seq[0]
-        if id and test_sequence:
-            continue
-        else:
-            log.error(f"{logid} Problem with Sequence")
-            raise ValueError(f"Problem with Sequence")
     return seq
 
 
@@ -120,7 +120,7 @@ def idfromfa(fa_id):
         return [str(goi), str(chrom), str(strand)]
     else:
         log.error(logid + "Could not assign any value from fasta header, please check your fasta files")
-        sys.exit("Could not assign any value from fasta header, please check your fasta files")
+        raise ValueError("Could not assign any value from fasta header, please check your fasta files")
 
 
 @check_run
