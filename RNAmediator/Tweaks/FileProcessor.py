@@ -144,6 +144,7 @@ def idfromfa(fa_id):
         return [str(goi), str(chrom), str(strand)]
     else:
         log.error(logid + "Could not assign any value from fasta header, please check your fasta files")
+        print(logid + "Could not assign any value from fasta header, please check your fasta files")
         sys.exit("Could not assign any value from fasta header, please check your fasta files")
 
 

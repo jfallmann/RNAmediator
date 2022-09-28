@@ -250,6 +250,8 @@ def set_run_settings_dict(
                 if genomic_end == 0:
                     genomic_end = len(record.seq)
                 if genomic_end - conslength < 0:
+                    print(f"{logid} ERROR Constraintlength {conslength} is not fit for sequence length {genomic_end}"
+                    )
                     sys.exit(
                         f"{logid} ERROR Constraintlength {conslength} is not fit for sequence length {genomic_end}"
                     )
@@ -459,6 +461,7 @@ def read_constraints(constraint: str, linewise: bool = False, constraintype: str
         raise NotImplementedError("Temperature range folding needs to be reimplemented")
     else:
         log.error(logid + "Could not compute constraints from input " + str(constraint))
+        print(logid + "Could not compute constraints from input " + str(constraint))
         sys.exit("Could not compute constraints from input " + str(constraint))
     log.debug(f"{logid} Constraintlist: {constraintlist}")
     return constraintlist
@@ -538,7 +541,7 @@ def rnamediator_logging_setup(logdir: str, loglevel: str, runscript: str):
 
     if multiprocessing.get_start_method(allow_none=True) != "spawn":
         multiprocessing.set_start_method("spawn")
-    queue = multiprocessing.Manager().Queue(-1)
+    queue = multiprocessing.Manager().JoinableQueue(-1)
     listener = multiprocessing.Process(target=listener_process, args=(queue, listener_configurer, logfile, loglevel))
     listener.start()
     worker_configurer(queue, loglevel)
