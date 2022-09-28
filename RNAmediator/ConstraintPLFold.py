@@ -93,6 +93,7 @@ from RNAmediator.Tweaks.RNAmediator import (
 from RNAmediator.Tweaks.RNAtweaks import *
 from RNAmediator.Tweaks.RNAtweaks import _npprint
 from RNAmediator.Tweaks.NPtweaks import *
+from RNAmediator.Tweaks.Collection import on_error
 
 # Biopython stuff
 
@@ -250,6 +251,7 @@ def pl_fold(
                             "configurer": configurer,
                             "level": level,
                         },
+                        error_callback=on_error,
                     )
 
                 else:
@@ -329,6 +331,7 @@ def pl_fold(
                                 "configurer": configurer,
                                 "level": level,
                             },
+                            error_callback=on_error,
                         )
 
                     else:
@@ -400,6 +403,7 @@ def pl_fold(
                                 "configurer": configurer,
                                 "level": level,
                             },
+                            error_callback=on_error,
                         )
 
         pool.close()
@@ -413,6 +417,7 @@ def pl_fold(
             exc_value,
             exc_tb,
         )
+        pool.close()
         log.error(logid + "".join(tbe.format()))
         queue.join()
         sys.exit(1)
@@ -1526,8 +1531,8 @@ def main(args=None):
             level=args.loglevel,
         )
         queue.put(None)
-        queue.join()
         listener.join()
+        listener.terminate()
 
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -1536,12 +1541,9 @@ def main(args=None):
             exc_value,
             exc_tb,
         )
+        print(f'ERROR: {logid} {"".join(tbe.format())}')
         if log:
             log.error(logid + "".join(tbe.format()))
-        else:
-            print(f'ERROR: {logid} {"".join(tbe.format())}')
-        queue.join()
-        sys.exit(1)
 
 
 ####################

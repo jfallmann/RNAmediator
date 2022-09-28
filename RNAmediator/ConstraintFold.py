@@ -105,6 +105,7 @@ from RNAmediator.Tweaks.RNAmediator import (
     expand_window,
     localize_window,
 )
+from RNAmediator.Tweaks.Collection import on_error
 
 log = logging.getLogger(__name__)  # use module name
 SCRIPTNAME = os.path.basename(__file__).replace(".py", "")
@@ -217,6 +218,7 @@ def fold(
                                 "configurer": configurer,
                                 "level": level,
                             },
+                            error_callback=on_error,
                         )
                     ]
                     return gibbs_uc
@@ -293,6 +295,7 @@ def fold(
                             genecoords,
                         ),
                         kwds={"queue": queue, "configurer": configurer, "level": level},
+                        error_callback=on_error,
                     )
 
             pool.close()
@@ -308,6 +311,8 @@ def fold(
             exc_tb,
         )
         log.error(logid + "".join(tbe.format()))
+        queue.join()
+        sys.exit(1)
 
 
 ##### Functions #####
