@@ -98,14 +98,15 @@ def check_run(func):
             return func(*args, **kwargs)
 
         except Exception:
-            exc_type, exc_value, exc_tb = sys.exc_info()
-            tbe = tb.TracebackException(
-                exc_type,
-                exc_value,
-                exc_tb,
-            )
-            log.error(logid + "".join(tbe.format()))
-            raise sys.exc_info()
+            return Exception
+            # exc_type, exc_value, exc_tb = sys.exc_info()
+            # tbe = tb.TracebackException(
+            #    exc_type,
+            #    exc_value,
+            #    exc_tb,
+            # )
+            # log.error(logid + "".join(tbe.format()))
+            # raise sys.exc_info()
 
     return func_wrapper
 

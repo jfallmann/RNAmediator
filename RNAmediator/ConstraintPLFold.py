@@ -417,8 +417,10 @@ def pl_fold(
             exc_value,
             exc_tb,
         )
-        pool.close()
         log.error(logid + "".join(tbe.format()))
+        queue.close()
+        if pool:
+            pool.close()
         queue.join()
         sys.exit(1)
 
@@ -1544,6 +1546,10 @@ def main(args=None):
         print(f'ERROR: {logid} {"".join(tbe.format())}')
         if log:
             log.error(logid + "".join(tbe.format()))
+        queue.put(None)
+        queue.join()
+        listener.terminate()
+        sys.exit(1)
 
 
 ####################
