@@ -153,6 +153,7 @@ def pl_fold(
         pool = multiprocessing.Pool(processes=num_processes, maxtasksperchild=1)
 
         # Start the work
+        log.debug(f"{logid} RUN_SETTINGS: {run_settings}")
         for fasta in run_settings:
             fasta_settings = run_settings[fasta]
             goi = fasta_settings.gene
@@ -418,11 +419,9 @@ def pl_fold(
             exc_tb,
         )
         log.error(logid + "".join(tbe.format()))
-        queue.close()
         if pool:
             pool.close()
-        queue.join()
-        sys.exit(1)
+        return Exception
 
 
 def fold_unconstraint(

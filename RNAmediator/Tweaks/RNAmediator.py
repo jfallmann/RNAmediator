@@ -4,8 +4,6 @@ from dataclasses import dataclass
 import logging
 import datetime
 import os
-import sys
-import traceback as tb
 from numpy.random import default_rng
 from Bio import SeqIO
 from Bio.Seq import Seq
@@ -213,7 +211,12 @@ def set_run_settings_dict(
     log.debug(f"{logid} seq:{sequence} constraint:{constraint} genes:{genes} constraintype:{constraintype}")
 
     run_settings: Dict[str, SequenceSettings] = dict()
+
     sequence = parseseq(sequence)
+    if isinstance(sequence, Exception):
+        raise ValueError(f"{logid} Problem with sequence {sequence}")
+        break
+
     if genes != "":
         # get genomic coords to print to bed later, should always be just one set of coords per gene
         genecoords = parse_annotation_bed(genes)
