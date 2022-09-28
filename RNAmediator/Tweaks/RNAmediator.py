@@ -213,9 +213,6 @@ def set_run_settings_dict(
     run_settings: Dict[str, SequenceSettings] = dict()
 
     sequence = parseseq(sequence)
-    if isinstance(sequence, Exception):
-        raise ValueError(f"{logid} Problem with sequence {sequence}")
-        break
 
     if genes != "":
         # get genomic coords to print to bed later, should always be just one set of coords per gene
