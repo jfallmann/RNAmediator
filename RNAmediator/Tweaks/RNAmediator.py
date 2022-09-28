@@ -538,7 +538,7 @@ def rnamediator_logging_setup(logdir: str, loglevel: str, runscript: str):
 
     if multiprocessing.get_start_method(allow_none=True) != "spawn":
         multiprocessing.set_start_method("spawn")
-    queue = multiprocessing.Manager().Queue(-1)
+    queue = multiprocessing.Manager().JoinableQueue(-1)
     listener = multiprocessing.Process(target=listener_process, args=(queue, listener_configurer, logfile, loglevel))
     listener.start()
     worker_configurer(queue, loglevel)
