@@ -96,9 +96,8 @@ def check_run(func):
         logid = scriptn + ".Collection_func_wrapper: "
         try:
             return func(*args, **kwargs)
-        except Exception:                        
+        except:                        
             return Exception
-
     return func_wrapper
 
 

@@ -415,18 +415,17 @@ def pl_fold(
             log.info(logid + "DONE: output in: " + str(outdir))
             return value
         else:
-            raise ValueError(value)
-
+            return result.get()
     except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
+        #exc_type, exc_value, exc_tb = sys.exc_info()
+        #tbe = tb.TracebackException(
+        #    exc_type,
+        #    exc_value,
+        #    exc_tb,
+        #)
+        #log.error(logid + "".join(tbe.format()))
         if pool:
-            pool.close()
+            pool.terminate()
         return Exception
 
 
@@ -853,6 +852,7 @@ def constrain_seq(
             str(temperature),
             outdir,
         )
+        return 0
 
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -1087,6 +1087,7 @@ def constrain_seq_paired(
             str(temperature),
             outdir,
         )
+        return 0
 
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -1208,6 +1209,9 @@ def write_unconstraint(
 
         else:
             print(data.get_text(nan="nan", truncated=True))
+
+        return 0
+
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
@@ -1313,6 +1317,9 @@ def write_constraint(
                     printdiff(diff_np, filepath)
             else:
                 _npprint(diff_np)
+
+        return 0
+
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
@@ -1520,7 +1527,7 @@ def main(args=None):
             args.sequence, args.constrain, args.conslength, args.constype, args.outdir, args.genes
         )
 
-        pl_fold(
+        fold = pl_fold(
             args.window,
             args.span,
             args.region,
@@ -1537,10 +1544,14 @@ def main(args=None):
             configurer=worker_configurer,
             level=args.loglevel,
         )
-        queue.put(None)
-        queue.join()
-        listener.join()
-        listener.terminate()
+        if not fold:
+            queue.put(None)
+            listener.join()
+            return 0
+        else:
+            listener.terminate()
+            fold
+            raise
 
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -1552,8 +1563,6 @@ def main(args=None):
         print(f'ERROR: {logid} {"".join(tbe.format())}')
         if log:
             log.error(logid + "".join(tbe.format()))
-        queue.put(None)
-        queue.join()
         listener.terminate()
         sys.exit(1)
 
@@ -1578,6 +1587,7 @@ if __name__ == "__main__":
         if log:
             log.error(outer_logid + "".join(outer_tbe.format()))
         else:
-            print(f'ERROR: {logid} {"".join(outer_tbe.format())}')
+            print(f'ERROR: {outer_logid} {"".join(outer_tbe.format())}')
+        sys.exit(1)
 
     # ConstraintPLFold.py ends here
