@@ -402,7 +402,7 @@ def pl_fold(
                             },
                         )
 
-        pool.close()
+        pool.close()        
         pool.join()  # timeout
         log.info(logid + "DONE: output in: " + str(outdir))
 
@@ -414,8 +414,13 @@ def pl_fold(
             exc_tb,
         )
         log.error(logid + "".join(tbe.format()))
+        pool.terminate()
+        pool.join()
+        queue.terminate()
         queue.join()
         sys.exit(1)
+
+    return 0
 
 
 def fold_unconstraint(
@@ -1540,7 +1545,8 @@ def main(args=None):
             log.error(logid + "".join(tbe.format()))
         else:
             print(f'ERROR: {logid} {"".join(tbe.format())}')
-        queue.join()
+        queue.terminate()
+        listener.join()
         sys.exit(1)
 
 
