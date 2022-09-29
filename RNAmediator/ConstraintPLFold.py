@@ -407,7 +407,7 @@ def pl_fold(
                             error_callback=on_error,
                         )
 
-        pool.close()
+        pool.close()        
         pool.join()  # timeout
         log.info(logid + "DONE: output in: " + str(outdir))
 
@@ -422,6 +422,8 @@ def pl_fold(
         if pool:
             pool.close()
         return Exception
+
+    return 0
 
 
 def fold_unconstraint(
@@ -1532,6 +1534,7 @@ def main(args=None):
             level=args.loglevel,
         )
         queue.put(None)
+        queue.join()
         listener.join()
         listener.terminate()
 
