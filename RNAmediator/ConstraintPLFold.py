@@ -417,13 +417,6 @@ def pl_fold(
         else:
             return result.get()
     except Exception:
-        #exc_type, exc_value, exc_tb = sys.exc_info()
-        #tbe = tb.TracebackException(
-        #    exc_type,
-        #    exc_value,
-        #    exc_tb,
-        #)
-        #log.error(logid + "".join(tbe.format()))
         if pool:
             pool.terminate()
         return Exception
@@ -1549,7 +1542,6 @@ def main(args=None):
             listener.join()
             return 0
         except Exception:
-            listener.terminate()
             raise
 
     except Exception:
