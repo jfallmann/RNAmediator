@@ -96,16 +96,8 @@ def check_run(func):
         logid = scriptn + ".Collection_func_wrapper: "
         try:
             return func(*args, **kwargs)
-
-        except Exception:            
-            exc_type, exc_value, exc_tb = sys.exc_info()
-            tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-            )
-            log.error(logid + "".join(tbe.format()))
-            raise sys.exc_info()
+        except Exception:                        
+            return Exception
 
     return func_wrapper
 

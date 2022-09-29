@@ -151,7 +151,7 @@ def pl_fold(
         num_processes = procs or 1
         # with get_context("spawn").Pool(processes=num_processes-1, maxtasksperchild=1) as pool:
         pool = multiprocessing.Pool(processes=num_processes, maxtasksperchild=1)
-
+        result = None
         # Start the work
         log.debug(f"{logid} RUN_SETTINGS: {run_settings}")
         for fasta in run_settings:
@@ -231,7 +231,7 @@ def pl_fold(
                     ):
                         log.warning(logid + str(cons) + " Exists for " + str(seq_record.id) + "! Skipping!")
                         continue
-                    pool.apply_async(
+                    result = pool.apply_async(
                         scan_seq,
                         args=(
                             seq_record.id,
@@ -305,7 +305,7 @@ def pl_fold(
 
                         log.info(logid + "Constraining to " + str(fstart) + " and " + str(fend))
                         goi, chrom, strand = idfromfa(seq_record.id)
-                        pool.apply_async(
+                        result = pool.apply_async(
                             constrain_seq_paired,
                             args=(
                                 seq_record.id,
@@ -379,7 +379,7 @@ def pl_fold(
                             log.warning(logid + str(cons) + " Exists for " + str(seq_record.id) + "! Skipping!")
                             continue
 
-                        pool.apply_async(
+                        result = pool.apply_async(
                             constrain_seq,
                             args=(
                                 seq_record.id,
@@ -407,9 +407,15 @@ def pl_fold(
                             error_callback=on_error,
                         )
 
-        pool.close()        
-        pool.join()  # timeout
-        log.info(logid + "DONE: output in: " + str(outdir))
+        pool.close()
+        if result is not None:
+            result.wait()
+        if result.successful():
+            value = result.get()
+            log.info(logid + "DONE: output in: " + str(outdir))
+            return value
+        else:
+            raise ValueError(value)
 
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -422,8 +428,6 @@ def pl_fold(
         if pool:
             pool.close()
         return Exception
-
-    return 0
 
 
 def fold_unconstraint(
