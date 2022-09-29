@@ -1527,30 +1527,29 @@ def main(args=None):
             args.sequence, args.constrain, args.conslength, args.constype, args.outdir, args.genes
         )
 
-        fold = pl_fold(
-            args.window,
-            args.span,
-            args.region,
-            args.temperature,
-            args.multi,
-            args.unconstrained,
-            args.unpaired,
-            args.paired,
-            args.save,
-            args.procs,
-            outdir,
-            run_settings,
-            queue=queue,
-            configurer=worker_configurer,
-            level=args.loglevel,
-        )
-        if not fold:
+        try:
+            fold = pl_fold(
+                args.window,
+                args.span,
+                args.region,
+                args.temperature,
+                args.multi,
+                args.unconstrained,
+                args.unpaired,
+                args.paired,
+                args.save,
+                args.procs,
+                outdir,
+                run_settings,
+                queue=queue,
+                configurer=worker_configurer,
+                level=args.loglevel,
+            )
             queue.put(None)
             listener.join()
             return 0
-        else:
+        except Exception:
             listener.terminate()
-            fold
             raise
 
     except Exception:

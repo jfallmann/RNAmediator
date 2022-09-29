@@ -212,7 +212,10 @@ def set_run_settings_dict(
 
     run_settings: Dict[str, SequenceSettings] = dict()
 
-    sequence = parseseq(sequence)
+    try:
+        sequence = parseseq(sequence)
+    except Exception:
+        raise
 
     if genes != "":
         # get genomic coords to print to bed later, should always be just one set of coords per gene
@@ -490,8 +493,10 @@ def preprocess(sequence: str, constraint: str, conslength: int, constype: str, o
     else:
         outdir = os.path.abspath(os.getcwd())
 
-    run_settings = set_run_settings_dict(sequence, constraint, conslength, genes, constype)
-
+    try:
+        run_settings = set_run_settings_dict(sequence, constraint, conslength, genes, constype)
+    except Exception:
+        raise
     return run_settings, outdir
 
 
