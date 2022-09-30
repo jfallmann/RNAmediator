@@ -214,7 +214,7 @@ def parseargs_collectpl():
         "--pattern",
         type=str,
         default="240,60",
-        help="Pattern for files and window, e.g. Seq1_30,250",
+        help="Pattern for window and span, e.g. 240,60",
     )
     parser.add_argument(
         "-c",
@@ -279,8 +279,7 @@ def parseargs_collectpl():
         "--padding",
         type=int,
         default=1,
-        help="Padding around constraint that will be excluded from report, default is 1, "
-        "so directly overlapping effects will be ignored",
+        help="Padding around constraint that will be excluded from report, default is 1, so directly overlapping effects will be ignored",
     )
     parser.add_argument(
         "--version",

@@ -46,8 +46,8 @@ def test_idfromfa(fa_id):
     [
         (open(os.path.join(TESTDATAPATH, "test_constraints.bed")), True),
         ("foo", True),
-        (StringIO("chr1	8	17	ENSG00000273544	u	-\n" "chr1	9	18	ENSG00000201457	u	-"), True),
-        ("chr1	8	17	ENSG00000273544	u	-\n", True),
+        (StringIO("chr1\t8\t17\tENSG00000273544\tu\t-\n" "chr1\t9\t18\tENSG00000201457\tu\t-"), True),
+        ("chr1\t8\t17\tENSG00000273544\tu\t-\n", True),
     ],
 )
 def test_constraints_from_bed(bedfile, linewise, expected, caplog):
