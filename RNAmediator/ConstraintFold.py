@@ -201,6 +201,7 @@ def fold(
                 log.debug(logid + "ENTRY: " + str(cons_tuple))
                 cons_tuple = [str(cons) for cons in cons_tuple]
                 cons = ":".join(cons_tuple)
+                result = None
 
                 if not window:
                     window = len(fa)
@@ -221,7 +222,7 @@ def fold(
                             error_callback=on_error,
                         )
                     ]
-                    return gibbs_uc
+                    result = gibbs_uc
 
                 else:
                     # we now have a list of constraints and for the raw seq comparison we only need to fold windows around these constraints
@@ -280,7 +281,7 @@ def fold(
                     genecoords = list([gs, ge, gstrand])
                     const = list([fstart, fend, start, end])
 
-                    pool.apply_async(
+                    result = pool.apply_async(
                         constrain_seq,
                         args=(
                             seq_record,
@@ -298,21 +299,23 @@ def fold(
                         error_callback=on_error,
                     )
 
-            pool.close()
-            pool.join()
+        pool.close()
+        if result is not None:
+            result.wait()
+        if result.successful():
+            value = result.get()
+            log.info(logid + "DONE: output in: " + str(outdir))
+            return value
+        else:
+            return result.get()
 
         log.info(logid + "DONE: output in: " + str(outdir))
-
     except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
-        queue.join()
-        sys.exit(1)
+        if pool:
+            pool.terminate()
+        return Exception
+        
+
 
 
 ##### Functions #####
@@ -859,24 +862,30 @@ def main(args=None):
 
         run_settings, outdir = preprocess(args.sequence, args.constrain, args.conslength, args.outdir, args.genes)
 
-        fold(
-            run_settings,
-            outdir,
-            args.window,
-            args.span,
-            args.temperature,
-            args.constrain,
-            args.conslength,
-            args.procs,
-            args.save,
-            args.pattern,
-            args.cutoff,
-            queue=queue,
-            configurer=worker_configurer,
-            level=args.loglevel,
-        )
-        queue.put(None)
-        listener.join()
+        try:
+            result = fold(
+                run_settings,
+                outdir,
+                args.window,
+                args.span,
+                args.temperature,
+                args.constrain,
+                args.conslength,
+                args.procs,
+                args.save,
+                args.pattern,
+                args.cutoff,
+                queue=queue,
+                configurer=worker_configurer,
+                level=args.loglevel,
+            )
+            queue.put(None)
+            listener.join()
+            queue.put(None)
+            listener.join()
+            return 0
+        except Exception:
+            raise
 
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -885,7 +894,11 @@ def main(args=None):
             exc_value,
             exc_tb,
         )
-        log.error(logid + "".join(tbe.format()))
+        print(f'ERROR: {logid} {"".join(tbe.format())}')
+        if log:
+            log.error(logid + "".join(tbe.format()))
+        listener.terminate()
+        sys.exit(1)
 
 
 ####################
