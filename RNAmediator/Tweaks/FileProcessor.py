@@ -212,7 +212,7 @@ def read_paired_constraints_from_bed(bed, linewise=None, constraintype="hard"):
     for line in bed:
         entries = line.rstrip().split("\t")
         if len(entries) % 2:
-            raise Exception(
+            raise ValueError(
                 "Unbalanced paired bed, please make sure the paired bed consists of equal number of "
                 "fields for both constraint entries"
             )
