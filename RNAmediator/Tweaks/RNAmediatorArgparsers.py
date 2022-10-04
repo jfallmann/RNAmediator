@@ -346,8 +346,8 @@ def parseargs_browser():
     parser.add_argument(
         "-t",
         "--temperature",
-        type=int,
-        default=37,
+        type=float,
+        default=37.0,
         help="Temperature for structure prediction",
     )
     parser.add_argument("-o", "--outdir", type=str, default="", help="Directory to write to")

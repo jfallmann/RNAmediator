@@ -509,6 +509,7 @@ def getfiles(name, window, span, temperature, goi, indir=None):
         return None
     else:
         # get files with specified pattern
+        temperature = re.sub("[.,]", "", str(temperature))
         lookfor = os.path.abspath(
             os.path.join(
                 indir,
