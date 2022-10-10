@@ -121,6 +121,7 @@ def scan_input(
     genes,
     chromsizes,
     padding,
+    chromstr,
 ):
     """Scan input for files of interest
 
@@ -219,7 +220,7 @@ def scan_input(
 
         for goi in genecoords:
             log.info(logid + "Working on " + goi)
-            chrom, gs, ge, gstrand, _ = get_location_withchrom(genecoords[goi][0])
+            chrom, gs, ge, gstrand, _ = get_location_withchrom(genecoords[goi][0], chromstr)
 
             raw = getfiles(unconstrained, window, span, temperature, goi, indir)
             unpaired = getfiles("diffnu", window, span, temperature, goi, indir)
@@ -228,19 +229,7 @@ def scan_input(
             filelist = equalize_lists([raw, unpaired, paired], goi)
 
             call_list.append(
-                (
-                    goi,
-                    filelist,
-                    chrom,
-                    gs,
-                    ge,
-                    gstrand,
-                    ulim,
-                    cutoff,
-                    border,
-                    outdir,
-                    padding,
-                ),
+                (goi, filelist, chrom, gs, ge, gstrand, ulim, cutoff, border, outdir, padding, chromstr),
             )
 
         with multiprocessing.Pool(num_processes, maxtasksperchild=1) as pool:
@@ -284,6 +273,7 @@ def generate_bws(
     border,
     outdir,
     padding,
+    chromstr,
     queue=None,
     configurer=None,
     level=None,
@@ -329,13 +319,13 @@ def generate_bws(
 
         if raw:
             for i in range(len(raw)):
-                out.append(create_bw_entries(raw[i], goi, gstrand, gs, ge, cutoff, border, ulim, padding))
+                out.append(create_bw_entries(raw[i], goi, gstrand, gs, ge, cutoff, border, ulim, padding, chromstr))
         elif up:
             for i in range(len(up)):
-                out.append(create_bw_entries(up[i], goi, gstrand, gs, ge, cutoff, border, ulim, padding))
+                out.append(create_bw_entries(up[i], goi, gstrand, gs, ge, cutoff, border, ulim, padding, chromstr))
         elif pa:
             for i in range(len(pa)):
-                out.append(create_bw_entries(pa[i], goi, gstrand, gs, ge, cutoff, border, ulim, padding))
+                out.append(create_bw_entries(pa[i], goi, gstrand, gs, ge, cutoff, border, ulim, padding, chromstr))
         return out
 
     except Exception:
@@ -590,7 +580,7 @@ def equalize_lists(listoflists, id=None):
     return listoflists
 
 
-def create_bw_entries(fname, goi, gstrand, gs, ge, cutoff, border, ulim, padding):
+def create_bw_entries(fname, goi, gstrand, gs, ge, cutoff, border, ulim, padding, chromstr):
     """Create entries for BigWig files
 
     Parameters
@@ -876,6 +866,7 @@ def main(args=None):
             args.genes,
             args.chromsizes,
             args.padding,
+            args.chromstr,
         )
 
         queue.put_nowait(None)

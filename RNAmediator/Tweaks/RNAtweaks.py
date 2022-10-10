@@ -636,7 +636,7 @@ def get_location(entry):
         log.error(logid + "".join(tbe.format()))
 
 
-def get_location_withchrom(entry):
+def get_location_withchrom(entry, chromstr):
     """Returns location of folding window in genomic or local coordinates with chromosome
 
     Parameters
