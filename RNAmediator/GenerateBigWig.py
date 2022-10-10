@@ -848,29 +848,32 @@ def main(args=None):
         log.info(logid + "Running " + SCRIPTNAME + " on " + str(args.procs) + " cores.")
         log.info(logid + "CLI: " + sys.argv[0] + " " + "{}".format(" ".join([shlex.quote(s) for s in sys.argv[1:]])))
 
-        scan_input(
-            queue,
-            worker_configurer,
-            loglevel,
-            args.pattern,
-            args.cutoff,
-            args.border,
-            args.ulimit,
-            args.temperature,
-            args.procs,
-            args.unconstrained,
-            args.unpaired,
-            args.paired,
-            args.outdir,
-            args.dir,
-            args.genes,
-            args.chromsizes,
-            args.padding,
-            args.chromstr,
-        )
-
-        queue.put_nowait(None)
-        listener.join()
+        try:
+            scan_input(
+                queue,
+                worker_configurer,
+                loglevel,
+                args.pattern,
+                args.cutoff,
+                args.border,
+                args.ulimit,
+                args.temperature,
+                args.procs,
+                args.unconstrained,
+                args.unpaired,
+                args.paired,
+                args.outdir,
+                args.dir,
+                args.genes,
+                args.chromsizes,
+                args.padding,
+                args.chromprefix,
+            )
+            queue.put(None)
+            listener.join()
+            return 0
+        except Exception:
+            raise
 
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -879,7 +882,11 @@ def main(args=None):
             exc_value,
             exc_tb,
         )
-        log.error(logid + "".join(tbe.format()))
+        if log:
+            log.error(outer_logid + "".join(outer_tbe.format()))
+        else:
+            print(f'ERROR: {outer_logid} {"".join(outer_tbe.format())}')
+        sys.exit(1)
 
 
 ####################
@@ -898,7 +905,11 @@ if __name__ == "__main__":
             exc_value,
             exc_tb,
         )
-        log.error(logid + "".join(tbe.format()))
+        if log:
+            log.error(outer_logid + "".join(outer_tbe.format()))
+        else:
+            print(f'ERROR: {outer_logid} {"".join(outer_tbe.format())}')
+        sys.exit(1)
 
 ######################################################################
 ### GenerateBigWig.py ends here
