@@ -505,7 +505,7 @@ def get_location(entry):
 
 
 @check_run
-def get_location_withchrom(entry, chromstr):
+def get_location_withchrom(entry):
     """Returns location of folding window in genomic or local coordinates with chromosome
 
     Parameters

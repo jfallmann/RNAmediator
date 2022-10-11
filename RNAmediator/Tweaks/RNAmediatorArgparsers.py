@@ -367,7 +367,7 @@ def parseargs_browser():
     parser.add_argument(
         "--chromprefix",
         type=str,
-        default=None,
+        default='chr',
         help="Prefix for chromosome names, e.g. 'chr', needed if chromosome names do not contain a prefix that the browser requires. ENSEMBL data has not leading 'chr' while UCSC expects chromosomes to start with 'chr'",
     )
     parser.add_argument(

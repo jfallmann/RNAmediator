@@ -188,7 +188,7 @@ def scan_input(
         num_processes = procs or 1
         call_list = []
 
-        header = read_chromsize(chromsizes)
+        header = read_chromsize(chromsizes, chromstr)
         rawbigfw = rawbigre = unpbigfw = unpbigre = paibigfw = paibigre = None
 
         filepaths = [
@@ -220,7 +220,7 @@ def scan_input(
 
         for goi in genecoords:
             log.info(logid + "Working on " + goi)
-            chrom, gs, ge, gstrand, _ = get_location_withchrom(genecoords[goi][0], chromstr)
+            chrom, gs, ge, gstrand, _ = get_location_withchrom(genecoords[goi][0])
 
             raw = getfiles(unconstrained, window, span, temperature, goi, indir)
             unpaired = getfiles("diffnu", window, span, temperature, goi, indir)
@@ -531,7 +531,7 @@ def getfiles(name, window, span, temperature, goi, indir=None):
             return fullname
 
 
-def read_chromsize(cs, limit=32):
+def read_chromsize(cs, chromstr=None, limit=32):
     """Read chromosome sizes from file
 
     Parameters
@@ -555,16 +555,23 @@ def read_chromsize(cs, limit=32):
     sizes = [tuple((str(x), int(y))) for x, y in [l.split("\t") for l in sizes]]
     for i in range(len(sizes)):
         l = list(sizes[i])
-        if l[0][:2] != "chr":  # UCSC needs chr in chromname
-            if l[0][:2] == "CHR":
-                l[0] = "chr" + l[3:]
-            else:
-                l[0] = "chr" + l[0]
-        if len(l[0]) > limit:  # UCSC only allows 32char lenght strings
-            l[0] = l[0][:limit]
+        l[0] = add_chrstr(l[0], chromstr, limit)
         sizes[i] = tuple(l)
     log.debug(f"{logid} {sizes}")
     return sizes
+
+
+def add_chrstr(chrom, chromstr, limit=32):
+    if chromstr:
+        chromstr_up = chromstr.upper()
+        if chromstr not in chrom[:3]:  # UCSC needs chr in chromname
+            if chromstr_up in chrom[:3]:
+                chrom = chromstr + chrom[3:]
+            else:
+                chrom = chromstr + chrom
+    if len(chrom) > limit:  # UCSC only allows 32char lenght strings
+        chrom = chrom[:limit]
+    return chrom
 
 
 def equalize_lists(listoflists, id=None):
@@ -632,12 +639,7 @@ def create_bw_entries(fname, goi, gstrand, gs, ge, cutoff, border, ulim, padding
                 str, str(os.path.basename(fname)).replace(repl + "_", "", 1).split(sep="_")
             )
 
-        if chrom[:2] != "chr":  # UCSC needs chr in chromname
-            if chrom[:2] == "CHR":
-                chrom = "chr" + chrom[3:]
-            else:
-                chrom = "chr" + chrom
-
+        chrom = add_chrstr(chrom, chromstr)
         temperature = temperature.replace(".npy", "")
         span = span.split(sep=".")[0]
         cs, ce = map(int, cons.split(sep="-"))
