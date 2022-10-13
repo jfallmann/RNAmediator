@@ -421,7 +421,7 @@ def parseargs_foldcons():
         "if paired, the first entry of the file will become a fixed constraint and paired "
         "with all the others, e.g. Sequence1_constraints, "
         "choices = [off, sliding, file, paired,"
-        " or simply 1-10,2-11 or 1-10;15-20,2-11:16-21 for paired]",
+        " or simply 1-10,2-11 or 1-10:15-20,2-11:16-21 for paired]",
     )
     parser.add_argument(
         "-y",
@@ -447,8 +447,8 @@ def parseargs_foldcons():
     parser.add_argument(
         "--save",
         type=str,
-        default="STDOUT",
-        help="Save the output as gz file with that name",
+        default='file',
+        help="If not STDOUT will be saved to file(default)",
     )
     parser.add_argument("-o", "--outdir", type=str, default="", help="Directory to write to")
     parser.add_argument("-d", "--dir", type=str, default="", help="Directory to read from")
@@ -511,7 +511,15 @@ def parseargs_collect_window():
         default="-inf,inf",
         help="Cutoff for the minimum change between unconstrained and constraint structure, regions below this cutoff will not be returned as list of regions with most impact on structure.",
     )
+    parser.add_argument(
+        "-t",
+        "--temperature",
+        type=float,
+        default=37.0,
+        help="Temperature for structure prediction",
+    )
     parser.add_argument("-o", "--outdir", type=str, default="", help="Directory to write to")
+    parser.add_argument("-d", "--dir", type=str, default="", help="Directory to read from")
     parser.add_argument(
         "-g",
         "--genes",
@@ -580,7 +588,15 @@ def parseargs_collect_windowdiff():
         default=1,
         help="Stretch of nucleotides used during plfold run (-u option)",
     )
+    parser.add_argument(
+        "-t",
+        "--temperature",
+        type=float,
+        default=37.0,
+        help="Temperature for structure prediction",
+    )
     parser.add_argument("-o", "--outdir", type=str, default="", help="Directory to write to")
+    parser.add_argument("-d", "--dir", type=str, default="", help="Directory to read from")
     parser.add_argument(
         "-g",
         "--genes",

@@ -107,9 +107,6 @@ def apply_args_and_kwargs(fn, args, kwargs):
 
 
 def screen_genes(
-    queue,
-    configurer,
-    level,
     pat,
     cutoff,
     border,
@@ -121,6 +118,9 @@ def screen_genes(
     dir,
     genes,
     padding,
+    queue=None,
+    configurer=None,
+    level=None,
 ):
 
     logid = SCRIPTNAME + ".screen_genes: "
@@ -663,9 +663,6 @@ def main(args=None):
 
         try:
             result = screen_genes(
-                queue,
-                worker_configurer,
-                loglevel,
                 args.pattern,
                 args.cutoff,
                 args.border,
@@ -677,6 +674,9 @@ def main(args=None):
                 args.dir,
                 args.genes,
                 args.padding,
+                queue=queue,
+                configurer=worker_configurer,
+                level=args.loglevel,
             )
             
             queue.put(None)

@@ -120,7 +120,7 @@ def fold(
     constrain,
     conslength,
     procs,
-    save="STDOUT",
+    save=None,
     pattern=None,
     queue=None,
     configurer=None,
@@ -140,7 +140,7 @@ def fold(
     conslength : int Length of the constraint, only used if constrain is sliding
     procs: int Number of processes to run in parallel
     save: str
-        The name of the output file to generate or STDOUT
+        If not STDOUT will be saved to file
     pattern: str String pattern for gene of interest
     queue: multiprocessing_queue Logging process queue
     configurer: multiprocessing_config for Logging processes
@@ -343,7 +343,7 @@ def constrain_seq(
     temp: int
         Temperature to fold at
     save: str
-        Name of output file or STDOUT
+        If not STDOUT will be saved to file
     outdir : str Location for the output directory
     genecoords: list Genomic coordinates of gene of interest
     procs: int Number of processes to run in parallel
@@ -680,8 +680,8 @@ def write_out(Output, window, span, temp, const, fname="STDOUT", outdir=None):
         temperature
     cons: str
         Constraint applied on fold
-    fname: str, optional
-        Name of file to write to or STDOUT
+    fname: int, optional
+        Write file or STDOUT
     outdir: str, optional
         Name of output directory or None
 
