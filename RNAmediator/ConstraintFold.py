@@ -122,7 +122,6 @@ def fold(
     procs,
     save="STDOUT",
     pattern=None,
-    cutoff=None,
     queue=None,
     configurer=None,
     level=None,
@@ -143,7 +142,6 @@ def fold(
     save: str
         The name of the output file to generate or STDOUT
     pattern: str String pattern for gene of interest
-    cutoff: float Cutoff for raw accessibility, regions below this propability of being unpaired will not be folded
     queue: multiprocessing_queue Logging process queue
     configurer: multiprocessing_config for Logging processes
     level: logging.level Level for log process
@@ -309,15 +307,11 @@ def fold(
         else:
             return result.get()
 
-        log.info(logid + "DONE: output in: " + str(outdir))
     except Exception:
         if pool:
             pool.terminate()
-        return Exception
+        raise
         
-
-
-
 ##### Functions #####
 
 
@@ -532,13 +526,7 @@ def constrain_seq(
         write_out(Output, window, span, temp, printcons, save, outdir)
 
     except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
+        raise
 
 
 def constrain_temp(fa, temp, window, span, an, save, outdir, queue=None, configurer=None, level=None):
@@ -607,13 +595,7 @@ def constrain_temp(fa, temp, window, span, an, save, outdir, queue=None, configu
             write_temp(fa, str(temp), data_t, diff_nt, str(window), outdir)
 
     except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
+        raise
 
 
 def foldaround(seq, fc, pos, clength, gibbs, nrg, queue=None, configurer=None, level=None):
@@ -654,14 +636,7 @@ def foldaround(seq, fc, pos, clength, gibbs, nrg, queue=None, configurer=None, l
         return [gibbs_u, ddg, nrg_diff]
 
     except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
-
+        raise
 
 def fold_unconstraint(seq, temp=37, queue=None, configurer=None, level=None):
     """here we take the sequence and the RNA.fold_compound and fold without constraint
@@ -687,13 +662,7 @@ def fold_unconstraint(seq, temp=37, queue=None, configurer=None, level=None):
 
         return fold_output
     except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
+        raise
 
 
 def write_out(Output, window, span, temp, const, fname="STDOUT", outdir=None):
@@ -747,7 +716,7 @@ def write_out(Output, window, span, temp, const, fname="STDOUT", outdir=None):
                 log.info(
                     os.path.join(
                         temp_outdir,
-                        "_".join([goi, chrom, strand, fname, const, str(window), str(span)], str(temp)) + ".gz",
+                        "_".join([goi, chrom, strand, fname, const, str(window), str(span), str(temp)]) + ".gz",
                     )
                     + " exists, will append!"
                 )
@@ -763,13 +732,7 @@ def write_out(Output, window, span, temp, const, fname="STDOUT", outdir=None):
             print(Output.get_text() + "\n")
 
     except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
+       raise
 
 
 def checkexisting(
@@ -826,14 +789,7 @@ def checkexisting(
         else:
             return False
     except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
-    return 1
+        raise
 
 
 def main(args=None):
@@ -860,7 +816,9 @@ def main(args=None):
         log.info(logid + "Running " + SCRIPTNAME + " on " + str(args.procs) + " cores.")
         log.info(logid + "CLI: " + sys.argv[0] + " " + "{}".format(" ".join([shlex.quote(s) for s in sys.argv[1:]])))
 
-        run_settings, outdir = preprocess(args.sequence, args.constrain, args.conslength, args.outdir, args.genes)
+        print (f'LOG:{log}, ARGS:{args}')
+
+        run_settings, outdir = preprocess(args.sequence, args.constrain, args.conslength, args.constype, args.outdir, args.genes)
 
         try:
             result = fold(
@@ -874,13 +832,10 @@ def main(args=None):
                 args.procs,
                 args.save,
                 args.pattern,
-                args.cutoff,
                 queue=queue,
                 configurer=worker_configurer,
                 level=args.loglevel,
             )
-            queue.put(None)
-            listener.join()
             queue.put(None)
             listener.join()
             return 0

@@ -412,13 +412,6 @@ def parseargs_foldcons():
     parser.add_argument("-w", "--window", type=int, default=None, help="Size of window")
     parser.add_argument("-l", "--span", type=int, default=None, help="Maximum bp span")
     parser.add_argument(
-        "-c",
-        "--cutoff",
-        type=float,
-        default=-0.01,
-        help="Only print prob greater cutoff",
-    )
-    parser.add_argument(
         "-x",
         "--constrain",
         type=str,
@@ -438,10 +431,17 @@ def parseargs_foldcons():
         help="Length of region to constrain for slidingwindow",
     )
     parser.add_argument(
+        "--constype",
+        type=str,
+        default="hard",
+        choices=["hard", "soft", "mutate"],
+        help="Choose what type of constraint to apply, can be ['hard'(Default), 'soft'(not fully implemented yet), 'mutate']",
+    )
+    parser.add_argument(
         "-t",
         "--temperature",
-        type=int,
-        default=37,
+        type=float,
+        default=37.0,
         help="Temperature for structure prediction",
     )
     parser.add_argument(
@@ -451,6 +451,7 @@ def parseargs_foldcons():
         help="Save the output as gz file with that name",
     )
     parser.add_argument("-o", "--outdir", type=str, default="", help="Directory to write to")
+    parser.add_argument("-d", "--dir", type=str, default="", help="Directory to read from")
     parser.add_argument(
         "-z",
         "--procs",
