@@ -131,7 +131,7 @@ def fold(
     Parameters
     ----------
     run_settings: Dict[str, SequenceSettings] RNAmediator run settings dictionary using fasta ids as keys and Sequence Settings as values
-    outdir : str Location of the Outpu directory. If it is an empty string os.cwd() is used
+    outdir : str Location of the Output directory. If it is an empty string os.cwd() is used
     window: int Size of window to fold
     span: int Maximum base-pair span to be evaluated
     temp: int
