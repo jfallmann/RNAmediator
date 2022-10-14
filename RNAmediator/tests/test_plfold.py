@@ -332,8 +332,8 @@ def test_soft_constraint_err(soft_args_defunc):
         pl_main(soft_args_defunc)
         test_log = os.path.join(soft_args_defunc.logdir, os.listdir(soft_args_defunc.logdir)[0])
         assert os.path.exists(test_log)
-    except:
-        assert "NotImplementedError"
+    except Exception as e:
+        assert isinstance(e, NotImplementedError)
 
 
 def test_multi_constraint(multi_constraint_args):

@@ -163,8 +163,8 @@ def test_pl_to_array_from_npy(pl_npy_file, ulim, works, caplog):
             assert pl_array is None
         else:
             assert isinstance(pl_array, np.ndarray)
-    except:
-        assert IndexError
+    except IndexError:
+        pass
 
 
 @pytest.mark.parametrize(
@@ -182,8 +182,8 @@ def test_pl_to_array_from_txt(pl_fold_file, ulim, works, caplog):
             assert pl_array is None
         else:
             assert isinstance(pl_array, np.ndarray)
-    except:
-        assert IndexError
+    except IndexError:
+        pass
 
 
 def test_pl_to_array_difference(pl_npy_file, pl_fold_file):
@@ -232,8 +232,8 @@ def test_printdiff_with_defaults(diff_numpy_array, caplog):
         printdiff(diff_numpy_array)
         for log in caplog.records:
             assert log.levelname == "ERROR"
-    except:
-        assert TypeError
+    except TypeError:
+        pass
 
 
 @pytest.mark.parametrize(
