@@ -182,8 +182,8 @@ def test_pl_to_array_from_txt(pl_fold_file, ulim, works, caplog):
             assert pl_array is None
         else:
             assert isinstance(pl_array, np.ndarray)
-    except IndexError:
-        pass
+    except Exception as e:
+        assert isinstance(e, ValueError) or isinstance(e, IndexError)
 
 
 def test_pl_to_array_difference(pl_npy_file, pl_fold_file):
