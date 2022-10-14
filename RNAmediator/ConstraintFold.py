@@ -105,6 +105,7 @@ from RNAmediator.Tweaks.RNAmediator import (
     expand_window,
     localize_window,
 )
+from RNAmediator.Tweaks.Collection import on_error
 
 log = logging.getLogger(__name__)  # use module name
 SCRIPTNAME = os.path.basename(__file__).replace(".py", "")
@@ -119,9 +120,8 @@ def fold(
     constrain,
     conslength,
     procs,
-    save="STDOUT",
+    save=None,
     pattern=None,
-    cutoff=None,
     queue=None,
     configurer=None,
     level=None,
@@ -131,7 +131,7 @@ def fold(
     Parameters
     ----------
     run_settings: Dict[str, SequenceSettings] RNAmediator run settings dictionary using fasta ids as keys and Sequence Settings as values
-    outdir : str Location of the Outpu directory. If it is an empty string os.cwd() is used
+    outdir : str Location of the Output directory. If it is an empty string os.cwd() is used
     window: int Size of window to fold
     span: int Maximum base-pair span to be evaluated
     temp: int
@@ -140,9 +140,8 @@ def fold(
     conslength : int Length of the constraint, only used if constrain is sliding
     procs: int Number of processes to run in parallel
     save: str
-        The name of the output file to generate or STDOUT
+        If not STDOUT will be saved to file
     pattern: str String pattern for gene of interest
-    cutoff: float Cutoff for raw accessibility, regions below this propability of being unpaired will not be folded
     queue: multiprocessing_queue Logging process queue
     configurer: multiprocessing_config for Logging processes
     level: logging.level Level for log process
@@ -200,6 +199,7 @@ def fold(
                 log.debug(logid + "ENTRY: " + str(cons_tuple))
                 cons_tuple = [str(cons) for cons in cons_tuple]
                 cons = ":".join(cons_tuple)
+                result = None
 
                 if not window:
                     window = len(fa)
@@ -217,9 +217,10 @@ def fold(
                                 "configurer": configurer,
                                 "level": level,
                             },
+                            error_callback=on_error,
                         )
                     ]
-                    return gibbs_uc
+                    result = gibbs_uc
 
                 else:
                     # we now have a list of constraints and for the raw seq comparison we only need to fold windows around these constraints
@@ -278,7 +279,7 @@ def fold(
                     genecoords = list([gs, ge, gstrand])
                     const = list([fstart, fend, start, end])
 
-                    pool.apply_async(
+                    result = pool.apply_async(
                         constrain_seq,
                         args=(
                             seq_record,
@@ -293,23 +294,24 @@ def fold(
                             genecoords,
                         ),
                         kwds={"queue": queue, "configurer": configurer, "level": level},
+                        error_callback=on_error,
                     )
 
-            pool.close()
-            pool.join()
-
-        log.info(logid + "DONE: output in: " + str(outdir))
+        pool.close()
+        if result is not None:
+            result.wait()
+        if result.successful():
+            value = result.get()
+            log.info(logid + "DONE: output in: " + str(outdir))
+            return value
+        else:
+            return result.get()
 
     except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
-
-
+        if pool:
+            pool.terminate()
+        raise
+        
 ##### Functions #####
 
 
@@ -341,7 +343,7 @@ def constrain_seq(
     temp: int
         Temperature to fold at
     save: str
-        Name of output file or STDOUT
+        If not STDOUT will be saved to file
     outdir : str Location for the output directory
     genecoords: list Genomic coordinates of gene of interest
     procs: int Number of processes to run in parallel
@@ -524,13 +526,7 @@ def constrain_seq(
         write_out(Output, window, span, temp, printcons, save, outdir)
 
     except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
+        raise
 
 
 def constrain_temp(fa, temp, window, span, an, save, outdir, queue=None, configurer=None, level=None):
@@ -599,13 +595,7 @@ def constrain_temp(fa, temp, window, span, an, save, outdir, queue=None, configu
             write_temp(fa, str(temp), data_t, diff_nt, str(window), outdir)
 
     except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
+        raise
 
 
 def foldaround(seq, fc, pos, clength, gibbs, nrg, queue=None, configurer=None, level=None):
@@ -646,14 +636,7 @@ def foldaround(seq, fc, pos, clength, gibbs, nrg, queue=None, configurer=None, l
         return [gibbs_u, ddg, nrg_diff]
 
     except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
-
+        raise
 
 def fold_unconstraint(seq, temp=37, queue=None, configurer=None, level=None):
     """here we take the sequence and the RNA.fold_compound and fold without constraint
@@ -679,13 +662,7 @@ def fold_unconstraint(seq, temp=37, queue=None, configurer=None, level=None):
 
         return fold_output
     except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
+        raise
 
 
 def write_out(Output, window, span, temp, const, fname="STDOUT", outdir=None):
@@ -703,8 +680,8 @@ def write_out(Output, window, span, temp, const, fname="STDOUT", outdir=None):
         temperature
     cons: str
         Constraint applied on fold
-    fname: str, optional
-        Name of file to write to or STDOUT
+    fname: int, optional
+        Write file or STDOUT
     outdir: str, optional
         Name of output directory or None
 
@@ -739,7 +716,7 @@ def write_out(Output, window, span, temp, const, fname="STDOUT", outdir=None):
                 log.info(
                     os.path.join(
                         temp_outdir,
-                        "_".join([goi, chrom, strand, fname, const, str(window), str(span)], str(temp)) + ".gz",
+                        "_".join([goi, chrom, strand, fname, const, str(window), str(span), str(temp)]) + ".gz",
                     )
                     + " exists, will append!"
                 )
@@ -755,13 +732,7 @@ def write_out(Output, window, span, temp, const, fname="STDOUT", outdir=None):
             print(Output.get_text() + "\n")
 
     except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
+       raise
 
 
 def checkexisting(
@@ -818,14 +789,7 @@ def checkexisting(
         else:
             return False
     except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
-    return 1
+        raise
 
 
 def main(args=None):
@@ -852,26 +816,31 @@ def main(args=None):
         log.info(logid + "Running " + SCRIPTNAME + " on " + str(args.procs) + " cores.")
         log.info(logid + "CLI: " + sys.argv[0] + " " + "{}".format(" ".join([shlex.quote(s) for s in sys.argv[1:]])))
 
-        run_settings, outdir = preprocess(args.sequence, args.constrain, args.conslength, args.outdir, args.genes)
+        print (f'LOG:{log}, ARGS:{args}')
 
-        fold(
-            run_settings,
-            outdir,
-            args.window,
-            args.span,
-            args.temperature,
-            args.constrain,
-            args.conslength,
-            args.procs,
-            args.save,
-            args.pattern,
-            args.cutoff,
-            queue=queue,
-            configurer=worker_configurer,
-            level=args.loglevel,
-        )
-        queue.put(None)
-        listener.join()
+        run_settings, outdir = preprocess(args.sequence, args.constrain, args.conslength, args.constype, args.outdir, args.genes)
+
+        try:
+            result = fold(
+                run_settings,
+                outdir,
+                args.window,
+                args.span,
+                args.temperature,
+                args.constrain,
+                args.conslength,
+                args.procs,
+                args.save,
+                args.pattern,
+                queue=queue,
+                configurer=worker_configurer,
+                level=args.loglevel,
+            )
+            queue.put(None)
+            listener.join()
+            return 0
+        except Exception:
+            raise
 
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -880,7 +849,11 @@ def main(args=None):
             exc_value,
             exc_tb,
         )
-        log.error(logid + "".join(tbe.format()))
+        print(f'ERROR: {logid} {"".join(tbe.format())}')
+        if log:
+            log.error(logid + "".join(tbe.format()))
+        listener.terminate()
+        sys.exit(1)
 
 
 ####################

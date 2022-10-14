@@ -4,8 +4,6 @@ from dataclasses import dataclass
 import logging
 import datetime
 import os
-import sys
-import traceback as tb
 from numpy.random import default_rng
 from Bio import SeqIO
 from Bio.Seq import Seq
@@ -211,84 +209,79 @@ def set_run_settings_dict(
     """
     logid = SCRIPTNAME + ".set_run_settings_dict: "
     log.debug(f"{logid} seq:{sequence} constraint:{constraint} genes:{genes} constraintype:{constraintype}")
+
+    run_settings: Dict[str, SequenceSettings] = dict()
+
     try:
-        run_settings: Dict[str, SequenceSettings] = dict()
         sequence = parseseq(sequence)
-        if genes != "":
-            # get genomic coords to print to bed later, should always be just one set of coords per gene
-            genecoords = parse_annotation_bed(genes)
-        else:
-            genecoords = None
-        if "ono" == str(constraint.split(",")[0]):
-            constraint = constraint.split(",")[1]  # 0-based
-            constraintlist = read_constraints(constraint, linewise=True, constraintype=constraintype)
-            for x, record in enumerate(SeqIO.parse(sequence, "fasta")):
-                goi, chrom, strand = idfromfa(record.id)
-                cons = constraintlist["lw"][x]
+    except Exception:
+        raise
+
+    if genes != "":
+        # get genomic coords to print to bed later, should always be just one set of coords per gene
+        genecoords = parse_annotation_bed(genes)
+    else:
+        genecoords = None
+    if "ono" == str(constraint.split(",")[0]):
+        constraint = constraint.split(",")[1]  # 0-based
+        constraintlist = read_constraints(constraint, linewise=True, constraintype=constraintype)
+        for x, record in enumerate(SeqIO.parse(sequence, "fasta")):
+            goi, chrom, strand = idfromfa(record.id)
+            cons = constraintlist["lw"][x]
+            run_settings = add_rnamediator_constraint(
+                run_settings, cons, record, goi, chrom, strand, constraintype=constraintype
+            )
+    elif constraint == "sliding":
+        for record in SeqIO.parse(sequence, "fasta"):
+            goi, chrom, strand = idfromfa(record.id)
+            for start in range(1, len(record.seq) - conslength + 2):  # 0-based
+                end = start + conslength - 1
+                cons = str(start) + "-" + str(end) + "|" + str(strand)
                 run_settings = add_rnamediator_constraint(
                     run_settings, cons, record, goi, chrom, strand, constraintype=constraintype
                 )
-        elif constraint == "sliding":
-            for record in SeqIO.parse(sequence, "fasta"):
-                goi, chrom, strand = idfromfa(record.id)
-                for start in range(1, len(record.seq) - conslength + 2):  # 0-based
-                    end = start + conslength - 1
-                    cons = str(start) + "-" + str(end) + "|" + str(strand)
-                    run_settings = add_rnamediator_constraint(
-                        run_settings, cons, record, goi, chrom, strand, constraintype=constraintype
-                    )
-        elif constraint[:7] == "random,":
-            if constraintype != "hard":
-                raise NotImplementedError("Random constraints are currently only supported for hard constraints")
+    elif constraint[:7] == "random,":
+        if constraintype != "hard":
+            raise NotImplementedError("Random constraints are currently only supported for hard constraints")
 
-            nr_cons = int(constraint.split(",")[1]) - 1
-            seed = int(constraint.split(",")[2]) if len(constraint.split(",")) > 2 else None
-            rng = default_rng(seed)
-            for record in SeqIO.parse(sequence, "fasta"):
-                goi, chrom, strand = idfromfa(record.id)
-                genomic_start, genomic_end, genomic_strand, value = get_gene_coords(genecoords, goi, strand)
-                if genomic_end == 0:
-                    genomic_end = len(record.seq)
-                if genomic_end - conslength < 0:
-                    print(f"{logid} ERROR Constraintlength {conslength} is not fit for sequence length {genomic_end}"
-                    )
-                    sys.exit(
-                        f"{logid} ERROR Constraintlength {conslength} is not fit for sequence length {genomic_end}"
-                    )
-                log.debug(f"{logid} CHECKCOORDS: {genomic_start}, {genomic_end}, {genomic_strand}, {value}")
-                randstarts = rng.integers(low=genomic_start, high=genomic_end - (conslength + 2), size=nr_cons)
-                for start in randstarts:  # 0-based
-                    end = start + conslength - 1
-                    cons = str(start) + "-" + str(end) + "|" + str(strand)
-                    run_settings = add_rnamediator_constraint(
-                        run_settings, cons, record, goi, chrom, strand, constraintype=constraintype
-                    )
-        else:
-            constraintlist = read_constraints(constraint=constraint, constraintype=constraintype)
-            for x, record in enumerate(SeqIO.parse(sequence, "fasta")):
-                goi, chrom, strand = idfromfa(record.id)
-                cons = constraintlist[goi] if type(constraintlist) == defaultdict else constraintlist
-                log.debug(f"{logid} Setting {goi} {chrom} {strand} constraint {cons}")
-                for entry in cons:
-                    run_settings = add_rnamediator_constraint(
-                        run_settings, entry, record, goi, chrom, strand, constraintype=constraintype
-                    )
-        for entry in run_settings:
-            fasta_settings = run_settings[entry]
-            goi, chrom, strand = idfromfa(fasta_settings.sequence_record.id)
+        nr_cons = int(constraint.split(",")[1]) - 1
+        seed = int(constraint.split(",")[2]) if len(constraint.split(",")) > 2 else None
+        rng = default_rng(seed)
+        for record in SeqIO.parse(sequence, "fasta"):
+            goi, chrom, strand = idfromfa(record.id)
             genomic_start, genomic_end, genomic_strand, value = get_gene_coords(genecoords, goi, strand)
-            fasta_settings.genomic_coords = Constraint(genomic_start, genomic_end, genomic_strand, value)
+            if genomic_end == 0:
+                genomic_end = len(record.seq)
+            if genomic_end - conslength < 0:
+                # sys.exit(
+                raise ValueError(
+                    f"{logid} ERROR Constraintlength {conslength} is not fit for sequence length {genomic_end}"
+                )
+            log.debug(f"{logid} CHECKCOORDS: {genomic_start}, {genomic_end}, {genomic_strand}, {value}")
+            randstarts = rng.integers(low=genomic_start, high=genomic_end - (conslength + 2), size=nr_cons)
+            for start in randstarts:  # 0-based
+                end = start + conslength - 1
+                cons = str(start) + "-" + str(end) + "|" + str(strand)
+                run_settings = add_rnamediator_constraint(
+                    run_settings, cons, record, goi, chrom, strand, constraintype=constraintype
+                )
+    else:
+        constraintlist = read_constraints(constraint=constraint, constraintype=constraintype)
+        for x, record in enumerate(SeqIO.parse(sequence, "fasta")):
+            goi, chrom, strand = idfromfa(record.id)
+            cons = constraintlist[goi] if type(constraintlist) == defaultdict else constraintlist
+            log.debug(f"{logid} Setting {goi} {chrom} {strand} constraint {cons}")
+            for entry in cons:
+                run_settings = add_rnamediator_constraint(
+                    run_settings, entry, record, goi, chrom, strand, constraintype=constraintype
+                )
+    for entry in run_settings:
+        fasta_settings = run_settings[entry]
+        goi, chrom, strand = idfromfa(fasta_settings.sequence_record.id)
+        genomic_start, genomic_end, genomic_strand, value = get_gene_coords(genecoords, goi, strand)
+        fasta_settings.genomic_coords = Constraint(genomic_start, genomic_end, genomic_strand, value)
 
-        return run_settings
-
-    except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
+    return run_settings
 
 
 @check_run
@@ -461,8 +454,7 @@ def read_constraints(constraint: str, linewise: bool = False, constraintype: str
         raise NotImplementedError("Temperature range folding needs to be reimplemented")
     else:
         log.error(logid + "Could not compute constraints from input " + str(constraint))
-        print(logid + "Could not compute constraints from input " + str(constraint))
-        sys.exit("Could not compute constraints from input " + str(constraint))
+        raise ValueError("Could not compute constraints from input " + str(constraint))
     log.debug(f"{logid} Constraintlist: {constraintlist}")
     return constraintlist
 
@@ -494,25 +486,18 @@ def preprocess(sequence: str, constraint: str, conslength: int, constype: str, o
 
     """
     logid = SCRIPTNAME + ".preprocess: "
+
+    # set path for output
+    if outdir:
+        outdir = make_outdir(outdir)
+    else:
+        outdir = os.path.abspath(os.getcwd())
+
     try:
-        # set path for output
-        if outdir:
-            outdir = make_outdir(outdir)
-        else:
-            outdir = os.path.abspath(os.getcwd())
-
         run_settings = set_run_settings_dict(sequence, constraint, conslength, genes, constype)
-
-        return run_settings, outdir
-
     except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
+        raise
+    return run_settings, outdir
 
 
 @check_run
@@ -552,101 +537,65 @@ def rnamediator_logging_setup(logdir: str, loglevel: str, runscript: str):
 @check_run
 def expand_pl_window(start, end, window, multiplyer, seqlen):
     logid = SCRIPTNAME + ".expand_window: "
-    try:
-        tostart = start - multiplyer * window
-        if tostart < 1:
-            tostart = 1
-        toend = end + multiplyer * window
-        if toend > seqlen:
-            toend = seqlen
-        return [tostart, toend]
-    except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
+    tostart = start - multiplyer * window
+    if tostart < 1:
+        tostart = 1
+    toend = end + multiplyer * window
+    if toend > seqlen:
+        toend = seqlen
+    return [tostart, toend]
 
 
 @check_run
 def localize_pl_window(start, end, window, seqlen, multiplyer=2):
     logid = SCRIPTNAME + ".localize_window: "
-    try:
-        diff = start - window
-        if diff < 1:
-            locws = 1
-        else:
-            locws = diff
-        # this makes sure that if the start was trimmed, we do not just extend too much
-        locwe = diff + multiplyer * window + (end - start)
+    diff = start - window
+    if diff < 1:
+        locws = 1
+    else:
+        locws = diff
+    # this makes sure that if the start was trimmed, we do not just extend too much
+    locwe = diff + multiplyer * window + (end - start)
 
-        if locwe > seqlen:
-            locwe = seqlen
-        return [locws, locwe]
-    except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
+    if locwe > seqlen:
+        locwe = seqlen
+    return [locws, locwe]
 
 
 @check_run
 def expand_window(start, end, window, seqlen=None, dist=None):
     logid = SCRIPTNAME + ".expand_window: "
-    try:
-        if dist:
-            tostart = start - (window - abs(dist))
-            toend = end + (window - abs(dist)) + 1
-        else:
-            tostart = start - window
-            toend = end + window + 1
+    if dist:
+        tostart = start - (window - abs(dist))
+        toend = end + (window - abs(dist)) + 1
+    else:
+        tostart = start - window
+        toend = end + window + 1
 
-        if tostart < 0:
-            tostart = 1
-        if toend > seqlen:
-            toend = seqlen
-        return [tostart, toend]
-    except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
+    if tostart < 0:
+        tostart = 1
+    if toend > seqlen:
+        toend = seqlen
+    return [tostart, toend]
 
 
 @check_run
 def localize_window(start, end, tostart, toend, seqlen=None):
     logid = SCRIPTNAME + ".localize_window: "
-    try:
-        wstart = start - tostart
-        wend = end - tostart
-        if wstart < 0 or wend > seqlen:
-            log.error(
-                logid
-                + "start of constraint "
-                + str(wstart)
-                + " end of constraint "
-                + str(wend)
-                + " while length of sequence "
-                + str(seqlen)
-            )
-        if wstart < 0:
-            wstart = 0
-        if wend > seqlen:
-            wend = seqlen
-        return [wstart, wend]
-    except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
+    wstart = start - tostart
+    wend = end - tostart
+    if wstart < 0 or wend > seqlen:
+        log.error(
+            logid
+            + "start of constraint "
+            + str(wstart)
+            + " end of constraint "
+            + str(wend)
+            + " while length of sequence "
+            + str(seqlen)
         )
-        log.error(logid + "".join(tbe.format()))
+    if wstart < 0:
+        wstart = 0
+    if wend > seqlen:
+        wend = seqlen
+    return [wstart, wend]

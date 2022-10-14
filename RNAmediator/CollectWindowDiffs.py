@@ -98,7 +98,9 @@ log = logging.getLogger(__name__)  # use module name
 SCRIPTNAME = os.path.basename(__file__).replace(".py", "")
 
 
-def screen_diffs(queue, configurer, level, window, span, ulim, cutoff, procs, outdir, genes):
+def screen_diffs(window, span, ulim, cutoff, procs, outdir, dir, genes, queue=None,
+    configurer=None,
+    level=None,):
 
     logid = SCRIPTNAME + ".screen_diffs: "
     try:
@@ -135,6 +137,7 @@ def screen_diffs(queue, configurer, level, window, span, ulim, cutoff, procs, ou
                 diffin = [
                     os.path.abspath(
                         os.path.join(
+                            dir,
                             goi,
                             goi + "*" + x + ".npy",
                         )
@@ -173,13 +176,7 @@ def screen_diffs(queue, configurer, level, window, span, ulim, cutoff, procs, ou
         pool.join()
 
     except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
+       raise
 
 
 def calcdiff(p, gs, ge, gstrand, ulim, border, outdir, queue=None, configurer=None, level=None):
@@ -299,14 +296,7 @@ def calcdiff(p, gs, ge, gstrand, ulim, border, outdir, queue=None, configurer=No
             log.warning(logid + "No diffs above cutoffs for gene " + str(goi))
         return
     except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
-
+        raise
 
 def write_out(out, outdir):
 
@@ -328,14 +318,7 @@ def write_out(out, outdir):
                 ) as o:
                     o.write(bytes("\n".join(out[cons]), encoding="UTF-8"))
     except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
-
+        raise
 
 def main(args=None):
     """Main process, prepares run_settings dict, creates logging process queue and worker processes for folding, calls screen_genes
@@ -378,20 +361,25 @@ def main(args=None):
         log.info(logid + "Running " + SCRIPTNAME + " on " + str(args.procs) + " cores.")
         log.info(logid + "CLI: " + sys.argv[0] + " " + "{}".format(" ".join([shlex.quote(s) for s in sys.argv[1:]])))
 
-        screen_diffs(
-            queue,
-            worker_configurer,
-            loglevel,
-            args.window,
-            args.span,
-            args.ulimit,
-            args.cutoff,
-            args.procs,
-            args.outdir,
-            args.genes,
-        )
-        queue.put_nowait(None)
-        listener.join()
+        try:
+            screen_diffs(                
+                args.window,
+                args.span,
+                args.ulimit,
+                args.cutoff,
+                args.procs,
+                args.outdir,
+                args.dir,
+                args.genes,
+                queue=queue,
+                configurer=worker_configurer,
+                level=args.loglevel,
+            )
+            queue.put(None)
+            listener.join()
+            return 0
+        except Exception:
+            raise
 
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -400,7 +388,11 @@ def main(args=None):
             exc_value,
             exc_tb,
         )
-        log.error(logid + "".join(tbe.format()))
+        print(f'ERROR: {logid} {"".join(tbe.format())}')
+        if log:
+            log.error(logid + "".join(tbe.format()))
+        listener.terminate()
+        sys.exit(1)
 
 
 ####################
@@ -424,4 +416,4 @@ if __name__ == "__main__":
 
 ######################################################################
 #
-# CollectWindowResults.py ends here
+# CollectWindowDiffs.py ends here

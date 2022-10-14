@@ -96,17 +96,16 @@ def check_run(func):
         logid = scriptn + ".Collection_func_wrapper: "
         try:
             return func(*args, **kwargs)
-
-        except Exception:
-            exc_type, exc_value, exc_tb = sys.exc_info()
-            tbe = tb.TracebackException(
-                exc_type,
-                exc_value,
-                exc_tb,
-            )
-            log.error(logid + "".join(tbe.format()))
-
+        except Exception:                        
+            raise
     return func_wrapper
+
+
+### error_callback for pool.apply_async
+def on_error(error):
+    log.error(f"SOMETHING WENT WRONG, ERROR {type(error).__name__}('{error}') SHUTTING DOWN")
+    raise error
+    # queue.join()
 
 
 ##############################

@@ -93,6 +93,7 @@ from RNAmediator.Tweaks.RNAmediator import (
 from RNAmediator.Tweaks.RNAtweaks import *
 from RNAmediator.Tweaks.RNAtweaks import _npprint
 from RNAmediator.Tweaks.NPtweaks import *
+from RNAmediator.Tweaks.Collection import on_error
 
 # Biopython stuff
 
@@ -150,8 +151,9 @@ def pl_fold(
         num_processes = procs or 1
         # with get_context("spawn").Pool(processes=num_processes-1, maxtasksperchild=1) as pool:
         pool = multiprocessing.Pool(processes=num_processes, maxtasksperchild=1)
-
+        result = None
         # Start the work
+        log.debug(f"{logid} RUN_SETTINGS: {run_settings}")
         for fasta in run_settings:
             fasta_settings = run_settings[fasta]
             goi = fasta_settings.gene
@@ -229,7 +231,7 @@ def pl_fold(
                     ):
                         log.warning(logid + str(cons) + " Exists for " + str(seq_record.id) + "! Skipping!")
                         continue
-                    pool.apply_async(
+                    result = pool.apply_async(
                         scan_seq,
                         args=(
                             seq_record.id,
@@ -250,6 +252,7 @@ def pl_fold(
                             "configurer": configurer,
                             "level": level,
                         },
+                        error_callback=on_error,
                     )
 
                 else:
@@ -302,7 +305,7 @@ def pl_fold(
 
                         log.info(logid + "Constraining to " + str(fstart) + " and " + str(fend))
                         goi, chrom, strand = idfromfa(seq_record.id)
-                        pool.apply_async(
+                        result = pool.apply_async(
                             constrain_seq_paired,
                             args=(
                                 seq_record.id,
@@ -329,6 +332,7 @@ def pl_fold(
                                 "configurer": configurer,
                                 "level": level,
                             },
+                            error_callback=on_error,
                         )
 
                     else:
@@ -375,7 +379,7 @@ def pl_fold(
                             log.warning(logid + str(cons) + " Exists for " + str(seq_record.id) + "! Skipping!")
                             continue
 
-                        pool.apply_async(
+                        result = pool.apply_async(
                             constrain_seq,
                             args=(
                                 seq_record.id,
@@ -400,22 +404,22 @@ def pl_fold(
                                 "configurer": configurer,
                                 "level": level,
                             },
+                            error_callback=on_error,
                         )
 
         pool.close()
-        pool.join()  # timeout
-        log.info(logid + "DONE: output in: " + str(outdir))
-
+        if result is not None:
+            result.wait()
+        if result.successful():
+            value = result.get()
+            log.info(logid + "DONE: output in: " + str(outdir))
+            return value
+        else:
+            return result.get()
     except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
-        queue.join()
-        sys.exit(1)
+        if pool:
+            pool.terminate()
+        return Exception
 
 
 def fold_unconstraint(
@@ -841,6 +845,7 @@ def constrain_seq(
             str(temperature),
             outdir,
         )
+        return 0
 
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -1075,6 +1080,7 @@ def constrain_seq_paired(
             str(temperature),
             outdir,
         )
+        return 0
 
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -1196,6 +1202,9 @@ def write_unconstraint(
 
         else:
             print(data.get_text(nan="nan", truncated=True))
+
+        return 0
+
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
@@ -1301,6 +1310,9 @@ def write_constraint(
                     printdiff(diff_np, filepath)
             else:
                 _npprint(diff_np)
+
+        return 0
+
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
         tbe = tb.TracebackException(
@@ -1508,26 +1520,29 @@ def main(args=None):
             args.sequence, args.constrain, args.conslength, args.constype, args.outdir, args.genes
         )
 
-        pl_fold(
-            args.window,
-            args.span,
-            args.region,
-            args.temperature,
-            args.multi,
-            args.unconstrained,
-            args.unpaired,
-            args.paired,
-            args.save,
-            args.procs,
-            outdir,
-            run_settings,
-            queue=queue,
-            configurer=worker_configurer,
-            level=args.loglevel,
-        )
-        queue.put(None)
-        queue.join()
-        listener.join()
+        try:
+            fold = pl_fold(
+                args.window,
+                args.span,
+                args.region,
+                args.temperature,
+                args.multi,
+                args.unconstrained,
+                args.unpaired,
+                args.paired,
+                args.save,
+                args.procs,
+                outdir,
+                run_settings,
+                queue=queue,
+                configurer=worker_configurer,
+                level=args.loglevel,
+            )
+            queue.put(None)
+            listener.join()
+            return 0
+        except Exception:
+            raise
 
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -1536,11 +1551,10 @@ def main(args=None):
             exc_value,
             exc_tb,
         )
+        print(f'ERROR: {logid} {"".join(tbe.format())}')
         if log:
             log.error(logid + "".join(tbe.format()))
-        else:
-            print(f'ERROR: {logid} {"".join(tbe.format())}')
-        queue.join()
+        listener.terminate()
         sys.exit(1)
 
 
@@ -1564,6 +1578,7 @@ if __name__ == "__main__":
         if log:
             log.error(outer_logid + "".join(outer_tbe.format()))
         else:
-            print(f'ERROR: {logid} {"".join(outer_tbe.format())}')
+            print(f'ERROR: {outer_logid} {"".join(outer_tbe.format())}')
+        sys.exit(1)
 
     # ConstraintPLFold.py ends here
