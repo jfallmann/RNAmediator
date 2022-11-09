@@ -13,7 +13,7 @@ from typing import Iterable, Tuple
 import RNA
 import numpy as np
 
-from RNAmediator.Tweaks.Collection import merge_dicts
+from RNAmediator.Tweaks.Collection import check_run, merge_dicts
 
 ####################
 # ViennaRNA helper
@@ -33,6 +33,7 @@ except Exception:
     print("".join(TBE.format()), file=sys.stderr)
 
 
+@check_run
 def _isvalid(x=None):
     """Checks if x is a valid value
 
@@ -48,24 +49,16 @@ def _isvalid(x=None):
     """
 
     logid = scriptn + ".isvalid: "
-    try:
-        if x or x == 0:
-            if x in ("None", "nan", "none", "NA", "NAN") or x is None or x is np.nan:
-                return False
-            else:
-                return True
-        else:
+    if x or x == 0:
+        if x in ("None", "nan", "none", "NA", "NAN") or x is None or x is np.nan:
             return False
-    except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
+        else:
+            return True
+    else:
+        return False
 
 
+@check_run
 def _isinvalid(x=None):
     """Checks if x is invalid
 
@@ -81,27 +74,19 @@ def _isinvalid(x=None):
     """
 
     logid = scriptn + ".isinvalid: "
-    try:
-        if x or x == 0:
-            if x in ("None", "nan", "none", "NA", "NAN") or x is None or x is np.nan:
-                return True
-            else:
-                return False
-        else:
+    if x or x == 0:
+        if x in ("None", "nan", "none", "NA", "NAN") or x is None or x is np.nan:
             return True
-    except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
+        else:
+            return False
+    else:
+        return True
 
 
 # Calculate nrg/prob/bppm/ddg
 
 
+@check_run
 def _calc_gibbs(fc):
     """Calcuates Gibbs Free Energy for sequence
 
@@ -117,18 +102,10 @@ def _calc_gibbs(fc):
     """
 
     logid = scriptn + ".calc_gibbs: "
-    try:
-        return fc.pf()[1]
-    except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
+    return fc.pf()[1]
 
 
+@check_run
 def _get_bppm(matrix, start, end):
     """Extracts base pair probability matrix for sequence from start to end
 
@@ -147,31 +124,23 @@ def _get_bppm(matrix, start, end):
 
     logid = scriptn + ".get_bppm: "
     bppm = []
-    try:
-        if start < 0 or end > len(matrix):
-            log.warning(
-                f"{logid} start of constraint: {start} end of constraint: {end} "
-                f"while length of bpp matrix {len(matrix)} ! Skipping!"
-            )
-            return None
-
-        for item in matrix:
-            for i in range(int(start), int(end) + 1):
-                if item[i] > 0.0:
-                    bppm.append(str.join("\t", [str(matrix.index(item)), str(i), str(item[i])]))
-        if len(bppm) < 1:
-            log.error(logid + "Empty bpp matrix returned, stopping here!")
-        return bppm
-    except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
+    if start < 0 or end > len(matrix):
+        log.warning(
+            f"{logid} start of constraint: {start} end of constraint: {end} "
+            f"while length of bpp matrix {len(matrix)} ! Skipping!"
         )
-        log.error(logid + "".join(tbe.format()))
+        return None
+
+    for item in matrix:
+        for i in range(int(start), int(end) + 1):
+            if item[i] > 0.0:
+                bppm.append(str.join("\t", [str(matrix.index(item)), str(i), str(item[i])]))
+    if len(bppm) < 1:
+        log.error(logid + "Empty bpp matrix returned, stopping here!")
+    return bppm
 
 
+@check_run
 def _get_ddg(file):
     """Derives Delta-Delta Gibbs Free Energy for sequence from output file
 
@@ -187,35 +156,26 @@ def _get_ddg(file):
     """
 
     logid = scriptn + ".get_ddg: "
-    try:
-        ret = defaultdict(dict)
-        if isinstance(file, str) and os.path.isfile(file):
-            if ".gz" in file:
-                res = gzip.open(file, "rt")
+    ret = defaultdict(dict)
+    if isinstance(file, str) and os.path.isfile(file):
+        if ".gz" in file:
+            res = gzip.open(file, "rt")
+        else:
+            res = open(file, "rt")
+
+        for line in res:
+            log.debug(logid + line)
+            if "Condition" in line[0:15] or len(line.rstrip().split("\t")) < 5:
+                continue
             else:
-                res = open(file, "rt")
-
-            for line in res:
-                log.debug(logid + line)
-                if "Condition" in line[0:15] or len(line.rstrip().split("\t")) < 5:
-                    continue
-                else:
-                    cond, gibbs, dg, nrg, cons = line.rstrip().split("\t")
-                    ret[str(cond)] = float(dg)
-                    if ":" in cons:
-                        ret["constraint"] = cons
-        return ret
-
-    except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
+                cond, gibbs, dg, nrg, cons = line.rstrip().split("\t")
+                ret[str(cond)] = float(dg)
+                if ":" in cons:
+                    ret["constraint"] = cons
+    return ret
 
 
+@check_run
 def _calc_ddg(ddgs):
     """Calculates Delta-Delta-Gibbs Free Energy
 
@@ -233,27 +193,18 @@ def _calc_ddg(ddgs):
 
     logid = scriptn + ".calc_ddg: "
 
-    try:
-        log.debug(logid + str(ddgs))
-        cons_up = ddgs["constraint_unpaired"]
-        sec_cons_up = ddgs["secondconstraint_unpaired"]
-        both_cons_up = ddgs["bothconstraint_unpaired"]
-        uncons = ddgs["unconstrained"]
-        ddg = cons_up + sec_cons_up - both_cons_up - uncons
+    log.debug(logid + str(ddgs))
+    cons_up = ddgs["constraint_unpaired"]
+    sec_cons_up = ddgs["secondconstraint_unpaired"]
+    both_cons_up = ddgs["bothconstraint_unpaired"]
+    uncons = ddgs["unconstrained"]
+    ddg = cons_up + sec_cons_up - both_cons_up - uncons
 
-        log.debug(logid + str(ddg))
-        return ddg
-
-    except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
+    log.debug(logid + str(ddg))
+    return ddg
 
 
+@check_run
 def _calc_bpp(bppm):
     """Calculate base-pair probability
 
@@ -270,22 +221,13 @@ def _calc_bpp(bppm):
 
     logid = scriptn + ".calc_bpp: "
     bpp = 0.0
-    try:
-        for entry in bppm:
-            base, mate, prob = map(float, entry.split("\t"))
-            bpp += prob
-    except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
-
+    for entry in bppm:
+        base, mate, prob = map(float, entry.split("\t"))
+        bpp += prob
     return bpp
 
 
+@check_run
 def _calc_nrg(bpp):
     """Calculate pseudo opening energy from base-pair probability
 
@@ -304,20 +246,12 @@ def _calc_nrg(bpp):
     # set k_t for nrg2prob and vice versa calcs
     k_t = 0.61632077549999997
     nrg = 0.0
-    try:
-        if bpp > 0.0:
-            nrg = -1 * k_t * math.log(bpp)
-        return nrg
-    except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
+    if bpp > 0.0:
+        nrg = -1 * k_t * math.log(bpp)
+    return nrg
 
 
+@check_run
 def _print_region_up(data, seqlength=None, region=None):
     """Print pairing probability of region
 
@@ -342,30 +276,22 @@ def _print_region_up(data, seqlength=None, region=None):
     """
 
     logid = scriptn + ".print_region_up: "
-    try:
-        if data:
-            ups = ""
-            x = int(region)
-            for i in range(int(seqlength)):
-                if _isinvalid(data[i][x]):
-                    data[i][x] = np.nan
-                else:
-                    data[i][x] = round(data[i][x], 7)
-                ups += str(i + 1) + "\t" + str(data[i][x]) + "\n"
-            return ups
-        else:
-            log.error(logid + "No up data to print")
-            raise NameError("name 'ups' is not defined")
-    except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
+    if data:
+        ups = ""
+        x = int(region)
+        for i in range(int(seqlength)):
+            if _isinvalid(data[i][x]):
+                data[i][x] = np.nan
+            else:
+                data[i][x] = round(data[i][x], 7)
+            ups += str(i + 1) + "\t" + str(data[i][x]) + "\n"
+        return ups
+    else:
+        log.error(logid + "No up data to print")
+        raise NameError("name 'ups' is not defined")
 
 
+@check_run
 def _print_up(data=None, seqlength=None, region=None):
     """Print pairing probability
 
@@ -391,38 +317,30 @@ def _print_up(data=None, seqlength=None, region=None):
 
     logid = scriptn + ".print_up: "
     log.debug(logid + str(len(data)) + " " + str(seqlength) + " " + str(region))
-    try:
-        if data:
-            ups = ""
-            if seqlength and seqlength != len(data):
-                log.error(
-                    logid + "Lengths of sequence and array do not match: " + str(seqlength) + " and " + str(len(data))
-                )
-            for i in range(len(data)):
-                if i >= len(data):
-                    log.error(logid + "i larger than size of array")
-                for x in range(1, region + 1):
-                    if x >= len(data[i]):
-                        log.error(logid + "x larger than size of subarray")
-                    if _isinvalid(data[i][x]):
-                        data[i][x] = np.nan
-                    else:
-                        data[i][x] = round(data[i][x], 7)
-                ups += str(i + 1) + "\t" + "\t".join(map(str, data[i][1 : region + 1])) + "\n"
-            return ups
-        else:
-            log.error(logid + "No up data to print")
-            raise NameError("name 'ups' is not defined")
-    except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
+    if data:
+        ups = ""
+        if seqlength and seqlength != len(data):
+            log.error(
+                logid + "Lengths of sequence and array do not match: " + str(seqlength) + " and " + str(len(data))
+            )
+        for i in range(len(data)):
+            if i >= len(data):
+                log.error(logid + "i larger than size of array")
+            for x in range(1, region + 1):
+                if x >= len(data[i]):
+                    log.error(logid + "x larger than size of subarray")
+                if _isinvalid(data[i][x]):
+                    data[i][x] = np.nan
+                else:
+                    data[i][x] = round(data[i][x], 7)
+            ups += str(i + 1) + "\t" + "\t".join(map(str, data[i][1 : region + 1])) + "\n"
+        return ups
+    else:
+        log.error(logid + "No up data to print")
+        raise NameError("name 'ups' is not defined")
 
 
+@check_run
 def _up_to_array(data=None, region=None, seqlength=None):
     """Converts output of ViennaRNA fold_compound.probs_window to numpy array
 
@@ -443,58 +361,42 @@ def _up_to_array(data=None, region=None, seqlength=None):
 
     logid = scriptn + ".up_to_array: "
     entries = []
-    try:
-        if data:
-            if not seqlength:
-                seqlength = len(data)
-            if not region:
-                region = slice(1, len(data[0]))
-            for i in range(seqlength):
-                entries.append([])
-                for e in range(len(data[i])):
-                    if _isinvalid(data[i][e]):
-                        data[i][e] = np.nan
-                    else:
-                        data[i][e] = round(data[i][e], 8)
-                entries[i].append(data[i][region])
-            return np.array(entries)
-        else:
-            log.error(logid + "No up data to print")
-            return np.empty(region)
-    except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()) + "\t" + str(entries) + "\t" + str(region) + "\t" + str(seqlength))
+    if data:
+        if not seqlength:
+            seqlength = len(data)
+        if not region:
+            region = slice(1, len(data[0]))
+        for i in range(seqlength):
+            entries.append([])
+            for e in range(len(data[i])):
+                if _isinvalid(data[i][e]):
+                    data[i][e] = np.nan
+                else:
+                    data[i][e] = round(data[i][e], 8)
+            entries[i].append(data[i][region])
+        return np.array(entries)
+    else:
+        log.error(logid + "No up data to print")
+        return np.empty(region)
 
 
+@check_run
 def _npprint(a, o=None):  # format_string ='{0:.2f}'):
     """Pretty print of numpy array"""
 
     logid = scriptn + ".npprint: "
-    try:
-        out = ""
-        it = np.nditer(a, flags=["f_index"])
-        while not it.finished:
-            out += "%d\t%0.7f" % (it.index + 1, it[0]) + "\n"
-            it.iternext()
-        if o:
-            o.write(bytes(out, encoding="UTF-8"))
-        else:
-            print(out)
-    except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
+    out = ""
+    it = np.nditer(a, flags=["f_index"])
+    while not it.finished:
+        out += "%d\t%0.7f" % (it.index + 1, it[0]) + "\n"
+        it.iternext()
+    if o:
+        o.write(bytes(out, encoding="UTF-8"))
+    else:
+        print(out)
 
 
+@check_run
 def printdiff(a, o=None):
     """Print difference between numpy arrays
 
@@ -507,18 +409,10 @@ def printdiff(a, o=None):
     """
 
     logid = scriptn + ".printdiff: "
-    try:
-        np.save(o, a)
-    except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
+    np.save(o, a)
 
 
+@check_run
 def _read_precalc_plfold(data, name, seq):
     """Reads in plfold output of previous run
 
@@ -538,29 +432,21 @@ def _read_precalc_plfold(data, name, seq):
     """
 
     logid = scriptn + ".read_precalc_plfold: "
-    try:
-        for i in range(len(seq)):
-            data.append([])
-            data[i] = []
-        with gzip.open(name, "rt") as o:
-            for line in o:
-                cells = line.rstrip().split("\t")
+    for i in range(len(seq)):
+        data.append([])
+        data[i] = []
+    with gzip.open(name, "rt") as o:
+        for line in o:
+            cells = line.rstrip().split("\t")
+            data[int(cells[0]) - 1].append([])
+            data[int(cells[0]) - 1][0] = None
+            for a in range(1, len(cells)):
                 data[int(cells[0]) - 1].append([])
-                data[int(cells[0]) - 1][0] = None
-                for a in range(1, len(cells)):
-                    data[int(cells[0]) - 1].append([])
-                    data[int(cells[0]) - 1][a] = float(cells[a])
-        return data
-    except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
+                data[int(cells[0]) - 1][a] = float(cells[a])
+    return data
 
 
+@check_run
 def _pl_to_array(name, ulim, fmt="npy"):
     """Tranforms RNAPLFold output to numpy array
 
@@ -580,23 +466,15 @@ def _pl_to_array(name, ulim, fmt="npy"):
     """
 
     logid = scriptn + ".pl_to_array: "
-    try:
-        log.debug("\t".join([logid, name, str(ulim), fmt]))
-        if fmt == "txt":
-            return np.array(np.loadtxt(name, usecols=ulim, unpack=True, delimiter="\t", encoding="bytes"))
-        elif fmt == "npy":
-            # log.debug(np.load(name)[:,0][:,0])
-            return np.array(np.load(name)[:, 0][:, ulim - 1])
-    except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + " " + name + ": ".join(tbe.format()))
+    log.debug("\t".join([logid, name, str(ulim), fmt]))
+    if fmt == "txt":
+        return np.array(np.loadtxt(name, usecols=ulim, unpack=True, delimiter="\t", encoding="bytes"))
+    elif fmt == "npy":
+        # log.debug(np.load(name)[:,0][:,0])
+        return np.array(np.load(name)[:, 0][:, ulim - 1])
 
 
+@check_run
 def get_location(entry):
     """Returns location of folding window in genomic or local coordinates
 
@@ -612,30 +490,21 @@ def get_location(entry):
     """
 
     logid = scriptn + ".get_location: "
-    try:
-        ret = list()
-        start = end = strand = value = None
-        start, end = map(int, entry.split(sep="|")[0].split(sep="-"))
-        strand = str(entry.split(sep="|")[1])
-        value = str(entry.split(sep="|")[2]) if len(entry.split(sep="|")) > 2 else "."
-        ret.extend([start, end, strand, value])
+    ret = list()
+    start = end = strand = value = None
+    start, end = map(int, entry.split(sep="|")[0].split(sep="-"))
+    strand = str(entry.split(sep="|")[1])
+    value = str(entry.split(sep="|")[2]) if len(entry.split(sep="|")) > 2 else "."
+    ret.extend([start, end, strand, value])
 
-        if any([x == None for x in ret]):
-            log.warning(logid + "Undefined variable: " + str(ret))
+    if any([x == None for x in ret]):
+        log.warning(logid + "Undefined variable: " + str(ret))
 
-        log.debug(logid + str.join(" ", [str(entry), str(ret)]))
-        return ret
-
-    except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
+    log.debug(logid + str.join(" ", [str(entry), str(ret)]))
+    return ret
 
 
+@check_run
 def get_location_withchrom(entry):
     """Returns location of folding window in genomic or local coordinates with chromosome
 
@@ -651,34 +520,25 @@ def get_location_withchrom(entry):
     """
 
     logid = scriptn + ".get_location: "
-    try:
-        ret = list()
-        chrom = start = end = strand = None
-        chrom = map(str, entry.split(sep="|")[0].split(sep="-")[0])
-        start, end = map(int, entry.split(sep="|")[0].split(sep="-")[1:])
-        strand = str(entry.split(sep="|")[1])
-        value = str(entry.split(sep="|")[2]) if len(entry.split(sep="|")) > 2 else "."
-        ret.extend([chrom, start, end, strand, value])
+    ret = list()
+    chrom = start = end = strand = None
+    chrom = map(str, entry.split(sep="|")[0].split(sep="-")[0])
+    start, end = map(int, entry.split(sep="|")[0].split(sep="-")[1:])
+    strand = str(entry.split(sep="|")[1])
+    value = str(entry.split(sep="|")[2]) if len(entry.split(sep="|")) > 2 else "."
+    ret.extend([chrom, start, end, strand, value])
 
-        if any([x == None for x in ret]):
-            log.warning(logid + "Undefined variable: " + str(ret))
+    if any([x == None for x in ret]):
+        log.warning(logid + "Undefined variable: " + str(ret))
 
-        log.debug(logid + str.join(" ", [str(entry), str(ret)]))
-        return ret
-
-    except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
+    log.debug(logid + str.join(" ", [str(entry), str(ret)]))
+    return ret
 
 
 # Constraints
 
 
+@check_run
 def _constrain_paired(fc, start, end, fstart=None, fend=None):
     """Adds hard constraint paired to region
 
@@ -702,25 +562,17 @@ def _constrain_paired(fc, start, end, fstart=None, fend=None):
     """
 
     logid = scriptn + ".constrain_paired: "
-    try:
-        for x in range(start + 1, end + 1):
-            # 0 means without direction
-            # ( $ d < 0 $: pairs upstream, $ d > 0 $: pairs downstream, $ d == 0 $: no direction)
+    for x in range(start + 1, end + 1):
+        # 0 means without direction
+        # ( $ d < 0 $: pairs upstream, $ d > 0 $: pairs downstream, $ d == 0 $: no direction)
+        fc.hc_add_bp_nonspecific(x, 0)
+    if fstart and fend:
+        for x in range(fstart + 1, fend + 1):
             fc.hc_add_bp_nonspecific(x, 0)
-        if fstart and fend:
-            for x in range(fstart + 1, fend + 1):
-                fc.hc_add_bp_nonspecific(x, 0)
-        return fc
-    except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
+    return fc
 
 
+@check_run
 def _constrain_unpaired(fc, start, end, fstart=None, fend=None):
     """Adds hard constraint unpaired to region
 
@@ -744,23 +596,15 @@ def _constrain_unpaired(fc, start, end, fstart=None, fend=None):
     """
 
     logid = scriptn + ".constrain_unpaired: "
-    try:
-        for x in range(start + 1, end + 1):
+    for x in range(start + 1, end + 1):
+        fc.hc_add_up(x)
+    if fstart and fend:
+        for x in range(fstart + 1, fend + 1):
             fc.hc_add_up(x)
-        if fstart and fend:
-            for x in range(fstart + 1, fend + 1):
-                fc.hc_add_up(x)
-        return fc
-    except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
+    return fc
 
 
+@check_run
 def _constrain_paired_soft(fc, start, end, value, fstart=None, fend=None):
     """Adds hard constraint paired to region
 
@@ -788,25 +632,17 @@ def _constrain_paired_soft(fc, start, end, value, fstart=None, fend=None):
     logid = scriptn + ".constrain_paired: "
     log.error("Not implemented yet")
     raise NotImplementedError("Soft constraints for paired sequences need specific basepairs")
-    try:
-        for x in range(start + 1, end + 1):
-            # 0 means without direction
-            # ( $ d < 0 $: pairs upstream, $ d > 0 $: pairs downstream, $ d == 0 $: no direction)
+    for x in range(start + 1, end + 1):
+        # 0 means without direction
+        # ( $ d < 0 $: pairs upstream, $ d > 0 $: pairs downstream, $ d == 0 $: no direction)
+        fc.sc_add_bp(x, 0)
+    if fstart and fend:
+        for x in range(fstart + 1, fend + 1):
             fc.sc_add_bp(x, 0)
-        if fstart and fend:
-            for x in range(fstart + 1, fend + 1):
-                fc.sc_add_bp(x, 0)
-        return fc
-    except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
+    return fc
 
 
+@check_run
 def _constrain_unpaired_soft(fc, start, end, value, fstart=None, fend=None):
     """Adds hard constraint unpaired to region
 
@@ -832,23 +668,15 @@ def _constrain_unpaired_soft(fc, start, end, value, fstart=None, fend=None):
     """
 
     logid = scriptn + ".constrain_unpaired: "
-    try:
-        for x in range(start + 1, end + 1):
+    for x in range(start + 1, end + 1):
+        fc.sc_add_up(x, value)
+    if fstart and fend:
+        for x in range(fstart + 1, fend + 1):
             fc.sc_add_up(x, value)
-        if fstart and fend:
-            for x in range(fstart + 1, fend + 1):
-                fc.sc_add_up(x, value)
-        return fc
-    except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
+    return fc
 
 
+@check_run
 def _mutate(sequence, start, end, value, fstart=None, fend=None):
     """Mutates sequence according to value
 
@@ -874,25 +702,17 @@ def _mutate(sequence, start, end, value, fstart=None, fend=None):
     """
 
     logid = scriptn + ".constrain_unpaired: "
-    try:
-        log.debug(f"{logid} seq:{sequence} start:{start} end: {end} fstart:{fstart} fend:{fend} value:{value}")
-        seq = list(sequence)
-        for x in range(start, end):
-            seq[x] = value[x - start]
-        if fstart and fend:
-            for x in range(fstart, fend):
-                seq[x] = value[x - fstart]
-        return "".join(seq)
-    except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
+    log.debug(f"{logid} seq:{sequence} start:{start} end: {end} fstart:{fstart} fend:{fend} value:{value}")
+    seq = list(sequence)
+    for x in range(start, end):
+        seq[x] = value[x - start]
+    if fstart and fend:
+        for x in range(fstart, fend):
+            seq[x] = value[x - fstart]
+    return "".join(seq)
 
 
+@check_run
 def bpp_callback(v, v_size, i, maxsize, what, data):
     """Callback function for ViennaRNA API base-pair probability calculation
 
@@ -913,21 +733,11 @@ def bpp_callback(v, v_size, i, maxsize, what, data):
     """
 
     logid = scriptn + ".bpp_callback: "
-    try:
-        if what:
-            data["bpp"].extend(
-                [{"i": i, "j": j, "p": p} for j, p in enumerate(v) if (p is not None)]
-            )  # and (p >= 0.01)])
-    except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
+    if what:
+        data["bpp"].extend([{"i": i, "j": j, "p": p} for j, p in enumerate(v) if (p is not None)])  # and (p >= 0.01)])
 
 
+@check_run
 def _up_callback(v, v_size, i, maxsize, what, data):
     """Callback function for ViennaRNA API probability of being unpaired calculation
 
@@ -948,17 +758,8 @@ def _up_callback(v, v_size, i, maxsize, what, data):
     """
 
     logid = scriptn + ".up_callback: "
-    try:
-        if what:
-            data["up"].extend([v])
-    except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
+    if what:
+        data["up"].extend([v])
 
 
 class PLFoldOutput:
@@ -1476,6 +1277,7 @@ class FoldOutput(defaultdict):
         return "".join(formatted_string)
 
 
+@check_run
 def cmd_rnaplfold(
     sequence: str,
     window: int,
@@ -1583,6 +1385,7 @@ def cmd_rnaplfold(
         return rnaplfold_output
 
 
+@check_run
 def api_rnaplfold(
     sequence: str,
     window: int,
@@ -1676,6 +1479,7 @@ def api_rnaplfold(
     return pl_output
 
 
+@check_run
 def cmd_rnafold(
     sequence: str,
     window: int,
@@ -1755,6 +1559,7 @@ def cmd_rnafold(
         return rnafold_output
 
 
+@check_run
 def api_rnafold(
     sequence: str,
     span: int,
@@ -1916,6 +1721,7 @@ def api_rnafold(
     return FoldOut
 
 
+@check_run
 def _check_constraint(sequence_length: int, start: int, end: int):
     if start > end:
         raise ValueError(f"Constraint start ({start}) greater than end ({end})")

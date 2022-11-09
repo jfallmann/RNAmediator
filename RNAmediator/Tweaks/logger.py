@@ -42,7 +42,7 @@ def listener_process(queue, configurer, logfile, loglevel):
         configurer(logfile, loglevel)
 
         while True:
-            record = queue.get()
+            record = queue.get() if queue else None
             if record is None:
                 break  # We send this as a sentinel to tell the listener to quit.
             logger = logging.getLogger(record.name)

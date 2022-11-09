@@ -98,7 +98,9 @@ log = logging.getLogger(__name__)  # use module name
 SCRIPTNAME = os.path.basename(__file__).replace(".py", "")
 
 
-def screen_genes(queue, configurer, level, pat, border, procs, outdir, genes):
+def screen_genes(pat, border, procs, outdir, dir, genes, temperature, queue=None,
+    configurer=None,
+    level=None,):
 
     logid = SCRIPTNAME + ".screen_genes: "
     try:
@@ -130,32 +132,33 @@ def screen_genes(queue, configurer, level, pat, border, procs, outdir, genes):
             gs, ge, gstrand, value = get_location(genecoords[goi][0])
 
             # get files with specified pattern
-            paired = os.path.abspath(
+            rawfiles = os.path.abspath(
                 os.path.join(
+                    dir,
                     goi,
-                    goi + "*" + str(window) + "_" + str(span) + ".gz",
+                    goi + f"*{str(window)}_{str(span)}*_{str(temperature)}.gz",
                 )
             )
-
+            log.debug(f'COLLECTING: {rawfiles}')
             # search for files
-            p = natsorted(glob.glob(paired), key=lambda y: y.lower())
-            log.debug(logid + "Files found: " + str(p))
+            r = natsorted(glob.glob(rawfiles), key=lambda y: y.lower())
+            log.debug(logid + "Files found: " + str(r))
 
             # get absolute path for files
             nocons = []
 
-            paired = [os.path.abspath(i) for i in p]
+            rawfiles = [os.path.abspath(i) for i in r]
 
-            if not paired:
+            if not rawfiles:
                 log.warning(logid + "No output for gene " + str(goi) + " found, will skip!")
                 continue
 
             try:
-                for i in range(len(p)):
-                    log.debug(logid + "Adding file " + str(p[i]) + " to queue.")
+                for i in range(len(r)):
+                    log.debug(logid + "Adding file " + str(r[i]) + " to queue.")
                     pool.apply_async(
                         calc,
-                        args=(p[i], gs, ge, border, outdir),
+                        args=(r[i], gs, ge, border, outdir),
                         kwds={"queue": queue, "configurer": configurer, "level": level},
                     )
             except Exception:
@@ -171,13 +174,7 @@ def screen_genes(queue, configurer, level, pat, border, procs, outdir, genes):
         pool.join()
 
     except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
+       raise
 
 
 def calc(p, gs, ge, border, outdir, queue=None, configurer=None, level=None):
@@ -188,7 +185,7 @@ def calc(p, gs, ge, border, outdir, queue=None, configurer=None, level=None):
         if queue and level:
             configurer(queue, level)
 
-        goi, chrom, strand, cons, reg, window, span = map(str, os.path.basename(p).split(sep="_"))
+        goi, chrom, strand, cons, reg, window, span, temp = map(str, os.path.basename(p).split(sep="_"))
         border1, border2 = map(float, border.split(","))  # defines how big a diff has to be to be of importance
 
         log.info(logid + "Continuing calculation with borders: " + str(border1) + " and " + str(border2))
@@ -228,13 +225,7 @@ def calc(p, gs, ge, border, outdir, queue=None, configurer=None, level=None):
         return
 
     except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
+       raise
 
 
 def write_out(out, outdir):
@@ -257,13 +248,7 @@ def write_out(out, outdir):
                 ) as o:
                     o.write(bytes("\n".join(out[cons]), encoding="UTF-8"))
     except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
+        raise
 
 
 def main(args=None):
@@ -307,18 +292,24 @@ def main(args=None):
         log.info(logid + "Running " + SCRIPTNAME + " on " + str(args.procs) + " cores.")
         log.info(logid + "CLI: " + sys.argv[0] + " " + "{}".format(" ".join([shlex.quote(s) for s in sys.argv[1:]])))
 
-        screen_genes(
-            queue,
-            worker_configurer,
-            loglevel,
-            args.pattern,
-            args.border,
-            args.procs,
-            args.outdir,
-            args.genes,
-        )
-        queue.put_nowait(None)
-        listener.join()
+        try:
+            result = screen_genes(
+                args.pattern,
+                args.border,
+                args.procs,
+                args.outdir,
+                args.dir,
+                args.genes,
+                args.temperature,
+                queue=queue,
+                configurer=worker_configurer,
+                level=args.loglevel,
+            )
+            queue.put(None)
+            listener.join()
+            return 0
+        except Exception:
+            raise
 
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -327,8 +318,12 @@ def main(args=None):
             exc_value,
             exc_tb,
         )
-        log.error(logid + "".join(tbe.format()))
-
+        print(f'ERROR: {logid} {"".join(tbe.format())}')
+        if log:
+            log.error(logid + "".join(tbe.format()))
+        listener.terminate()
+        sys.exit(1)
+        
 
 ####################
 ####    MAIN    ####

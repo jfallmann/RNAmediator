@@ -107,9 +107,6 @@ def apply_args_and_kwargs(fn, args, kwargs):
 
 
 def screen_genes(
-    queue,
-    configurer,
-    level,
     pat,
     cutoff,
     border,
@@ -121,6 +118,9 @@ def screen_genes(
     dir,
     genes,
     padding,
+    queue=None,
+    configurer=None,
+    level=None,
 ):
 
     logid = SCRIPTNAME + ".screen_genes: "
@@ -193,7 +193,7 @@ def screen_genes(
             paired = [os.path.abspath(i) for i in p]
             unpaired = [os.path.abspath(i) for i in u]
 
-            log.debug(logid + "PATHS: " + str(len(r)) + "\t" + str(len(p)) + "\t" + str(len(u)))
+            log.debug(logid + "PATHENTRIES: " + str(len(r)) + "\t" + str(len(p)) + "\t" + str(len(u)))
 
             if not raw:
                 log.warning(
@@ -290,13 +290,7 @@ def screen_genes(
                         continue
 
             except Exception:
-                exc_type, exc_value, exc_tb = sys.exc_info()
-                tbe = tb.TracebackException(
-                    exc_type,
-                    exc_value,
-                    exc_tb,
-                )
-                log.error(logid + "".join(tbe.format()))
+                raise
         with multiprocessing.Pool(num_processes, maxtasksperchild=1) as pool:
             outlist = starmap_with_kwargs(
                 pool,
@@ -310,10 +304,10 @@ def screen_genes(
                     },
                     len(call_list),
                 ),
-            )
+            )            
             pool.close()
             pool.join()
-        for entry in outlist:
+        for entry in outlist:            
             savelists(entry, outdir)
 
     except Exception:
@@ -360,7 +354,7 @@ def judge_diff(
         ce = ce - ws  # fit to window and make 0-based closed
 
         if 0 > any([cs, ce, ws, we]):
-            raise Exception(
+            raise ValueError(
                 "One of "
                 + str([cs, ce, ws, we])
                 + " lower than 0! this should not happen for "
@@ -605,14 +599,7 @@ def judge_diff(
                             )
         return out
     except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
-
+        raise
 
 def savelists(out, outdir):
 
@@ -630,13 +617,7 @@ def savelists(out, outdir):
                 o.write(bytes("\n".join(out["p"]), encoding="UTF-8"))
                 o.write(bytes("\n", encoding="UTF-8"))
     except Exception:
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        tbe = tb.TracebackException(
-            exc_type,
-            exc_value,
-            exc_tb,
-        )
-        log.error(logid + "".join(tbe.format()))
+        raise
 
 
 def main(args=None):
@@ -680,25 +661,29 @@ def main(args=None):
         log.info(logid + "Running " + SCRIPTNAME + " on " + str(args.procs) + " cores.")
         log.info(logid + "CLI: " + sys.argv[0] + " " + "{}".format(" ".join([shlex.quote(s) for s in sys.argv[1:]])))
 
-        screen_genes(
-            queue,
-            worker_configurer,
-            loglevel,
-            args.pattern,
-            args.cutoff,
-            args.border,
-            args.ulimit,
-            args.temperature,
-            args.procs,
-            args.unconstrained,
-            args.outdir,
-            args.dir,
-            args.genes,
-            args.padding,
-        )
-
-        queue.put_nowait(None)
-        listener.join()
+        try:
+            result = screen_genes(
+                args.pattern,
+                args.cutoff,
+                args.border,
+                args.ulimit,
+                args.temperature,
+                args.procs,
+                args.unconstrained,
+                args.outdir,
+                args.dir,
+                args.genes,
+                args.padding,
+                queue=queue,
+                configurer=worker_configurer,
+                level=args.loglevel,
+            )
+            
+            queue.put(None)
+            listener.join()
+            return 0
+        except Exception:
+            raise
 
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()

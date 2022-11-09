@@ -121,6 +121,7 @@ def scan_input(
     genes,
     chromsizes,
     padding,
+    chromstr,
 ):
     """Scan input for files of interest
 
@@ -187,7 +188,7 @@ def scan_input(
         num_processes = procs or 1
         call_list = []
 
-        header = read_chromsize(chromsizes)
+        header = read_chromsize(chromsizes, chromstr)
         rawbigfw = rawbigre = unpbigfw = unpbigre = paibigfw = paibigre = None
 
         filepaths = [
@@ -228,19 +229,7 @@ def scan_input(
             filelist = equalize_lists([raw, unpaired, paired], goi)
 
             call_list.append(
-                (
-                    goi,
-                    filelist,
-                    chrom,
-                    gs,
-                    ge,
-                    gstrand,
-                    ulim,
-                    cutoff,
-                    border,
-                    outdir,
-                    padding,
-                ),
+                (goi, filelist, chrom, gs, ge, gstrand, ulim, cutoff, border, outdir, padding, chromstr),
             )
 
         with multiprocessing.Pool(num_processes, maxtasksperchild=1) as pool:
@@ -284,6 +273,7 @@ def generate_bws(
     border,
     outdir,
     padding,
+    chromstr,
     queue=None,
     configurer=None,
     level=None,
@@ -329,13 +319,13 @@ def generate_bws(
 
         if raw:
             for i in range(len(raw)):
-                out.append(create_bw_entries(raw[i], goi, gstrand, gs, ge, cutoff, border, ulim, padding))
+                out.append(create_bw_entries(raw[i], goi, gstrand, gs, ge, cutoff, border, ulim, padding, chromstr))
         elif up:
             for i in range(len(up)):
-                out.append(create_bw_entries(up[i], goi, gstrand, gs, ge, cutoff, border, ulim, padding))
+                out.append(create_bw_entries(up[i], goi, gstrand, gs, ge, cutoff, border, ulim, padding, chromstr))
         elif pa:
             for i in range(len(pa)):
-                out.append(create_bw_entries(pa[i], goi, gstrand, gs, ge, cutoff, border, ulim, padding))
+                out.append(create_bw_entries(pa[i], goi, gstrand, gs, ge, cutoff, border, ulim, padding, chromstr))
         return out
 
     except Exception:
@@ -509,6 +499,7 @@ def getfiles(name, window, span, temperature, goi, indir=None):
         return None
     else:
         # get files with specified pattern
+        temperature = re.sub("[.,]", "", str(temperature))
         lookfor = os.path.abspath(
             os.path.join(
                 indir,
@@ -540,7 +531,7 @@ def getfiles(name, window, span, temperature, goi, indir=None):
             return fullname
 
 
-def read_chromsize(cs, limit=32):
+def read_chromsize(cs, chromstr=None, limit=32):
     """Read chromosome sizes from file
 
     Parameters
@@ -564,16 +555,23 @@ def read_chromsize(cs, limit=32):
     sizes = [tuple((str(x), int(y))) for x, y in [l.split("\t") for l in sizes]]
     for i in range(len(sizes)):
         l = list(sizes[i])
-        if l[0][:2] != "chr":  # UCSC needs chr in chromname
-            if l[0][:2] == "CHR":
-                l[0] = "chr" + l[3:]
-            else:
-                l[0] = "chr" + l[0]
-        if len(l[0]) > limit:  # UCSC only allows 32char lenght strings
-            l[0] = l[0][:limit]
+        l[0] = add_chrstr(l[0], chromstr, limit)
         sizes[i] = tuple(l)
     log.debug(f"{logid} {sizes}")
     return sizes
+
+
+def add_chrstr(chrom, chromstr, limit=32):
+    if chromstr:
+        chromstr_up = chromstr.upper()
+        if chromstr not in chrom[:3]:  # UCSC needs chr in chromname
+            if chromstr_up in chrom[:3]:
+                chrom = chromstr + chrom[3:]
+            else:
+                chrom = chromstr + chrom
+    if len(chrom) > limit:  # UCSC only allows 32char lenght strings
+        chrom = chrom[:limit]
+    return chrom
 
 
 def equalize_lists(listoflists, id=None):
@@ -589,7 +587,7 @@ def equalize_lists(listoflists, id=None):
     return listoflists
 
 
-def create_bw_entries(fname, goi, gstrand, gs, ge, cutoff, border, ulim, padding):
+def create_bw_entries(fname, goi, gstrand, gs, ge, cutoff, border, ulim, padding, chromstr):
     """Create entries for BigWig files
 
     Parameters
@@ -641,12 +639,7 @@ def create_bw_entries(fname, goi, gstrand, gs, ge, cutoff, border, ulim, padding
                 str, str(os.path.basename(fname)).replace(repl + "_", "", 1).split(sep="_")
             )
 
-        if chrom[:2] != "chr":  # UCSC needs chr in chromname
-            if chrom[:2] == "CHR":
-                chrom = "chr" + chrom[3:]
-            else:
-                chrom = "chr" + chrom
-
+        chrom = add_chrstr(chrom, chromstr)
         temperature = temperature.replace(".npy", "")
         span = span.split(sep=".")[0]
         cs, ce = map(int, cons.split(sep="-"))
@@ -857,28 +850,32 @@ def main(args=None):
         log.info(logid + "Running " + SCRIPTNAME + " on " + str(args.procs) + " cores.")
         log.info(logid + "CLI: " + sys.argv[0] + " " + "{}".format(" ".join([shlex.quote(s) for s in sys.argv[1:]])))
 
-        scan_input(
-            queue,
-            worker_configurer,
-            loglevel,
-            args.pattern,
-            args.cutoff,
-            args.border,
-            args.ulimit,
-            args.temperature,
-            args.procs,
-            args.unconstrained,
-            args.unpaired,
-            args.paired,
-            args.outdir,
-            args.dir,
-            args.genes,
-            args.chromsizes,
-            args.padding,
-        )
-
-        queue.put_nowait(None)
-        listener.join()
+        try:
+            scan_input(
+                queue,
+                worker_configurer,
+                loglevel,
+                args.pattern,
+                args.cutoff,
+                args.border,
+                args.ulimit,
+                args.temperature,
+                args.procs,
+                args.unconstrained,
+                args.unpaired,
+                args.paired,
+                args.outdir,
+                args.dir,
+                args.genes,
+                args.chromsizes,
+                args.padding,
+                args.chromprefix,
+            )
+            queue.put(None)
+            listener.join()
+            return 0
+        except Exception:
+            raise
 
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -887,7 +884,11 @@ def main(args=None):
             exc_value,
             exc_tb,
         )
-        log.error(logid + "".join(tbe.format()))
+        if log:
+            log.error(outer_logid + "".join(outer_tbe.format()))
+        else:
+            print(f'ERROR: {outer_logid} {"".join(outer_tbe.format())}')
+        sys.exit(1)
 
 
 ####################
@@ -906,7 +907,11 @@ if __name__ == "__main__":
             exc_value,
             exc_tb,
         )
-        log.error(logid + "".join(tbe.format()))
+        if log:
+            log.error(outer_logid + "".join(outer_tbe.format()))
+        else:
+            print(f'ERROR: {outer_logid} {"".join(outer_tbe.format())}')
+        sys.exit(1)
 
 ######################################################################
 ### GenerateBigWig.py ends here

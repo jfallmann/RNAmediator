@@ -214,7 +214,7 @@ def parseargs_collectpl():
         "--pattern",
         type=str,
         default="240,60",
-        help="Pattern for files and window, e.g. Seq1_30,250",
+        help="Pattern for window and span, e.g. 240,60",
     )
     parser.add_argument(
         "-c",
@@ -279,8 +279,7 @@ def parseargs_collectpl():
         "--padding",
         type=int,
         default=1,
-        help="Padding around constraint that will be excluded from report, default is 1, "
-        "so directly overlapping effects will be ignored",
+        help="Padding around constraint that will be excluded from report, default is 1, so directly overlapping effects will be ignored",
     )
     parser.add_argument(
         "--version",
@@ -347,8 +346,8 @@ def parseargs_browser():
     parser.add_argument(
         "-t",
         "--temperature",
-        type=int,
-        default=37,
+        type=float,
+        default=37.0,
         help="Temperature for structure prediction",
     )
     parser.add_argument("-o", "--outdir", type=str, default="", help="Directory to write to")
@@ -364,6 +363,12 @@ def parseargs_browser():
         "--chromsizes",
         type=str,
         help="Chromosome sizes file",
+    )
+    parser.add_argument(
+        "--chromprefix",
+        type=str,
+        default='chr',
+        help="Prefix for chromosome names, e.g. 'chr', needed if chromosome names do not contain a prefix that the browser requires. ENSEMBL data has not leading 'chr' while UCSC expects chromosomes to start with 'chr'",
     )
     parser.add_argument(
         "-z",
@@ -407,13 +412,6 @@ def parseargs_foldcons():
     parser.add_argument("-w", "--window", type=int, default=None, help="Size of window")
     parser.add_argument("-l", "--span", type=int, default=None, help="Maximum bp span")
     parser.add_argument(
-        "-c",
-        "--cutoff",
-        type=float,
-        default=-0.01,
-        help="Only print prob greater cutoff",
-    )
-    parser.add_argument(
         "-x",
         "--constrain",
         type=str,
@@ -423,7 +421,7 @@ def parseargs_foldcons():
         "if paired, the first entry of the file will become a fixed constraint and paired "
         "with all the others, e.g. Sequence1_constraints, "
         "choices = [off, sliding, file, paired,"
-        " or simply 1-10,2-11 or 1-10;15-20,2-11:16-21 for paired]",
+        " or simply 1-10,2-11 or 1-10:15-20,2-11:16-21 for paired]",
     )
     parser.add_argument(
         "-y",
@@ -433,19 +431,27 @@ def parseargs_foldcons():
         help="Length of region to constrain for slidingwindow",
     )
     parser.add_argument(
+        "--constype",
+        type=str,
+        default="hard",
+        choices=["hard", "soft", "mutate"],
+        help="Choose what type of constraint to apply, can be ['hard'(Default), 'soft'(not fully implemented yet), 'mutate']",
+    )
+    parser.add_argument(
         "-t",
         "--temperature",
-        type=int,
-        default=37,
+        type=float,
+        default=37.0,
         help="Temperature for structure prediction",
     )
     parser.add_argument(
         "--save",
         type=str,
-        default="STDOUT",
-        help="Save the output as gz file with that name",
+        default='file',
+        help="If not STDOUT will be saved to file(default)",
     )
     parser.add_argument("-o", "--outdir", type=str, default="", help="Directory to write to")
+    parser.add_argument("-d", "--dir", type=str, default="", help="Directory to read from")
     parser.add_argument(
         "-z",
         "--procs",
@@ -505,7 +511,15 @@ def parseargs_collect_window():
         default="-inf,inf",
         help="Cutoff for the minimum change between unconstrained and constraint structure, regions below this cutoff will not be returned as list of regions with most impact on structure.",
     )
+    parser.add_argument(
+        "-t",
+        "--temperature",
+        type=float,
+        default=37.0,
+        help="Temperature for structure prediction",
+    )
     parser.add_argument("-o", "--outdir", type=str, default="", help="Directory to write to")
+    parser.add_argument("-d", "--dir", type=str, default="", help="Directory to read from")
     parser.add_argument(
         "-g",
         "--genes",
@@ -574,7 +588,15 @@ def parseargs_collect_windowdiff():
         default=1,
         help="Stretch of nucleotides used during plfold run (-u option)",
     )
+    parser.add_argument(
+        "-t",
+        "--temperature",
+        type=float,
+        default=37.0,
+        help="Temperature for structure prediction",
+    )
     parser.add_argument("-o", "--outdir", type=str, default="", help="Directory to write to")
+    parser.add_argument("-d", "--dir", type=str, default="", help="Directory to read from")
     parser.add_argument(
         "-g",
         "--genes",
