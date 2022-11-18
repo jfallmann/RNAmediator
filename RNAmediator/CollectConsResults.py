@@ -304,9 +304,7 @@ def screen_genes(
                     },
                     len(call_list),
                 ),
-            )            
-            pool.close()
-            pool.join()
+            )
         for entry in outlist:            
             savelists(entry, outdir)
 

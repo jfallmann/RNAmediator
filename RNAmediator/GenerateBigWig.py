@@ -246,8 +246,6 @@ def scan_input(
                     len(call_list),
                 ),
             )
-            pool.close()
-            pool.join()
         # outlist = sortout(outlist)
         writebws(outlist, bwlist, filepaths)
 
