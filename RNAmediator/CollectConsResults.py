@@ -353,7 +353,7 @@ def judge_diff(
         cs = cs - ws  # fit to window and make 0-based
         ce = ce - ws  # fit to window and make 0-based closed
 
-        if 0 > any([cs, ce, ws, we]):
+        if np.any(np.asarray([cs, ce, ws, we]) < 0):
             raise ValueError(
                 "One of "
                 + str([cs, ce, ws, we])
