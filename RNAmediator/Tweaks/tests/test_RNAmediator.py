@@ -19,8 +19,6 @@ from RNAmediator.Tweaks.RNAmediator import (
 
 TESTFOLDER = os.path.dirname(os.path.abspath(__file__))
 TESTDATAPATH = os.path.join(TESTFOLDER, "testdata")
-TMP_DIR = TemporaryDirectory()
-TMP_TEST_DIR = TMP_DIR.name
 
 
 @pytest.fixture

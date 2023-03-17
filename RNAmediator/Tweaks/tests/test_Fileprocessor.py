@@ -3,7 +3,6 @@ from io import StringIO, TextIOWrapper
 from collections import defaultdict
 import pytest
 import gzip
-from tempfile import TemporaryDirectory
 from RNAmediator.Tweaks.FileProcessor import (
     parseseq,
     idfromfa,
@@ -15,8 +14,6 @@ from RNAmediator.Tweaks.FileProcessor import (
 
 TESTFOLDER = os.path.dirname(os.path.abspath(__file__))
 TESTDATAPATH = os.path.join(TESTFOLDER, "testdata")
-TMP_DIR = TemporaryDirectory()
-TMP_TEST_DIR = TMP_DIR.name
 
 
 @pytest.mark.parametrize(
@@ -121,8 +118,8 @@ def gene_coords_string():
 
 
 @pytest.fixture()
-def gene_coords_bed(gene_coords_string):
-    file = os.path.join(TMP_TEST_DIR, "gene_coords.bed")
+def gene_coords_bed(gene_coords_string, tmp_path):
+    file = os.path.join(tmp_path, "gene_coords.bed")
     with open(file, "w") as handle:
         handle.write(gene_coords_string)
     yield file
@@ -130,8 +127,8 @@ def gene_coords_bed(gene_coords_string):
 
 
 @pytest.fixture()
-def gene_coords_bed(gene_coords_string):
-    file = os.path.join(TMP_TEST_DIR, "gene_coords.bed")
+def gene_coords_bed(gene_coords_string, tmp_path):
+    file = os.path.join(tmp_path, "gene_coords.bed")
     with open(file, "w") as handle:
         handle.write(gene_coords_string)
     yield file
@@ -139,8 +136,8 @@ def gene_coords_bed(gene_coords_string):
 
 
 @pytest.fixture()
-def gene_coords_bed_gz(gene_coords_string):
-    file = os.path.join(TMP_TEST_DIR, "gene_coords.bed.gz")
+def gene_coords_bed_gz(gene_coords_string, tmp_path):
+    file = os.path.join(tmp_path, "gene_coords.bed.gz")
     with gzip.open(file, "w") as handle:
         handle.write(bytes(gene_coords_string, encoding="utf-8"))
     yield file

@@ -22,9 +22,6 @@ TESTFOLDER = os.path.dirname(os.path.abspath(__file__))
 TESTDATAPATH = os.path.join(TESTFOLDER, "testdata")
 PARPATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PROJECT_DIR = os.path.dirname(os.path.dirname(PARPATH))
-TMP_DIR = TemporaryDirectory()
-TMP_TEST_DIR = TMP_DIR.name
-
 
 def random_sequence(seed: int = 1):
     random.seed(seed)
