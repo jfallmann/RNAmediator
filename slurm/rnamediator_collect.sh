@@ -1,14 +1,14 @@
-#!/bin/zsh
-#SBATCH --job-name=RIssMed
+#!/bin/bash
+#SBATCH --job-name=RNAmedRan
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=15
-#SBATCH --time=96:00:00
-#SBATCH --mem=50G
+#SBATCH --cpus-per-task=8
+#SBATCH --time=196:00:00
+#SBATCH --mem=20G
 #SBATCH --mail-user=fall@bioinf.uni-leipzig.de
 #SBATCH --mail-type=FAIL,BEGIN,END
-#SBATCH --output=/scr/k70san2/fall/SLURM/RIssMed.%J.log
-##SBATCH --error=/scr/k70san2/fall/SLURM/RIssMed.%J.err
+#SBATCH --output=RNAmedRan.%J.log
+##SBATCH --error=RNAmedRan.%J.err
 
 echo "JOB = $SLURM_JOB_NAME"
 echo "Date              = $(date)"
@@ -19,6 +19,4 @@ echo "Number of Nodes Allocated      = $SLURM_JOB_NUM_NODES"
 echo "Number of Tasks Allocated      = $SLURM_NTASKS"
 echo "Number of Cores/Task Allocated = $SLURM_CPUS_PER_TASK"
 
-ca rnamediator
-cd /scr/k70san2/fall/Constraints/miRNAs/mirwalk_coop
-~/Projects/INPROGRESS/RNAmediator/RNAmediator/CollectConsResults.py -u 7 -z 15 -g ../targetgenes.bed.gz -b-1,1 -c 0 -p 250,150 -o Collection_mirnas
+RNAmediator_collect_plfold -u 9 -g ${GROUP}.bed.gz -b 1 -c 0 -p ${WINDOW},${SPAN} -o Collection_${GROUP} -d ${GROUP}_${WINDOW}_${SPAN}_fold
