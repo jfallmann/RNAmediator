@@ -219,10 +219,11 @@ def test_mutate(sequence, start, end, value, request, caplog):
 @pytest.mark.parametrize(
     "outfile",
     [
-        os.path.join(TMP_TEST_DIR, "saved_array.npy"),
+        "saved_array.npy",
     ],
 )
-def test_printdiff(diff_numpy_array, outfile):
+def test_printdiff(diff_numpy_array, outfile, tmp_path):
+    outfile = os.path.join(tmp_path, outfile)
     printdiff(diff_numpy_array, outfile)
     assert os.path.exists(outfile)
 
@@ -239,12 +240,13 @@ def test_printdiff_with_defaults(diff_numpy_array, caplog):
 @pytest.mark.parametrize(
     "outfile",
     [
-        os.path.join(TMP_TEST_DIR, "saved_array_print.npy"),
+        "saved_array_print.npy",
         None,
     ],
 )
-def test_npprint(diff_numpy_array, outfile, capsys):
+def test_npprint(diff_numpy_array, outfile, capsys, tmp_path):
     if outfile is not None:
+        outfile = os.path.join(tmp_path, outfile)
         file = open(outfile, "wb")
         _npprint(diff_numpy_array, file)
         captured = capsys.readouterr()

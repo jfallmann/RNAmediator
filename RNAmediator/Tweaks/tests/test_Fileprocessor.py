@@ -80,7 +80,7 @@ def test_constraints_from_bed(bedfile, linewise, expected, caplog):
 def test_paired_constraints_from_bed(bedfile, linewise, expected, caplog):
     if isinstance(bedfile, StringIO) or isinstance(bedfile, TextIOWrapper):
         bedfile.seek(0)
-        
+
     try:
         constraints = read_paired_constraints_from_bed(bedfile, linewise)
 
@@ -96,19 +96,19 @@ def test_paired_constraints_from_bed(bedfile, linewise, expected, caplog):
                         assert "|" in cons
                         assert "-" in cons
                 assert caplog.text == ""
-    except ValueError:        
+    except ValueError:
         pass
-    
 
 
 @pytest.mark.parametrize(
     "dir_path",
     [
-        os.path.join(TMP_TEST_DIR, "Foo"),
-        os.path.join(TMP_TEST_DIR, "bla/Foo"),
+        "Foo",
+        "bla/Foo",
     ],
 )
-def test_make_outdir(dir_path, caplog):
+def test_make_outdir(dir_path, caplog, tmp_path):
+    dir_path = os.path.join(tmp_path, dir_path)
     outdir = make_outdir(dir_path)
     assert os.path.exists(outdir)
     assert caplog.text == ""

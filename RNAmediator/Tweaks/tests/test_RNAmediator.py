@@ -418,8 +418,9 @@ def test_add_rnamediator_constraint(cons1, cons2, expected_length, sequence_stri
         assert len(conslist[1]) == expected_length
 
 
-@pytest.mark.parametrize("outdir", ["", os.path.join(TMP_TEST_DIR, "preprocess")])
-def test_preprocess(single_sequence_fasta, single_bedfile, outdir):
+@pytest.mark.parametrize("outdir", ["", "preprocess"])
+def test_preprocess(single_sequence_fasta, single_bedfile, outdir, tmp_path):
+    outdir = os.path.join(tmp_path, outdir)
     run_settings, outdir = preprocess(single_sequence_fasta, single_bedfile, 1, "hard", outdir, "")
     assert os.path.isdir(outdir)
     assert isinstance(run_settings, dict)
