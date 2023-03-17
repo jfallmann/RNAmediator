@@ -291,24 +291,25 @@ def screen_genes(
 
             except Exception:
                 raise
-        with multiprocessing.Pool(num_processes, maxtasksperchild=1) as pool:
-            outlist = starmap_with_kwargs(
-                pool,
-                judge_diff,
-                call_list,
-                repeat(
-                    {
-                        "queue": queue,
-                        "configurer": configurer,
-                        "level": level,
-                    },
-                    len(call_list),
-                ),
-            )            
-            pool.close()
-            pool.join()
-        for entry in outlist:            
-            savelists(entry, outdir)
+        # we are processing this in chunks now since it will avoid loading everything at once into memory
+        chunks = [chunk for chunk in get_chunks(call_list, 10000)]
+        for call_list in chunks:
+            with multiprocessing.Pool(num_processes, maxtasksperchild=1) as pool:
+                outlist = starmap_with_kwargs(
+                    pool,
+                    judge_diff,
+                    call_list,
+                    repeat(
+                        {
+                            "queue": queue,
+                            "configurer": configurer,
+                            "level": level,
+                        },
+                        len(call_list)
+                    ),
+                )
+            for entry in outlist:
+                savelists(entry, outdir)
 
     except Exception:
         exc_type, exc_value, exc_tb = sys.exc_info()
@@ -318,6 +319,12 @@ def screen_genes(
             exc_tb,
         )
         log.error(logid + "".join(tbe.format()))
+
+
+def get_chunks(lst, n):
+    """Yield successive n-sized chunks from lst."""
+    for i in range(0, len(lst), n):
+        yield lst[i:i + n]
 
 
 def judge_diff(
