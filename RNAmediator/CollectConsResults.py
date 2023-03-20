@@ -122,7 +122,6 @@ def screen_genes(
     configurer=None,
     level=None,
 ):
-
     logid = SCRIPTNAME + ".screen_genes: "
     try:
         # set path for output
@@ -278,14 +277,10 @@ def screen_genes(
                         )
 
                     else:
-                        log.debug(logid + "MISMATCH: " + uncons + "\t" + unpa + "\t" + pair)
+                        log.debug(logid + f"MISMATCH: {uncons} \t {unpaired} \t {paired}")
                         log.warning(
                             logid
-                            + "Files for raw and constraint do not match or no difference has been found in pairing probabilities, skipping "
-                            + str(unpa)
-                            + " and "
-                            + str(pair)
-                            + "!"
+                            + f"Files for raw and constraint do not match or no difference has been found in pairing probabilities, skipping {unpaired} and {paired}!"
                         )
                         continue
 
@@ -305,7 +300,7 @@ def screen_genes(
                             "configurer": configurer,
                             "level": level,
                         },
-                        len(call_list)
+                        len(call_list),
                     ),
                 )
             for entry in outlist:
@@ -324,7 +319,7 @@ def screen_genes(
 def get_chunks(lst, n):
     """Yield successive n-sized chunks from lst."""
     for i in range(0, len(lst), n):
-        yield lst[i:i + n]
+        yield lst[i : i + n]
 
 
 def judge_diff(
@@ -344,7 +339,6 @@ def judge_diff(
     configurer=None,
     level=None,
 ):
-
     logid = SCRIPTNAME + ".judge_diff: "
     try:
         if queue and level:
@@ -445,7 +439,7 @@ def judge_diff(
                 + str(np.all(uc[ulim : ulim + 10]))
             )
 
-            epsilon = 10 ** -50
+            epsilon = 10**-50
             preaccu = noc + uc + epsilon
             preaccp = noc + pc + epsilon if p else None
 
@@ -608,8 +602,8 @@ def judge_diff(
     except Exception:
         raise
 
-def savelists(out, outdir):
 
+def savelists(out, outdir):
     logid = SCRIPTNAME + ".savelist: "
     try:
         if len(out["u"]) > 0:
@@ -685,7 +679,7 @@ def main(args=None):
                 configurer=worker_configurer,
                 level=args.loglevel,
             )
-            
+
             queue.put(None)
             listener.join()
             return 0
@@ -706,7 +700,6 @@ def main(args=None):
 ####    MAIN    ####
 ####################
 if __name__ == "__main__":
-
     logid = SCRIPTNAME + ".main: "
     try:
         main()
